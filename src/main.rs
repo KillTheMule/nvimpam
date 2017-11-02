@@ -137,10 +137,18 @@ fn makeafold(nvim: &mut Neovim, lines: &Vec<String>) {
 }
 
 fn start_event_loop(receiver: &mpsc::Receiver<Event>, mut nvim: Neovim) {
+    use std::process;
     let curbuf = nvim.get_current_buf().unwrap();
-    curbuf.live_updates(&mut nvim, true).expect(
-        "Liveupdates :(",
-    );
+    debug!("Before call");
+    match curbuf.live_updates(&mut nvim, true) {
+        Ok(_) => {},
+        Err(e) => {
+            error!("{:?}", e);
+            process::exit(1);
+        }
+    }
+    debug!("after call");
+        
     loop {
         match receiver.recv() {
             Ok(Event::LiveUpdateStart { ref linedata, .. }) => makeafold(&mut nvim, linedata),
