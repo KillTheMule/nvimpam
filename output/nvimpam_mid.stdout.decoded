@@ -1,0 +1,8 @@
+[0,0,"nvim_command",["echom \"rust client connected to neovim\""]]
+[0,1,"nvim_subscribe",["LiveUpdateStart"]]
+[0,2,"nvim_subscribe",["LiveUpdate"]]
+[0,3,"nvim_subscribe",["LiveUpdateTick"]]
+[0,4,"nvim_subscribe",["LiveUpdateEnd"]]
+[0,5,"nvim_subscribe",["quit"]]
+[0,6,"nvim_get_current_buf",["quit"]]
+[0,7,"nvim_buf_live_updates",["quit"]]
