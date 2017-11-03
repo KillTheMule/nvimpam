@@ -3,7 +3,7 @@ if ! exists('s:jobid')
 endif
 
 let s:scriptdir = resolve(expand('<sfile>:p:h') . '/..')
-let s:bin = s:scriptdir . '/target/debug/nvimpam'
+let s:bin = s:scriptdir . '/redir.sh' 
 
 function! nvimpam#init()
   call nvimpam#connect()
@@ -16,6 +16,7 @@ function! nvimpam#connect()
     echoerr "Nvimpam: cannot start rpc process"
   elseif -1 == result
     echoerr "Nvimpam: rpc process is not executable"
+    echoerr s:bin
   else
     let s:jobid = result
     call s:ConfigureJob(result)
