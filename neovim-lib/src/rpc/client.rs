@@ -146,7 +146,7 @@ impl<R, W> Client<R, W>
             let msg = match model::decode(&mut reader) {
                 Ok(msg) => msg,
                 Err(e) => {
-                    debug!("Error reading {}", e);
+                    debug!("Error decoding: {}", e);
                     return;
                 }
             };
