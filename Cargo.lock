@@ -41,8 +41,8 @@ name = "neovim-lib"
 version = "0.4.3"
 dependencies = [
  "log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "rmp 0.8.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "rmpv 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rmp 0.8.7",
+ "rmpv 0.4.0",
  "unix_socket 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -59,7 +59,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "rmp"
 version = "0.8.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "byteorder 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -68,25 +67,9 @@ dependencies = [
 [[package]]
 name = "rmpv"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "num-traits 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
- "rmp 0.8.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 1.0.16 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_bytes 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "serde"
-version = "1.0.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "serde_bytes"
-version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "serde 1.0.16 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rmp 0.8.7",
 ]
 
 [[package]]
@@ -146,10 +129,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)" = "880f77541efa6e5cc74e76910c9884d9859683118839d6a1dc3b11e63512565b"
 "checksum num-traits 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)" = "99843c856d68d8b4313b03a17e33c4bb42ae8f6610ea81b28abe076ac721b9b0"
 "checksum redox_syscall 0.1.31 (registry+https://github.com/rust-lang/crates.io-index)" = "8dde11f18c108289bef24469638a04dce49da56084f2d50618b226e47eb04509"
-"checksum rmp 0.8.7 (registry+https://github.com/rust-lang/crates.io-index)" = "a3d45d7afc9b132b34a2479648863aa95c5c88e98b32285326a6ebadc80ec5c9"
-"checksum rmpv 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "29af0205707de955a396a1d3c657677c65f791ebabb63c0596c0b2fec0bf6325"
-"checksum serde 1.0.16 (registry+https://github.com/rust-lang/crates.io-index)" = "e11a631f964d4e6572712ea12075fb1d65eeef42b0058884195b430ac1e26809"
-"checksum serde_bytes 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)" = "5a35acc737295444cf7eb136236563f13dcddbfef65ac00d07870b590df77ed5"
 "checksum simplelog 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "58f3b14218f187ff2e4d710ff8d50200c4e567d454e2e97a7a2d329d362103e9"
 "checksum term 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "fa63644f74ce96fbeb9b794f66aff2a52d601cbd5e80f4b97123e3899f4570f1"
 "checksum time 0.1.38 (registry+https://github.com/rust-lang/crates.io-index)" = "d5d788d3aa77bc0ef3e9621256885555368b47bd495c13dd2e7413c89f845520"
