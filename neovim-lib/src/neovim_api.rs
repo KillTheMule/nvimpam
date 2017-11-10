@@ -196,11 +196,14 @@ impl Buffer {
     }
     /// since: xxxx
     pub fn live_updates(&self, neovim: &mut Neovim, enabled: bool) -> Result<(), CallError> {
+        let mut v = Vec::new();
+        v.push(self.code_data.clone().into_val());
+        v.push(enabled.into_val());
         neovim
             .session
             .call(
                 "nvim_buf_live_updates",
-                &call_args![self.code_data.clone(), enabled],
+                &v,
             )
             .map(map_result)
             .map_err(map_generic_error)
@@ -758,7 +761,7 @@ impl NeovimApi for Neovim {
 
     fn get_current_buf(&mut self) -> Result<Buffer, CallError> {
         self.session
-            .call("nvim_get_current_buf", &call_args![])
+            .call("nvim_get_current_buf", &Vec::new())
             .map(map_result)
             .map_err(map_generic_error)
     }

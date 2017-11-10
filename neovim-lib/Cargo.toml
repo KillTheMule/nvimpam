@@ -17,7 +17,7 @@ travis-ci = { repository = "daa84/neovim-lib", branch = "master"  }
 [dependencies]
 rmp = { path = "rmp" }
 rmpv = { path = "rmpv" }
-log = "0.3"
+log = "0.3.8"
 
 [target.'cfg(unix)'.dependencies]
 unix_socket = "0.5.0"
