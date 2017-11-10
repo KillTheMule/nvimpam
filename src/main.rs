@@ -93,18 +93,18 @@ fn start_program() -> Result<(), Box<Error>> {
         .unwrap();
     info!("notification complete!");
 
-    nvim.subscribe("LiveUpdateStart").expect(
-        "error: cannot subscribe to event: LiveUpdateStart",
-    );
-    nvim.subscribe("LiveUpdate").expect(
-        "error: cannot subscribe to event: LiveUpdate",
-    );
-    nvim.subscribe("LiveUpdateTick").expect(
-        "error: cannot subscribe to event: LiveUpdateTick",
-    );
-    nvim.subscribe("LiveUpdateEnd").expect(
-        "error: cannot subscribe to event: LiveUpdateEnd",
-    );
+//    nvim.subscribe("LiveUpdateStart").expect(
+//        "error: cannot subscribe to event: LiveUpdateStart",
+//    );
+//    nvim.subscribe("LiveUpdate").expect(
+//        "error: cannot subscribe to event: LiveUpdate",
+//    );
+//    nvim.subscribe("LiveUpdateTick").expect(
+//        "error: cannot subscribe to event: LiveUpdateTick",
+//    );
+//    nvim.subscribe("LiveUpdateEnd").expect(
+//        "error: cannot subscribe to event: LiveUpdateEnd",
+//    );
     nvim.subscribe("quit").expect(
         "error: cannot subscribe to event: quit",
     );
@@ -133,7 +133,7 @@ fn makeafold(nvim: &mut Neovim, lines: &Vec<String>) {
         }
     }
 
-    nvim.command("silent! qa").unwrap();
+    //nvim.command("silent! qa").unwrap();
 }
 
 fn start_event_loop(receiver: &mpsc::Receiver<Event>, mut nvim: Neovim) {
@@ -157,7 +157,7 @@ fn start_event_loop(receiver: &mpsc::Receiver<Event>, mut nvim: Neovim) {
         }
     }
     info!("quitting");
-    nvim.command("echom \"rust client disconnected from neovim\"")
-        .unwrap();
+    //nvim.command("echom \"rust client disconnected from neovim\"")
+     //   .unwrap();
 
 }
