@@ -1,0 +1,7 @@
+[0, 0, b'nvim_command', [b'echom "rust client connected to neovim"']]
+[0, 1, b'nvim_subscribe', [b'quit']]
+[0, 2, b'nvim_get_current_buf', []]
+[0, 3, b'nvim_buf_live_updates', [ExtType(code=0, data=b'\x01'), True]]
+[0, 4, b'nvim_command', [b'normal! zE']]
+[0, 5, b'nvim_command', [b'76,10522fo']]
+[0, 6, b'nvim_command', [b'23775,23814fo']]

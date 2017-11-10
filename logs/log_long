@@ -1,5 +1,5 @@
-14:20:04 [INFO] nvimpam: [src/main.rs:83] connecting to neovim via stdin/stdout
-14:20:04 [INFO] nvimpam: [src/main.rs:91] let's notify neovim the plugin is connected!
-14:20:04 [INFO] nvimpam: [src/main.rs:94] notification complete!
-14:20:04 [DEBUG] nvimpam: [src/main.rs:142] Before call
-14:20:09 [ERROR] nvimpam: [src/main.rs:146] GenericError("Wait timeout")
+21:23:09 [INFO] nvimpam: [src/main.rs:83] connecting to neovim via stdin/stdout
+21:23:09 [INFO] nvimpam: [src/main.rs:91] let's notify neovim the plugin is connected!
+21:23:09 [INFO] nvimpam: [src/main.rs:94] notification complete!
+21:23:09 [DEBUG] nvimpam: [src/main.rs:142] Before call
+21:23:14 [ERROR] nvimpam: [src/main.rs:146] GenericError("Wait timeout")

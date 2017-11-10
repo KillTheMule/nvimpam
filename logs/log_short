@@ -1,0 +1,7 @@
+21:22:15 [INFO] nvimpam: [src/main.rs:83] connecting to neovim via stdin/stdout
+21:22:15 [INFO] nvimpam: [src/main.rs:91] let's notify neovim the plugin is connected!
+21:22:15 [INFO] nvimpam: [src/main.rs:94] notification complete!
+21:22:15 [DEBUG] nvimpam: [src/main.rs:142] Before call
+21:22:16 [INFO] nvimpam::handler: [src/handler.rs:56] LiveUpdateStart{ changedtick: 3, #linedata: 24190, more: false }
+21:22:16 [DEBUG] nvimpam: [src/main.rs:150] after call
+21:22:34 [INFO] nvimpam: [src/main.rs:159] quitting
