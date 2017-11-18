@@ -7,6 +7,16 @@ Uses [daa84/neovim-lib](https://github.com/daa84/neovim-lib). Uses
 https://github.com/neovim/neovim/pull/5269, so building a patched neovim is
 necessary (patched sources included).
 
+## Running tests
+
+In the neovim folder, run
+
+```sh
+TEST_FILE=../test/nvimpam_spec.lua make functionaltest
+```
+
+This will use the test infrastructure of neovim to run a functional test.
+
 ## License
 
 Dual-Licensed under Apache or MIT at your leisure, see the LICENSE-\* files.
