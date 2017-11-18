@@ -1,7 +1,7 @@
 local helpers = require('test.functional.helpers')(after_each)
 local Screen = require('test.functional.ui.screen')
-local clear, command, eq = helpers.clear, helpers.command, helpers.eq
-local feed = helpers.feed
+local clear, command = helpers.clear, helpers.command
+local feed, alter_slashes = helpers.feed, helpers.alter_slashes
 
 describe('nvimpam', function()
   local screen
@@ -20,9 +20,9 @@ describe('nvimpam', function()
   end)
 
   it('basically works', function()
-    command('set rtp+=../')
-    command('source ../plugin/nvimpam.vim')
-    command('edit ../aux/example.pc')
+    command('set rtp+=' .. alter_slashes('../'))
+    command('source ' .. alter_slashes('../plugin/nvimpam.vim'))
+    command('edit ' .. alter_slashes('../aux/example.pc'))
     command('NvimPamConnect')
     feed("28G")
 
