@@ -3,7 +3,7 @@ name = "nvimpam"
 version = "0.0.1"
 dependencies = [
  "log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "neovim-lib 0.4.3",
+ "neovim-lib 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "simplelog 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -38,11 +38,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "neovim-lib"
-version = "0.4.3"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "rmp 0.8.7",
- "rmpv 0.4.0",
+ "rmp 0.8.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rmpv 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "unix_socket 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -59,6 +60,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "rmp"
 version = "0.8.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "byteorder 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -67,9 +69,25 @@ dependencies = [
 [[package]]
 name = "rmpv"
 version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "num-traits 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
- "rmp 0.8.7",
+ "rmp 0.8.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_bytes 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "serde"
+version = "1.0.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "serde_bytes"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "serde 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -127,8 +145,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7507624b29483431c0ba2d82aece8ca6cdba9382bff4ddd0f7490560c056098d"
 "checksum libc 0.2.32 (registry+https://github.com/rust-lang/crates.io-index)" = "56cce3130fd040c28df6f495c8492e5ec5808fb4c9093c310df02b0c8f030148"
 "checksum log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)" = "880f77541efa6e5cc74e76910c9884d9859683118839d6a1dc3b11e63512565b"
+"checksum neovim-lib 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1889b79fccec66b11f3f9d3a266ffd97c0944af82a62843ca2b9529fedd82fec"
 "checksum num-traits 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)" = "99843c856d68d8b4313b03a17e33c4bb42ae8f6610ea81b28abe076ac721b9b0"
 "checksum redox_syscall 0.1.31 (registry+https://github.com/rust-lang/crates.io-index)" = "8dde11f18c108289bef24469638a04dce49da56084f2d50618b226e47eb04509"
+"checksum rmp 0.8.7 (registry+https://github.com/rust-lang/crates.io-index)" = "a3d45d7afc9b132b34a2479648863aa95c5c88e98b32285326a6ebadc80ec5c9"
+"checksum rmpv 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "29af0205707de955a396a1d3c657677c65f791ebabb63c0596c0b2fec0bf6325"
+"checksum serde 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)" = "6eda663e865517ee783b0891a3f6eb3a253e0b0dabb46418969ee9635beadd9e"
+"checksum serde_bytes 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)" = "5a35acc737295444cf7eb136236563f13dcddbfef65ac00d07870b590df77ed5"
 "checksum simplelog 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "58f3b14218f187ff2e4d710ff8d50200c4e567d454e2e97a7a2d329d362103e9"
 "checksum term 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "fa63644f74ce96fbeb9b794f66aff2a52d601cbd5e80f4b97123e3899f4570f1"
 "checksum time 0.1.38 (registry+https://github.com/rust-lang/crates.io-index)" = "d5d788d3aa77bc0ef3e9621256885555368b47bd495c13dd2e7413c89f845520"

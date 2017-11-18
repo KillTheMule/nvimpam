@@ -6,4 +6,12 @@ version = "0.0.1"
 [dependencies]
 log = "0.3.8"
 simplelog = "0.4.2"
-neovim-lib = { path = "neovim-lib" }
+neovim-lib = "*"
+
+[lib]
+name = "nvimpam_lib"
+path = "src/lib.rs"
+
+[[bin]]
+name = "nvimpam"
+path = "src/bin.rs"

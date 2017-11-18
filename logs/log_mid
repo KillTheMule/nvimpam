@@ -1,7 +1,0 @@
-21:22:37 [INFO] nvimpam: [src/main.rs:83] connecting to neovim via stdin/stdout
-21:22:37 [INFO] nvimpam: [src/main.rs:91] let's notify neovim the plugin is connected!
-21:22:37 [INFO] nvimpam: [src/main.rs:94] notification complete!
-21:22:37 [DEBUG] nvimpam: [src/main.rs:142] Before call
-21:22:38 [INFO] nvimpam::handler: [src/handler.rs:56] LiveUpdateStart{ changedtick: 3, #linedata: 199996, more: false }
-21:22:38 [DEBUG] neovim_lib::rpc::client: [neovim-lib/src/rpc/client.rs:149] Error decoding: I/O error while reading marker byte: failed to fill whole buffer
-21:22:42 [ERROR] nvimpam: [src/main.rs:146] GenericError("Wait timeout")

@@ -3,7 +3,8 @@ if ! exists('s:jobid')
 endif
 
 let s:scriptdir = resolve(expand('<sfile>:p:h') . '/..')
-let s:bin = s:scriptdir . '/redir.sh' 
+"let s:bin = s:scriptdir . '/redir.sh' 
+let s:bin = s:scriptdir . '/nvimpam'
 
 function! nvimpam#init()
   call nvimpam#connect()
@@ -21,6 +22,10 @@ function! nvimpam#connect()
     let s:jobid = result
     call s:ConfigureJob(result)
   endif
+endfunction
+
+function! nvimpam#stop()
+  call s:StopJob()
 endfunction
 
 function! nvimpam#reset()
@@ -71,6 +76,7 @@ endfunction
 function! s:StartJob()
   if 0 == s:jobid
     let id = jobstart([s:bin], { 'rpc': v:true, 'on_stderr': function('s:OnStderr') })
+    echom id
     return id
   else
     return 0
@@ -80,11 +86,13 @@ endfunction
 function! s:StopJob()
   if 0 < s:jobid
     augroup nvimPam
-      autocmd!    " clear all previous autocommands
+      " clear all previous autocommands
+      autocmd!
     augroup END
+    echom s:jobid
 
     call rpcnotify(s:jobid, 'quit')
-    let result = jobwait(s:jobid, 500)
+    let result = jobwait([s:jobid], 500)[0]
 
     if -1 == result
       " kill the job
