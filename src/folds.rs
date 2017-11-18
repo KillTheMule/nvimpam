@@ -131,6 +131,7 @@ impl FoldList {
         }
         firstline = i as u64;
       } else {
+          // TODO: Don't call clone on every iteration
         match card.clone().unwrap() {
           c @ CardType::Node => {
             if !line.starts_with("N") {
