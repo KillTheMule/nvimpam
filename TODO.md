@@ -1,6 +1,7 @@
 * Rethink error handling
 * Rethink logging
   * Own module?
+* Run it all through clippy
 * Add functional tests via neovim's test infrastructure
 * Add benchmarks
   * Maybe https://docs.rs/bencher/0.1.4/bencher/?
