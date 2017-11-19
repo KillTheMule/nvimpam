@@ -22,7 +22,7 @@ describe('nvimpam', function()
   it('basically works', function()
     command('set rtp+=' .. alter_slashes('../'))
     command('source ' .. alter_slashes('../plugin/nvimpam.vim'))
-    command('edit ' .. alter_slashes('../aux/example.pc'))
+    command('edit ' .. alter_slashes('../files/example.pc'))
     command('NvimPamConnect')
     feed("28G")
 
