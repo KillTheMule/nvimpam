@@ -4,7 +4,7 @@ endif
 
 let s:scriptdir = resolve(expand('<sfile>:p:h') . '/..')
 "let s:bin = s:scriptdir . '/redir.sh' 
-let s:bin = s:scriptdir . '/nvimpam'
+let s:bin = s:scriptdir . '/target/debug/nvimpam'
 
 function! nvimpam#init()
   call nvimpam#connect()

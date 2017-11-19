@@ -1,0 +1,47 @@
+language: rust
+
+#test on all 3 channels
+rust:
+  - stable
+  - beta
+  - nightly
+
+#build failures only when on stable
+matrix:
+  allow_failures:
+    - rust: nightly
+    - rust: beta
+
+# should speed it up a bit, not sure what depth is good
+git:
+  depth: 3
+# more speedup by caching dependencies as long as the compiler isn't upgraded
+cache: cargo
+
+#run on both linux and osx
+os:
+  - linux
+  - osx
+
+# add an additional stage functionaltest for integration tests with neovim
+jobs:
+  include:
+    - stage: functionaltest
+      # build plugin first, then run the test from neovim
+      script: cargo build && cd neovim && TEST_FILE=../test/nvimpam_spec.lua make functionaltest
+      # cache it all, especially the neovim sources won't change often
+      cache: 
+        - cargo 
+        - directories:
+          - neovim/.deps
+          - neovim/build
+      os: linux 
+    #reproduce the same for osx
+    - stage: functionaltest
+      script: cargo build && cd neovim && TEST_FILE=../test/nvimpam_spec.lua make functionaltest
+      cache: 
+        - cargo
+        - directories:
+          - neovim/.deps
+          - neovim/build
+      os: osx
