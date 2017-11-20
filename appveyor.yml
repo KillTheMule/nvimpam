@@ -1,0 +1,67 @@
+environment:
+  global:
+  # This is the Rust channel that build jobs will use by default but can be
+  # overridden on a case by case basis down below
+    RUST_VERSION: stable
+
+    # Update this to match the name of your project.
+    CRATE_NAME: nvimpam
+
+  matrix:
+    # MinGW
+    - TARGET: i686-pc-windows-gnu
+      RUST_VERSION: stable
+      CONFIGURATION: MINGW_32
+    - TARGET: i686-pc-windows-gnu
+      RUST_VERSION: beta
+      CONFIGURATION: MINGW_32
+    - TARGET: i686-pc-windows-gnu
+      RUST_VERSION: nightly
+      CONFIGURATION: MINGW_32
+
+    # MSVC
+    - TARGET: i686-pc-windows-msvc
+      RUST_VERSION: stable
+    #- TARGET: i686-pc-windows-msvc
+    #  RUST_VERSION: beta
+    #- TARGET: i686-pc-windows-msvc
+    #  RUST_VERSION: nightly
+
+matrix:
+  allow_failures:
+    - RUST_VERSION: beta
+    - RUST_VERSION: nightly
+
+
+install:
+  - ps: >-
+      If ($Env:TARGET -eq 'x86_64-pc-windows-gnu') {
+        $Env:PATH += ';C:\msys64\mingw64\bin'
+      } ElseIf ($Env:TARGET -eq 'i686-pc-windows-gnu') {
+        $Env:PATH += ';C:\msys64\mingw32\bin'
+      }
+  - curl -sSf -o rustup-init.exe https://win.rustup.rs/
+  - rustup-init.exe -y --default-host %TARGET% --default-toolchain %RUST_VERSION%
+  - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
+  - rustc -Vv
+  - cargo -V
+
+# This is the "test phase", tweak it as you see fit
+test_script:
+  # we don't run the "test phase" when doing deploys
+  - if [%APPVEYOR_REPO_TAG%]==[false] (
+      cargo build &&
+      cargo test &&
+      set TEST_FILE="..\test\nvimpam_spec.lua" &&
+      cd neovim &&
+      call ci\build.bat
+    )
+
+cache:
+  - C:\Users\appveyor\.cargo\registry
+  - target 
+  - neovim\.deps -> neovim\third-party\**
+  
+#- C:\msys64\var\cache\pacman\pkg -> neovim\ci\build.bat
+# Building is done in the test phase, so we disable Appveyor's build phase.
+build: false

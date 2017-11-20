@@ -2,9 +2,15 @@ if ! exists('s:jobid')
   let s:jobid = 0
 endif
 
-let s:scriptdir = resolve(expand('<sfile>:p:h') . '/..')
-"let s:bin = s:scriptdir . '/redir.sh' 
-let s:bin = s:scriptdir . '/target/debug/nvimpam'
+if has("win32")
+  let s:scriptdir = resolve(expand('<sfile>:p:h') . '\..')
+  let s:bin = s:scriptdir . '\target\debug\nvimpam'
+
+else
+  let s:scriptdir = resolve(expand('<sfile>:p:h') . '/..')
+  "let s:bin = s:scriptdir . '/redir.sh' 
+  let s:bin = s:scriptdir . '/target/debug/nvimpam'
+endif
 
 function! nvimpam#init()
   call nvimpam#connect()
@@ -16,7 +22,7 @@ function! nvimpam#connect()
   if 0 == result
     echoerr "Nvimpam: cannot start rpc process"
   elseif -1 == result
-    echoerr "Nvimpam: rpc process is not executable"
+    echoerr "Nvimpam: rpc process is not executable: " . s:bin
     echoerr s:bin
   else
     let s:jobid = result
