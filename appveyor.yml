@@ -11,17 +11,18 @@ environment:
     # MinGW
     - TARGET: i686-pc-windows-gnu
       RUST_VERSION: stable
-      CONFIGURATION: MINGW_32
+      FUNCTIONALTESTS: true
     - TARGET: i686-pc-windows-gnu
       RUST_VERSION: beta
-      CONFIGURATION: MINGW_32
+      FUNCTIONALTESTS: false
     - TARGET: i686-pc-windows-gnu
       RUST_VERSION: nightly
-      CONFIGURATION: MINGW_32
+      FUNCTIONALTESTS: false
 
     # MSVC
     - TARGET: i686-pc-windows-msvc
       RUST_VERSION: stable
+      FUNCTIONALTESTS: false
     #- TARGET: i686-pc-windows-msvc
     #  RUST_VERSION: beta
     #- TARGET: i686-pc-windows-msvc
@@ -48,20 +49,23 @@ install:
 
 # This is the "test phase", tweak it as you see fit
 test_script:
-  # we don't run the "test phase" when doing deploys
-  - if [%APPVEYOR_REPO_TAG%]==[false] (
+  - if [%FUNCTIONALTESTS%]==[false] (
       cargo build &&
-      cargo test &&
-      set TEST_FILE="..\test\nvimpam_spec.lua" &&
-      cd neovim &&
-      call ci\build.bat
+      cargo test
+    )
+  - if [%FUNCTIONALTESTS%]==[true] (
+        cargo build &&
+        cargo test &&
+        set TEST_FILE="..\test\nvimpam_spec.lua" &&
+        cd neovim &&
+        call ci\build.bat
     )
 
 cache:
   - C:\Users\appveyor\.cargo\registry
   - target 
   - neovim\.deps -> neovim\third-party\**
-  
 #- C:\msys64\var\cache\pacman\pkg -> neovim\ci\build.bat
+
 # Building is done in the test phase, so we disable Appveyor's build phase.
 build: false
