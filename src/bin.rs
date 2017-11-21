@@ -67,14 +67,14 @@ fn init_logging() -> Result<(), Box<Error>> {
   use std::fs::File;
 
   let log_level_filter = match env::var("LOG_LEVEL")
-    .unwrap_or_else(|_| String::from("trace"))
+    .unwrap_or_else(|_| String::from("warn"))
     .to_lowercase()
     .as_ref() {
-    "debug" => LogLevelFilter::Debug,
     "error" => LogLevelFilter::Error,
-    "info" => LogLevelFilter::Info,
-    "trace" => LogLevelFilter::Trace,
     "warn" => LogLevelFilter::Warn,
+    "info" => LogLevelFilter::Info,
+    "debug" => LogLevelFilter::Debug,
+    "trace" => LogLevelFilter::Trace,
     _ => LogLevelFilter::Off,
   };
 
