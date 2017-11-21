@@ -2,7 +2,6 @@
 #[macro_use]
 extern crate log;
 extern crate neovim_lib;
-extern crate simplelog;
 
 pub mod handler;
 pub mod event;
