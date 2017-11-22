@@ -28,8 +28,8 @@
 //!
 #[macro_use]
 extern crate log;
-extern crate neovim_lib;
 extern crate simplelog;
+extern crate neovim_lib;
 extern crate nvimpam_lib;
 
 use nvimpam_lib::handler::NeovimHandler;
@@ -44,12 +44,20 @@ use neovim_lib::neovim::Neovim;
 use neovim_lib::neovim_api::NeovimApi;
 use neovim_lib::session::Session;
 
+//use log::SetLoggerError;
 use simplelog::{Config, LogLevel, LogLevelFilter, WriteLogger};
 
 fn main() {
   use std::process;
 
-  init_logging().expect("nvimpam: unable to initialize logger.");
+  match init_logging() {
+      Err(e) => {
+        eprintln!("Error initializing logger: {}", e);
+        eprintln!("Nvimpam exiting!");
+        process::exit(1);
+      }
+      Ok(()) => {}
+  }
 
   match start_program() {
     Ok(_) => process::exit(0),
@@ -63,18 +71,22 @@ fn main() {
 
 fn init_logging() -> Result<(), Box<Error>> {
   use std::env;
-  use std::env::VarError;
   use std::fs::File;
 
-  let log_level_filter = match env::var("LOG_LEVEL")
-    .unwrap_or_else(|_| String::from("trace"))
+  let filepath = match env::var_os("LOG_FILE") {
+      Some(s) => s,
+      None  => return Ok(())
+  };
+
+  let log_level = match env::var("LOG_LEVEL")
+    .unwrap_or_else(|_| String::from("warn"))
     .to_lowercase()
     .as_ref() {
-    "debug" => LogLevelFilter::Debug,
     "error" => LogLevelFilter::Error,
-    "info" => LogLevelFilter::Info,
-    "trace" => LogLevelFilter::Trace,
     "warn" => LogLevelFilter::Warn,
+    "info" => LogLevelFilter::Info,
+    "debug" => LogLevelFilter::Debug,
+    "trace" => LogLevelFilter::Trace,
     _ => LogLevelFilter::Off,
   };
 
@@ -85,21 +97,8 @@ fn init_logging() -> Result<(), Box<Error>> {
     location: Some(LogLevel::Error),
   };
 
-  let filepath = match env::var("LOG_FILE") {
-    Err(err) => {
-      match err {
-        VarError::NotPresent => return Ok(()),
-        e @ VarError::NotUnicode(_) => {
-          return Err(Box::new(e));
-        }
-      }
-    }
-    Ok(path) => path.to_owned(),
-  };
-
   let log_file = File::create(filepath)?;
-
-  WriteLogger::init(log_level_filter, config, log_file).unwrap();
+  WriteLogger::init(log_level, config, log_file)?;
 
   Ok(())
 }
