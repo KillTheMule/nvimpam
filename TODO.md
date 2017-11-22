@@ -10,3 +10,4 @@
 * Setup fuzzing?
   * Checkc https://users.rust-lang.org/t/announcing-afl-rs-0-2-bindings-for-american-fuzzy-lop/13981
 * Work through https://rust-lang-nursery.github.io/api-guidelines/
+* Check out https://github.com/Geal/cargo-external-doc
