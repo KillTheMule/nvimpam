@@ -1,5 +1,3 @@
-* Try large files with bfredls channel refactor
-* Try large files over rpc with rpcnotify
 * Rethink error handling
 * Rethink logging
   * Own module?
