@@ -44,25 +44,27 @@ use neovim_lib::neovim::Neovim;
 use neovim_lib::neovim_api::NeovimApi;
 use neovim_lib::session::Session;
 
-//use log::SetLoggerError;
+// use log::SetLoggerError;
 use simplelog::{Config, LogLevel, LogLevelFilter, WriteLogger};
 
 fn main() {
   use std::process;
 
   match init_logging() {
-      Err(e) => {
-        eprintln!("Error initializing logger: {}", e);
-        eprintln!("Nvimpam exiting!");
-        process::exit(1);
-      }
-      Ok(()) => {}
+    Err(e) => {
+      eprintln!("Error initializing logger: {}", e);
+      eprintln!("Nvimpam exiting!");
+      process::exit(1);
+    }
+    Ok(()) => {}
   }
 
   match start_program() {
     Ok(_) => process::exit(0),
 
     Err(msg) => {
+      eprintln!("Nvimpam encountered an error: {}", msg);
+      eprintln!("Nvimpam exiting!");
       error!("{}", msg);
       process::exit(1);
     }
@@ -74,8 +76,8 @@ fn init_logging() -> Result<(), Box<Error>> {
   use std::fs::File;
 
   let filepath = match env::var_os("LOG_FILE") {
-      Some(s) => s,
-      None  => return Ok(())
+    Some(s) => s,
+    None => return Ok(()),
   };
 
   let log_level = match env::var("LOG_LEVEL")
