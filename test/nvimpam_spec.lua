@@ -2,6 +2,7 @@ local helpers = require('test.functional.helpers')(after_each)
 local Screen = require('test.functional.ui.screen')
 local clear, command = helpers.clear, helpers.command
 local feed, alter_slashes = helpers.feed, helpers.alter_slashes
+local insert = helpers.insert
 
 describe('nvimpam', function()
   local screen
@@ -13,6 +14,8 @@ describe('nvimpam', function()
     screen:set_default_attr_ids({
       [1]  = {foreground = Screen.colors.DarkBlue, background = Screen.colors.LightGray},
     })
+    command('set rtp+=' .. alter_slashes('../'))
+    command('source ' .. alter_slashes('../plugin/nvimpam.vim'))
   end)
 
   after_each(function()
@@ -20,8 +23,6 @@ describe('nvimpam', function()
   end)
 
   it('basically works', function()
-    command('set rtp+=' .. alter_slashes('../'))
-    command('source ' .. alter_slashes('../plugin/nvimpam.vim'))
     command('edit ' .. alter_slashes('../files/example.pc'))
     command('NvimPamConnect')
     feed("28G")
@@ -43,5 +44,41 @@ describe('nvimpam', function()
       $     MATERIAL DEFINITIONS                                                       |
       rust client connected to neovim                                                  |
     ]])
+  end)
+
+  it('can deal with alternating card types', function()
+
+    input = [[
+      NODE  /        1              0.             0.5              0.
+      NODE  /        1              0.             0.5              0.
+      NODE  /        1              0.             0.5              0.
+      NODE  /        1              0.             0.5              0.
+      #Comment here
+      SHELL /     3129       1       1    2967    2971    2970
+      SHELL /     3129       1       1    2967    2971    2970
+      SHELL /     3129       1       1    2967    2971    2970
+      #Comment
+      #Comment
+      SHELL /     3129       1       1    2967    2971    2970
+      SHELL /     3129       1       1    2967    2971    2970
+      $Comment
+      SHELL /     3129       1       1    2967    2971    2970
+      SHELL /     3129       1       1    2967    2971    2970
+      $Comment
+      #Comment
+      NODE  /        1              0.             0.5              0.
+      NODE  /        1              0.             0.5              0.
+      NODE  /        1              0.             0.5              0.
+      SHELL /     3129       1       1    2967    2971    2970
+      SHELL /     3129       1       1    2967    2971    2970
+      SHELL /     3129       1       1    2967    2971    2970
+      SHELL /     3129       1       1    2967    2971    2970
+      ]]
+
+    insert(input)
+    command('NvimPamConnect')
+    feed("1G")
+    screen:snapshot_util()
+
   end)
 end)
