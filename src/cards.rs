@@ -51,7 +51,16 @@ impl Card {
       match linecard {
         &None => {
           if i > 0 {
-            v.push((curcard, curcardstart as u64, i as u64 - 1));
+            if last_before_comment > 0 {
+              v.push((curcard, curcardstart as u64, last_before_comment as u64));
+              if i - last_before_comment > 1 {
+                v.push((Some(Card::Comment), last_before_comment as u64 + 1, i as u64
+                     -1));
+              }
+              last_before_comment = 0;
+             } else {
+              v.push((curcard, curcardstart as u64, i as u64 - 1));
+             }
           }
           curcard = None;
           curcardstart = i;
