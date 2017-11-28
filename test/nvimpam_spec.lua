@@ -12,7 +12,8 @@ describe('nvimpam', function()
     screen = Screen.new(81, 15)
     screen:attach()
     screen:set_default_attr_ids({
-      [1]  = {foreground = Screen.colors.DarkBlue, background = Screen.colors.LightGray},
+      [1] = {foreground = Screen.colors.DarkBlue, background = Screen.colors.LightGray},
+      [2] = {bold = true, foreground = Screen.colors.Blue1},
     })
     command('set rtp+=' .. alter_slashes('../'))
     command('source ' .. alter_slashes('../plugin/nvimpam.vim'))
@@ -33,21 +34,20 @@ describe('nvimpam', function()
       SOLPLOT     ALL                                                                  |
        SHLPLOT   DFLT                                                                  |
       END_OCTRL                                                                        |
-      $                                                                                |
-      ^$#         IDNOD               X               Y               Z                 |
-      {1:+--714 lines: NODE  /        1              0.            50.5              0.---}|
-      $----------------------------------------------------------------                |
-      $     NODE DEFINITIONS                                                           |
-      $----------------------------------------------------------------                |
-      {1:+--  8 lines: NODE  /     1001       66.055756       -0.500003      223.527725---}|
-      $----------------------------------------------------------------                |
-      $     MATERIAL DEFINITIONS                                                       |
+      {1:^+--  2 lines: $------------------------------------------------------------------}|
+      {1:+--725 lines: NODE  /        1              0.            50.5              0.---}|
+      {1:+--  5 lines: $------------------------------------------------------------------}|
+      MATER /        3     103         7.85E-6       0       0       0       0         |
+      $# BLANK                                                     QVM   THDID   IDMPD |
+                                                                    1.       0       0 |
+      $#                                                                         TITLE |
+      NAME Material: Box section                                                       |
+      $#       E    SIGMAy        NU     ALPHA       HGM       HGW       HGQ        As |
       rust client connected to neovim                                                  |
     ]])
   end)
 
   it('can deal with alternating card types', function()
-
     input = [[
       NODE  /        1              0.             0.5              0.
       NODE  /        1              0.             0.5              0.
@@ -78,7 +78,23 @@ describe('nvimpam', function()
     insert(input)
     command('NvimPamConnect')
     feed("1G")
-    screen:snapshot_util()
+    screen:expect([[
+      {1:^+--  4 lines: NODE  /        1              0.             0.5              0.---}|
+      #Comment here                                                                    |
+      {1:+-- 10 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+      {1:+--  2 lines: $Comment-----------------------------------------------------------}|
+      {1:+--  3 lines: NODE  /        1              0.             0.5              0.---}|
+      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+                                                                                       |
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      rust client connected to neovim                                                  |
+    ]])
 
   end)
 end)
