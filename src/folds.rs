@@ -4,9 +4,10 @@
 //! Example usage:
 //!
 //! ```
-//! # use nvimpam_lib::folds::{FoldList, CardType};
+//! # use nvimpam_lib::folds::FoldList;
+//! # use nvimpam_lib::cards::Card;
 //! let mut foldlist = FoldList::new();
-//! foldlist.insert(1,2, CardType::Node).map_err(|e| println!("{}", e));
+//! foldlist.insert(1,2, Card::Node).map_err(|e| println!("{}", e));
 //! assert!(foldlist.remove(2,3).is_err());
 //! assert!(foldlist.remove(1,2).is_ok());
 //! ```
@@ -17,26 +18,19 @@ use std::io::{Error, ErrorKind};
 
 use neovim_lib::{Neovim, NeovimApi};
 
-/// An enum to denote the several types of cards a line might belong to. For now
-/// carries only information equivalent to the keyword, not the subtypes, e.g.
-/// CNTAC types 33 and 36 will both be denoted by type Cntac
-#[derive(Clone)]
-pub enum CardType {
-  Node,
-  Shell,
-}
+use cards::Card;
 
 /// Holds the fold data of the buffer. A fold has the following data:
 /// Linenumbers start, end (indexed from 1), and a
-/// [CardType](enum.CardType.html).
+/// [Card](enum.Card.html).
 pub struct FoldList {
-  /// List of folds, keyed by [start, end], valued by CardType, sorted
+  /// List of folds, keyed by [start, end], valued by Card, sorted
   /// lexicographically on [start, end].
-  folds: BTreeMap<[u64; 2], CardType>,
-  /// List of folds, keyed by [end, start], valued by CardType, sorted
+  folds: BTreeMap<[u64; 2], Card>,
+  /// List of folds, keyed by [end, start], valued by Card, sorted
   /// lexicographically on [end, start].  Kept synchronous to Folds by the
   /// struct methods.
-  folds_inv: BTreeMap<[u64; 2], CardType>,
+  folds_inv: BTreeMap<[u64; 2], Card>,
 }
 
 impl FoldList {
@@ -51,8 +45,8 @@ impl FoldList {
 
   /// Clear FoldList, by clearing the BTreeMap's individually
   pub fn clear(&mut self) {
-      self.folds.clear();
-      self.folds_inv.clear();
+    self.folds.clear();
+    self.folds_inv.clear();
   }
 
   /// Insert a fold (start, end) into the FoldList. Returns an error if start
@@ -63,7 +57,7 @@ impl FoldList {
     &mut self,
     start: u64,
     end: u64,
-    card: CardType,
+    card: Card,
   ) -> Result<(), Box<Error>> {
 
     if start > end {
@@ -119,38 +113,23 @@ impl FoldList {
       lines[lines.len() - 1]
     );
     self.clear();
-    let mut firstline: u64 = 0;
-    let mut card: Option<CardType> = None;
 
-    for (i, ref line) in lines.iter().enumerate() {
-      if card.is_none() {
-        if line.starts_with("NODE") {
-          card = Some(CardType::Node);
-        } else if line.starts_with("SHELL") {
-          card = Some(CardType::Shell);
+    let card_data = Card::create_card_data(lines);
+    info!("752: {:?}", card_data[752]);
+    info!("753: {:?}", card_data[753]);
+    info!("754: {:?}", card_data[754]);
+    let ccd = Card::contract_card_data(&card_data);
+
+    for (ocard, start, end) in ccd.into_iter(){
+      if let Some(card) = ocard {
+        if end - start > 0 {
+          self.insert(start+1, end+1, card)?;
         }
-        firstline = i as u64;
-      } else {
-          // TODO: Don't call clone on every iteration
-        match card.clone().unwrap() {
-          c @ CardType::Node => {
-            if !line.starts_with("N") {
-              self.insert(firstline + 1, i as u64, c)?;
-              firstline = 0;
-              card = None;
-            }
-          }
-          c @ CardType::Shell => {
-            if !line.starts_with("S") {
-              self.insert(firstline + 1, i as u64, c)?;
-              firstline = 0;
-              card = None;
-            }
-          }
-        }
+        info!("Inserting {}, {}, {:?}", start+1, end+1, card);
       }
     }
     Ok(())
+
   }
 
   /// Delete all folds in nvim, and create the ones from the FoldList
