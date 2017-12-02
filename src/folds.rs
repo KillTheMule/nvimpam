@@ -115,14 +115,12 @@ impl FoldList {
     self.clear();
 
     let card_data = Card::create_card_data(lines);
-    let ccd = Card::contract_card_data(&card_data);
 
-    for (ocard, start, end) in ccd.into_iter(){
+    for (ocard, start, end) in card_data.into_iter(){
       if let Some(card) = ocard {
-        if end - start > 0 {
+        if end - start > 0 && card != Card::Comment {
           self.insert(start+1, end+1, card)?;
         }
-        info!("Inserting {}, {}, {:?}", start+1, end+1, card);
       }
     }
     Ok(())
