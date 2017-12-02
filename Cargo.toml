@@ -11,3 +11,6 @@ neovim-lib = "*"
 [lib]
 name = "nvimpam_lib"
 path = "src/lib.rs"
+
+[profile.bench]
+debug = true
