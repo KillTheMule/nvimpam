@@ -11,7 +11,3 @@ neovim-lib = "*"
 [lib]
 name = "nvimpam_lib"
 path = "src/lib.rs"
-
-[[bin]]
-name = "nvimpam"
-path = "src/bin.rs"
