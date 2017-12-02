@@ -13,7 +13,7 @@ pub enum Card {
 }
 
 impl Card {
-  // Parse a string to determine if it starts with the keyword of a card.
+  /// Parse a string to determine if it starts with the keyword of a card.
   pub fn parse_str<'a>(s: &'a str) -> Option<Card> {
     use self::Card::*;
     if s.starts_with("NODE") {
@@ -27,21 +27,20 @@ impl Card {
     };
   }
 
-  // Parse a list of strings into a Vec of the same length containing the card
-  // types of the lines
-  pub fn create_card_data<T: AsRef<str>>(lines: &[T]) -> Vec<Option<Card>> {
-    let mut v = Vec::with_capacity(lines.len());
-    v.extend(lines.iter().map(|s| Card::parse_str(s.as_ref())));
-    v
-  }
-
-  pub fn contract_card_data(
-    cd: &Vec<Option<Card>>,
+  /// Parse an array of strings into a Vec containing fold ranges.
+  ///
+  /// Comments are subsumed into a fold of a different type, if the surrounding
+  /// folds are of the same type. This will create a larger fold containing the
+  /// surrounding folds and the comments, and will be of the type of the
+  /// surrounding folds. Otherwise, folds will form their own fold range.
+  ///  
+  pub fn create_card_data<T: AsRef<str>>(
+    lines: &[T]
   ) -> Vec<(Option<Card>, u64, u64)> {
 
     let mut v = vec![];
 
-    let it = cd.iter().enumerate();
+    let it = lines.iter().map(|s| Card::parse_str(s.as_ref())).enumerate();
     let mut curcardstart = 0;
     let mut curcard: Option<Card> = None;
 
@@ -49,7 +48,7 @@ impl Card {
 
     for (i, linecard) in it {
       match linecard {
-        &None => {
+        None => {
           if i > 0 {
             if last_before_comment > 0 {
               v.push((curcard, curcardstart as u64, last_before_comment as u64));
@@ -65,12 +64,12 @@ impl Card {
           curcard = None;
           curcardstart = i;
         }
-        &Some(ref c) => {
-          if *linecard == curcard {
+        Some(ref c) => {
+          if linecard == curcard {
             last_before_comment = 0;
             continue;
           } else {
-            if *linecard == Some(Card::Comment) {
+            if linecard == Some(Card::Comment) {
               if i > 1 && last_before_comment == 0 {
                 last_before_comment = i - 1;
                 continue;
@@ -109,7 +108,7 @@ impl Card {
       }
     }
     if curcardstart > 0 {
-      v.push((curcard, curcardstart as u64, cd.len() as u64 - 1));
+      v.push((curcard, curcardstart as u64, lines.len() as u64 - 1));
     }
     v
   }
@@ -168,14 +167,6 @@ mod tests {
   fn fold_end_01() {
     use self::Card::*;
 
-    let mut cd = Card::create_card_data(&LINES);
-    assert_eq!(cd[0], Some(Node));
-    assert_eq!(cd[6], None);
-    assert_eq!(cd[15], Some(Shell));
-    assert_eq!(cd[16], Some(Comment));
-    assert_eq!(cd[17], Some(Comment));
-
-    let mut compacted = Card::contract_card_data(&cd);
     let mut v = vec![
       (Some(Node), 0, 3),
       (Some(Comment), 4, 4),
@@ -185,10 +176,8 @@ mod tests {
       (Some(Comment), 16, 17),
       (Some(Node), 18, 19),
     ];
-    assert_eq!(v, compacted);
+    assert_eq!(v, Card::create_card_data(&LINES));
 
-    cd = Card::create_card_data(&LINES[4..]);
-    compacted = Card::contract_card_data(&cd);
     v = vec![
       (Some(Comment), 0, 0),
       (Some(Shell), 1, 1),
@@ -197,17 +186,15 @@ mod tests {
       (Some(Comment), 12, 13),
       (Some(Node), 14, 15),
     ];
-    assert_eq!(v, compacted);
+    assert_eq!(v, Card::create_card_data(&LINES[4..]));
 
 
-    cd = Card::create_card_data(&LINES[6..]);
-    compacted = Card::contract_card_data(&cd);
     v = vec![
       (None, 0, 0),
       (Some(Shell), 1, 9),
       (Some(Comment), 10, 11),
       (Some(Node), 12, 13),
     ];
-    assert_eq!(v, compacted);
+    assert_eq!(v, Card::create_card_data(&LINES[6..]));
   }
 }

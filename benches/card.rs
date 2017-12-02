@@ -19,7 +19,6 @@ fn bench_parse2folddata(b: &mut Bencher) {
 
   b.iter(|| {
     let r = test::black_box(&v);
-    let cd = Card::create_card_data(r);
-    let compacted = Card::contract_card_data(&cd);
+    let compacted = Card::contract_card_data_direct(r);
   })
 }
