@@ -1,4 +1,4 @@
-//! This module provides the [Card](enum.Card.html) enum to classify lines
+//! This module provides the [Card](cards/enum.Card.html) enum to classify lines
 //! according to what card type they belong to. The term "Card" is from the
 //! FEM solver Pamcrash, but generally used among FEM solvers.
 

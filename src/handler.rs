@@ -48,7 +48,7 @@ impl NeovimHandler {
   }
 
     /// Parse a LiveUpdateTick notification into a
-    /// [LiveUpdateTick](event/enum.Event.html) event
+    /// [LiveUpdateTick](../event/enum.Event.html) event
   pub fn parse_liveupdatetick(
     &mut self,
     args: Vec<Value>,

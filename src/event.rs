@@ -1,5 +1,5 @@
 //! The events that nvimpam needs to accept and deal with. They're sent by the
-//! [NeovimHandler](struct.NeovimHandler.html) to the main loop.
+//! [NeovimHandler](handler/struct.NeovimHandler.html) to the main loop.
 use std::fmt;
 use neovim_lib::neovim_api::Buffer;
 
@@ -17,11 +17,9 @@ pub enum Event {
     more: bool,
   },
   /// The update notification for a buffer change. Full lines only. Firstline
-  /// is
-  /// zero-indexed (i.e. a change on the first line will have `firstline =
-  /// 0`).
-  /// If `numreplaced` is 0, the lines were added before `firstline`, but none
-  /// were deleted.
+  /// is zero-indexed (i.e. a change on the first line will have `firstline =
+  /// 0`).  If `numreplaced` is 0, the lines were added before `firstline`,
+  /// but none were deleted.
   LiveUpdate {
     buf: Buffer,
     changedtick: u64,
@@ -30,8 +28,7 @@ pub enum Event {
     linedata: Vec<String>,
   },
   /// Update notification for a new `changedtick` without a buffer change.
-  /// Used
-  /// by undo/redo.
+  /// Used by undo/redo.
   LiveUpdateTick { buf: Buffer, changedtick: u64 },
   /// Notification the liveupdates are ending. Possible causes:
   ///  - Closing all a buffer's windows (unless 'hidden' is enabled).

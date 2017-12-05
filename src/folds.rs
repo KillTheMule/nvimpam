@@ -1,4 +1,4 @@
-//! This module provides the [FoldList](struct.FoldList.html) struct to manage
+//! This module provides the [FoldList](folds/struct.FoldList.html) struct to manage
 //! folds in a buffer.
 //!
 //! Example usage:
@@ -22,7 +22,7 @@ use cards::Card;
 
 /// Holds the fold data of the buffer. A fold has the following data:
 /// Linenumbers start, end (indexed from 1), and a
-/// [Card](enum.Card.html).
+/// [Card](../cards/enum.Card.html).
 pub struct FoldList {
   /// List of folds, keyed by [start, end], valued by Card, sorted
   /// lexicographically on [start, end].

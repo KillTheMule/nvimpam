@@ -20,7 +20,7 @@ pub fn parse_str2<'a>(s: &'a str) -> Option<Card> {
   }
 }
 
-/// Helper function used by [parse_str3](fn.parse_str3).
+/// Helper function used by [parse_str3](fn.parse_str3.html).
 #[inline]
 #[allow(dead_code)]
 pub fn check_rest(mut rest: Bytes, check: &[u8], card: Card) -> Option<Card> {
@@ -239,7 +239,7 @@ where
   }
 }
 
-/// Use [FoldExt](traits.FoldExt.html) to creat the card data. Seems slower than
+/// Use [FoldExt](trait.FoldExt.html) to creat the card data. Seems slower than
 /// the direct way.  Might not be correct, see this [comment](struct.Folds.html)
 #[inline]
 #[allow(dead_code)]
