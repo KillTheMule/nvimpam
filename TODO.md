@@ -9,3 +9,6 @@
 * Check out https://github.com/Geal/cargo-external-doc
 * Mention logging in the doc
 * Write vim doc
+* If performance isn't good, see 
+https://www.reddit.com/r/rust/comments/7h4q0i/can_this_function_be_improved_performancewise/dqoolbm/
+* Before parsing the vec, maybe sort it?
