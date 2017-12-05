@@ -10,7 +10,7 @@ pub struct NeovimHandler(pub mpsc::Sender<Event>);
 
 impl NeovimHandler {
     /// Parse a LiveUpdateStart notification into a
-    /// [LiveUpdateStart](enum.Event.html) event
+    /// [LiveUpdateStart](../event/enum.Event.html) event
   pub fn parse_liveupdatestart(
     &mut self,
     mut args: Vec<Value>,
@@ -28,7 +28,7 @@ impl NeovimHandler {
   }
 
     /// Parse a LiveUpdate notification into a
-    /// [LiveUpdate](enum.Event.html) event
+    /// [LiveUpdate](../event/enum.Event.html) event
   pub fn parse_liveupdate(
     &mut self,
     mut args: Vec<Value>,
@@ -48,7 +48,7 @@ impl NeovimHandler {
   }
 
     /// Parse a LiveUpdateTick notification into a
-    /// [LiveUpdateTick](enum.Event.html) event
+    /// [LiveUpdateTick](event/enum.Event.html) event
   pub fn parse_liveupdatetick(
     &mut self,
     args: Vec<Value>,
@@ -59,7 +59,7 @@ impl NeovimHandler {
   }
 
     /// Parse a LiveUpdateEnd notification into a
-    /// [LiveUpdateEnd](enum.Event.html) event
+    /// [LiveUpdateEnd](../event/enum.Event.html) event
   pub fn parse_liveupdateend(
     &mut self,
     args: Vec<Value>,
