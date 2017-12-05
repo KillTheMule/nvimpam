@@ -14,6 +14,7 @@ pub enum Card {
 
 impl Card {
   /// Parse a string to determine if it starts with the keyword of a card.
+  #[inline]
   pub fn parse_str<'a>(s: &'a str) -> Option<Card> {
     use self::Card::*;
     if s.starts_with("NODE") {
@@ -29,18 +30,22 @@ impl Card {
 
   /// Parse an array of strings into a Vec containing fold ranges.
   ///
-  /// Comments are subsumed into a fold of a different type, if the surrounding
-  /// folds are of the same type. This will create a larger fold containing the
-  /// surrounding folds and the comments, and will be of the type of the
-  /// surrounding folds. Otherwise, folds will form their own fold range.
-  ///  
+  /// Comments are subsumed into a fold of a different type, if the
+  /// surrounding folds are of the same type. This will create a larger fold
+  /// containing the surrounding folds and the comments, and will be of the
+  /// type of the surrounding folds. Otherwise, folds will form their own
+  /// fold range.
+  #[inline]
   pub fn create_card_data<T: AsRef<str>>(
-    lines: &[T]
+    lines: &[T],
   ) -> Vec<(Option<Card>, u64, u64)> {
 
     let mut v = vec![];
 
-    let it = lines.iter().map(|s| Card::parse_str(s.as_ref())).enumerate();
+    let it = lines
+      .iter()
+      .map(|s| Card::parse_str(s.as_ref()))
+      .enumerate();
     let mut curcardstart = 0;
     let mut curcard: Option<Card> = None;
 
@@ -51,15 +56,20 @@ impl Card {
         None => {
           if i > 0 {
             if last_before_comment > 0 {
-              v.push((curcard, curcardstart as u64, last_before_comment as u64));
+              v.push(
+                (curcard, curcardstart as u64, last_before_comment as u64),
+              );
               if i - last_before_comment > 1 {
-                v.push((Some(Card::Comment), last_before_comment as u64 + 1, i as u64
-                     -1));
+                v.push((
+                  Some(Card::Comment),
+                  last_before_comment as u64 + 1,
+                  i as u64 - 1,
+                ));
               }
               last_before_comment = 0;
-             } else {
+            } else {
               v.push((curcard, curcardstart as u64, i as u64 - 1));
-             }
+            }
           }
           curcard = None;
           curcardstart = i;
@@ -114,10 +124,8 @@ impl Card {
   }
 }
 
-
 #[cfg(test)]
 mod tests {
-
   use cards::Card;
 
   const LINES: [&'static str; 20] = [
@@ -187,7 +195,6 @@ mod tests {
       (Some(Node), 14, 15),
     ];
     assert_eq!(v, Card::create_card_data(&LINES[4..]));
-
 
     v = vec![
       (None, 0, 0),
