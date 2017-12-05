@@ -19,6 +19,24 @@ fn bench_parse2folddata(b: &mut Bencher) {
 
   b.iter(|| {
     let r = test::black_box(&v);
-    let compacted = Card::contract_card_data_direct(r);
+    let _compacted = Card::create_card_data(r);
+  })
+}
+
+#[bench]
+fn bench_parse_str(b: &mut Bencher) {
+  use std::fs::File;
+  use std::io::{self, BufRead};
+
+  let file = File::open("files/example.pc").unwrap();
+  let v: Vec<String> = io::BufReader::new(file)
+    .lines()
+    .map(|l| l.unwrap())
+    .collect();
+
+  b.iter(|| {
+    let r = test::black_box(&v);
+    let _parsed: Vec<Option<Card>> =
+      r.iter().map(|s| Card::parse_str(s.as_ref())).collect();
   })
 }
