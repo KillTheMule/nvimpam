@@ -13,4 +13,5 @@ name = "nvimpam_lib"
 path = "src/lib.rs"
 
 [profile.bench]
+lto = true
 debug = true
