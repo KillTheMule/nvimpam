@@ -44,20 +44,9 @@ impl Lines {
   /// Update Lines:
   ///   * `firstline` is zero-indexed (just as Lines itself)
   ///   * If `numreplaced` is zero, the lines were added before `firstline`
-  pub fn update(
-    &mut self,
-    firstline: u64,
-    numreplaced: u64,
-    linedata: Vec<String>,
-  ) {
-    let v = self
-      .0
-      .splice(
-        firstline as usize..firstline as usize + numreplaced as usize,
-        linedata,
-      )
-      .collect();
-    self.0 = v;
+  pub fn update(&mut self, first: u64, num: u64, linedata: Vec<String>) {
+    let range = first as usize..(first as usize + num as usize);
+    let _v = self.0.splice(range, linedata);
   }
 }
 
