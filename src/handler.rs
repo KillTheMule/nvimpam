@@ -9,8 +9,8 @@ use std::sync::mpsc;
 pub struct NeovimHandler(pub mpsc::Sender<Event>);
 
 impl NeovimHandler {
-    /// Parse a LiveUpdateStart notification into a
-    /// [LiveUpdateStart](../event/enum.Event.html) event
+  /// Parse a LiveUpdateStart notification into a
+  /// [LiveUpdateStart](../event/enum.Event.html) event
   pub fn parse_liveupdatestart(
     &mut self,
     mut args: Vec<Value>,
@@ -27,8 +27,8 @@ impl NeovimHandler {
     })
   }
 
-    /// Parse a LiveUpdate notification into a
-    /// [LiveUpdate](../event/enum.Event.html) event
+  /// Parse a LiveUpdate notification into a
+  /// [LiveUpdate](../event/enum.Event.html) event
   pub fn parse_liveupdate(
     &mut self,
     mut args: Vec<Value>,
@@ -47,8 +47,8 @@ impl NeovimHandler {
     })
   }
 
-    /// Parse a LiveUpdateTick notification into a
-    /// [LiveUpdateTick](../event/enum.Event.html) event
+  /// Parse a LiveUpdateTick notification into a
+  /// [LiveUpdateTick](../event/enum.Event.html) event
   pub fn parse_liveupdatetick(
     &mut self,
     args: Vec<Value>,
@@ -58,8 +58,8 @@ impl NeovimHandler {
     Ok(Event::LiveUpdateTick { buf, changedtick })
   }
 
-    /// Parse a LiveUpdateEnd notification into a
-    /// [LiveUpdateEnd](../event/enum.Event.html) event
+  /// Parse a LiveUpdateEnd notification into a
+  /// [LiveUpdateEnd](../event/enum.Event.html) event
   pub fn parse_liveupdateend(
     &mut self,
     args: Vec<Value>,
@@ -102,6 +102,12 @@ impl Handler for NeovimHandler {
           if let Err(reason) = self.0.send(event) {
             error!("{}", reason);
           }
+        }
+      }
+      "RefreshFolds" => {
+        info!("RefreshFolds");
+        if let Err(reason) = self.0.send(Event::RefreshFolds) {
+          error!("{}", reason);
         }
       }
       "quit" => {

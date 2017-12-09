@@ -156,7 +156,11 @@ fn start_event_loop(receiver: &mpsc::Receiver<Event>, mut nvim: Neovim) {
         debug!("Makeafold ended");
       }
       Ok(Event::LiveUpdate { firstline, numreplaced, linedata, ..}) => {
-        lines.update(firstline, numreplaced, linedata)
+        lines.update(firstline, numreplaced, linedata);
+        foldlist.recreate_all(&lines).unwrap();
+      }
+      Ok(Event::RefreshFolds) => {
+        foldlist.resend_all(&mut nvim).unwrap();
       }
       Ok(Event::Quit) => {
         debug!("Event::quit");

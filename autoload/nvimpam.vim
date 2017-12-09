@@ -53,6 +53,9 @@ function! s:ConfigureJob(jobid)
   augroup END
 endfunction
 
+function! nvimpam#updatefolds()
+  call rpcnotify(s:jobid, 'RefreshFolds')
+endfunction
 "function! s:NotifyCursorMovedI()
 "  let [ bufnum, lnum, column, off ] = getpos('.')
 "  call rpcnotify(s:jobid, 'cursor-moved-i', lnum, column)

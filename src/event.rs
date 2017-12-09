@@ -35,6 +35,8 @@ pub enum Event {
   ///  - Using |:edit| to reload the buffer
   ///  - reloading the buffer after it is changed from outside neovim.
   LiveUpdateEnd { buf: Buffer },
+  /// Recreate and resend the folds
+  RefreshFolds,
   /// This plugin should quit. Currently only sent by the user directly.
   Quit,
 }
@@ -84,6 +86,7 @@ impl fmt::Debug for Event {
                 )
       }
       LiveUpdateEnd { .. } => write!(f, "LiveUpdateEnd"),
+      RefreshFolds => write!(f, "RefreshFolds"),
       Quit => write!(f, "Quit"),
     }
   }
