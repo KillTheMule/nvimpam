@@ -1,8 +1,8 @@
 //! This module holds the datastructure for the Lines of the buffer. For now,
 //! it's simply a `Vec<String>` with an appropriate API.
-
 use std::ops;
 
+/// The struct to hold the lines.
 #[derive(Debug)]
 pub struct Lines(pub Vec<String>);
 
@@ -12,33 +12,9 @@ impl Lines {
     Lines { 0: v }
   }
 
-  /// Insert a String at the given index. Elements after that index are
-  /// shifted.
-  pub fn insert(&mut self, index: usize, element: String) {
-    self.0.insert(index, element)
-  }
-
-  /// Remove an element of a given index and return it. Elements after that
-  /// index are shifted.
-  pub fn remove(&mut self, index: usize) -> String {
-    self.0.remove(index)
-  }
-
-  /// Insert multiple elements at a given index. Elements after that index are
-  /// shifted.
-  pub fn insert_mult<I>(&mut self, index: usize, insert: I)
-  where
-    I: IntoIterator<Item = String>,
-  {
-    let v = self.0.splice(index..index, insert).collect();
-    self.0 = v;
-  }
-
-  /// Remove multiple elemts starting at a given index. Elements after the
-  /// deleted ones are shifted
-  pub fn remove_mult(&mut self, index: usize, number: usize) {
-    let v = self.0.splice(index..index + number, Vec::new()).collect();
-    self.0 = v;
+  // Returns the number of lines
+  pub fn len(&self) -> usize {
+    self.0.len()
   }
 
   /// Update Lines:
@@ -53,8 +29,8 @@ impl Lines {
 impl ops::Index<usize> for Lines {
   type Output = String;
 
-  fn index(&self, i: usize) -> &String {
-    &self.0[i]
+  fn index(&self, idx: usize) -> &String {
+    &self.0[idx]
   }
 }
 
@@ -63,5 +39,58 @@ impl ops::Deref for Lines {
 
   fn deref(&self) -> &[String] {
     &self.0
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use lines::Lines;
+
+  const LINES: [&'static str; 8] =
+    ["This", "is", "an", "example", "of", "some", "lines", "."];
+
+  #[test]
+  fn lines_can_delete() {
+    let v = LINES.iter().map(|s| s.to_string()).collect();
+    let mut l = Lines::new(v);
+
+    l.update(1, 6, Vec::new());
+    assert_eq!(l[0], "This");
+    assert_eq!(l[1], ".");
+    assert_eq!(l.len(), 2);
+  }
+
+  #[test]
+  fn lines_can_insert() {
+    let v = LINES.iter().map(|s| s.to_string()).collect();
+    let mut l = Lines::new(v);
+
+    let newlines = vec![
+      "haaargl".to_string(),
+      "waaarglll".to_string(),
+      "blaaargl".to_string(),
+    ];
+
+    l.update(2, 0, newlines);
+    assert_eq!(l[2], "haaargl");
+    assert_eq!(l.len(), 11);
+  }
+
+  #[test]
+  fn lines_can_update() {
+    let v = LINES.iter().map(|s| s.to_string()).collect();
+    let mut l = Lines::new(v);
+
+    let newlines = vec![
+      "haaargl".to_string(),
+      "waaarglll".to_string(),
+      "blaaargl".to_string(),
+    ];
+
+    l.update(1, 6, newlines);
+    assert_eq!(l[0], "This");
+    assert_eq!(l[3], "blaaargl");
+    assert_eq!(l[4], ".");
+    assert_eq!(l.len(), 5);
   }
 }
