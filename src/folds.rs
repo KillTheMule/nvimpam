@@ -105,7 +105,7 @@ impl FoldList {
   /// populate it with new ones
   pub fn recreate_all(
     &mut self,
-    lines: &Vec<String>,
+    lines: &[String],
   ) -> Result<(), Box<Error>> {
     debug!(
       "Veclen: {}, last line: {{ {} }}",

@@ -9,3 +9,4 @@ pub mod folds;
 pub mod neovim_ext;
 pub mod cards;
 pub mod codeyard;
+pub mod lines;

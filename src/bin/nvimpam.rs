@@ -36,6 +36,7 @@ use nvimpam_lib::handler::NeovimHandler;
 use nvimpam_lib::event::Event;
 use nvimpam_lib::folds::FoldList;
 use nvimpam_lib::neovim_ext::BufferExt;
+use nvimpam_lib::lines::Lines;
 
 use std::error::Error;
 use std::sync::mpsc;
@@ -143,14 +144,19 @@ fn start_event_loop(receiver: &mpsc::Receiver<Event>, mut nvim: Neovim) {
   debug!("after call");
 
   let mut foldlist = FoldList::new();
+  let mut lines = Lines::new(Vec::new());
 
   loop {
     match receiver.recv() {
-      Ok(Event::LiveUpdateStart { ref linedata, .. }) => {
+      Ok(Event::LiveUpdateStart { linedata, .. }) => {
         debug!("Running makeafold");
-        foldlist.recreate_all(linedata).unwrap();
+        lines = Lines::new(linedata);
+        foldlist.recreate_all(&lines).unwrap();
         foldlist.resend_all(&mut nvim).unwrap();
         debug!("Makeafold ended");
+      }
+      Ok(Event::LiveUpdate { firstline, numreplaced, linedata, ..}) => {
+        lines.update(firstline, numreplaced, linedata)
       }
       Ok(Event::Quit) => {
         debug!("Event::quit");
