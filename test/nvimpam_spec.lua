@@ -23,32 +23,7 @@ describe('nvimpam', function()
     screen:detach()
   end)
 
-  it('basically works', function()
-    command('edit ' .. alter_slashes('../files/example.pc'))
-    command('NvimPamConnect')
-    feed("28G")
-
-    screen:expect([[
-       ERFOUTPUT        3        0                                                     |
-      NODPLOT    DFLT                                                                  |
-      SOLPLOT     ALL                                                                  |
-       SHLPLOT   DFLT                                                                  |
-      END_OCTRL                                                                        |
-      $                                                                                |
-      ^$#         IDNOD               X               Y               Z                 |
-      {1:+--725 lines: NODE  /        1              0.            50.5              0.---}|
-      $----------------------------------------------------------------                |
-      $     MATERIAL DEFINITIONS                                                       |
-      $----------------------------------------------------------------                |
-      $ boxbeam                                                                        |
-      $#         IDMAT   MATYP             RHO   ISINT    ISHG  ISTRAT   IFROZ         |
-      MATER /        3     103         7.85E-6       0       0       0       0         |
-      rust client connected to neovim                                                  |
-    ]])
-  end)
-
-  it('can deal with alternating card types', function()
-    input = [[
+  local input = [[
       NODE  /        1              0.             0.5              0.
       NODE  /        1              0.             0.5              0.
       NODE  /        1              0.             0.5              0.
@@ -75,6 +50,31 @@ describe('nvimpam', function()
       SHELL /     3129       1       1    2967    2971    2970
       ]]
 
+  it('basically works', function()
+    command('edit ' .. alter_slashes('../files/example.pc'))
+    command('NvimPamConnect')
+    feed("28G")
+
+    screen:expect([[
+       ERFOUTPUT        3        0                                                     |
+      NODPLOT    DFLT                                                                  |
+      SOLPLOT     ALL                                                                  |
+       SHLPLOT   DFLT                                                                  |
+      END_OCTRL                                                                        |
+      $                                                                                |
+      ^$#         IDNOD               X               Y               Z                 |
+      {1:+--725 lines: NODE  /        1              0.            50.5              0.---}|
+      $----------------------------------------------------------------                |
+      $     MATERIAL DEFINITIONS                                                       |
+      $----------------------------------------------------------------                |
+      $ boxbeam                                                                        |
+      $#         IDMAT   MATYP             RHO   ISINT    ISHG  ISTRAT   IFROZ         |
+      MATER /        3     103         7.85E-6       0       0       0       0         |
+      rust client connected to neovim                                                  |
+    ]])
+  end)
+
+  it('can deal with alternating card types', function()
     insert(input)
     command('NvimPamConnect')
     feed("1G")
@@ -95,7 +95,104 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       rust client connected to neovim                                                  |
     ]])
+  end)
 
+  it('can deal with insertions', function()
+    insert(input)
+    command('NvimPamConnect')
+    feed("1G")
 
+    feed("yyP")
+    command("NvimPamUpdateFolds")
+    screen:expect([[
+      {1:^+--  5 lines: NODE  /        1              0.             0.5              0.---}|
+      #Comment here                                                                    |
+      {1:+-- 10 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+      $Comment                                                                         |
+      #Comment                                                                         |
+      {1:+--  3 lines: NODE  /        1              0.             0.5              0.---}|
+      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+                                                                                       |
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      rust client connected to neovim                                                  |
+    ]])
+  end)
+
+  it('can deal with deletions', function()
+    insert(input)
+    command('NvimPamConnect')
+    feed("1G")
+
+    command("7,9d")
+    command("NvimPamUpdateFolds")
+    screen:expect([[
+      {1:+--  4 lines: NODE  /        1              0.             0.5              0.---}|
+      #Comment here                                                                    |
+      {1:^+--  7 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+      $Comment                                                                         |
+      #Comment                                                                         |
+      {1:+--  3 lines: NODE  /        1              0.             0.5              0.---}|
+      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+                                                                                       |
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      rust client connected to neovim                                                  |
+    ]])
+  end)
+
+  it('can deal with updates and undo', function()
+    insert(input)
+    command('NvimPamConnect')
+    feed("1G")
+    command("set nohls")
+
+    command(":7,9s/^SHELL/NODE")
+    command("NvimPamUpdateFolds")
+    screen:expect([[
+      {1:+--  4 lines: NODE  /        1              0.             0.5              0.---}|
+      #Comment here                                                                    |
+      SHELL /     3129       1       1    2967    2971    2970                         |
+      {1:^+--  2 lines: NODE /     3129       1       1    2967    2971    2970------------}|
+      #Comment                                                                         |
+      #Comment                                                                         |
+      {1:+--  5 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+      $Comment                                                                         |
+      #Comment                                                                         |
+      {1:+--  3 lines: NODE  /        1              0.             0.5              0.---}|
+      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+                                                                                       |
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      rust client connected to neovim                                                  |
+    ]])
+
+    feed("u")
+    command("NvimPamUpdateFolds")
+    screen:expect([[
+      {1:+--  4 lines: NODE  /        1              0.             0.5              0.---}|
+      #Comment here                                                                    |
+      {1:^+-- 10 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+      $Comment                                                                         |
+      #Comment                                                                         |
+      {1:+--  3 lines: NODE  /        1              0.             0.5              0.---}|
+      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+                                                                                       |
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      2 changes; before #2  0 seconds ago                                              |
+    ]])
   end)
 end)
