@@ -1,7 +1,16 @@
 //! The events that nvimpam needs to accept and deal with. They're sent by the
 //! [NeovimHandler](handler/struct.NeovimHandler.html) to the main loop.
 use std::fmt;
+use std::sync::mpsc;
+use std::error::Error;
+
 use neovim_lib::neovim_api::Buffer;
+use neovim_lib::neovim::Neovim;
+use neovim_lib::neovim_api::NeovimApi;
+
+use folds::FoldList;
+use lines::Lines;
+use neovim_ext::BufferExt;
 
 /// The event list the main loop reacts to
 pub enum Event {
@@ -39,6 +48,69 @@ pub enum Event {
   RefreshFolds,
   /// This plugin should quit. Currently only sent by the user directly.
   Quit,
+}
+
+impl Event {
+  /// Run the event loop. The receiver receives the events from the
+  /// [handler](../handler/struct.NeovimHandler.html).
+  ///
+  /// The loop starts by enabling
+  /// [live_updates](../neovim_ext/trait.BufferExt.html#tymethod.
+  /// live_updates).  It creates [`lines`](../lines/struct.Lines.html) and a
+  /// [`foldlist`](../folds/struct.FoldList.html)  and updates them from the
+  /// events received. It calls
+  /// [`resend_all`](../folds/struct.FoldList.html#method.resend_all) when
+  /// the [`foldlist`](../folds/struct.FoldList.html) was created, or the
+  /// [`RefreshFolds`](../event/enum.Event.html#variant.RefreshFolds) event
+  /// was sent.
+  ///
+  /// Sending the [`Quit`](../event/enum.Event.html#variant.Quit) event will
+  /// exit the loop and return from the function.
+  pub fn event_loop(
+    receiver: &mpsc::Receiver<Event>,
+    mut nvim: Neovim,
+  ) -> Result<(), Box<Error>> {
+    use self::Event::*;
+
+    let curbuf = nvim.get_current_buf()?;
+    curbuf.live_updates(&mut nvim, true)?;
+
+    let mut foldlist = FoldList::new();
+    let mut lines = Lines::new(Vec::new());
+
+    loop {
+      match receiver.recv() {
+        Ok(LiveUpdateStart { linedata, .. }) => {
+          lines = Lines::new(linedata);
+          foldlist.recreate_all(&lines)?;
+          foldlist.resend_all(&mut nvim)?;
+        }
+        Ok(LiveUpdate {
+             firstline,
+             numreplaced,
+             linedata,
+             ..
+           }) => {
+          lines.update(firstline, numreplaced, linedata);
+          foldlist.recreate_all(&lines)?;
+        }
+        Ok(RefreshFolds) => {
+          foldlist.resend_all(&mut nvim)?;
+        }
+        Ok(Quit) => {
+          break;
+        }
+        Ok(o) => {
+          info!("receiver recieved {:?}", o);
+        }
+        Err(e) => {
+          info!("receiver received error: {:?}", e);
+        }
+      }
+    }
+    info!("quitting");
+    Ok(())
+  }
 }
 
 impl fmt::Debug for Event {

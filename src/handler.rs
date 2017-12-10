@@ -5,7 +5,7 @@ use neovim_lib::neovim_api::Buffer;
 use std::sync::mpsc;
 
 /// The handler containing the sending end of a channel. The receiving end is
-/// the main loop in the binary
+/// the main [event loop](../event/enum.Event.html#method.event_loop).
 pub struct NeovimHandler(pub mpsc::Sender<Event>);
 
 impl NeovimHandler {

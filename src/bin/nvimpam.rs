@@ -34,9 +34,6 @@ extern crate nvimpam_lib;
 
 use nvimpam_lib::handler::NeovimHandler;
 use nvimpam_lib::event::Event;
-use nvimpam_lib::folds::FoldList;
-use nvimpam_lib::neovim_ext::BufferExt;
-use nvimpam_lib::lines::Lines;
 
 use std::error::Error;
 use std::sync::mpsc;
@@ -124,56 +121,7 @@ fn start_program() -> Result<(), Box<Error>> {
     "error: cannot subscribe to event: quit",
   );
 
-  start_event_loop(&receiver, nvim);
+  Event::event_loop(&receiver, nvim)?;
 
   Ok(())
-}
-
-
-fn start_event_loop(receiver: &mpsc::Receiver<Event>, mut nvim: Neovim) {
-  let curbuf = nvim.get_current_buf().unwrap();
-  debug!("Before call");
-  match curbuf.live_updates(&mut nvim, true) {
-    Ok(o) => {
-      debug!("curbuf.live_updates returned {:?}", o);
-    }
-    Err(e) => {
-      error!("curbuf.liveupdates returned error: {:?}", e);
-    }
-  }
-  debug!("after call");
-
-  let mut foldlist = FoldList::new();
-  let mut lines = Lines::new(Vec::new());
-
-  loop {
-    match receiver.recv() {
-      Ok(Event::LiveUpdateStart { linedata, .. }) => {
-        debug!("Running makeafold");
-        lines = Lines::new(linedata);
-        foldlist.recreate_all(&lines).unwrap();
-        foldlist.resend_all(&mut nvim).unwrap();
-        debug!("Makeafold ended");
-      }
-      Ok(Event::LiveUpdate { firstline, numreplaced, linedata, ..}) => {
-        lines.update(firstline, numreplaced, linedata);
-        foldlist.recreate_all(&lines).unwrap();
-      }
-      Ok(Event::RefreshFolds) => {
-        foldlist.resend_all(&mut nvim).unwrap();
-      }
-      Ok(Event::Quit) => {
-        debug!("Event::quit");
-        break;
-      }
-      Ok(o) => {
-        debug!("receiver recieved {:?}", o);
-      }
-      Err(e) => {
-        debug!("receiver received error: {:?}", e);
-      }
-    }
-  }
-  info!("quitting");
-
 }
