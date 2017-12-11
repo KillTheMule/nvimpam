@@ -146,4 +146,15 @@ impl FoldList {
 
     Ok(())
   }
+
+  /// Turn the FoldList into a Vec, containing the tuples (start, end, Card)
+  pub fn into_vec(self) -> Vec<(u64, u64, Card)> {
+    let mut v = Vec::new();
+    for (s, card) in self.folds {
+      let start = s[0];
+      let end = s[1];
+      v.push((start, end, card));
+    }
+    v
+  }
 }
