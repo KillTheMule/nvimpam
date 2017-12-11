@@ -113,16 +113,11 @@ impl FoldList {
   pub fn resend_all(&self, nvim: &mut Neovim) -> Result<(), Box<Error>> {
     nvim.command("normal! zE").unwrap();
 
-    let mut args: Vec<String> = Vec::new();
-
-    for (range, _) in self.folds.iter() {
-      args.push(format!("{},{}fo", range[0], range[1]));
-    }
-    debug!("Folds: {}", args.len());
-
     // TODO: use nvim_call_atomic
-    for arg in args {
-      nvim.command(&arg).unwrap();
+    for (range, _) in self.folds.iter() {
+      nvim
+        .command(&format!("{},{}fo", range[0] + 1, range[1] + 1))
+        .unwrap();
     }
 
     Ok(())
