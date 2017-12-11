@@ -55,8 +55,8 @@ impl Event {
   /// [handler](../handler/struct.NeovimHandler.html).
   ///
   /// The loop starts by enabling
-  /// [live_updates](../neovim_ext/trait.BufferExt.html#tymethod.
-  /// live_updates).  It creates [`lines`](../lines/struct.Lines.html) and a
+  /// [live_updates](../neovim_ext/trait.BufferExt.html#method.live_updates).
+  /// It creates [`lines`](../lines/struct.Lines.html) and a
   /// [`foldlist`](../folds/struct.FoldList.html)  and updates them from the
   /// events received. It calls
   /// [`resend_all`](../folds/struct.FoldList.html#method.resend_all) when
