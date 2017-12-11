@@ -105,7 +105,7 @@ impl FoldList {
   /// populate it with new ones
   pub fn recreate_all(&mut self, lines: &[String]) -> Result<(), Box<Error>> {
     self.clear();
-    self.create_card_data(lines)
+    self.add_card_data(lines)
   }
 
   /// Delete all folds in nvim, and create the ones from the FoldList
@@ -148,7 +148,7 @@ impl FoldList {
   /// type of the surrounding folds. Otherwise, folds will form their own
   /// fold range.
   #[inline]
-  pub fn create_card_data<T: AsRef<str>>(
+  pub fn add_card_data<T: AsRef<str>>(
     &mut self,
     lines: &[T],
   ) -> Result<(), Box<Error>> {
@@ -304,7 +304,7 @@ mod tests {
       (18, 19, Node),
     ];
     let mut foldlist = FoldList::new();
-    let _ = foldlist.create_card_data(&LINES);
+    let _ = foldlist.add_card_data(&LINES);
     assert_eq!(v, foldlist.into_vec());
 
     v = vec![
@@ -316,13 +316,13 @@ mod tests {
     ];
     let mut foldlist = FoldList::new();
     foldlist.clear();
-    let _ = foldlist.create_card_data(&LINES[4..]);
+    let _ = foldlist.add_card_data(&LINES[4..]);
     assert_eq!(v, foldlist.into_vec());
 
     v = vec![(1, 9, Shell), (10, 11, Comment), (12, 13, Node)];
     let mut foldlist = FoldList::new();
     foldlist.clear();
-    let _ = foldlist.create_card_data(&LINES[6..]);
+    let _ = foldlist.add_card_data(&LINES[6..]);
     assert_eq!(v, foldlist.into_vec());
   }
 }
