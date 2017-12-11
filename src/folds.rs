@@ -1,5 +1,5 @@
-//! This module provides the [FoldList](folds/struct.FoldList.html) struct to manage
-//! folds in a buffer.
+//! This module provides the [FoldList](folds/struct.FoldList.html) struct to
+//! manage folds in a buffer.
 //!
 //! Example usage:
 //!
@@ -103,26 +103,14 @@ impl FoldList {
 
   /// Remove all the entries from the FoldList, and iterate over lines to
   /// populate it with new ones
-  pub fn recreate_all(
-    &mut self,
-    lines: &[String],
-  ) -> Result<(), Box<Error>> {
+  pub fn recreate_all(&mut self, lines: &[String]) -> Result<(), Box<Error>> {
     debug!(
       "Veclen: {}, last line: {{ {} }}",
       lines.len(),
       lines[lines.len() - 1]
     );
-    self.clear();
+    Card::create_card_data(lines, self)?;
 
-    let card_data = Card::create_card_data(lines);
-
-    for (ocard, start, end) in card_data.into_iter(){
-      if let Some(card) = ocard {
-        if end - start > 0 && card != Card::Comment {
-          self.insert(start+1, end+1, card)?;
-        }
-      }
-    }
     Ok(())
 
   }
