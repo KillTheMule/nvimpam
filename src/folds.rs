@@ -7,7 +7,7 @@
 //! # use nvimpam_lib::folds::FoldList;
 //! # use nvimpam_lib::cards::Card;
 //! let mut foldlist = FoldList::new();
-//! foldlist.insert(1,2, Card::Node).map_err(|e| println!("{}", e));
+//! foldlist.checked_insert(1,2, Card::Node).map_err(|e| println!("{}", e));
 //! assert!(foldlist.remove(2,3).is_err());
 //! assert!(foldlist.remove(1,2).is_ok());
 //! ```
@@ -49,22 +49,16 @@ impl FoldList {
     self.folds_inv.clear();
   }
 
-  /// Insert a fold (start, end) into the FoldList. Returns an error if start
-  /// is greater than end, or if that fold is already in the list. In that
-  /// case, you need to remove it by calling FoldList.remove(start, end)
-  /// beforehand.
-  pub fn insert(
+  /// Insert a fold (start, end) into the FoldList. Returns an error if that
+  /// fold is already in the list. In that case, it needs to be
+  /// [removed](struct.FoldList.html#method.remove) beforehand.
+  fn insert(
     &mut self,
     start: u64,
     end: u64,
     card: Card,
   ) -> Result<(), Box<Error>> {
 
-    if start > end {
-      return Err(Box::new(
-        Error::new(ErrorKind::Other, "Folds need start <= end!"),
-      ));
-    }
     match self.folds.entry([start, end]) {
       Entry::Occupied(_) => Err(Box::new(Error::new(
         ErrorKind::Other,
@@ -76,6 +70,23 @@ impl FoldList {
         Ok(())
       }
     }
+  }
+
+  /// Insert a fold (start, end) into the FoldList. If the length of the fold
+  /// is less than 2, or the card is a Comment, we silently return without
+  /// doing anything.  Otherwise, we call the internal insert function that
+  /// returns an error if the fold is already in the list. In that case, it
+  /// needs to be [removed](struct.FoldList.html#method.remove) beforehand.
+  pub fn checked_insert(
+    &mut self,
+    start: u64,
+    end: u64,
+    card: Card,
+  ) -> Result<(), Box<Error>> {
+    if start < end && card != Card::Comment {
+      self.insert(start, end, card)?
+    }
+    Ok(())
   }
 
   /// Remove a fold (start, end) from the foldlist. Only checks if the fold
@@ -162,13 +173,13 @@ impl FoldList {
           if i > 0 {
             if let Some(c) = curcard {
               if last_before_comment > 0 {
-                self.insert(
+                self.checked_insert(
                   curcardstart as u64,
                   last_before_comment as u64,
                   c,
                 )?;
                 if i - last_before_comment > 1 {
-                  self.insert(
+                  self.checked_insert(
                     last_before_comment as u64 + 1,
                     i as u64 - 1,
                     Card::Comment,
@@ -176,7 +187,7 @@ impl FoldList {
                 }
                 last_before_comment = 0;
               } else {
-                self.insert(curcardstart as u64, i as u64 - 1, c)?;
+                self.checked_insert(curcardstart as u64, i as u64 - 1, c)?;
               }
             }
           }
@@ -202,14 +213,14 @@ impl FoldList {
               // linecard != curcard, and linecard != Some(Comment)
               if let Some(c) = curcard {
                 if last_before_comment > 0 {
-                  self.insert(
+                  self.checked_insert(
                     curcardstart as u64,
                     last_before_comment as u64,
                     c,
                   )?;
                   // probably redundant
                   if i > 0 {
-                    self.insert(
+                    self.checked_insert(
                       last_before_comment as u64 + 1,
                       i as u64 - 1,
                       Card::Comment,
@@ -218,7 +229,7 @@ impl FoldList {
                   last_before_comment = 0;
                 } else {
                   if i > 0 {
-                    self.insert(curcardstart as u64, i as u64 - 1, c)?;
+                    self.checked_insert(curcardstart as u64, i as u64 - 1, c)?;
                   }
                 }
               }
@@ -232,7 +243,11 @@ impl FoldList {
     }
     // When through the whole vec, need to insert a last card
     if let Some(c) = curcard {
-      self.insert(curcardstart as u64, lines.len() as u64 - 1, c)?;
+      self.checked_insert(
+        curcardstart as u64,
+        lines.len() as u64 - 1,
+        c,
+      )?;
     }
     Ok(())
   }
@@ -292,10 +307,7 @@ mod tests {
 
     let mut v = vec![
       (0, 3, Node),
-      (4, 4, Comment),
-      (5, 5, Shell),
       (7, 15, Shell),
-      (16, 17, Comment),
       (18, 19, Node),
     ];
     let mut foldlist = FoldList::new();
@@ -303,10 +315,7 @@ mod tests {
     assert_eq!(v, foldlist.into_vec());
 
     v = vec![
-      (0, 0, Comment),
-      (1, 1, Shell),
       (3, 11, Shell),
-      (12, 13, Comment),
       (14, 15, Node),
     ];
     let mut foldlist = FoldList::new();
@@ -314,7 +323,7 @@ mod tests {
     let _ = foldlist.add_card_data(&LINES[4..]);
     assert_eq!(v, foldlist.into_vec());
 
-    v = vec![(1, 9, Shell), (10, 11, Comment), (12, 13, Node)];
+    v = vec![(1, 9, Shell), (12, 13, Node)];
     let mut foldlist = FoldList::new();
     foldlist.clear();
     let _ = foldlist.add_card_data(&LINES[6..]);
