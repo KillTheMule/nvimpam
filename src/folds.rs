@@ -319,13 +319,11 @@ mod tests {
       (14, 15, Node),
     ];
     let mut foldlist = FoldList::new();
-    foldlist.clear();
     let _ = foldlist.add_card_data(&LINES[4..]);
     assert_eq!(v, foldlist.into_vec());
 
     v = vec![(1, 9, Shell), (12, 13, Node)];
     let mut foldlist = FoldList::new();
-    foldlist.clear();
     let _ = foldlist.add_card_data(&LINES[6..]);
     assert_eq!(v, foldlist.into_vec());
   }
