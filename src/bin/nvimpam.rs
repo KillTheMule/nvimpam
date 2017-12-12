@@ -19,12 +19,17 @@
 //!
 //! Put the contents of `init.vim` into your `init.vim`, and move the other
 //! files to their corresponding subfolders in your runtime path (check `:echo
-//! $VIMRUNTIME` to find out). You will have the command `:NvimPamConnect` and
-//! `:NvimPamStop` to start/stop the plugin.
+//! $VIMRUNTIME` to find out). You will have the commands `:NvimPamConnect` and
+//! `:NvimPamStop` to start/stop the plugin,as well as `:NvimPamUpdateFolds` to
+//! recompute and update all folds.
 //!
-//! * TODO: Implement buffer updates
-//! * TODO: Implement a function to reparse and recreate all folds
-//! * TODO: Implement more card types than SHELL and NODE
+//! If you want logging, set the following environment variables:
+//!
+//! * `LOG_FILE` is the path to the log file (no logging if this is empty)
+//! * `LOG_LEVEL` can be one of `error`, `warn`, `info`, `debug` and `trace`, in
+//!    ascending order of verbosity. The default is `warn`.
+//!
+//! `TODO`: Implement more card types than SHELL, NODE and Comment
 //!
 #[macro_use]
 extern crate log;
@@ -90,12 +95,11 @@ fn init_logging() -> Result<(), Error> {
 
   let log_level = match env::var("LOG_LEVEL") {
     Ok(s) => s,
-    Err(VarError::NotPresent) => "".to_owned(),
+    Err(VarError::NotPresent) => "warn".to_owned(),
     e @ Err(VarError::NotUnicode(_)) => {
       e.context("'LOG_LEVEL' not UTF-8 compatible!")?
     }
   };
-  println!("LOG_LEVEL: {}", log_level);
 
   let log_level = match log_level.to_lowercase().as_ref() {
     "error" => LogLevelFilter::Error,
