@@ -1,6 +1,8 @@
 //! The companion library to the nvimpam binary.
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate failure;
 extern crate neovim_lib;
 
 pub mod handler;

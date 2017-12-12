@@ -2,7 +2,7 @@
 //! [NeovimHandler](handler/struct.NeovimHandler.html) to the main loop.
 use std::fmt;
 use std::sync::mpsc;
-use std::error::Error;
+use failure::Error;
 
 use neovim_lib::neovim_api::Buffer;
 use neovim_lib::neovim::Neovim;
@@ -69,7 +69,7 @@ impl Event {
   pub fn event_loop(
     receiver: &mpsc::Receiver<Event>,
     mut nvim: Neovim,
-  ) -> Result<(), Box<Error>> {
+  ) -> Result<(), Error> {
     use self::Event::*;
 
     let curbuf = nvim.get_current_buf()?;

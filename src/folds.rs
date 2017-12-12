@@ -14,7 +14,10 @@
 //!
 use std::collections::BTreeMap;
 use std::collections::btree_map::Entry;
-use std::io::{Error, ErrorKind};
+
+use failure::Error;
+use failure::Fail;
+use failure::ResultExt;
 
 use neovim_lib::{Neovim, NeovimApi};
 
@@ -52,18 +55,10 @@ impl FoldList {
   /// Insert a fold (start, end) into the FoldList. Returns an error if that
   /// fold is already in the list. In that case, it needs to be
   /// [removed](struct.FoldList.html#method.remove) beforehand.
-  fn insert(
-    &mut self,
-    start: u64,
-    end: u64,
-    card: Card,
-  ) -> Result<(), Box<Error>> {
+  fn insert(&mut self, start: u64, end: u64, card: Card) -> Result<(), Error> {
 
     match self.folds.entry([start, end]) {
-      Entry::Occupied(_) => Err(Box::new(Error::new(
-        ErrorKind::Other,
-        "Fold already in list!",
-      ))),
+      Entry::Occupied(_) => Err(format_err!("Fold already in foldlist!")),
       Entry::Vacant(entry) => {
         entry.insert(card.clone());
         self.folds_inv.insert([end, start], card);
@@ -82,7 +77,7 @@ impl FoldList {
     start: u64,
     end: u64,
     card: Card,
-  ) -> Result<(), Box<Error>> {
+  ) -> Result<(), Error> {
     if start < end && card != Card::Comment {
       self.insert(start, end, card)?
     }
@@ -91,21 +86,15 @@ impl FoldList {
 
   /// Remove a fold (start, end) from the foldlist. Only checks if the fold
   /// is in the FoldList, and returns an error otherwise.
-  pub fn remove(&mut self, start: u64, end: u64) -> Result<(), Box<Error>> {
+  pub fn remove(&mut self, start: u64, end: u64) -> Result<(), Error> {
 
     if self.folds.remove(&[start, end]).is_none() {
-      return Err(Box::new(Error::new(
-        ErrorKind::Other,
-        "Could not remove fold from foldlist",
-      )));
+      return Err(format_err!("Could not remove fold from foldlist"));
     } else {
     }
 
     if self.folds_inv.remove(&[end, start]).is_none() {
-      return Err(Box::new(Error::new(
-        ErrorKind::Other,
-        "Could not remove fold from foldlist",
-      )));
+      return Err(format_err!("Could not remove fold from inverse foldlist"));
     } else {
     }
 
@@ -114,21 +103,27 @@ impl FoldList {
 
   /// Remove all the entries from the FoldList, and iterate over lines to
   /// populate it with new ones
-  pub fn recreate_all(&mut self, lines: &[String]) -> Result<(), Box<Error>> {
+  pub fn recreate_all(&mut self, lines: &[String]) -> Result<(), Error> {
     self.clear();
     self.add_card_data(lines)
   }
 
   /// Delete all folds in nvim, and create the ones from the FoldList
   /// TODO: Check if we're using the best method to send
-  pub fn resend_all(&self, nvim: &mut Neovim) -> Result<(), Box<Error>> {
-    nvim.command("normal! zE").unwrap();
+  pub fn resend_all(&self, nvim: &mut Neovim) -> Result<(), Error> {
+    nvim.command("normal! zE").context("'normal! zE' failed")?;
 
     // TODO: use nvim_call_atomic
     for (range, _) in self.folds.iter() {
       nvim
         .command(&format!("{},{}fo", range[0] + 1, range[1] + 1))
-        .unwrap();
+        .with_context(|e| {
+          e.clone().context(format!(
+            "'{},{}fo' failed!",
+            range[0] + 1,
+            range[1] + 1
+          ))
+        })?;
     }
 
     Ok(())
@@ -157,7 +152,7 @@ impl FoldList {
   pub fn add_card_data<T: AsRef<str>>(
     &mut self,
     lines: &[T],
-  ) -> Result<(), Box<Error>> {
+  ) -> Result<(), Error> {
     let it = lines
       .iter()
       .map(|s| Card::parse_str(s.as_ref()))
@@ -305,19 +300,12 @@ mod tests {
     use self::Card::*;
     use folds::FoldList;
 
-    let mut v = vec![
-      (0, 3, Node),
-      (7, 15, Shell),
-      (18, 19, Node),
-    ];
+    let mut v = vec![(0, 3, Node), (7, 15, Shell), (18, 19, Node)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_card_data(&LINES);
     assert_eq!(v, foldlist.into_vec());
 
-    v = vec![
-      (3, 11, Shell),
-      (14, 15, Node),
-    ];
+    v = vec![(3, 11, Shell), (14, 15, Node)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_card_data(&LINES[4..]);
     assert_eq!(v, foldlist.into_vec());

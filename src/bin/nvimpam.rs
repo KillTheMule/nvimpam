@@ -29,14 +29,17 @@
 #[macro_use]
 extern crate log;
 extern crate simplelog;
+extern crate failure;
 extern crate neovim_lib;
 extern crate nvimpam_lib;
 
+use std::sync::mpsc;
+
+use failure::Error;
+use failure::ResultExt;
+
 use nvimpam_lib::handler::NeovimHandler;
 use nvimpam_lib::event::Event;
-
-use std::error::Error;
-use std::sync::mpsc;
 
 use neovim_lib::neovim::Neovim;
 use neovim_lib::neovim_api::NeovimApi;
@@ -50,8 +53,12 @@ fn main() {
 
   match init_logging() {
     Err(e) => {
-      eprintln!("Error initializing logger: {}", e);
-      eprintln!("Nvimpam exiting!");
+      eprintln!("Nvimpam: Error initializing logger: {}", e);
+      error!("Error initializing logger: {}", e);
+      for cause in e.causes() {
+        error!("Caused by: {}", cause)
+      }
+      error!("Nvimpam exiting!");
       process::exit(1);
     }
     Ok(()) => {}
@@ -59,29 +66,38 @@ fn main() {
 
   match start_program() {
     Ok(_) => process::exit(0),
-
-    Err(msg) => {
-      eprintln!("Nvimpam encountered an error: {}", msg);
-      eprintln!("Nvimpam exiting!");
-      error!("{}", msg);
+    Err(e) => {
+      eprintln!("Nvimpam encountered an error: {}", e);
+      error!("Nvimpam encountered an error: {}", e);
+      for cause in e.causes() {
+        error!("Caused by: {}", cause)
+      }
+      error!("Nvimpam exiting!");
       process::exit(1);
     }
   };
 }
 
-fn init_logging() -> Result<(), Box<Error>> {
+fn init_logging() -> Result<(), Error> {
   use std::env;
   use std::fs::File;
+  use std::env::VarError;
 
   let filepath = match env::var_os("LOG_FILE") {
     Some(s) => s,
     None => return Ok(()),
   };
 
-  let log_level = match env::var("LOG_LEVEL")
-    .unwrap_or_else(|_| String::from("warn"))
-    .to_lowercase()
-    .as_ref() {
+  let log_level = match env::var("LOG_LEVEL") {
+    Ok(s) => s,
+    Err(VarError::NotPresent) => "".to_owned(),
+    e @ Err(VarError::NotUnicode(_)) => {
+      e.context("'LOG_LEVEL' not UTF-8 compatible!")?
+    }
+  };
+  println!("LOG_LEVEL: {}", log_level);
+
+  let log_level = match log_level.to_lowercase().as_ref() {
     "error" => LogLevelFilter::Error,
     "warn" => LogLevelFilter::Warn,
     "info" => LogLevelFilter::Info,
@@ -103,23 +119,20 @@ fn init_logging() -> Result<(), Box<Error>> {
   Ok(())
 }
 
-fn start_program() -> Result<(), Box<Error>> {
-
+fn start_program() -> Result<(), Error> {
   let (sender, receiver) = mpsc::channel();
   let mut session = try!(Session::new_parent());
 
   session.start_event_loop_handler(NeovimHandler(sender));
   let mut nvim = Neovim::new(session);
 
-  info!("let's notify neovim the plugin is connected!");
   nvim
     .command("echom \"rust client connected to neovim\"")
-    .unwrap();
-  info!("notification complete!");
+    .context("Could not 'echom' to neovim")?;
 
-  nvim.subscribe("quit").expect(
+  nvim.subscribe("quit").context(
     "error: cannot subscribe to event: quit",
-  );
+  )?;
 
   Event::event_loop(&receiver, nvim)?;
 
