@@ -5,6 +5,7 @@ extern crate nvimpam_lib;
 use self::test::Bencher;
 
 use nvimpam_lib::cards::Card;
+use nvimpam_lib::folds::FoldList;
 
 #[bench]
 fn bench_parse2folddata(b: &mut Bencher) {
@@ -17,9 +18,11 @@ fn bench_parse2folddata(b: &mut Bencher) {
     .map(|l| l.unwrap())
     .collect();
 
+  let mut f = FoldList::new();
   b.iter(|| {
     let r = test::black_box(&v);
-    let _compacted = Card::create_card_data(r);
+    f.clear();
+    let _compacted = f.add_card_data(r);
   })
 }
 
