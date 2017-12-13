@@ -74,10 +74,11 @@ describe('nvimpam', function()
     ]])
   end)
 
-  it('can deal with alternating card types', function()
+  it('can deal with insertions', function()
     insert(input)
     command('NvimPamConnect')
     feed("1G")
+
     screen:expect([[
       {1:^+--  4 lines: NODE  /        1              0.             0.5              0.---}|
       #Comment here                                                                    |
@@ -95,13 +96,9 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       rust client connected to neovim                                                  |
     ]])
-  end)
 
-  it('can deal with insertions', function()
-    insert(input)
-    command('NvimPamConnect')
-    feed("1G")
-
+    command("echo") -- clear the command line
+    feed("zo")
     feed("yyP")
     command("NvimPamUpdateFolds")
     screen:expect([[
@@ -119,7 +116,7 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       {2:~                                                                                }|
       {2:~                                                                                }|
-      rust client connected to neovim                                                  |
+                                                                                       |
     ]])
   end)
 
@@ -177,6 +174,7 @@ describe('nvimpam', function()
 
     feed("u")
     command("NvimPamUpdateFolds")
+    command("echo") -- clear the command line
     screen:expect([[
       {1:+--  4 lines: NODE  /        1              0.             0.5              0.---}|
       #Comment here                                                                    |
@@ -192,7 +190,7 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       {2:~                                                                                }|
       {2:~                                                                                }|
-      2 changes; before #2  0 seconds ago                                              |
+                                                                                       |
     ]])
   end)
 end)
