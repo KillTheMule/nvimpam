@@ -4,7 +4,7 @@ extern crate nvimpam_lib;
 
 use self::test::Bencher;
 
-use nvimpam_lib::cards::Card;
+use nvimpam_lib::cards::Keyword;
 use nvimpam_lib::folds::FoldList;
 
 #[bench]
@@ -22,7 +22,7 @@ fn bench_parse2folddata(b: &mut Bencher) {
   b.iter(|| {
     let r = test::black_box(&v);
     f.clear();
-    let _compacted = f.add_card_data(r);
+    let _compacted = f.add_keyword_data(r);
   })
 }
 
@@ -39,7 +39,7 @@ fn bench_parse_str(b: &mut Bencher) {
 
   b.iter(|| {
     let r = test::black_box(&v);
-    let _parsed: Vec<Option<Card>> =
-      r.iter().map(|s| Card::parse_str(s.as_ref())).collect();
+    let _parsed: Vec<Option<Keyword>> =
+      r.iter().map(|s| Keyword::parse(s)).collect();
   })
 }

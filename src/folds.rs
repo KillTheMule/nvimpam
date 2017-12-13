@@ -302,17 +302,17 @@ mod tests {
 
     let mut v = vec![(0, 3, Node), (7, 15, Shell), (18, 19, Node)];
     let mut foldlist = FoldList::new();
-    let _ = foldlist.add_card_data(&LINES);
+    let _ = foldlist.add_keyword_data(&LINES);
     assert_eq!(v, foldlist.into_vec());
 
     v = vec![(3, 11, Shell), (14, 15, Node)];
     let mut foldlist = FoldList::new();
-    let _ = foldlist.add_card_data(&LINES[4..]);
+    let _ = foldlist.add_keyword_data(&LINES[4..]);
     assert_eq!(v, foldlist.into_vec());
 
     v = vec![(1, 9, Shell), (12, 13, Node)];
     let mut foldlist = FoldList::new();
-    let _ = foldlist.add_card_data(&LINES[6..]);
+    let _ = foldlist.add_keyword_data(&LINES[6..]);
     assert_eq!(v, foldlist.into_vec());
   }
 }
