@@ -1,17 +1,17 @@
 //! This module is the host for some code related to nvimpam that I don't want
 //! to use right now, but want to keep for later.
 
-use cards::Card;
+use cards::Keyword;
 use std::str::Bytes;
 
-/// [parse_str](../cards/enum.Card.html#method.parse_str) seems to largely
+/// [parse_str](../cards/enum.Keyword.html#method.parse_str) seems to largely
 /// dominate the benchmark for
-/// [create_card_data](../cards/enum.Card.html#method.create_card_data), this
+/// [create_card_data](../cards/enum.Keyword.html#method.create_card_data), this
 /// might be a faster alternative. Needs real benchmarks!
 #[inline]
 #[allow(dead_code)]
-pub fn parse_str2<'a>(s: &'a str) -> Option<Card> {
-  use cards::Card::*;
+pub fn parse_str2<'a>(s: &'a str) -> Option<Keyword> {
+  use cards::Keyword::*;
   match s.bytes().next() {
     Some(b'N') if s.starts_with("NODE") => Some(Node),
     Some(b'S') if s.starts_with("SHELL") => Some(Shell),
@@ -23,7 +23,7 @@ pub fn parse_str2<'a>(s: &'a str) -> Option<Card> {
 /// Helper function used by [parse_str3](fn.parse_str3.html).
 #[inline]
 #[allow(dead_code)]
-pub fn check_rest(mut rest: Bytes, check: &[u8], card: Card) -> Option<Card> {
+pub fn check_rest(mut rest: Bytes, check: &[u8], card: Keyword) -> Option<Keyword> {
   for b in check {
     if rest.next() != Some(*b) {
       return None;
@@ -32,14 +32,14 @@ pub fn check_rest(mut rest: Bytes, check: &[u8], card: Card) -> Option<Card> {
   Some(card)
 }
 
-/// [parse_str](../cards/enum.Card.html#method.parse_str) seems to largely
+/// [parse_str](../cards/enum.Keyword.html#method.parse_str) seems to largely
 /// dominate the benchmark for
-/// [create_card_data](../cards/enum.Card.html#method.create_card_data), this
+/// [create_card_data](../cards/enum.Keyword.html#method.create_card_data), this
 /// might be a faster alternative. Needs real benchmarks!
 #[inline]
 #[allow(dead_code)]
-pub fn parse_str3(s: &str) -> Option<Card> {
-  use cards::Card::*;
+pub fn parse_str3(s: &str) -> Option<Keyword> {
+  use cards::Keyword::*;
   let mut bytes = s.bytes();
   match bytes.next() {
     Some(b'N') => {
@@ -59,14 +59,14 @@ pub fn parse_str3(s: &str) -> Option<Card> {
   }
 }
 
-/// [parse_str](../cards/enum.Card.html#method.parse_str) seems to largely
+/// [parse_str](../cards/enum.Keyword.html#method.parse_str) seems to largely
 /// dominate the benchmark for
-/// [create_card_data](../cards/enum.Card.html#method.create_card_data), this
+/// [create_card_data](../cards/enum.Keyword.html#method.create_card_data), this
 /// might be a faster alternative. Needs real benchmarks!
 #[inline]
 #[allow(dead_code)]
-pub fn parse_str4<'a>(s: &'a str) -> Option<Card> {
-  use cards::Card::*;
+pub fn parse_str4<'a>(s: &'a str) -> Option<Keyword> {
+  use cards::Keyword::*;
   use std::ptr;
   use std::cmp;
 
@@ -102,7 +102,7 @@ pub fn parse_str4<'a>(s: &'a str) -> Option<Card> {
 pub struct Fold {
   start: u64,
   end: u64,
-  card: Option<Card>,
+  card: Option<Keyword>,
 }
 
 /// Structure holding the original iterator I (the Vec<String> in nvimpam) and
@@ -120,18 +120,18 @@ pub struct Folds<I> {
 }
 
 /// Trait that creates an iterator adaptor to contract folding data [like
-/// this](../cards/enum.Card.html#method.create_card_data).
+/// this](../cards/enum.Keyword.html#method.create_card_data).
 pub trait FoldExt: Sized {
   fn folds(self) -> Folds<Self>;
 }
 
 /// Impl the iterator adaptors for iterators that return a numbering of card
 /// classifications, as we get from Vec<String> by first mapping
-/// [parse_str](../cards/enum.Card.html#method.parse_str) and then calling
+/// [parse_str](../cards/enum.Keyword.html#method.parse_str) and then calling
 /// enumerate()
 impl<I> FoldExt for I
 where
-  I: ExactSizeIterator<Item = (usize, Option<Card>)>,
+  I: ExactSizeIterator<Item = (usize, Option<Keyword>)>,
 {
   fn folds(self) -> Folds<Self> {
     Folds {
@@ -145,7 +145,7 @@ where
 /// Might not be correct, see this [comment](struct.Folds.html)
 impl<I> Iterator for Folds<I>
 where
-  I: ExactSizeIterator<Item = (usize, Option<Card>)>,
+  I: ExactSizeIterator<Item = (usize, Option<Keyword>)>,
 {
   type Item = Fold;
 
@@ -157,7 +157,7 @@ where
     let len = self.orig.len();
 
     let mut curcardstart = 0;
-    let mut curcard: Option<Card> = None;
+    let mut curcard: Option<Keyword> = None;
 
     let mut last_before_comment = 0;
 
@@ -170,7 +170,7 @@ where
                 self.ncard = Some(Fold {
                   start: last_before_comment as u64 + 1,
                   end: *i as u64 - 1,
-                  card: Some(Card::Comment),
+                  card: Some(Keyword::Comment),
                 });
                 return Some(Fold {
                   start: curcardstart as u64,
@@ -194,13 +194,13 @@ where
             last_before_comment = 0;
             continue;
           } else {
-            if *linecard == Some(Card::Comment) {
+            if *linecard == Some(Keyword::Comment) {
               if *i > 1 && last_before_comment == 0 {
                 last_before_comment = i - 1;
                 continue;
               } else {
                 if *i == 0 {
-                  curcard = Some(Card::Comment);
+                  curcard = Some(Keyword::Comment);
                   curcardstart = 0;
                 }
               }
@@ -245,7 +245,7 @@ where
 #[allow(dead_code)]
 pub fn create_card_data5<T: AsRef<str>>(
   lines: &[T],
-) -> Vec<(Option<Card>, u64, u64)> {
+) -> Vec<(Option<Keyword>, u64, u64)> {
 
   let mut v = Vec::new();
   let it = lines

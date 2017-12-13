@@ -5,9 +5,9 @@
 //!
 //! ```
 //! # use nvimpam_lib::folds::FoldList;
-//! # use nvimpam_lib::cards::Card;
+//! # use nvimpam_lib::cards::Keyword;
 //! let mut foldlist = FoldList::new();
-//! foldlist.checked_insert(1,2, Card::Node).map_err(|e| println!("{}", e));
+//! foldlist.checked_insert(1,2, Keyword::Node).map_err(|e| println!("{}", e));
 //! assert!(foldlist.remove(2,3).is_err());
 //! assert!(foldlist.remove(1,2).is_ok());
 //! ```
@@ -21,19 +21,19 @@ use failure::ResultExt;
 
 use neovim_lib::{Neovim, NeovimApi};
 
-use cards::Card;
+use cards::Keyword;
 
 /// Holds the fold data of the buffer. A fold has the following data:
 /// Linenumbers start, end (indexed from 1), and a
-/// [Card](../cards/enum.Card.html).
+/// [Keyword](../cards/enum.Keyword.html).
 pub struct FoldList {
-  /// List of folds, keyed by [start, end], valued by Card, sorted
+  /// List of folds, keyed by [start, end], valued by Keyword, sorted
   /// lexicographically on [start, end].
-  folds: BTreeMap<[u64; 2], Card>,
-  /// List of folds, keyed by [end, start], valued by Card, sorted
+  folds: BTreeMap<[u64; 2], Keyword>,
+  /// List of folds, keyed by [end, start], valued by Keyword, sorted
   /// lexicographically on [end, start].  Kept synchronous to Folds by the
   /// struct methods.
-  folds_inv: BTreeMap<[u64; 2], Card>,
+  folds_inv: BTreeMap<[u64; 2], Keyword>,
 }
 
 impl FoldList {
@@ -55,13 +55,13 @@ impl FoldList {
   /// Insert a fold (start, end) into the FoldList. Returns an error if that
   /// fold is already in the list. In that case, it needs to be
   /// [removed](struct.FoldList.html#method.remove) beforehand.
-  fn insert(&mut self, start: u64, end: u64, card: Card) -> Result<(), Error> {
+  fn insert(&mut self, start: u64, end: u64, kw: Keyword) -> Result<(), Error> {
 
     match self.folds.entry([start, end]) {
       Entry::Occupied(_) => Err(format_err!("Fold already in foldlist!")),
       Entry::Vacant(entry) => {
-        entry.insert(card.clone());
-        self.folds_inv.insert([end, start], card);
+        entry.insert(kw.clone());
+        self.folds_inv.insert([end, start], kw);
         Ok(())
       }
     }
@@ -76,10 +76,10 @@ impl FoldList {
     &mut self,
     start: u64,
     end: u64,
-    card: Card,
+    kw: Keyword,
   ) -> Result<(), Error> {
-    if start < end && card != Card::Comment {
-      self.insert(start, end, card)?
+    if start < end && kw != Keyword::Comment {
+      self.insert(start, end, kw)?
     }
     Ok(())
   }
@@ -105,7 +105,7 @@ impl FoldList {
   /// populate it with new ones
   pub fn recreate_all(&mut self, lines: &[String]) -> Result<(), Error> {
     self.clear();
-    self.add_card_data(lines)
+    self.add_keyword_data(lines)
   }
 
   /// Delete all folds in nvim, and create the ones from the FoldList
@@ -129,8 +129,8 @@ impl FoldList {
     Ok(())
   }
 
-  /// Turn the FoldList into a Vec, containing the tuples (start, end, Card)
-  pub fn into_vec(self) -> Vec<(u64, u64, Card)> {
+  /// Turn the FoldList into a Vec, containing the tuples (start, end, Keyword)
+  pub fn into_vec(self) -> Vec<(u64, u64, Keyword)> {
     let mut v = Vec::new();
     for (s, card) in self.folds {
       let start = s[0];
@@ -149,27 +149,27 @@ impl FoldList {
   /// type of the surrounding folds. Otherwise, folds will form their own
   /// fold range.
   #[inline]
-  pub fn add_card_data<T: AsRef<str>>(
+  pub fn add_keyword_data<T: AsRef<str>>(
     &mut self,
     lines: &[T],
   ) -> Result<(), Error> {
     let it = lines
       .iter()
-      .map(|s| Card::parse_str(s.as_ref()))
+      .map(|s| Keyword::parse(s))
       .enumerate();
-    let mut curcardstart = 0;
-    let mut curcard: Option<Card> = None;
+    let mut curkwstart = 0;
+    let mut curkw: Option<Keyword> = None;
 
     let mut last_before_comment = 0;
 
-    for (i, linecard) in it {
-      match linecard {
+    for (i, linekw) in it {
+      match linekw {
         None => {
           if i > 0 {
-            if let Some(c) = curcard {
+            if let Some(c) = curkw {
               if last_before_comment > 0 {
                 self.checked_insert(
-                  curcardstart as u64,
+                  curkwstart as u64,
                   last_before_comment as u64,
                   c,
                 )?;
@@ -177,39 +177,39 @@ impl FoldList {
                   self.checked_insert(
                     last_before_comment as u64 + 1,
                     i as u64 - 1,
-                    Card::Comment,
+                    Keyword::Comment,
                   )?;
                 }
                 last_before_comment = 0;
               } else {
-                self.checked_insert(curcardstart as u64, i as u64 - 1, c)?;
+                self.checked_insert(curkwstart as u64, i as u64 - 1, c)?;
               }
             }
           }
-          curcard = None;
-          curcardstart = i;
+          curkw = None;
+          curkwstart = i;
         }
         Some(ref c) => {
-          if linecard == curcard {
+          if linekw == curkw {
             last_before_comment = 0;
             continue;
           } else {
-            if linecard == Some(Card::Comment) {
+            if linekw == Some(Keyword::Comment) {
               if i > 1 && last_before_comment == 0 {
                 last_before_comment = i - 1;
                 continue;
               } else {
                 if i == 0 {
-                  curcard = Some(Card::Comment);
-                  curcardstart = 0;
+                  curkw = Some(Keyword::Comment);
+                  curkwstart = 0;
                 }
               }
             } else {
-              // linecard != curcard, and linecard != Some(Comment)
-              if let Some(c) = curcard {
+              // linekw != curkw, and linekw != Some(Comment)
+              if let Some(c) = curkw {
                 if last_before_comment > 0 {
                   self.checked_insert(
-                    curcardstart as u64,
+                    curkwstart as u64,
                     last_before_comment as u64,
                     c,
                   )?;
@@ -218,28 +218,28 @@ impl FoldList {
                     self.checked_insert(
                       last_before_comment as u64 + 1,
                       i as u64 - 1,
-                      Card::Comment,
+                      Keyword::Comment,
                     )?;
                   }
                   last_before_comment = 0;
                 } else {
                   if i > 0 {
-                    self.checked_insert(curcardstart as u64, i as u64 - 1, c)?;
+                    self.checked_insert(curkwstart as u64, i as u64 - 1, c)?;
                   }
                 }
               }
-              curcard = Some(*c);
-              curcardstart = i;
+              curkw = Some(*c);
+              curkwstart = i;
             }
 
           }
         }
       }
     }
-    // When through the whole vec, need to insert a last card
-    if let Some(c) = curcard {
+    // When through the whole vec, need to insert a last kw
+    if let Some(c) = curkw {
       self.checked_insert(
-        curcardstart as u64,
+        curkwstart as u64,
         lines.len() as u64 - 1,
         c,
       )?;
@@ -250,7 +250,7 @@ impl FoldList {
 
 #[cfg(test)]
 mod tests {
-  use cards::Card;
+  use cards::Keyword;
 
   const LINES: [&'static str; 20] = [
     /* 0 */
@@ -297,7 +297,7 @@ mod tests {
 
   #[test]
   fn fold_end_01() {
-    use self::Card::*;
+    use self::Keyword::*;
     use folds::FoldList;
 
     let mut v = vec![(0, 3, Node), (7, 15, Shell), (18, 19, Node)];
