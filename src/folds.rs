@@ -5,7 +5,7 @@
 //!
 //! ```
 //! # use nvimpam_lib::folds::FoldList;
-//! # use nvimpam_lib::cards::Keyword;
+//! # use nvimpam_lib::cards::keywords::Keyword;
 //! let mut foldlist = FoldList::new();
 //! foldlist.checked_insert(1,2, Keyword::Node).map_err(|e| println!("{}", e));
 //! assert!(foldlist.remove(2,3).is_err());
@@ -21,7 +21,7 @@ use failure::ResultExt;
 
 use neovim_lib::{Neovim, NeovimApi};
 
-use cards::Keyword;
+use cards::keywords::Keyword;
 
 /// Holds the fold data of the buffer. A fold has the following data:
 /// Linenumbers start, end (indexed from 1), and a
@@ -250,7 +250,7 @@ impl FoldList {
 
 #[cfg(test)]
 mod tests {
-  use cards::Keyword;
+  use cards::keywords::Keyword;
 
   const LINES: [&'static str; 20] = [
     /* 0 */

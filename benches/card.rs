@@ -4,7 +4,7 @@ extern crate nvimpam_lib;
 
 use self::test::Bencher;
 
-use nvimpam_lib::cards::Keyword;
+use nvimpam_lib::cards::keywords::Keyword;
 use nvimpam_lib::folds::FoldList;
 
 #[bench]
