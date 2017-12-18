@@ -87,16 +87,12 @@ impl FoldList {
   /// Remove a fold (start, end) from the foldlist. Only checks if the fold
   /// is in the FoldList, and returns an error otherwise.
   pub fn remove(&mut self, start: u64, end: u64) -> Result<(), Error> {
-
-    if self.folds.remove(&[start, end]).is_none() {
-      return Err(format_err!("Could not remove fold from foldlist"));
-    } else {
-    }
-
-    if self.folds_inv.remove(&[end, start]).is_none() {
-      return Err(format_err!("Could not remove fold from inverse foldlist"));
-    } else {
-    }
+    self.folds.remove(&[start, end]).ok_or(format_err!(
+      "Could not remove fold from foldlist"
+    ))?;
+    self.folds_inv.remove(&[end, start]).ok_or(format_err!(
+      "Could not remove fold from inverse foldlist!"
+    ))?;
 
     Ok(())
   }
@@ -129,7 +125,8 @@ impl FoldList {
     Ok(())
   }
 
-  /// Turn the FoldList into a Vec, containing the tuples (start, end, Keyword)
+  /// Turn the FoldList into a Vec, containing the tuples (start, end,
+  /// Keyword)
   pub fn into_vec(self) -> Vec<(u64, u64, Keyword)> {
     let mut v = Vec::new();
     for (s, card) in self.folds {
@@ -153,10 +150,7 @@ impl FoldList {
     &mut self,
     lines: &[T],
   ) -> Result<(), Error> {
-    let it = lines
-      .iter()
-      .map(|s| Keyword::parse(s))
-      .enumerate();
+    let it = lines.iter().map(|s| Keyword::parse(s)).enumerate();
     let mut curkwstart = 0;
     let mut curkw: Option<Keyword> = None;
 
