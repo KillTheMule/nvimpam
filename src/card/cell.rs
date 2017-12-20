@@ -1,4 +1,4 @@
-use cards::keywords::Keyword;
+use card::keyword::Keyword;
 
 /// Elements of an input line
 #[derive(Debug)]

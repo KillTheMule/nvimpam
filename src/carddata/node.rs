@@ -1,20 +1,22 @@
-use cards::keywords::Keyword::*;
-use cards::lines::Card;
-use cards::cells::Cell::*;
-use cards::lines::Line::*;
-use cards::lines::Conditional::*;
-use cards::lines::GesType::*;
+use card::keyword::Keyword::*;
+use card::Card;
+use card::cell::Cell::*;
+use card::line::Line::*;
+use card::line::Conditional::*;
+use card::ges::GesType::*;
 
 pub static NODE: Card = Card {
   lines: &[
     Cells(&[Kw(Node), Integer(16), Float(16), Float(16), Float(16)]),
   ],
+  ownfold: false,
 };
 
 pub static CNODE: Card = Card {
   lines: &[
     Cells(&[Kw(Cnode), Integer(16), Float(16), Float(16), Float(16)]),
   ],
+  ownfold: false,
 };
 
 pub static MASS: Card = Card {
@@ -38,6 +40,7 @@ pub static MASS: Card = Card {
     ),
     Ges(GesNode),
   ],
+  ownfold: true,
 };
 
 pub static NSMAS: Card = Card {
@@ -55,6 +58,7 @@ pub static NSMAS: Card = Card {
     Cells(&[Fixed("NAME"), Str(76)]),
     Ges(GesEle)
   ],
+  ownfold: true,
 };
 
 pub static NSMAS2: Card = Card {
@@ -72,4 +76,5 @@ pub static NSMAS2: Card = Card {
     Cells(&[Fixed("NAME"), Str(76)]),
     Ges(GesEle)
   ],
+  ownfold: true,
 };

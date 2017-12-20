@@ -1,7 +1,7 @@
 //! This module is the host for some code related to nvimpam that I don't want
 //! to use right now, but want to keep for later.
 
-use cards::keywords::Keyword;
+use card::keyword::Keyword;
 use std::str::Bytes;
 
 /// [parse_str](../cards/enum.Keyword.html#method.parse_str) seems to largely
@@ -11,7 +11,7 @@ use std::str::Bytes;
 #[inline]
 #[allow(dead_code)]
 pub fn parse_str2<'a>(s: &'a str) -> Option<Keyword> {
-  use cards::keywords::Keyword::*;
+  use card::keyword::Keyword::*;
   match s.bytes().next() {
     Some(b'N') if s.starts_with("NODE") => Some(Node),
     Some(b'S') if s.starts_with("SHELL") => Some(Shell),
@@ -39,7 +39,7 @@ pub fn check_rest(mut rest: Bytes, check: &[u8], card: Keyword) -> Option<Keywor
 #[inline]
 #[allow(dead_code)]
 pub fn parse_str3(s: &str) -> Option<Keyword> {
-  use cards::keywords::Keyword::*;
+  use card::keyword::Keyword::*;
   let mut bytes = s.bytes();
   match bytes.next() {
     Some(b'N') => {
@@ -66,7 +66,7 @@ pub fn parse_str3(s: &str) -> Option<Keyword> {
 #[inline]
 #[allow(dead_code)]
 pub fn parse_str4<'a>(s: &'a str) -> Option<Keyword> {
-  use cards::keywords::Keyword::*;
+  use card::keyword::Keyword::*;
   use std::ptr;
   use std::cmp;
 

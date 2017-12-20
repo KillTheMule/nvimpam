@@ -5,7 +5,7 @@
 //!
 //! ```
 //! # use nvimpam_lib::folds::FoldList;
-//! # use nvimpam_lib::cards::keywords::Keyword;
+//! # use nvimpam_lib::card::keyword::Keyword;
 //! let mut foldlist = FoldList::new();
 //! foldlist.checked_insert(1,2, Keyword::Node).map_err(|e| println!("{}", e));
 //! assert!(foldlist.remove(2,3).is_err());
@@ -21,7 +21,7 @@ use failure::ResultExt;
 
 use neovim_lib::{Neovim, NeovimApi};
 
-use cards::keywords::Keyword;
+use card::keyword::Keyword;
 
 /// Holds the fold data of the buffer. A fold has the following data:
 /// Linenumbers start, end (indexed from 1), and a
@@ -240,11 +240,72 @@ impl FoldList {
     }
     Ok(())
   }
+
+  pub fn add_folds<T: AsRef<str>>(
+    &mut self,
+    lines: &[T],
+  ) -> Result<(), Error> {
+
+    if lines.len() == 0 {
+      return Err(format_err!("No lines passed!"));
+    }
+
+    let mut it = lines.iter().enumerate();
+    let mut curkw = None;
+    let mut curline;
+    let mut curidx = 0;
+
+
+    loop {
+      // Advance to the next keyword line
+      if curkw.is_none() {
+        let tmp = it.find(|&(_, l)| Keyword::parse(l).is_some());
+        match tmp {
+          None => return Ok(()),
+          Some((i, l)) => {
+            curidx = i;
+            curline = l;
+            curkw = Keyword::parse(curline);
+          }
+        };
+      };
+
+      // skip comments
+      if curkw == Some(Keyword::Comment) {
+        let tmp = it.find(|&(_, l)| Keyword::parse(l) != Some(Keyword::Comment));
+        match tmp {
+          None => return Ok(()),
+          Some((i, l)) => {
+            curidx = i;
+            curline = l;
+            curkw = Keyword::parse(curline);
+          }
+        };
+      }
+      match curkw {
+        None => continue,
+        Some(Keyword::Comment) => unreachable!(),
+        Some(c) => {
+          let foldend = c.get_foldend(&mut it);
+
+          if let Some(i) = foldend.0 {
+            self.insert(curidx as u64, i, c)?;
+          } 
+          curkw = foldend.1;
+
+          if let Some(i) = foldend.2 {
+            curidx = i as usize;
+          }
+        }
+      }
+    }
+    // loop end
+  }
 }
 
 #[cfg(test)]
 mod tests {
-  use cards::keywords::Keyword;
+  use card::keyword::Keyword;
 
   const LINES: [&'static str; 20] = [
     /* 0 */
@@ -291,7 +352,7 @@ mod tests {
 
   #[test]
   fn fold_end_01() {
-    use self::Keyword::*;
+    use card::keyword::Keyword::*;
     use folds::FoldList;
 
     let mut v = vec![(0, 3, Node), (7, 15, Shell), (18, 19, Node)];
@@ -307,6 +368,50 @@ mod tests {
     v = vec![(1, 9, Shell), (12, 13, Node)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_keyword_data(&LINES[6..]);
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+
+  const CARD_MASS: [&'static str; 7] = [
+    "$ NSMAS - Nonstructural mass",
+    "$#       IDNODMS            MASS            MLEN            MARE            MVOL",
+    "NSMAS /        1              0.                                                ",
+    "$#                                                                         TITLE",
+    "NAME NSMAS / ->1                                                                ",
+    "        ELE",
+    "        END",
+  ];
+
+  #[test]
+  fn newfold_mass() {
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+    let mut it = CARD_MASS.iter().enumerate();
+    let _ = it.next();
+    let _ = it.next();
+    let _ = it.next();
+
+    let (end, kw, idx) = Nsmas.get_foldend(&mut it);
+    assert_eq!(end, Some(5));
+    assert_eq!(kw, None);
+    assert_eq!(idx, Some(6));
+
+    let v = vec![(2, 5, Nsmas)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_MASS);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  #[test]
+  fn newfold_lines() {
+    use self::Keyword::*;
+    use folds::FoldList;
+
+    let v = vec![(0, 3, Node), (7, 15, Shell), (18, 19, Node)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&LINES);
     assert_eq!(v, foldlist.into_vec());
   }
 }
