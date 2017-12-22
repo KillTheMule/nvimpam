@@ -1,8 +1,13 @@
 //! This module is the host for some code related to nvimpam that I don't want
 //! to use right now, but want to keep for later.
+use std::str::Bytes;
+
+use failure::Error;
 
 use card::keyword::Keyword;
-use std::str::Bytes;
+use card::Card;
+use folds::FoldList;
+
 
 /// [parse_str](../cards/enum.Keyword.html#method.parse_str) seems to largely
 /// dominate the benchmark for
@@ -23,7 +28,11 @@ pub fn parse_str2<'a>(s: &'a str) -> Option<Keyword> {
 /// Helper function used by [parse_str3](fn.parse_str3.html).
 #[inline]
 #[allow(dead_code)]
-pub fn check_rest(mut rest: Bytes, check: &[u8], card: Keyword) -> Option<Keyword> {
+pub fn check_rest(
+  mut rest: Bytes,
+  check: &[u8],
+  card: Keyword,
+) -> Option<Keyword> {
   for b in check {
     if rest.next() != Some(*b) {
       return None;
@@ -205,7 +214,7 @@ where
                 }
               }
             } else {
-              // linecard != curcard, and linecard != Some(Comment)
+// linecard != curcard, and linecard != Some(Comment)
               if last_before_comment > 0 {
                 return Some(Fold {
                   start: curcardstart as u64,
@@ -258,4 +267,141 @@ pub fn create_card_data5<T: AsRef<str>>(
     v.push((fold.card, fold.start, fold.end));
   }
   v
+}
+
+/// Alternative to add_folds on a foldlist
+/// DOES NOT WORK. Needs to properly deal with the results of get_foldend2
+#[allow(dead_code)]
+pub fn add_folds2<T: AsRef<str>>(
+  foldlist: &mut FoldList,
+  lines: &[T],
+) -> Result<(), Error> {
+
+  if lines.len() == 0 {
+    return Err(format_err!("No lines passed!"));
+  }
+  // Iterate over the lines once
+  let mut lines_enumerated_without_comments =
+    Box::new(lines.iter().enumerate().filter(|&(_, l)| {
+      Keyword::parse(l.as_ref()) != Some(Keyword::Comment)
+    }));
+  // Iterator may be advanced by this loop or `get_foldend`
+  while let Some((cur_idx, cur_line)) =
+    lines_enumerated_without_comments.next()
+  {
+    let mut cur_kw;
+    match Keyword::parse(cur_line.as_ref()) {
+      None => continue,
+      // None |
+      // Some(Keyword::Comment) => continue,
+      Some(kw) => cur_kw = kw, 
+    }
+
+    match cur_kw {
+      Keyword::Comment => unreachable!(),
+      c => {
+        let foldend = get_foldend2(&c, &mut lines_enumerated_without_comments);
+        if let Some(i) = foldend.0 {
+          foldlist.checked_insert(cur_idx as u64, i, c)?;
+        }
+        //cur_kw = foldend.1.unwrap();
+
+        //if let Some(i) = foldend.2 {
+        //  cur_idx = i as usize;
+        //}
+      }
+    }
+  }
+  return Ok(());
+}
+
+/// Alternative to get_foldend to use with add_folds2
+/// Needs a trait object because the use of filter make the types not writeable
+#[inline]
+pub fn get_foldend2<'a, T: AsRef<str>>(
+  kw: &Keyword,
+  it: &mut Iterator<Item = (usize, T)>,
+) -> (Option<u64>, Option<Keyword>, Option<u64>) {
+  let card: &Card = kw.into();
+
+  if card.ownfold {
+    let num = card.lines.len();
+    let mut i = 0;
+    let mut idx = 0;
+    let mut line;
+
+
+    while i < num {
+      println!("{}", i);
+      let tmp = it.next();
+      match tmp {
+        None => return (None, None, None),
+        Some((j, l)) => {
+          idx = j;
+          line = l;
+        }
+      }
+
+      if let Some(k) = Keyword::parse(line) {
+        if k == Keyword::Comment {
+          i += 1;
+          continue;
+        }
+        return (None, Some(k), Some(idx as u64));
+      } else {
+        i += 1;
+      }
+    }
+
+    let tmp = it.next();
+    match tmp {
+      None => return (Some(idx as u64), None, None),
+      Some((i, l)) => {
+        return (Some(idx as u64), Keyword::parse(l), Some(i as u64))
+      }
+    }
+  } else {
+    // !card.ownfold
+    let mut idx;
+    let mut line;
+    let mut curkw;
+    let mut idx_before_comment = 0;
+
+    let tmp = it.next();
+    match tmp {
+      None => return (None, None, None),
+      Some((j, l)) => {
+        idx = j;
+        line = l;
+        curkw = Keyword::parse(line);
+      }
+    }
+
+    if curkw.is_none() {
+      return (None, None, None);
+    }
+
+    while curkw == Some(*kw) || curkw == Some(Keyword::Comment) {
+      if curkw == Some(Keyword::Comment) && idx_before_comment == 0 {
+        idx_before_comment = idx - 1;
+      } else if curkw == Some(*kw) && idx_before_comment > 0 {
+        idx_before_comment = 0;
+      }
+      let tmp = it.next();
+      match tmp {
+        None => return (Some(idx as u64), None, None),
+        Some((j, l)) => {
+          idx = j;
+          line = l;
+          curkw = Keyword::parse(line);
+        }
+      }
+    }
+
+    if idx_before_comment > 0 {
+      return (Some(idx_before_comment as u64), curkw, Some(idx as u64));
+    } else {
+      return (Some(idx as u64 - 1), curkw, Some(idx as u64));
+    }
+  }
 }
