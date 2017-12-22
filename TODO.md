@@ -12,3 +12,5 @@
 * If performance isn't good, see 
 https://www.reddit.com/r/rust/comments/7h4q0i/can_this_function_be_improved_performancewise/dqoolbm/
 * Before parsing the vec, maybe sort it?
+* Create a struct as return type of the functions that skip the range in the main iterator
+  and need to return data for the last read line (e.g. Keyword::get_foldend)
