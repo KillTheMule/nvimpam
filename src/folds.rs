@@ -241,10 +241,7 @@ impl FoldList {
     Ok(())
   }
 
-  pub fn add_folds<T: AsRef<str>>(
-    &mut self,
-    lines: &[T],
-  ) -> Result<(), Error> {
+  pub fn add_folds<T: AsRef<str>>(&mut self, lines: &[T]) -> Result<(), Error> {
 
     if lines.len() == 0 {
       return Err(format_err!("No lines passed!"));
@@ -272,7 +269,8 @@ impl FoldList {
 
       // skip comments
       if curkw == Some(Keyword::Comment) {
-        let tmp = it.find(|&(_, l)| Keyword::parse(l) != Some(Keyword::Comment));
+        let tmp =
+          it.find(|&(_, l)| Keyword::parse(l) != Some(Keyword::Comment));
         match tmp {
           None => return Ok(()),
           Some((i, l)) => {
@@ -290,7 +288,7 @@ impl FoldList {
 
           if let Some(i) = foldend.0 {
             self.insert(curidx as u64, i, c)?;
-          } 
+          }
           curkw = foldend.1;
 
           if let Some(i) = foldend.2 {
@@ -299,7 +297,6 @@ impl FoldList {
         }
       }
     }
-    // loop end
   }
 }
 

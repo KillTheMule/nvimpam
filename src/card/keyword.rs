@@ -53,7 +53,7 @@ impl Keyword {
   #[inline]
   pub fn get_foldend<'a, T: AsRef<str>>(
     &self,
-    it: &mut iter::Enumerate<slice::Iter<'a, T>>
+    it: &mut iter::Enumerate<slice::Iter<'a, T>>,
   ) -> (Option<u64>, Option<Keyword>, Option<u64>) {
     let card: &Card = self.into();
 
@@ -65,7 +65,6 @@ impl Keyword {
 
 
       while i < num {
-        println!("{}", i);
         let tmp = it.next();
         match tmp {
           None => return (None, None, None),
@@ -89,8 +88,9 @@ impl Keyword {
       let tmp = it.next();
       match tmp {
         None => return (Some(idx as u64), None, None),
-        Some((i, l)) => return (Some(idx as u64), Keyword::parse(l), Some(i as
-                                                                          u64)),
+        Some((i, l)) => {
+          return (Some(idx as u64), Keyword::parse(l), Some(i as u64))
+        }
       }
     } else {
       // !card.ownfold
@@ -121,7 +121,7 @@ impl Keyword {
         }
         let tmp = it.next();
         match tmp {
-          None =>  return (Some(idx as u64), None, None),
+          None => return (Some(idx as u64), None, None),
           Some((j, l)) => {
             idx = j;
             line = l;
@@ -136,6 +136,5 @@ impl Keyword {
         return (Some(idx as u64 - 1), curkw, Some(idx as u64));
       }
     }
-
   }
 }
