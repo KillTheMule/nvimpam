@@ -205,7 +205,6 @@ impl FoldList {
 
 #[cfg(test)]
 mod tests {
-  use card::keyword::Keyword;
 
   const LINES: [&'static str; 20] = [
     /* 0 */
@@ -251,7 +250,7 @@ mod tests {
   ];
 
   #[test]
-  fn fold_end_01() {
+  fn fold_general() {
     use card::keyword::Keyword::*;
     use folds::FoldList;
 
@@ -309,14 +308,4 @@ mod tests {
     assert_eq!(v, foldlist.into_vec());
   }
 
-  #[test]
-  fn newfold_lines() {
-    use self::Keyword::*;
-    use folds::FoldList;
-
-    let v = vec![(0, 3, Node), (7, 15, Shell), (18, 19, Node)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&LINES);
-    assert_eq!(v, foldlist.into_vec());
-  }
 }
