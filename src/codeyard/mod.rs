@@ -318,6 +318,7 @@ pub fn add_folds2<T: AsRef<str>>(
 /// Alternative to get_foldend to use with add_folds2
 /// Needs a trait object because the use of filter make the types not writeable
 #[inline]
+#[allow(dead_code)]
 pub fn get_foldend2<'a, T: AsRef<str>>(
   kw: &Keyword,
   it: &mut Iterator<Item = (usize, T)>,
@@ -405,3 +406,102 @@ pub fn get_foldend2<'a, T: AsRef<str>>(
     }
   }
 }
+
+/// The old implementation for parsing the lines of the file into the
+/// foldlist structure.
+#[inline]
+#[allow(dead_code)]
+  pub fn add_keyword_data<T: AsRef<str>>(
+    foldlist: &mut FoldList,
+    lines: &[T],
+  ) -> Result<(), Error> {
+    let it = lines.iter().map(|s| Keyword::parse(s)).enumerate();
+    let mut curkwstart = 0;
+    let mut curkw: Option<Keyword> = None;
+
+    let mut last_before_comment = 0;
+
+    for (i, linekw) in it {
+      match linekw {
+        None => {
+          if i > 0 {
+            if let Some(c) = curkw {
+              if last_before_comment > 0 {
+                foldlist.checked_insert(
+                  curkwstart as u64,
+                  last_before_comment as u64,
+                  c,
+                )?;
+                if i - last_before_comment > 1 {
+                  foldlist.checked_insert(
+                    last_before_comment as u64 + 1,
+                    i as u64 - 1,
+                    Keyword::Comment,
+                  )?;
+                }
+                last_before_comment = 0;
+              } else {
+                foldlist.checked_insert(curkwstart as u64, i as u64 - 1, c)?;
+              }
+            }
+          }
+          curkw = None;
+          curkwstart = i;
+        }
+        Some(ref c) => {
+          if linekw == curkw {
+            last_before_comment = 0;
+            continue;
+          } else {
+            if linekw == Some(Keyword::Comment) {
+              if i > 1 && last_before_comment == 0 {
+                last_before_comment = i - 1;
+                continue;
+              } else {
+                if i == 0 {
+                  curkw = Some(Keyword::Comment);
+                  curkwstart = 0;
+                }
+              }
+            } else {
+              // linekw != curkw, and linekw != Some(Comment)
+              if let Some(c) = curkw {
+                if last_before_comment > 0 {
+                  foldlist.checked_insert(
+                    curkwstart as u64,
+                    last_before_comment as u64,
+                    c,
+                  )?;
+                  // probably redundant
+                  if i > 0 {
+                    foldlist.checked_insert(
+                      last_before_comment as u64 + 1,
+                      i as u64 - 1,
+                      Keyword::Comment,
+                    )?;
+                  }
+                  last_before_comment = 0;
+                } else {
+                  if i > 0 {
+                    foldlist.checked_insert(curkwstart as u64, i as u64 - 1, c)?;
+                  }
+                }
+              }
+              curkw = Some(*c);
+              curkwstart = i;
+            }
+
+          }
+        }
+      }
+    }
+    // When through the whole vec, need to insert a last kw
+    if let Some(c) = curkw {
+      foldlist.checked_insert(
+        curkwstart as u64,
+        lines.len() as u64 - 1,
+        c,
+      )?;
+    }
+    Ok(())
+  }

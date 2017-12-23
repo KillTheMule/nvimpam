@@ -56,7 +56,6 @@ impl FoldList {
   /// fold is already in the list. In that case, it needs to be
   /// [removed](struct.FoldList.html#method.remove) beforehand.
   fn insert(&mut self, start: u64, end: u64, kw: Keyword) -> Result<(), Error> {
-
     match self.folds.entry([start, end]) {
       Entry::Occupied(_) => Err(format_err!("Fold already in foldlist!")),
       Entry::Vacant(entry) => {
@@ -101,7 +100,7 @@ impl FoldList {
   /// populate it with new ones
   pub fn recreate_all(&mut self, lines: &[String]) -> Result<(), Error> {
     self.clear();
-    self.add_keyword_data(lines)
+    self.add_folds(lines)
   }
 
   /// Delete all folds in nvim, and create the ones from the FoldList
@@ -145,102 +144,6 @@ impl FoldList {
   /// containing the surrounding folds and the comments, and will be of the
   /// type of the surrounding folds. Otherwise, folds will form their own
   /// fold range.
-  #[inline]
-  pub fn add_keyword_data<T: AsRef<str>>(
-    &mut self,
-    lines: &[T],
-  ) -> Result<(), Error> {
-    let it = lines.iter().map(|s| Keyword::parse(s)).enumerate();
-    let mut curkwstart = 0;
-    let mut curkw: Option<Keyword> = None;
-
-    let mut last_before_comment = 0;
-
-    for (i, linekw) in it {
-      match linekw {
-        None => {
-          if i > 0 {
-            if let Some(c) = curkw {
-              if last_before_comment > 0 {
-                self.checked_insert(
-                  curkwstart as u64,
-                  last_before_comment as u64,
-                  c,
-                )?;
-                if i - last_before_comment > 1 {
-                  self.checked_insert(
-                    last_before_comment as u64 + 1,
-                    i as u64 - 1,
-                    Keyword::Comment,
-                  )?;
-                }
-                last_before_comment = 0;
-              } else {
-                self.checked_insert(curkwstart as u64, i as u64 - 1, c)?;
-              }
-            }
-          }
-          curkw = None;
-          curkwstart = i;
-        }
-        Some(ref c) => {
-          if linekw == curkw {
-            last_before_comment = 0;
-            continue;
-          } else {
-            if linekw == Some(Keyword::Comment) {
-              if i > 1 && last_before_comment == 0 {
-                last_before_comment = i - 1;
-                continue;
-              } else {
-                if i == 0 {
-                  curkw = Some(Keyword::Comment);
-                  curkwstart = 0;
-                }
-              }
-            } else {
-              // linekw != curkw, and linekw != Some(Comment)
-              if let Some(c) = curkw {
-                if last_before_comment > 0 {
-                  self.checked_insert(
-                    curkwstart as u64,
-                    last_before_comment as u64,
-                    c,
-                  )?;
-                  // probably redundant
-                  if i > 0 {
-                    self.checked_insert(
-                      last_before_comment as u64 + 1,
-                      i as u64 - 1,
-                      Keyword::Comment,
-                    )?;
-                  }
-                  last_before_comment = 0;
-                } else {
-                  if i > 0 {
-                    self.checked_insert(curkwstart as u64, i as u64 - 1, c)?;
-                  }
-                }
-              }
-              curkw = Some(*c);
-              curkwstart = i;
-            }
-
-          }
-        }
-      }
-    }
-    // When through the whole vec, need to insert a last kw
-    if let Some(c) = curkw {
-      self.checked_insert(
-        curkwstart as u64,
-        lines.len() as u64 - 1,
-        c,
-      )?;
-    }
-    Ok(())
-  }
-
   pub fn add_folds<T: AsRef<str>>(&mut self, lines: &[T]) -> Result<(), Error> {
 
     if lines.len() == 0 {
@@ -354,17 +257,22 @@ mod tests {
 
     let mut v = vec![(0, 3, Node), (7, 15, Shell), (18, 19, Node)];
     let mut foldlist = FoldList::new();
-    let _ = foldlist.add_keyword_data(&LINES);
+    let _ = foldlist.add_folds(&LINES);
     assert_eq!(v, foldlist.into_vec());
 
     v = vec![(3, 11, Shell), (14, 15, Node)];
     let mut foldlist = FoldList::new();
-    let _ = foldlist.add_keyword_data(&LINES[4..]);
+    let _ = foldlist.add_folds(&LINES[4..]);
     assert_eq!(v, foldlist.into_vec());
 
     v = vec![(1, 9, Shell), (12, 13, Node)];
     let mut foldlist = FoldList::new();
-    let _ = foldlist.add_keyword_data(&LINES[6..]);
+    let _ = foldlist.add_folds(&LINES[6..]);
+    assert_eq!(v, foldlist.into_vec());
+
+    v = vec![(1, 2, Shell)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&LINES[13..19]);
     assert_eq!(v, foldlist.into_vec());
   }
 

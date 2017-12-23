@@ -152,13 +152,13 @@ describe('nvimpam', function()
     feed("1G")
     command("set nohls")
 
-    command(":7,9s/^SHELL/NODE")
+    command(":7,9s/^SHELL/NODE ")
     command("NvimPamUpdateFolds")
     screen:expect([[
       {1:+--  4 lines: NODE  /        1              0.             0.5              0.---}|
       #Comment here                                                                    |
       SHELL /     3129       1       1    2967    2971    2970                         |
-      {1:^+--  2 lines: NODE /     3129       1       1    2967    2971    2970------------}|
+      {1:^+--  2 lines: NODE  /     3129       1       1    2967    2971    2970-----------}|
       #Comment                                                                         |
       #Comment                                                                         |
       {1:+--  5 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
@@ -193,4 +193,5 @@ describe('nvimpam', function()
                                                                                        |
     ]])
   end)
+
 end)
