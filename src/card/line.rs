@@ -3,7 +3,9 @@ use card::ges::GesType;
 
 #[derive(Debug)]
 pub enum Line {
+  /// A standard line, containing several cells of a fixed width
   Cells(&'static [Cell]),
+  /// A General Entity Selection, can consist of several lines
   Ges(GesType),
   /// A line that provides a Conditional
   Provides(&'static [Cell], Conditional),
