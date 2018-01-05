@@ -16,5 +16,5 @@ pub enum Cell {
   // A conctinuation character `&`
   Cont,
   // A string of a given maximum length
-  Str(u8)
+  Str(u8),
 }

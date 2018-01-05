@@ -3,12 +3,6 @@ use card::cell::Cell::*;
 use card::line::Line::*;
 
 pub static COMMENT: Card = Card {
-  lines: &[
-    Cells(
-      &[
-        Fixed("#"),
-      ],
-    ),
-  ],
+  lines: &[Cells(&[Fixed("#")])],
   ownfold: false,
 };

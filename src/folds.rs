@@ -337,7 +337,7 @@ mod tests {
     assert_eq!(idx, None);
     assert_eq!(end, None);
 
-    let v:Vec<(u64, u64, Keyword)> = vec![];
+    let v: Vec<(u64, u64, Keyword)> = vec![];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_MASS);
 
