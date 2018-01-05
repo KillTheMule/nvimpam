@@ -10,7 +10,7 @@ use carddata::*;
 #[derive(Debug)]
 pub struct Card {
   pub lines: &'static [Line],
-  pub ownfold: bool
+  pub ownfold: bool,
 }
 
 impl<'a> From<&'a Keyword> for &'static Card {
