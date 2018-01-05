@@ -88,7 +88,7 @@ impl Keyword {
 
         if let Some(k) = Keyword::parse(line) {
           if k == Keyword::Comment {
-            i += 1;
+            //i += 1;
             continue;
           }
           return (None, Some(k), Some(idx as u64));
