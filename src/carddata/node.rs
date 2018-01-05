@@ -33,7 +33,7 @@ pub static MASS: Card = Card {
     ),
     Cells(&[Fixed("NAME"), Str(76)]),
     Cells(&[Float(16), Float(16), Float(16)]),
-    Provides(&[Blank(8), Float(16), Float(16), Float(16), Cont], RelChar(80, '&')),
+    Provides(&[Blank(8), Float(16), Float(16), Float(16), Blank(24), Cont], RelChar(80, '&')),
     Optional(&[Blank(8), Float(16), Float(16), Float(16)], 0),
     Ges(GesNode),
   ],
