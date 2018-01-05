@@ -132,7 +132,6 @@ impl GesType {
       match tmp {
         None => return (Some(idx as u64), None, None),
         Some((i, l)) => {
-          println!("{:?}", l.as_ref());
           return (Some(idx as u64), Keyword::parse(l), Some(i as u64));
         }
       }
