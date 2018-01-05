@@ -276,7 +276,7 @@ mod tests {
   }
 
 
-  const CARD_MASS: [&'static str; 7] = [
+  const CARD_NSMAS: [&'static str; 7] = [
     "$ NSMAS - Nonstructural mass",
     "$#       IDNODMS            MASS            MLEN            MARE            MVOL",
     "NSMAS /        1              0.                                                ",
@@ -287,8 +287,44 @@ mod tests {
   ];
 
   #[test]
+  fn newfold_nsmas() {
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+    let mut it = CARD_NSMAS.iter().enumerate();
+    let _ = it.next();
+    let _ = it.next();
+    let _ = it.next();
+
+    let (end, kw, idx) = Nsmas.get_foldend(&mut it);
+    assert_eq!(kw, None);
+    assert_eq!(idx, Some(6));
+    assert_eq!(end, Some(5));
+
+    let v = vec![(2, 5, Nsmas)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_NSMAS);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  const CARD_MASS: [&'static str; 10] = [
+    "$ MASS Card",
+    "$#         IDNOD    IFRA   Blank            DISr            DISs            DISt",
+    "MASS  /        0       0                                                        ",
+    "$#                                                                         TITLE",
+    "NAME MASS  / ->1                                                                ",
+    "$# BLANK              Mx              My              Mz",
+    "                                                        ",
+    "$# BLANK              Ix              Iy              Iz                   Blank",
+    "                                                                                ",
+    "        END",
+  ];
+
+  #[test]
   fn newfold_mass() {
     use card::keyword::Keyword::*;
+    use card::keyword::Keyword;
     use folds::FoldList;
 
     let mut it = CARD_MASS.iter().enumerate();
@@ -296,16 +332,15 @@ mod tests {
     let _ = it.next();
     let _ = it.next();
 
-    let (end, kw, idx) = Nsmas.get_foldend(&mut it);
-    assert_eq!(end, Some(5));
+    let (end, kw, idx) = Mass.get_foldend(&mut it);
     assert_eq!(kw, None);
-    assert_eq!(idx, Some(6));
+    assert_eq!(idx, None);
+    assert_eq!(end, None);
 
-    let v = vec![(2, 5, Nsmas)];
+    let v:Vec<(u64, u64, Keyword)> = vec![];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_MASS);
 
     assert_eq!(v, foldlist.into_vec());
   }
-
 }
