@@ -70,83 +70,9 @@ impl Keyword {
     let card: &Card = self.into();
 
     if card.ownfold {
-      let num = card.lines.len();
-      let mut i = 0;
-      let mut idx = 0;
-      let mut line;
-
-
-      while i < num {
-        let tmp = it.next();
-        match tmp {
-          None => return (None, None, None),
-          Some((j, l)) => {
-            idx = j;
-            line = l;
-          }
-        }
-
-        if let Some(k) = Keyword::parse(line) {
-          if k == Keyword::Comment {
-            // i += 1;
-            continue;
-          }
-          return (None, Some(k), Some(idx as u64));
-        } else {
-          i += 1;
-        }
-      }
-
-      let tmp = it.next();
-      match tmp {
-        None => return (Some(idx as u64), None, None),
-        Some((i, l)) => {
-          return (Some(idx as u64), Keyword::parse(l), Some(i as u64))
-        }
-      }
+      card.get_foldend_own(it)
     } else {
-      // !card.ownfold
-      let mut idx;
-      let mut line;
-      let mut curkw;
-      let mut idx_before_comment = 0;
-
-      let tmp = it.next();
-      match tmp {
-        None => return (None, None, None),
-        Some((j, l)) => {
-          idx = j;
-          line = l;
-          curkw = Keyword::parse(line);
-        }
-      }
-
-      if curkw.is_none() {
-        return (None, None, None);
-      }
-
-      while curkw == Some(*self) || curkw == Some(Keyword::Comment) {
-        if curkw == Some(Keyword::Comment) && idx_before_comment == 0 {
-          idx_before_comment = idx - 1;
-        } else if curkw == Some(*self) && idx_before_comment > 0 {
-          idx_before_comment = 0;
-        }
-        let tmp = it.next();
-        match tmp {
-          None => return (Some(idx as u64), None, None),
-          Some((j, l)) => {
-            idx = j;
-            line = l;
-            curkw = Keyword::parse(line);
-          }
-        }
-      }
-
-      if idx_before_comment > 0 {
-        return (Some(idx_before_comment as u64), curkw, Some(idx as u64));
-      } else {
-        return (Some(idx as u64 - 1), curkw, Some(idx as u64));
-      }
+      card.get_foldend_gather(it)
     }
   }
 }

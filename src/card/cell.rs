@@ -1,10 +1,8 @@
-use card::keyword::Keyword;
-
 /// Elements of an input line
 #[derive(Debug)]
 pub enum Cell {
-  /// A keyword
-  Kw(Keyword),
+  /// A keyword, given by Card.keyword
+  Kw,
   // A fixed, non-keyword entry
   Fixed(&'static str),
   // An integer with a given maximum string-length

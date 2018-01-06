@@ -7,7 +7,7 @@ pub static SHELL: Card = Card {
   lines: &[
     Cells(
       &[
-        Kw(Shell),
+        Kw,
         Integer(8),
         Integer(8),
         Integer(8),
@@ -20,4 +20,5 @@ pub static SHELL: Card = Card {
     ),
   ],
   ownfold: false,
+  keyword: Shell,
 };
