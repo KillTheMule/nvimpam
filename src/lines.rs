@@ -5,6 +5,8 @@
 //! lines instead of strings), rope (adapted to lines instead of strings)
 use std::ops;
 
+use card::keyword::Keyword;
+
 /// The struct to hold the lines.
 #[derive(Debug)]
 pub struct Lines(pub Vec<String>);
@@ -45,9 +47,39 @@ impl ops::Deref for Lines {
   }
 }
 
+/// A datastructure to iterate over lines
+///
+/// `start_idx` is the index of the first line in the main `Lines` struct which
+/// we need to pass upon createn, as `enumerate` always starts at 0.
+pub struct LinesIter<'a, I: 'a, T>
+where
+  I: Iterator<Item = (usize, T)>,
+  T: AsRef<str>,
+{
+  it: &'a mut I,
+}
+
+impl<'a, I: 'a, T> LinesIter<'a, I, T>
+where
+  I: Iterator<Item = (usize, T)>,
+  T: AsRef<str>,
+{
+  pub fn skip_comments(&'a mut self) -> Option<(usize, T)> {
+    while let Some((idx, line)) = self.it.next() {
+      let kw = Keyword::parse(&line);
+      if kw != Some(Keyword::Comment) {
+        return Some((idx, line));
+      }
+    }
+
+    return None;
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use lines::Lines;
+  use lines::LinesIter;
 
   const LINES: [&'static str; 8] =
     ["This", "is", "an", "example", "of", "some", "lines", "."];
@@ -95,5 +127,40 @@ mod tests {
     assert_eq!(l[3], "blaaargl");
     assert_eq!(l[4], ".");
     assert_eq!(l.len(), 5);
+  }
+
+  const COMMENTS: [&'static str; 8] = [
+    "#This",
+    "#is",
+    "#an",
+    "#example",
+    "of",
+    "some",
+    "lines",
+    ".",
+  ];
+
+  #[test]
+  fn linesiter_works_with_slice() {
+    let mut itr = COMMENTS.iter().enumerate();
+    {
+      let mut li = LinesIter { it: &mut itr };
+      let nextline = li.skip_comments();
+      assert_eq!(nextline, Some((4, &"of")));
+    }
+    assert_eq!(itr.next(), Some((5, &"some")));
+  }
+
+  #[test]
+  fn linesiter_works_with_vec() {
+    let v: Vec<String> = vec!["abc".to_owned(), "abc".to_owned()];
+
+    let mut itr = v.iter().enumerate();
+    {
+      let mut li = LinesIter { it: &mut itr };
+      let nextline = li.skip_comments();
+      assert_eq!(nextline, Some((0, &"abc".to_owned())));
+    }
+    assert_eq!(itr.next(), Some((1, &"abc".to_owned())));
   }
 }
