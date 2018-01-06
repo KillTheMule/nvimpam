@@ -283,14 +283,14 @@ pub fn add_folds2<T: AsRef<str>>(
   // Iterate over the lines once
   let mut lines_enumerated_without_comments =
     Box::new(lines.iter().enumerate().filter(|&(_, l)| {
-      Keyword::parse(l.as_ref()) != Some(Keyword::Comment)
+      Keyword::parse(&l) != Some(Keyword::Comment)
     }));
   // Iterator may be advanced by this loop or `get_foldend`
   while let Some((cur_idx, cur_line)) =
     lines_enumerated_without_comments.next()
   {
     let mut cur_kw;
-    match Keyword::parse(cur_line.as_ref()) {
+    match Keyword::parse(&cur_line) {
       None => continue,
       // None |
       // Some(Keyword::Comment) => continue,
@@ -343,7 +343,7 @@ pub fn get_foldend2<'a, T: AsRef<str>>(
         }
       }
 
-      if let Some(k) = Keyword::parse(line) {
+      if let Some(k) = Keyword::parse(&line) {
         if k == Keyword::Comment {
           i += 1;
           continue;
@@ -358,7 +358,7 @@ pub fn get_foldend2<'a, T: AsRef<str>>(
     match tmp {
       None => return (Some(idx as u64), None, None),
       Some((i, l)) => {
-        return (Some(idx as u64), Keyword::parse(l), Some(i as u64))
+        return (Some(idx as u64), Keyword::parse(&l), Some(i as u64))
       }
     }
   } else {
@@ -374,7 +374,7 @@ pub fn get_foldend2<'a, T: AsRef<str>>(
       Some((j, l)) => {
         idx = j;
         line = l;
-        curkw = Keyword::parse(line);
+        curkw = Keyword::parse(&line);
       }
     }
 
@@ -394,7 +394,7 @@ pub fn get_foldend2<'a, T: AsRef<str>>(
         Some((j, l)) => {
           idx = j;
           line = l;
-          curkw = Keyword::parse(line);
+          curkw = Keyword::parse(&line);
         }
       }
     }
