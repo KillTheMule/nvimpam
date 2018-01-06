@@ -49,8 +49,8 @@ impl Keyword {
     };
   }
 
-  /// Get the end of the type that we found on the last line the iterator
-  /// returned.
+  /// Get the end of the fold for the type that we found on the last line the
+  /// iterator returned.
   ///
   /// Returns the index of the last line of the fold (`None` if there is no
   /// such, i.e. the file ended or another keyword was found early), the

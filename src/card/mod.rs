@@ -32,6 +32,8 @@ impl<'a> From<&'a Keyword> for &'static Card {
 }
 
 impl Card {
+  /// Get the end of the fold for the last line the iterator returned. Version
+  /// for cards that get their own fold.
   #[inline]
   fn get_foldend_own<'a, T: AsRef<str>>(
     &self,
@@ -73,7 +75,9 @@ impl Card {
     }
   }
 
-
+  /// Get the end of the fold for the last line the iterator returned. Version
+  /// for cards that do not get their own fold, but are gathered into a fold
+  /// containing several cards.
   #[inline]
   fn get_foldend_gather<'a, T: AsRef<str>>(
     &self,
