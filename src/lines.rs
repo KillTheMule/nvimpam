@@ -48,9 +48,6 @@ impl ops::Deref for Lines {
 }
 
 /// A datastructure to iterate over lines
-///
-/// `start_idx` is the index of the first line in the main `Lines` struct which
-/// we need to pass upon createn, as `enumerate` always starts at 0.
 pub struct LinesIter<'a, I: 'a, T>
 where
   I: Iterator<Item = (usize, T)>,
@@ -64,15 +61,10 @@ where
   I: Iterator<Item = (usize, T)>,
   T: AsRef<str>,
 {
+  /// Skip over all comment lines. Returns the index and a reference to the
+  /// first non-comment line
   pub fn skip_comments(&'a mut self) -> Option<(usize, T)> {
-    while let Some((idx, line)) = self.it.next() {
-      let kw = Keyword::parse(&line);
-      if kw != Some(Keyword::Comment) {
-        return Some((idx, line));
-      }
-    }
-
-    return None;
+    self.it.find(|&(_, ref l)| Keyword::parse(l) != Some(Keyword::Comment))
   }
 }
 
