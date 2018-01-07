@@ -87,7 +87,6 @@ impl GesType {
 #[cfg(test)]
 mod tests {
   use card::ges::GesType;
-  use card::keyword::Keyword;
 
   const LINES: [&'static str; 10] = [
     "ab ll",
@@ -104,7 +103,7 @@ mod tests {
 
   #[test]
   fn test_is_ges() {
-    let g = GesType::Gesnode;
+    let g = GesType::GesNode;
     let v = vec![
       false,
       false,
@@ -122,7 +121,7 @@ mod tests {
 
   #[test]
   fn test_ends_ges() {
-    let g = GesType::Gesnode;
+    let g = GesType::GesNode;
     let v = vec![
       false,
       false,
@@ -138,70 +137,4 @@ mod tests {
     assert_eq!(v, LINES.iter().map(|l| g.ended_by(&l)).collect::<Vec<bool>>());
   }
 
-  const GES1: [&'static str; 5] = [
-    "        PART 1234",
-    "        OGRP 'hausbau'",
-    "        DELGRP>NOD 'nix'",
-    "        END",
-    "NODE  / ",
-  ];
-
-  #[test]
-  fn ges_can_be_skipped() {
-    let g = ges::GesType::GesNode;
-    assert_eq!(
-      (Some(3), Some(Keyword::Node), Some(4)),
-      g.skip_ges(&mut GES1.iter().enumerate())
-    );
-  }
-
-  const GES2: [&'static str; 9] = [
-    "        PART 1234",
-    "        OGRP 'hausbau'",
-    "        END",
-    "        DELGRP>NOD 'nix'",
-    "        MOD 10234",
-    "        NOD 1 23 093402 82",
-    "        END_MOD",
-    "        DELELE 12",
-    "        END",
-  ];
-
-  #[test]
-  fn ges_can_be_skipped_repeatedly() {
-    let g = ges::GesType::GesNode;
-    let mut it = GES2.iter().enumerate();
-    assert_eq!((Some(2), None, Some(3)), g.skip_ges(&mut it));
-    assert_eq!((Some(8), None, None), g.skip_ges(&mut it));
-  }
-
-  const GES3: [&'static str; 9] = [
-    "        PART 1234",
-    "        OGRP 'hausbau'",
-    "NODE  /         END",
-    "        DELGRP>NOD 'nix'",
-    "        MOD 10234",
-    "        NOD 1 23 093402 82",
-    "        END_MOD",
-    "Whatever",
-    "        END",
-  ];
-
-  #[test]
-  fn ges_ends_without_end() {
-    let g = ges::GesType::GesNode;
-    let mut it = GES3.iter().enumerate();
-    assert_eq!((Some(1), Some(Keyword::Node), Some(2)), g.skip_ges(&mut it));
-    assert_eq!((Some(6), None, Some(7)), g.skip_ges(&mut it));
-  }
-
-  const GES4: [&'static str; 2] = ["wupdiwup", "NODE  / "];
-
-  #[test]
-  fn ges_can_skip_nothing() {
-    let g = ges::GesType::GesNode;
-    let mut it = GES4.iter().enumerate();
-    assert_eq!((None, None, Some(0)), g.skip_ges(&mut it));
-    assert_eq!((Some(0), Some(Keyword::Node), Some(1)), g.skip_ges(&mut it));
-  }
 }

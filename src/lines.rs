@@ -93,8 +93,10 @@ where
   }
 
 
-  /// Advance the iterator until the first line after a General Entity Selection
-  /// (GES). Return the index and a reference to that line. If the GES includes
+  /// Advance the iterator until the first line after a General Entity
+  /// Selection
+  /// (GES). Return the index and a reference to that line. If the GES
+  /// includes
   /// the last line of the file, return `None`.
   pub fn skip_ges<'b>(&'b mut self, ges: &GesType) -> Option<(usize, &'a T)> {
     let mut idx;
@@ -127,7 +129,7 @@ where
       match tmp {
         None => return None,
         t @ Some(_) => return t,
-        }
+      }
     } else {
       // Ges implicitely ended, so it does not encompass the current line
       return Some((idx, line));
@@ -139,6 +141,7 @@ where
 mod tests {
   use lines::Lines;
   use lines::LinesIter;
+  use card::ges::GesType;
 
   const LINES: [&'static str; 8] =
     ["This", "is", "an", "example", "of", "some", "lines", "."];
@@ -265,5 +268,96 @@ mod tests {
       assert_eq!(li.skip_to_next_real_keyword(), None);
     }
     assert_eq!(itr.next(), None);
+  }
+
+  const GES1: [&'static str; 5] = [
+    "        PART 1234",
+    "        OGRP 'hausbau'",
+    "        DELGRP>NOD 'nix'",
+    "        END",
+    "NODE  / ",
+  ];
+
+  #[test]
+  fn ges_can_be_skipped() {
+    let g = GesType::GesNode;
+    let mut itr = GES1.iter().enumerate();
+    let mut li = LinesIter { it: &mut itr };
+
+    assert_eq!(li.skip_ges(&g), Some((4, &"NODE  / ")));
+  }
+
+  const GES2: [&'static str; 9] = [
+    "        PART 1234",
+    "        OGRP 'hausbau'",
+    "        END",
+    "        DELGRP>NOD 'nix'",
+    "        MOD 10234",
+    "        NOD 1 23 093402 82",
+    "        END_MOD",
+    "        DELELE 12",
+    "        END",
+  ];
+
+  #[test]
+  fn ges_can_be_skipped_repeatedly() {
+    let g = GesType::GesNode;
+    let mut itr = GES2.iter().enumerate();
+    let mut li = LinesIter { it: &mut itr };
+
+    assert_eq!(li.skip_ges(&g), Some((3, &"        DELGRP>NOD 'nix'")));
+    assert_eq!(li.skip_ges(&g), None);
+  }
+
+  const GES3: [&'static str; 9] = [
+    "        PART 1234",
+    "        OGRP 'hausbau'",
+    "NODE  /         END",
+    "        DELGRP>NOD 'nix'",
+    "        MOD 10234",
+    "        NOD 1 23 093402 82",
+    "        END_MOD",
+    "Whatever",
+    "        END",
+  ];
+
+  #[test]
+  fn ges_ends_without_end() {
+    let g = GesType::GesNode;
+    let mut itr = GES3.iter().enumerate();
+    let mut li = LinesIter { it: &mut itr };
+
+    assert_eq!(li.skip_ges(&g), Some((2, &"NODE  /         END")));
+    assert_eq!(li.skip_ges(&g), Some((7, &"Whatever")));
+  }
+
+  const GES4: [&'static str; 2] = ["wupdiwup", "NODE  / "];
+
+  #[test]
+  fn ges_can_skip_nothing() {
+    let g = GesType::GesNode;
+    let mut itr = GES4.iter().enumerate();
+    let mut li = LinesIter { it: &mut itr };
+
+    assert_eq!(li.skip_ges(&g), Some((0, &"wupdiwup")));
+  }
+
+  const GES6: [&'static str; 7] = [
+    "        PART 1234",
+    "#Comment here",
+    "        OGRP 'hausbau'",
+    "        DELGRP>NOD 'nix'",
+    "        END",
+    "$Another comment",
+    "NODE  / ",
+  ];
+
+  #[test]
+  fn ges_includes_comments_inside() {
+    let g = GesType::GesNode;
+    let mut itr = GES6.iter().enumerate();
+    let mut li = LinesIter { it: &mut itr };
+
+    assert_eq!(li.skip_ges(&g), Some((5, &"$Another comment")));
   }
 }
