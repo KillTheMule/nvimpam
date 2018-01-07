@@ -1,5 +1,7 @@
 //! This module holds the datastructure for the Lines of the buffer. For now,
-//! it's simply a `Vec<String>` with an appropriate API.
+//! it's simply a `Vec<String>` with an appropriate API. Also home to
+//! `LinesIter` which is used to iterate over the lines to parse them into the
+//! fold structure.
 //!
 //! Future ideas, if performance isn't enough: Skip list, gap buffer (adapted to
 //! lines instead of strings), rope (adapted to lines instead of strings)
@@ -81,7 +83,6 @@ where
     self.it.find(|&(_, ref l)| Keyword::parse(l).is_some())
   }
 
-
   /// Advance the iterator until meeting the first line with a keyword that's
   /// not a comment. Return the index and a reference to that line. If no
   /// line starts with a keyword, return `None`.
@@ -91,7 +92,6 @@ where
       kw.is_some() && kw != Some(Keyword::Comment)
     })
   }
-
 
   /// Advance the iterator until the first line after a General Entity
   /// Selection
