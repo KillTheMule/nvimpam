@@ -6,6 +6,7 @@
 use std::ops;
 
 use card::keyword::Keyword;
+use card::ges::GesType;
 
 /// The struct to hold the lines.
 #[derive(Debug)]
@@ -48,23 +49,89 @@ impl ops::Deref for Lines {
 }
 
 /// A datastructure to iterate over lines
-pub struct LinesIter<'a, I: 'a, T>
+pub struct LinesIter<'a, I, T: 'a>
 where
-  I: Iterator<Item = (usize, T)>,
+  I: Iterator<Item = (usize, &'a T)>,
   T: AsRef<str>,
 {
-  it: &'a mut I,
+  it: I,
 }
 
-impl<'a, I: 'a, T> LinesIter<'a, I, T>
+impl<'a, I, T: 'a> LinesIter<'a, I, T>
 where
-  I: Iterator<Item = (usize, T)>,
+  I: Iterator<Item = (usize, &'a T)>,
   T: AsRef<str>,
 {
-  /// Skip over all comment lines. Returns the index and a reference to the
-  /// first non-comment line
-  pub fn skip_comments(&'a mut self) -> Option<(usize, T)> {
-    self.it.find(|&(_, ref l)| Keyword::parse(l) != Some(Keyword::Comment))
+  /// Advance the iterator until meeting the first line that is not a
+  /// comment. Return the index and a reference to that line. If all lines
+  /// are comments, return `None`.
+  pub fn skip_comments<'b>(&'b mut self) -> Option<(usize, &'a T)> {
+    self.it.find(|&(_, ref l)| {
+      Keyword::parse(l) != Some(Keyword::Comment)
+    })
+  }
+
+  /// Advance the iterator until meeting the first line with a keyword. Return
+  /// the index and a reference to that line. If no line starts with a
+  /// keyword, return `None`.
+  ///
+  /// NOTE: A Comment line counts as a keyword. Also see
+  /// `skip_to_next_real_keyword`.
+  pub fn skip_to_next_keyword<'b>(&'b mut self) -> Option<(usize, &'a T)> {
+    self.it.find(|&(_, ref l)| Keyword::parse(l).is_some())
+  }
+
+
+  /// Advance the iterator until meeting the first line with a keyword that's
+  /// not a comment. Return the index and a reference to that line. If no
+  /// line starts with a keyword, return `None`.
+  pub fn skip_to_next_real_keyword<'b>(&'b mut self) -> Option<(usize, &'a T)> {
+    self.it.find(|&(_, ref l)| {
+      let kw = Keyword::parse(l);
+      kw.is_some() && kw != Some(Keyword::Comment)
+    })
+  }
+
+
+  /// Advance the iterator until the first line after a General Entity Selection
+  /// (GES). Return the index and a reference to that line. If the GES includes
+  /// the last line of the file, return `None`.
+  pub fn skip_ges<'b>(&'b mut self, ges: &GesType) -> Option<(usize, &'a T)> {
+    let mut idx;
+    let mut line;
+
+    let tmp = self.it.next();
+    match tmp {
+      None => return None,
+      Some((i, l)) => {
+        idx = i;
+        line = l;
+      }
+    }
+
+    while ges.contains(&line) {
+      let tmp = self.it.next();
+      match tmp {
+        None => return None,
+        Some((i, l)) => {
+          idx = i;
+          line = l;
+        }
+      }
+    }
+
+    if ges.ended_by(&line) {
+      // Here: Last line ends the ges, just need to fetch the next and return
+      // the data
+      let tmp = self.it.next();
+      match tmp {
+        None => return None,
+        t @ Some(_) => return t,
+        }
+    } else {
+      // Ges implicitely ended, so it does not encompass the current line
+      return Some((idx, line));
+    }
   }
 }
 
@@ -154,5 +221,49 @@ mod tests {
       assert_eq!(nextline, Some((0, &"abc".to_owned())));
     }
     assert_eq!(itr.next(), Some((1, &"abc".to_owned())));
+  }
+
+  const KEYWORD_LINES: [&'static str; 8] = [
+    "#Comment",
+    "   nokeyword",
+    "NODE  / ",
+    "#example",
+    "NSMAS / ",
+    "some",
+    "lines",
+    ".",
+  ];
+
+  #[test]
+  fn linesiter_needs_no_keywords() {
+    let mut itr = COMMENTS.iter().skip(4).enumerate();
+    let mut li = LinesIter { it: &mut itr };
+    assert_eq!(li.skip_to_next_keyword(), None);
+  }
+
+  #[test]
+  fn linesiter_finds_keywords() {
+    let mut itr = KEYWORD_LINES.iter().enumerate();
+    {
+      let mut li = LinesIter { it: &mut itr };
+      assert_eq!(li.skip_to_next_keyword(), Some((0, &"#Comment")));
+      assert_eq!(li.skip_to_next_keyword(), Some((2, &"NODE  / ")));
+      assert_eq!(li.skip_to_next_keyword(), Some((3, &"#example")));
+      assert_eq!(li.skip_to_next_keyword(), Some((4, &"NSMAS / ")));
+      assert_eq!(li.skip_to_next_keyword(), None);
+    }
+    assert_eq!(itr.next(), None);
+  }
+
+  #[test]
+  fn linesiter_finds_real_keywords() {
+    let mut itr = KEYWORD_LINES.iter().enumerate();
+    {
+      let mut li = LinesIter { it: &mut itr };
+      assert_eq!(li.skip_to_next_real_keyword(), Some((2, &"NODE  / ")));
+      assert_eq!(li.skip_to_next_real_keyword(), Some((4, &"NSMAS / ")));
+      assert_eq!(li.skip_to_next_real_keyword(), None);
+    }
+    assert_eq!(itr.next(), None);
   }
 }

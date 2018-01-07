@@ -1,8 +1,3 @@
-use std::iter;
-use std::slice;
-
-use card::keyword::Keyword;
-
 #[derive(Debug)]
 pub enum GesType {
   GesNode,
@@ -11,17 +6,9 @@ pub enum GesType {
   GesFace,
 }
 
-trait Ges {
-  fn is_ges(&self) -> bool;
-  fn ends_ges(&self) -> bool;
-}
-
-impl<T> Ges for T
-where
-  T: AsRef<str>,
-{
-  fn is_ges(&self) -> bool {
-    let b = self.as_ref();
+impl GesType {
+  pub fn contains<T: AsRef<str>>(&self,line: &T) -> bool {
+    let b = line.as_ref();
 
     match b.get(0..8) {
       None => return false,
@@ -84,8 +71,8 @@ where
     }
   }
 
-  fn ends_ges(&self) -> bool {
-    let b = self.as_ref();
+  pub fn ended_by<T: AsRef<str>>(&self, line: &T) -> bool {
+    let b = line.as_ref();
     match b.get(0..11) {
       Some("        END") => {}
       _ => return false,
@@ -97,59 +84,9 @@ where
   }
 }
 
-impl GesType {
-  pub fn skip_ges<'a, T: AsRef<str>>(
-    &self,
-    it: &mut iter::Enumerate<slice::Iter<'a, T>>,
-  ) -> (Option<u64>, Option<Keyword>, Option<u64>) {
-    let mut idx;
-    let mut line;
-
-    let tmp = it.next();
-    match tmp {
-      None => return (None, None, None),
-      Some((i, l)) => {
-        idx = i;
-        line = l;
-      }
-    }
-
-    while line.is_ges() {
-      let tmp = it.next();
-      match tmp {
-        None => return (Some(idx as u64), None, None),
-        Some((i, l)) => {
-          idx = i;
-          line = l;
-        }
-      }
-    }
-
-    if line.ends_ges() {
-      // Here: Last line ends the ges, just need to fetch the next and return
-      // the data
-      let tmp = it.next();
-      match tmp {
-        None => return (Some(idx as u64), None, None),
-        Some((i, l)) => {
-          return (Some(idx as u64), Keyword::parse(l), Some(i as u64));
-        }
-      }
-    } else {
-      // Ges implicitely ended, so it does not encompass the current line
-      if idx == 0 {
-        return (None, Keyword::parse(line), Some(0));
-      } else {
-        return (Some(idx as u64 - 1), Keyword::parse(line), Some(idx as u64));
-      }
-    }
-  }
-}
-
 #[cfg(test)]
 mod tests {
-  use card::ges::Ges;
-  use card::ges;
+  use card::ges::GesType;
   use card::keyword::Keyword;
 
   const LINES: [&'static str; 10] = [
@@ -167,6 +104,7 @@ mod tests {
 
   #[test]
   fn test_is_ges() {
+    let g = GesType::Gesnode;
     let v = vec![
       false,
       false,
@@ -179,11 +117,12 @@ mod tests {
       true,
       true,
     ];
-    assert_eq!(v, LINES.iter().map(|l| l.is_ges()).collect::<Vec<bool>>());
+    assert_eq!(v, LINES.iter().map(|l| g.contains(&l)).collect::<Vec<bool>>());
   }
 
   #[test]
   fn test_ends_ges() {
+    let g = GesType::Gesnode;
     let v = vec![
       false,
       false,
@@ -196,7 +135,7 @@ mod tests {
       false,
       false,
     ];
-    assert_eq!(v, LINES.iter().map(|l| l.ends_ges()).collect::<Vec<bool>>());
+    assert_eq!(v, LINES.iter().map(|l| g.ended_by(&l)).collect::<Vec<bool>>());
   }
 
   const GES1: [&'static str; 5] = [
