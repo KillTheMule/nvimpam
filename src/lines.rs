@@ -98,7 +98,7 @@ where
   /// index of the first line after the GES.
   ///
   /// Corner cases:
-  ///  * If the GES is ended by the END keyword 
+  ///  * If the GES is ended by the END keyword
   ///    - Return the next line in the first Option, and its index
   ///      in the second (redundantly).
   ///  * If the GES is ended implicitely
@@ -263,9 +263,9 @@ mod tests {
     {
       let mut li = LinesIter { it: &mut itr };
       let nextline = li.skip_comments();
-      assert_eq!(nextline, Some((4, &"of")));
+      assert_eq!(nextline, Some((4, &COMMENTS[4])));
     }
-    assert_eq!(itr.next(), Some((5, &"some")));
+    assert_eq!(itr.next(), Some((5, &COMMENTS[5])));
   }
 
   #[test]
@@ -276,9 +276,9 @@ mod tests {
     {
       let mut li = LinesIter { it: &mut itr };
       let nextline = li.skip_comments();
-      assert_eq!(nextline, Some((0, &"abc".to_owned())));
+      assert_eq!(nextline, Some((0, &v[0])));
     }
-    assert_eq!(itr.next(), Some((1, &"abc".to_owned())));
+    assert_eq!(itr.next(), Some((1, &v[1])));
   }
 
   const KEYWORD_LINES: [&'static str; 8] = [
@@ -304,10 +304,10 @@ mod tests {
     let mut itr = KEYWORD_LINES.iter().enumerate();
     {
       let mut li = LinesIter { it: &mut itr };
-      assert_eq!(li.skip_to_next_keyword(), Some((0, &"#Comment")));
-      assert_eq!(li.skip_to_next_keyword(), Some((2, &"NODE  / ")));
-      assert_eq!(li.skip_to_next_keyword(), Some((3, &"#example")));
-      assert_eq!(li.skip_to_next_keyword(), Some((4, &"NSMAS / ")));
+      assert_eq!(li.skip_to_next_keyword(), Some((0, &KEYWORD_LINES[0])));
+      assert_eq!(li.skip_to_next_keyword(), Some((2, &KEYWORD_LINES[2])));
+      assert_eq!(li.skip_to_next_keyword(), Some((3, &KEYWORD_LINES[3])));
+      assert_eq!(li.skip_to_next_keyword(), Some((4, &KEYWORD_LINES[4])));
       assert_eq!(li.skip_to_next_keyword(), None);
     }
     assert_eq!(itr.next(), None);
@@ -318,8 +318,8 @@ mod tests {
     let mut itr = KEYWORD_LINES.iter().enumerate();
     {
       let mut li = LinesIter { it: &mut itr };
-      assert_eq!(li.skip_to_next_real_keyword(), Some((2, &"NODE  / ")));
-      assert_eq!(li.skip_to_next_real_keyword(), Some((4, &"NSMAS / ")));
+      assert_eq!(li.skip_to_next_real_keyword(), Some((2, &KEYWORD_LINES[2])));
+      assert_eq!(li.skip_to_next_real_keyword(), Some((4, &KEYWORD_LINES[4])));
       assert_eq!(li.skip_to_next_real_keyword(), None);
     }
     assert_eq!(itr.next(), None);
@@ -339,7 +339,7 @@ mod tests {
     let mut itr = GES1.iter().enumerate();
     let mut li = LinesIter { it: &mut itr };
 
-    assert_eq!(li.skip_ges(&g), (Some((4, &"NODE  / ")), Some(4)));
+    assert_eq!(li.skip_ges(&g), (Some((4, &GES1[4])), Some(4)));
   }
 
   const GES2: [&'static str; 9] = [
@@ -360,10 +360,7 @@ mod tests {
     let mut itr = GES2.iter().enumerate();
     let mut li = LinesIter { it: &mut itr };
 
-    assert_eq!(li.skip_ges(&g), (
-      Some((3, &"        DELGRP>NOD 'nix'")),
-      Some(3),
-    ));
+    assert_eq!(li.skip_ges(&g), (Some((3, &GES2[3])), Some(3)));
     assert_eq!(li.skip_ges(&g), (None, None));
   }
 
@@ -385,11 +382,8 @@ mod tests {
     let mut itr = GES3.iter().enumerate();
     let mut li = LinesIter { it: &mut itr };
 
-    assert_eq!(
-      li.skip_ges(&g),
-      (Some((2, &"NODE  /         END")), Some(2))
-    );
-    assert_eq!(li.skip_ges(&g), (Some((7, &"Whatever")), Some(7)));
+    assert_eq!(li.skip_ges(&g), (Some((2, &GES3[2])), Some(2)));
+    assert_eq!(li.skip_ges(&g), (Some((7, &GES3[7])), Some(7)));
   }
 
   const GES4: [&'static str; 2] = ["wupdiwup", "NODE  / "];
@@ -400,7 +394,7 @@ mod tests {
     let mut itr = GES4.iter().enumerate();
     let mut li = LinesIter { it: &mut itr };
 
-    assert_eq!(li.skip_ges(&g), (Some((0, &"wupdiwup")), Some(0)));
+    assert_eq!(li.skip_ges(&g), (Some((0, &GES4[0])), Some(0)));
   }
 
   const GES6: [&'static str; 7] = [
@@ -419,7 +413,7 @@ mod tests {
     let mut itr = GES6.iter().enumerate();
     let mut li = LinesIter { it: &mut itr };
 
-    assert_eq!(li.skip_ges(&g), (Some((5, &"$Another comment")), Some(5)));
+    assert_eq!(li.skip_ges(&g), (Some((5, &GES6[5])), Some(5)));
   }
 
   const GES7: [&'static str; 4] = [
