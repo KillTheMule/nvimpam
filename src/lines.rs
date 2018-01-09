@@ -94,28 +94,73 @@ where
   }
 
   /// Advance the iterator until the first line after a General Entity
-  /// Selection
-  /// (GES). Return the index and a reference to that line. If the GES
-  /// includes
-  /// the last line of the file, return `None`.
-  pub fn skip_ges<'b>(&'b mut self, ges: &GesType) -> Option<(usize, &'a T)> {
+  /// Selection (GES). Return the index, a reference to that line and the
+  /// index of the first line after the GES.
+  ///
+  /// Corner cases:
+  ///  * If the GES is ended by the END keyword 
+  ///    - Return the next line in the first Option, and its index
+  ///      in the second (redundantly).
+  ///  * If the GES is ended implicitely
+  ///    - If there are no comment lines after it, return the following line
+  ///      in the first Option, and its index in the second (redundantly). If
+  ///      the file ends after the GES, return `(None, None)`.
+  ///    - If there are comment lines after it, return the first non-comment
+  ///      line in the first Option (if the file ends before that, return
+  ///      `None`), and the index of the first comment line after the GES
+  ///      in the second option.
+  ///  * If the GES includes the last line of the file, returns `None` for
+  ///    the first `Option`, and the index of the last line in the second.
+  ///
+  pub fn skip_ges<'b>(
+    &'b mut self,
+    ges: &GesType,
+  ) -> (Option<(usize, &'a T)>, Option<usize>) {
     let mut idx;
     let mut line;
+    let mut line_is_comment = false;
+    let mut ges_contains_line;
+    let mut first_comment_idx = None;
 
     let tmp = self.it.next();
     match tmp {
-      None => return None,
+      None => return (None, None),
       Some((i, l)) => {
         idx = i;
         line = l;
+        ges_contains_line = ges.contains(&line);
+        if !ges_contains_line {
+          line_is_comment = Keyword::parse(&line) == Some(Keyword::Comment);
+          if line_is_comment {
+            first_comment_idx = Some(idx);
+          }
+        }
       }
     }
 
-    while ges.contains(&line) {
+    while ges_contains_line || line_is_comment {
       let tmp = self.it.next();
       match tmp {
-        None => return None,
+        None => {
+          if let Some(i) = first_comment_idx {
+            return (None, Some(i));
+          } else {
+            return (None, Some(idx));
+          }
+        }
         Some((i, l)) => {
+          ges_contains_line = ges.contains(&l);
+          if !ges_contains_line {
+            line_is_comment = Keyword::parse(&l) == Some(Keyword::Comment);
+            if line_is_comment && first_comment_idx.is_none() {
+              first_comment_idx = Some(i);
+            }
+          }
+          // Keep order! If `ges_contains_line`, the other variable might just
+          // be wrong, we only set it when really necessary.
+          if ges_contains_line || !line_is_comment {
+            first_comment_idx = None;
+          }
           idx = i;
           line = l;
         }
@@ -127,12 +172,22 @@ where
       // the data
       let tmp = self.it.next();
       match tmp {
-        None => return None,
-        t @ Some(_) => return t,
+        None => {
+          if let Some(i) = first_comment_idx {
+            return (None, Some(i));
+          } else {
+            return (None, None);
+          }
+        }
+        Some((i, l)) => return (Some((i, l)), Some(i)),
       }
     } else {
       // Ges implicitely ended, so it does not encompass the current line
-      return Some((idx, line));
+      if let Some(i) = first_comment_idx {
+        return (Some((idx, line)), Some(i));
+      } else {
+        return (Some((idx, line)), Some(idx));
+      }
     }
   }
 }
@@ -284,7 +339,7 @@ mod tests {
     let mut itr = GES1.iter().enumerate();
     let mut li = LinesIter { it: &mut itr };
 
-    assert_eq!(li.skip_ges(&g), Some((4, &"NODE  / ")));
+    assert_eq!(li.skip_ges(&g), (Some((4, &"NODE  / ")), Some(4)));
   }
 
   const GES2: [&'static str; 9] = [
@@ -305,8 +360,11 @@ mod tests {
     let mut itr = GES2.iter().enumerate();
     let mut li = LinesIter { it: &mut itr };
 
-    assert_eq!(li.skip_ges(&g), Some((3, &"        DELGRP>NOD 'nix'")));
-    assert_eq!(li.skip_ges(&g), None);
+    assert_eq!(li.skip_ges(&g), (
+      Some((3, &"        DELGRP>NOD 'nix'")),
+      Some(3),
+    ));
+    assert_eq!(li.skip_ges(&g), (None, None));
   }
 
   const GES3: [&'static str; 9] = [
@@ -327,8 +385,11 @@ mod tests {
     let mut itr = GES3.iter().enumerate();
     let mut li = LinesIter { it: &mut itr };
 
-    assert_eq!(li.skip_ges(&g), Some((2, &"NODE  /         END")));
-    assert_eq!(li.skip_ges(&g), Some((7, &"Whatever")));
+    assert_eq!(
+      li.skip_ges(&g),
+      (Some((2, &"NODE  /         END")), Some(2))
+    );
+    assert_eq!(li.skip_ges(&g), (Some((7, &"Whatever")), Some(7)));
   }
 
   const GES4: [&'static str; 2] = ["wupdiwup", "NODE  / "];
@@ -339,7 +400,7 @@ mod tests {
     let mut itr = GES4.iter().enumerate();
     let mut li = LinesIter { it: &mut itr };
 
-    assert_eq!(li.skip_ges(&g), Some((0, &"wupdiwup")));
+    assert_eq!(li.skip_ges(&g), (Some((0, &"wupdiwup")), Some(0)));
   }
 
   const GES6: [&'static str; 7] = [
@@ -358,6 +419,38 @@ mod tests {
     let mut itr = GES6.iter().enumerate();
     let mut li = LinesIter { it: &mut itr };
 
-    assert_eq!(li.skip_ges(&g), Some((5, &"$Another comment")));
+    assert_eq!(li.skip_ges(&g), (Some((5, &"$Another comment")), Some(5)));
+  }
+
+  const GES7: [&'static str; 4] = [
+    "#        PART 1234",
+    "#Comment here",
+    "$Another comment",
+    "#NODE  / ",
+  ];
+
+  #[test]
+  fn ges_works_with_only_comments() {
+    let g = GesType::GesNode;
+    let mut itr = GES7.iter().enumerate();
+    let mut li = LinesIter { it: &mut itr };
+
+    assert_eq!(li.skip_ges(&g), (None, Some(0)));
+  }
+
+  const GES8: [&'static str; 4] = [
+    "        PART 1234",
+    "#Comment here",
+    "$Another comment",
+    "#NODE  / ",
+  ];
+
+  #[test]
+  fn ges_skips_over_comments_after_end() {
+    let g = GesType::GesNode;
+    let mut itr = GES8.iter().enumerate();
+    let mut li = LinesIter { it: &mut itr };
+
+    assert_eq!(li.skip_ges(&g), (None, Some(1)));
   }
 }
