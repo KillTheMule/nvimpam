@@ -340,6 +340,7 @@ mod tests {
     let mut li = LinesIter { it: &mut itr };
 
     assert_eq!(li.skip_ges(&g), (Some((4, &GES1[4])), Some(4)));
+    assert_eq!(li.it.next(), None);
   }
 
   const GES2: [&'static str; 9] = [
@@ -362,6 +363,7 @@ mod tests {
 
     assert_eq!(li.skip_ges(&g), (Some((3, &GES2[3])), Some(3)));
     assert_eq!(li.skip_ges(&g), (None, None));
+    assert_eq!(li.it.next(), None);
   }
 
   const GES3: [&'static str; 9] = [
@@ -384,6 +386,7 @@ mod tests {
 
     assert_eq!(li.skip_ges(&g), (Some((2, &GES3[2])), Some(2)));
     assert_eq!(li.skip_ges(&g), (Some((7, &GES3[7])), Some(7)));
+    assert_eq!(li.it.next(), Some((8, &GES3[8])));
   }
 
   const GES4: [&'static str; 2] = ["wupdiwup", "NODE  / "];
@@ -395,6 +398,7 @@ mod tests {
     let mut li = LinesIter { it: &mut itr };
 
     assert_eq!(li.skip_ges(&g), (Some((0, &GES4[0])), Some(0)));
+    assert_eq!(li.it.next(), Some((1, &GES4[1])));
   }
 
   const GES6: [&'static str; 7] = [
@@ -414,6 +418,7 @@ mod tests {
     let mut li = LinesIter { it: &mut itr };
 
     assert_eq!(li.skip_ges(&g), (Some((5, &GES6[5])), Some(5)));
+    assert_eq!(li.it.next(), Some((6, &GES6[6])));
   }
 
   const GES7: [&'static str; 4] = [
@@ -430,6 +435,7 @@ mod tests {
     let mut li = LinesIter { it: &mut itr };
 
     assert_eq!(li.skip_ges(&g), (None, Some(0)));
+    assert_eq!(li.it.next(), None);
   }
 
   const GES8: [&'static str; 4] = [
@@ -446,5 +452,6 @@ mod tests {
     let mut li = LinesIter { it: &mut itr };
 
     assert_eq!(li.skip_ges(&g), (None, Some(1)));
+    assert_eq!(li.it.next(), None);
   }
 }
