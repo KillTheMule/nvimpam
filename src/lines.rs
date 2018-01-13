@@ -100,7 +100,8 @@ where
   /// Corner cases:
   ///  * If the GES is ended by the END keyword
   ///    - Return the next line in the first Option, and its index
-  ///      in the second (redundantly).
+  ///      in the second (redundantly). If there's no next line (EOF), return
+  ///      `(None, None)`.
   ///  * If the GES is ended implicitely
   ///    - If there are no comment lines after it, return the following line
   ///      in the first Option, and its index in the second (redundantly). If
@@ -109,8 +110,6 @@ where
   ///      line in the first Option (if the file ends before that, return
   ///      `None`), and the index of the first comment line after the GES
   ///      in the second option.
-  ///  * If the GES includes the last line of the file, returns `None` for
-  ///    the first `Option`, and the index of the last line in the second.
   ///
   pub fn skip_ges<'b>(
     &'b mut self,
@@ -173,11 +172,7 @@ where
       let tmp = self.it.next();
       match tmp {
         None => {
-          if let Some(i) = first_comment_idx {
-            return (None, Some(i));
-          } else {
             return (None, None);
-          }
         }
         Some((i, l)) => return (Some((i, l)), Some(i)),
       }
