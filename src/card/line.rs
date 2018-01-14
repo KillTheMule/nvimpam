@@ -28,11 +28,14 @@ pub enum Conditional {
 
 impl Conditional {
   /// Given a line, evaluate the condition on it
-  pub fn evaluate<'a>(&self, line: &'a str) -> bool {
+  pub fn evaluate<'a, T: 'a>(&self, line: &'a T) -> bool
+  where
+    T: AsRef<str>,
+  {
     match *self {
       Conditional::RelChar(idx, c) => {
         let idx = idx as usize;
-        line.get(idx..idx + 1) == Some(&c.to_string())
+        line.as_ref().get(idx..idx + 1) == Some(&c.to_string())
       }
     }
   }
@@ -48,8 +51,8 @@ mod tests {
     let cond2 = Conditional::RelChar(3, 'b');
     let line = "abbxy oaslkj";
 
-    assert!(cond1.evaluate(line));
-    assert!(!cond2.evaluate(line));
+    assert!(cond1.evaluate(&line));
+    assert!(!cond2.evaluate(&line));
   }
 
   #[test]
@@ -57,6 +60,6 @@ mod tests {
     let cond1 = Conditional::RelChar(95, 'b');
     let line = "abbxy oaslkj";
 
-    assert!(!cond1.evaluate(line));
+    assert!(!cond1.evaluate(&line));
   }
 }
