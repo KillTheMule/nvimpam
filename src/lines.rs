@@ -61,6 +61,27 @@ where
   it: I,
 }
 
+/// A data structure returned by several skip methods on the iterator.
+///
+/// `nextline` is a tupe for the next line to be processed, i.e. the last line
+/// the iterator returned. The tuple consists of the index and the line itself.
+/// It will be `None` in those cases where the iterator returned `None` before
+/// such a line could be found, i.e. the file ended.
+///
+/// `idx_after` is the index of the line after the thing we wanted to skip. This
+/// might not be the index of `nextline` if there were comments after the thing
+/// to skip, in which case `idx_after` is the index of the first comment line
+/// after the skipped thing, and `nextline` will be the first non-comment line
+/// after that. `idx_after` will be `None` if skipping brought us to the end of
+/// the file with no comment after our thing.
+struct SkipResult<'a, T: 'a>
+where
+  T: AsRef<str>,
+{
+  nextline: Option<(usize, &'a T)>,
+  idx_after: Option<usize>,
+}
+
 impl<'a, I, T: 'a> LinesIter<'a, I, T>
 where
   I: Iterator<Item = (usize, &'a T)>,
