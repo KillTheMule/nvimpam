@@ -7,8 +7,10 @@
 //! lines instead of strings), rope (adapted to lines instead of strings)
 use std::ops;
 
+use card::Card;
 use card::keyword::Keyword;
 use card::ges::GesType;
+use card::line::Line;
 
 /// The struct to hold the lines.
 #[derive(Debug)]
@@ -169,12 +171,12 @@ where
     if ges.ended_by(&line) {
       // Here: Last line ends the ges, just need to fetch the next and return
       // the data
-      let tmp = self.it.next();
+      let tmp = self.skip_comments();
       match tmp {
         None => {
-            return (None, None);
+          return (None, Some(idx + 1));
         }
-        Some((i, l)) => return (Some((i, l)), Some(i)),
+        Some((i, l)) => return (Some((i, l)), Some(idx + 1)),
       }
     } else {
       // Ges implicitely ended, so it does not encompass the current line
@@ -185,6 +187,136 @@ where
       }
     }
   }
+
+  pub fn skip_fold<'b>(
+    &'b mut self,
+    card: &Card,
+  ) -> (Option<(usize, &'a T)>, Option<usize>) {
+    if card.ownfold {
+      self.skip_card(card)
+    } else {
+      self.skip_card_gather(card)
+    }
+  }
+
+  pub fn skip_card<'b>(
+    &'b mut self,
+    card: &Card,
+  ) -> (Option<(usize, &'a T)>, Option<usize>) {
+    let mut cardlines = card.lines.iter();
+    let mut conds: Vec<bool> = vec![]; // the vec to hold the conditionals
+
+    // We've already seen this line from the iterator
+    let _ = cardlines.next();
+
+    let mut line; // line of the iterator we're currently processing
+    let mut lineidx; // index of the currently processed line
+    let mut endidx = None; // index of the first line after the card
+    let mut tmp;
+
+    tmp = self.skip_comments();
+    match tmp {
+      None => return (None, None),
+      Some((i, l)) => {
+        line = l;
+        lineidx = i;
+      }
+    }
+
+    for cardline in cardlines {
+      match cardline {
+        &Line::Provides(_s, ref c) => conds.push(c.evaluate(&line)),
+        &Line::Ges(ref g) => {
+          match self.skip_ges(g) {
+            (None, None) => return (None, None),
+            (None, Some(i)) => return (None, Some(i)),
+            (Some(_), None) => unreachable!(),
+            (Some((i, l)), Some(j)) => {
+              line = l;
+              lineidx = i;
+              endidx = Some(j);
+            }
+          }
+        }
+        &Line::Cells(_s) => {
+          if let Some(kw) = Keyword::parse(line) {
+            if kw == Keyword::Comment {
+              unreachable!();
+            } else {
+              return (Some((lineidx, line)), Some(lineidx));
+            }
+          } else {
+            tmp = self.skip_comments();
+            match tmp {
+              None => return (Some((lineidx, line)), endidx),
+              Some((i, l)) => {
+                line = l;
+                lineidx = i;
+              }
+            }
+          }
+        }
+        &Line::Optional(_s, i) => {
+          if conds.get(i as usize) != Some(&true) {
+            continue;
+          } else {
+            if let Some(kw) = Keyword::parse(line) {
+              if kw == Keyword::Comment {
+                unreachable!();
+              } else {
+                return (Some((lineidx, line)), Some(lineidx));
+              }
+            } else {
+              tmp = self.skip_comments();
+              match tmp {
+                None => return (Some((lineidx, line)), endidx),
+                Some((i, l)) => {
+                  line = l;
+                  lineidx = i;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if endidx.is_some() {
+      return (Some((lineidx, line)), endidx);
+    } else {
+      return (Some((lineidx, line)), Some(lineidx));
+    }
+  }
+
+  pub fn skip_card_gather<'b>(
+    &'b mut self,
+    card: &Card,
+  ) -> (Option<(usize, &'a T)>, Option<usize>) {
+    let mut curkw;
+    let mut res;
+    let mut curidx;
+    let mut curline;
+
+    loop {
+      res = self.skip_card(card);
+
+      match res.0 {
+        // file ended before the next non-comment line
+        None => return (None, res.1), 
+        Some((i, l)) => {
+          curkw = Keyword::parse(l);
+          curline = l;
+          curidx = i;
+        }
+      }
+
+      if curkw != Some(card.keyword) {
+        break;
+      }
+    }
+
+    (Some((curidx, curline)), Some(curidx))
+  }
 }
 
 #[cfg(test)]
@@ -192,6 +324,8 @@ mod tests {
   use lines::Lines;
   use lines::LinesIter;
   use card::ges::GesType;
+  use card::keyword::Keyword;
+  use card::Card;
 
   const LINES: [&'static str; 8] =
     ["This", "is", "an", "example", "of", "some", "lines", "."];
@@ -448,5 +582,27 @@ mod tests {
 
     assert_eq!(li.skip_ges(&g), (None, Some(1)));
     assert_eq!(li.it.next(), None);
+  }
+
+  const CARD_NSMAS: [&'static str; 7] = [
+    "NSMAS /        1              0.                                                ",
+    "$#                                                                         TITLE",
+    "NAME NSMAS / ->1                                                                ",
+    "        ELE 123",
+    "        PART 2345",
+    "        END",
+    "#Comment",
+  ];
+
+  #[test]
+  fn itr_skips_nsmas() {
+    let mut itr = CARD_NSMAS.iter().enumerate();
+    let mut li = LinesIter { it: &mut itr };
+    let firstline = li.it.next();
+    let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
+    let k = &kw;
+    let card: &'static Card = k.into();
+
+    assert_eq!(li.skip_card(card), (None, Some(6)));
   }
 }
