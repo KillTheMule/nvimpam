@@ -1,5 +1,5 @@
 /// Elements of an input line
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Cell {
   /// A keyword, given by Card.keyword
   Kw,

@@ -1,7 +1,7 @@
 use card::cell::Cell;
 use card::ges::GesType;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Line {
   /// A standard line, containing several cells of a fixed width
   Cells(&'static [Cell]),
@@ -20,7 +20,7 @@ pub enum Line {
 
 
 /// An enum to represent different conditionals on lines
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Conditional {
   /// The char at the given index (0-based!) is the given one.
   RelChar(u8, char),
