@@ -58,7 +58,7 @@ where
   I: Iterator<Item = (usize, &'a T)>,
   T: AsRef<str>,
 {
-  it: I,
+  pub it: I,
 }
 
 /// A data structure returned by several skip methods on the iterator.
@@ -74,13 +74,15 @@ where
 /// after the skipped thing, and `nextline` will be the first non-comment line
 /// after that. `idx_after` will be `None` if skipping brought us to the end of
 /// the file with no comment after our thing.
-struct SkipResult<'a, T: 'a>
+
+// TODO: Maybe this is a good idea to use?
+/*struct SkipResult<'a, T: 'a>
 where
   T: AsRef<str>,
 {
   nextline: Option<(usize, &'a T)>,
   idx_after: Option<usize>,
-}
+}*/
 
 impl<'a, I, T: 'a> LinesIter<'a, I, T>
 where
@@ -190,14 +192,18 @@ where
     }
 
     if ges.ended_by(&line) {
-      // Here: Last line ends the ges, just need to fetch the next and return
-      // the data
-      let tmp = self.skip_comments();
-      match tmp {
-        None => {
-          return (None, Some(idx + 1));
+      let nextline = self.it.next();
+
+      match nextline {
+        None => return (None, None),
+        Some((i, l)) => {
+          if Keyword::parse(l) != Some(Keyword::Comment) {
+            return (Some((i, l)), Some(i));
+          } else {
+            first_comment_idx = Some(i);
+            return (self.skip_comments(), first_comment_idx);
+          }
         }
-        Some((i, l)) => return (Some((i, l)), Some(idx + 1)),
       }
     } else {
       // Ges implicitely ended, so it does not encompass the current line
@@ -264,13 +270,18 @@ where
             if kw == Keyword::Comment {
               unreachable!();
             } else {
-              return (Some((lineidx, line)), Some(lineidx));
+              if endidx.is_some() {
+                return (Some((lineidx, line)), endidx);
+              } else {
+                return (Some((lineidx, line)), Some(lineidx));
+              }
             }
           } else {
             tmp = self.skip_comments();
             match tmp {
               None => return (Some((lineidx, line)), endidx),
               Some((i, l)) => {
+                endidx = Some(lineidx + 1);
                 line = l;
                 lineidx = i;
               }
@@ -567,8 +578,8 @@ mod tests {
     let mut itr = GES6.iter().enumerate();
     let mut li = LinesIter { it: &mut itr };
 
-    assert_eq!(li.skip_ges(&g), (Some((5, &GES6[5])), Some(5)));
-    assert_eq!(li.it.next(), Some((6, &GES6[6])));
+    assert_eq!(li.skip_ges(&g), (Some((6, &GES6[6])), Some(5)));
+    assert_eq!(li.it.next(), None);
   }
 
   const GES7: [&'static str; 4] = [
@@ -625,5 +636,83 @@ mod tests {
     let card: &'static Card = k.into();
 
     assert_eq!(li.skip_card(card), (None, Some(6)));
+  }
+
+  const CARD_NODES: [&'static str; 9] = [
+    "NODE  /       28     30.29999924            50.5              0.",
+    "NODE  /       28     30.29999924            50.5              0.",
+    "NODE  /       28     30.29999924            50.5              0.",
+    "#COMMENT",
+    "NODE  /       28     30.29999924            50.5              0.",
+    "$COMMENT",
+    "NODE  /       28     30.29999924            50.5              0.",
+    "NODE  /       28     30.29999924            50.5              0.",
+    "SHELL /     ",
+  ];
+
+  #[test]
+  fn itr_skips_nodes() {
+    let mut itr = CARD_NODES.iter().enumerate();
+    let mut li = LinesIter { it: &mut itr };
+    let firstline = li.it.next();
+    let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
+    let k = &kw;
+    let card: &'static Card = k.into();
+
+    assert_eq!(li.skip_card_gather(card), (
+      Some((8, &"SHELL /     ")),
+      Some(8),
+    ));
+  }
+
+  const CARD_MASS_INCOMPLETE: [&'static str; 9] = [
+    "$ MASS Card",
+    "$#         IDNOD    IFRA   Blank            DISr            DISs            DISt",
+    "MASS  /        0       0                                                        ",
+    "$#                                                                         TITLE",
+    "NAME MASS  / ->1                                                                ",
+    "$# BLANK              Mx              My              Mz",
+    "$# BLANK              Ix              Iy              Iz                   Blank",
+    "NODE  /      ",
+    "                                                        ",
+  ];
+
+  #[test]
+  fn itr_skips_incomplete_cards() {
+    let mut itr = CARD_MASS_INCOMPLETE.iter().enumerate().skip(2);
+    let mut li = LinesIter { it: &mut itr };
+    let firstline = li.it.next();
+    let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
+    let k = &kw;
+    let card: &'static Card = k.into();
+
+    assert_eq!(li.skip_card(card), (Some((7, &"NODE  /      ")), Some(5)));
+  }
+
+  const CARD_MASS_OPT: [&'static str; 12] = [
+    "MASS  /        0       0                                                        ",
+    "$#                                                                         TITLE",
+    "NAME MASS  / ->1                                                                ",
+    "$# BLANK              Mx              My              Mz",
+    "                                                        ",
+    "$# BLANK              Ix              Iy              Iz                   Blank",
+    "                                                                                &",
+    "                                                  ",
+    "        PART 1234",
+    "        GRP 'nogrp'",
+    "        END",
+    "$Comment",
+  ];
+
+  #[test]
+  fn itr_skips_optional_lines() {
+    let mut itr = CARD_MASS_OPT.iter().enumerate();
+    let mut li = LinesIter { it: &mut itr };
+    let firstline = li.it.next();
+    let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
+    let k = &kw;
+    let card: &'static Card = k.into();
+
+    assert_eq!(li.skip_card(card), (None, Some(11)));
   }
 }
