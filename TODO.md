@@ -27,3 +27,4 @@
   and need to return data for the last read line (e.g. Keyword::get_foldend)
 
 * Both the Line enum variant and the trait are called ges. Bad?
+* Check out https://www.makeareadme.com/#usage
