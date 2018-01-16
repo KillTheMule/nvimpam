@@ -8,7 +8,7 @@ if has("win32")
 
 else
   let s:scriptdir = resolve(expand('<sfile>:p:h') . '/..')
-  "let s:bin = s:scriptdir . '/redir.sh' 
+  "let s:bin = s:scriptdir . '/files/redir.sh' 
   let s:bin = s:scriptdir . '/target/debug/nvimpam'
 endif
 
@@ -75,11 +75,10 @@ endfunction
 "  call rpcnotify(s:jobid, 'insert-leave')
 "endfunction
 
+let s:stderr_chunks = ['']
 function! s:OnStderr(id, data, event) dict
-  redir >> nvimpam.stderr
-  echo '' . join(a:data, "")
-  echo "\n"
-  redir END
+  let s:stderr_chunks[-1] .= a:data[0]
+  call extend(s:stderr_chunks, a:data[1:])
 endfunction
 
 function! s:StartJob()
@@ -93,6 +92,7 @@ function! s:StartJob()
 endfunction
 
 function! s:StopJob()
+  call writefile(s:stderr_chunks, "stderr")
   if 0 < s:jobid
     augroup nvimPam
       " clear all previous autocommands
