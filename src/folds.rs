@@ -174,19 +174,16 @@ impl FoldList {
           foldstart = i;
           
           // TODO: make SkipResult, include the keyword
-          println!("{:?}, {:?}", i, l.as_ref());
           tmp = li.skip_fold((&foldkw).into());
 
           match tmp {
             (s, Some(j)) => {
-              println!("Foldend {:?}", j - 1);
               foldend = j - 1;
               nextline = s;
             }
             (Some(_), None) => unreachable!(),
             // only happens if file ends directly after a GES
             (None, None) => {
-              println!("Foldend len {:?}", len - 1);
               foldend = len - 1;
               nextline = None;
             }
