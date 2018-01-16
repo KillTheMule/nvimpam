@@ -22,6 +22,7 @@ use failure::ResultExt;
 use neovim_lib::{Neovim, NeovimApi};
 
 use card::keyword::Keyword;
+use lines::LinesIter;
 
 /// Holds the fold data of the buffer. A fold has the following data:
 /// Linenumbers start, end (indexed from 1), and a
@@ -139,68 +140,65 @@ impl FoldList {
   /// Parse an array of strings into a [FoldList](struct.FoldList.html). The
   /// foldlist is cleared as a first step.
   ///
-  /// Comments are subsumed into a fold of a different type, if the
-  /// surrounding folds are of the same type. This will create a larger fold
-  /// containing the surrounding folds and the comments, and will be of the
-  /// type of the surrounding folds. Otherwise, folds will form their own
-  /// fold range.
+  /// Creates only level 1 folds. Depending on the
+  /// [ownfold](../card/struct.Card.html#structfield.ownfold) parameter in the
+  /// definition of the card in the [carddata](../carddata/index.html) module,
+  /// each card will be in an own fold, or several adjacent (modulo comments)
+  /// cards will be subsumed into a fold.
   pub fn add_folds<T: AsRef<str>>(&mut self, lines: &[T]) -> Result<(), Error> {
+    let len = lines.len();
+    let mut itr = lines.iter().enumerate();
+    let mut li = LinesIter { it: &mut itr };
 
-    if lines.len() == 0 {
-      return Err(format_err!("No lines passed!"));
-    }
+    let mut foldstart;
+    let mut foldend;
+    let mut foldkw;
 
-    let mut it = lines.iter().enumerate();
-    let mut curkw = None;
-    let mut curline;
-    let mut curidx = 0;
+    let mut tmp;
 
+    let mut nextline = li.skip_to_next_real_keyword();
 
     loop {
-      // Advance to the next keyword line
-      if curkw.is_none() {
-        let tmp = it.find(|&(_, l)| Keyword::parse(l).is_some());
-        match tmp {
-          None => return Ok(()),
-          Some((i, l)) => {
-            curidx = i;
-            curline = l;
-            curkw = Keyword::parse(curline);
-          }
-        };
-      };
 
-      // skip comments
-      if curkw == Some(Keyword::Comment) {
-        let tmp =
-          it.find(|&(_, l)| Keyword::parse(l) != Some(Keyword::Comment));
-        match tmp {
-          None => return Ok(()),
-          Some((i, l)) => {
-            curidx = i;
-            curline = l;
-            curkw = Keyword::parse(curline);
-          }
-        };
-      }
-      match curkw {
-        None => continue,
-        Some(Keyword::Comment) => unreachable!(),
-        Some(c) => {
-          let foldend = c.get_foldend(&mut it);
+      match nextline {
+        None => return Ok(()),
+        Some((i, l)) => {
+          foldkw = match Keyword::parse(l) {
+            Some(k) => k,
+            None => {
+              nextline = li.skip_to_next_real_keyword();
+              continue;
+            }
+          };
 
-          if let Some(i) = foldend.0 {
-            self.insert(curidx as u64, i, c)?;
-          }
-          curkw = foldend.1;
+          foldstart = i;
+          
+          // TODO: make SkipResult, include the keyword
+          println!("{:?}, {:?}", i, l.as_ref());
+          tmp = li.skip_fold((&foldkw).into());
 
-          if let Some(i) = foldend.2 {
-            curidx = i as usize;
+          match tmp {
+            (s, Some(j)) => {
+              println!("Foldend {:?}", j - 1);
+              foldend = j - 1;
+              nextline = s;
+            }
+            (Some(_), None) => unreachable!(),
+            // only happens if file ends directly after a GES
+            (None, None) => {
+              println!("Foldend len {:?}", len - 1);
+              foldend = len - 1;
+              nextline = None;
+            }
           }
+
         }
-      }
+
     }
+    self.checked_insert(foldstart as u64, foldend as u64, foldkw)?
+
   }
+}
 }
 
 #[cfg(test)]
@@ -296,12 +294,8 @@ mod tests {
     let _ = it.next();
     let _ = it.next();
 
-    let (end, kw, idx) = Nsmas.get_foldend(&mut it);
-    assert_eq!(kw, None);
-    assert_eq!(idx, Some(6));
-    assert_eq!(end, Some(5));
 
-    let v = vec![(2, 5, Nsmas)];
+    let v = vec![(2, 6, Nsmas)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_NSMAS);
 
@@ -327,17 +321,7 @@ mod tests {
     use card::keyword::Keyword;
     use folds::FoldList;
 
-    let mut it = CARD_MASS.iter().enumerate();
-    let _ = it.next();
-    let _ = it.next();
-    let _ = it.next();
-
-    let (end, kw, idx) = Mass.get_foldend(&mut it);
-    assert_eq!(kw, None);
-    assert_eq!(idx, None);
-    assert_eq!(end, None);
-
-    let v: Vec<(u64, u64, Keyword)> = vec![];
+    let v: Vec<(u64, u64, Keyword)> = vec![(2, 9, Mass)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_MASS);
 

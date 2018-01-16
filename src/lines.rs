@@ -241,12 +241,25 @@ where
     let mut endidx = None; // index of the first line after the card
     let mut tmp;
 
-    tmp = self.skip_comments();
+    tmp = self.it.next();
     match tmp {
       None => return (None, None),
       Some((i, l)) => {
         line = l;
         lineidx = i;
+      }
+    }
+
+    if Keyword::parse(line) == Some(Keyword::Comment) {
+      endidx = Some(lineidx);
+
+      tmp = self.skip_comments();
+      match tmp {
+        None => return (None, endidx),
+        Some((i, l)) => {
+          line = l;
+          lineidx = i;
+        }
       }
     }
 
@@ -328,6 +341,7 @@ where
     let mut res;
     let mut curidx;
     let mut curline;
+    let mut endidx;
 
     loop {
       res = self.skip_card(card);
@@ -339,6 +353,7 @@ where
           curkw = Keyword::parse(l);
           curline = l;
           curidx = i;
+          endidx = res.1;
         }
       }
 
@@ -347,7 +362,7 @@ where
       }
     }
 
-    (Some((curidx, curline)), Some(curidx))
+    (Some((curidx, curline)), endidx)
   }
 }
 
@@ -358,6 +373,7 @@ mod tests {
   use card::ges::GesType;
   use card::keyword::Keyword;
   use card::Card;
+  use carddata::*;
 
   const LINES: [&'static str; 8] =
     ["This", "is", "an", "example", "of", "some", "lines", "."];
@@ -715,4 +731,67 @@ mod tests {
 
     assert_eq!(li.skip_card(card), (None, Some(11)));
   }
+
+  const LINES_GATHER: [&'static str; 20] = [
+    /* 0 */
+    "NODE  /        1              0.             0.5              0.",
+    /* 1 */
+    "NODE  /        1              0.             0.5              0.",
+    /* 2 */
+    "NODE  /        1              0.             0.5              0.",
+    /* 3 */
+    "NODE  /        1              0.             0.5              0.",
+    /* 4 */
+    "#Comment here",
+    /* 5 */
+    "SHELL /     3129       1       1    2967    2971    2970",
+    /* 6 */
+    "invalid line here",
+    /* 7 */
+    "SHELL /     3129       1       1    2967    2971    2970",
+    /* 8 */
+    "SHELL /     3129       1       1    2967    2971    2970",
+    /* 9 */
+    "#Comment",
+    /* 10 */
+    "#Comment",
+    /* 11 */
+    "SHELL /     3129       1       1    2967    2971    2970",
+    /* 12 */
+    "SHELL /     3129       1       1    2967    2971    2970",
+    /* 13 */
+    "$Comment",
+    /* 14 */
+    "SHELL /     3129       1       1    2967    2971    2970",
+    /* 15 */
+    "SHELL /     3129       1       1    2967    2971    2970",
+    /* 16 */
+    "$Comment",
+    /* 17 */
+    "#Comment",
+    /* 18 */
+    "NODE  /        1              0.             0.5              0.",
+    /* 19 */
+    "NODE  /        1              0.             0.5              0.",
+  ];
+
+  #[test]
+  fn itr_skips_gather_cards() {
+    let mut itr = LINES_GATHER.iter().enumerate();
+    let mut li = LinesIter { it: &mut itr };
+    let firstline = li.it.next();
+    let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
+    let k = &kw;
+    let card: &'static Card = k.into();
+
+    assert_eq!(li.skip_fold(card), (Some((5, &LINES_GATHER[5])), Some(4)));
+    assert_eq!(li.skip_fold(&SHELL), (Some((6, &LINES_GATHER[6])), Some(6)));
+    let _ = li.it.next();
+    assert_eq!(li.skip_fold(&SHELL), (
+      Some((18, &LINES_GATHER[18])),
+      Some(16),
+    ));
+    assert_eq!(li.skip_fold(&NODE), (None, None));
+  }
+
 }

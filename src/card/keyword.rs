@@ -6,11 +6,6 @@
 /// An enum to denote the several types of cards a line might belong to. For now
 /// carries only information equivalent to the keyword, not the subtypes, e.g.
 /// CNTAC types 33 and 36 will both be denoted by type Cntac
-use std::iter;
-use std::slice;
-
-use card::Card;
-
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Keyword {
   Node,
@@ -47,32 +42,5 @@ impl Keyword {
     } else {
       return None;
     };
-  }
-
-  /// Get the end of the fold for the type that we found on the last line the
-  /// iterator returned.
-  ///
-  /// Returns the index of the last line of the fold (`None` if there is no
-  /// such, i.e. the file ended or another keyword was found early), the
-  /// Keyword of the last line the iterator has returned (None if it does not
-  /// have a keyword), and the index of the last line the  iterator has
-  /// returned (this will only be none if we exhausted the file, i.e. the
-  /// iterator returned `None`). The last two are necessary because we
-  /// advanced the iterator 1 line further to look at the following line, and
-  /// there might be comment lines between the end of the fold in the last
-  /// line we looked into. Those comment lines will not be folded, but we
-  /// advanced through them anyways to check for the next non-comment line.
-  #[inline]
-  pub fn get_foldend<'a, T: AsRef<str>>(
-    &self,
-    it: &mut iter::Enumerate<slice::Iter<'a, T>>,
-  ) -> (Option<u64>, Option<Keyword>, Option<u64>) {
-    let card: &Card = self.into();
-
-    if card.ownfold {
-      card.get_foldend_own(it)
-    } else {
-      card.get_foldend_gather(it)
-    }
   }
 }
