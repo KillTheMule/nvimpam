@@ -289,7 +289,7 @@ pub fn add_folds2<T: AsRef<str>>(
   while let Some((cur_idx, cur_line)) =
     lines_enumerated_without_comments.next()
   {
-    let mut cur_kw;
+    let cur_kw;
     match Keyword::parse(&cur_line) {
       None => continue,
       // None |
