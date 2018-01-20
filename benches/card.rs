@@ -7,7 +7,6 @@ use self::test::Bencher;
 use nvimpam_lib::card::keyword::Keyword;
 use nvimpam_lib::folds::FoldList;
 
-
 #[bench]
 fn bench_parse2folddata(b: &mut Bencher) {
   use std::fs::File;

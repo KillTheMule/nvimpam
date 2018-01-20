@@ -25,22 +25,22 @@ impl Keyword {
 
     let s = s.as_ref();
 
-    if s.starts_with("$") || s.starts_with("#") {
-      return Some(Comment);
+    if s.starts_with('$') || s.starts_with('#') {
+      Some(Comment)
     } else if s.starts_with("NODE  / ") {
-      return Some(Node);
+      Some(Node)
     } else if s.starts_with("CNODE / ") {
-      return Some(Cnode);
+      Some(Cnode)
     } else if s.starts_with("MASS  / ") {
-      return Some(Mass);
+      Some(Mass)
     } else if s.starts_with("NSMAS / ") {
-      return Some(Nsmas);
+      Some(Nsmas)
     } else if s.starts_with("NSMAS2/ ") {
-      return Some(Nsmas2);
+      Some(Nsmas2)
     } else if s.starts_with("SHELL / ") {
-      return Some(Shell);
+      Some(Shell)
     } else {
-      return None;
-    };
+      None
+    }
   }
 }

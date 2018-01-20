@@ -18,7 +18,6 @@ pub enum Line {
   Optional(&'static [Cell], u8),
 }
 
-
 /// An enum to represent different conditionals on lines
 #[derive(Debug, PartialEq)]
 pub enum Conditional {
@@ -62,4 +61,5 @@ mod tests {
 
     assert!(!cond1.evaluate(&line));
   }
+
 }

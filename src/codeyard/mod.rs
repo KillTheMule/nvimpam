@@ -3,19 +3,19 @@
 use std::str::Bytes;
 
 use failure::Error;
+use failure;
 
 use card::keyword::Keyword;
 use card::Card;
 use folds::FoldList;
 
-
-/// [parse_str](../cards/enum.Keyword.html#method.parse_str) seems to largely
+/// [`parse_str`](../cards/enum.Keyword.html#method.parse_str) seems to largely
 /// dominate the benchmark for
-/// [create_card_data](../cards/enum.Keyword.html#method.create_card_data), this
-/// might be a faster alternative. Needs real benchmarks!
+/// [`create_card_data`](../cards/enum.Keyword.html#method.create_card_data),
+/// this might be a faster alternative. Needs real benchmarks!
 #[inline]
 #[allow(dead_code)]
-pub fn parse_str2<'a>(s: &'a str) -> Option<Keyword> {
+pub fn parse_str2(s: &str) -> Option<Keyword> {
   use card::keyword::Keyword::*;
   match s.bytes().next() {
     Some(b'N') if s.starts_with("NODE") => Some(Node),
@@ -25,7 +25,7 @@ pub fn parse_str2<'a>(s: &'a str) -> Option<Keyword> {
   }
 }
 
-/// Helper function used by [parse_str3](fn.parse_str3.html).
+/// Helper function used by [`parse_str3`](fn.parse_str3.html).
 #[inline]
 #[allow(dead_code)]
 pub fn check_rest(
@@ -41,48 +41,44 @@ pub fn check_rest(
   Some(card)
 }
 
-/// [parse_str](../cards/enum.Keyword.html#method.parse_str) seems to largely
+/// [`parse_str`](../cards/enum.Keyword.html#method.parse_str) seems to largely
 /// dominate the benchmark for
-/// [create_card_data](../cards/enum.Keyword.html#method.create_card_data), this
-/// might be a faster alternative. Needs real benchmarks!
+/// [`create_card_data`](../cards/enum.Keyword.html#method.create_card_data),
+/// this might be a faster alternative. Needs real benchmarks!
 #[inline]
 #[allow(dead_code)]
 pub fn parse_str3(s: &str) -> Option<Keyword> {
   use card::keyword::Keyword::*;
   let mut bytes = s.bytes();
   match bytes.next() {
-    Some(b'N') => {
-      match bytes.next() {
-        Some(b'O') => {
-          match bytes.next() {
-            Some(b'D') => check_rest(bytes, b"E", Node),
-            _ => None,
-          }
-        }
+    Some(b'N') => match bytes.next() {
+      Some(b'O') => match bytes.next() {
+        Some(b'D') => check_rest(bytes, b"E", Node),
         _ => None,
-      }
-    }
+      },
+      _ => None,
+    },
     Some(b'S') => check_rest(bytes, b"HELL", Shell),
     Some(b'$') | Some(b'#') => Some(Comment),
     _ => None,
   }
 }
 
-/// [parse_str](../cards/enum.Keyword.html#method.parse_str) seems to largely
+/// [`parse_str`](../cards/enum.Keyword.html#method.parse_str) seems to largely
 /// dominate the benchmark for
-/// [create_card_data](../cards/enum.Keyword.html#method.create_card_data), this
-/// might be a faster alternative. Needs real benchmarks!
+/// [`create_card_data`](../cards/enum.Keyword.html#method.create_card_data),
+/// this might be a faster alternative. Needs real benchmarks!
 #[inline]
 #[allow(dead_code)]
-pub fn parse_str4<'a>(s: &'a str) -> Option<Keyword> {
+pub fn parse_str4(s: &str) -> Option<Keyword> {
   use card::keyword::Keyword::*;
   use std::ptr;
   use std::cmp;
 
   // I only wrote the little-endian version
   assert!(cfg!(target_endian = "little"));
-  const NODE: u32 = 0x45444f4e;
-  const SHELL: u64 = 0x4c4c454853;
+  const NODE: u32 = 0x4544_4f4e;
+  const SHELL: u64 = 0x4c_4c45_4853;
 
   let b = s.as_bytes();
   let mut m: u64 = 0;
@@ -100,7 +96,7 @@ pub fn parse_str4<'a>(s: &'a str) -> Option<Keyword> {
   if m as u32 == NODE {
     return Some(Node);
   }
-  if m & 0xffffffffff == SHELL {
+  if m & 0xff_ffff_ffff == SHELL {
     return Some(Shell);
   }
   None
@@ -136,7 +132,7 @@ pub trait FoldExt: Sized {
 
 /// Impl the iterator adaptors for iterators that return a numbering of card
 /// classifications, as we get from Vec<String> by first mapping
-/// [parse_str](../cards/enum.Keyword.html#method.parse_str) and then calling
+/// [`parse_str`](../cards/enum.Keyword.html#method.parse_str) and then calling
 /// enumerate()
 impl<I> FoldExt for I
 where
@@ -173,26 +169,24 @@ where
     for (ref i, ref linecard) in self.orig.by_ref() {
       match *linecard {
         None => {
-          if *i > 0 {
-            if last_before_comment > 0 {
-              if i - last_before_comment > 1 {
-                self.ncard = Some(Fold {
-                  start: last_before_comment as u64 + 1,
-                  end: *i as u64 - 1,
-                  card: Some(Keyword::Comment),
-                });
-                return Some(Fold {
-                  start: curcardstart as u64,
-                  end: last_before_comment as u64,
-                  card: curcard,
-                });
-              } else {
-                return Some(Fold {
-                  start: curcardstart as u64,
-                  end: *i as u64 - 1,
-                  card: curcard,
-                });
-              }
+          if *i > 0 && last_before_comment > 0 {
+            if i - last_before_comment > 1 {
+              self.ncard = Some(Fold {
+                start: last_before_comment as u64 + 1,
+                end: *i as u64 - 1,
+                card: Some(Keyword::Comment),
+              });
+              return Some(Fold {
+                start: curcardstart as u64,
+                end: last_before_comment as u64,
+                card: curcard,
+              });
+            } else {
+              return Some(Fold {
+                start: curcardstart as u64,
+                end: *i as u64 - 1,
+                card: curcard,
+              });
             }
           }
           curcard = None;
@@ -202,37 +196,31 @@ where
           if *linecard == curcard {
             last_before_comment = 0;
             continue;
-          } else {
-            if *linecard == Some(Keyword::Comment) {
-              if *i > 1 && last_before_comment == 0 {
-                last_before_comment = i - 1;
-                continue;
-              } else {
-                if *i == 0 {
-                  curcard = Some(Keyword::Comment);
-                  curcardstart = 0;
-                }
-              }
-            } else {
-// linecard != curcard, and linecard != Some(Comment)
-              if last_before_comment > 0 {
-                return Some(Fold {
-                  start: curcardstart as u64,
-                  end: last_before_comment as u64,
-                  card: curcard,
-                });
-              } else {
-                if *i > 0 {
-                  return Some(Fold {
-                    start: curcardstart as u64 + 1,
-                    end: *i as u64 - 1,
-                    card: curcard,
-                  });
-                }
-              }
-              curcard = Some(*c);
-              curcardstart = *i;
+          } else if *linecard == Some(Keyword::Comment) {
+            if *i > 1 && last_before_comment == 0 {
+              last_before_comment = i - 1;
+              continue;
+            } else if *i == 0 {
+              curcard = Some(Keyword::Comment);
+              curcardstart = 0;
             }
+          } else {
+            // linecard != curcard, and linecard != Some(Comment)
+            if last_before_comment > 0 {
+              return Some(Fold {
+                start: curcardstart as u64,
+                end: last_before_comment as u64,
+                card: curcard,
+              });
+            } else if *i > 0 {
+              return Some(Fold {
+                start: curcardstart as u64 + 1,
+                end: *i as u64 - 1,
+                card: curcard,
+              });
+            }
+            curcard = Some(*c);
+            curcardstart = *i;
           }
         }
       }
@@ -248,14 +236,14 @@ where
   }
 }
 
-/// Use [FoldExt](trait.FoldExt.html) to creat the card data. Seems slower than
-/// the direct way.  Might not be correct, see this [comment](struct.Folds.html)
+/// Use [`FoldExt`](trait.FoldExt.html) to creat the card data. Seems slower
+/// than the direct way.  Might not be correct, see this
+/// [comment](struct.Folds.html)
 #[inline]
 #[allow(dead_code)]
 pub fn create_card_data5<T: AsRef<str>>(
   lines: &[T],
 ) -> Vec<(Option<Keyword>, u64, u64)> {
-
   let mut v = Vec::new();
   let it = lines
     .iter()
@@ -269,32 +257,32 @@ pub fn create_card_data5<T: AsRef<str>>(
   v
 }
 
-/// Alternative to add_folds on a foldlist
-/// DOES NOT WORK. Needs to properly deal with the results of get_foldend2
+/// Alternative to `add_folds` on a `foldlist`
+/// DOES NOT WORK. Needs to properly deal with the results of `get_foldend2`
 #[allow(dead_code)]
 pub fn add_folds2<T: AsRef<str>>(
   foldlist: &mut FoldList,
   lines: &[T],
 ) -> Result<(), Error> {
-
-  if lines.len() == 0 {
-    return Err(format_err!("No lines passed!"));
+  if lines.is_empty() {
+    return Err(failure::err_msg("No lines passed!"));
   }
   // Iterate over the lines once
-  let mut lines_enumerated_without_comments =
-    Box::new(lines.iter().enumerate().filter(|&(_, l)| {
-      Keyword::parse(&l) != Some(Keyword::Comment)
-    }));
+  let mut lines_enumerated_without_comments = Box::new(
+    lines
+      .iter()
+      .enumerate()
+      .filter(|&(_, l)| Keyword::parse(&l) != Some(Keyword::Comment)),
+  );
   // Iterator may be advanced by this loop or `get_foldend`
-  while let Some((cur_idx, cur_line)) =
-    lines_enumerated_without_comments.next()
+  while let Some((cur_idx, cur_line)) = lines_enumerated_without_comments.next()
   {
     let cur_kw;
     match Keyword::parse(&cur_line) {
       None => continue,
       // None |
       // Some(Keyword::Comment) => continue,
-      Some(kw) => cur_kw = kw, 
+      Some(kw) => cur_kw = kw,
     }
 
     match cur_kw {
@@ -312,14 +300,14 @@ pub fn add_folds2<T: AsRef<str>>(
       }
     }
   }
-  return Ok(());
+  Ok(())
 }
 
-/// Alternative to get_foldend to use with add_folds2
+/// Alternative to `get_foldend` to use with `add_folds2`
 /// Needs a trait object because the use of filter make the types not writeable
 #[inline]
 #[allow(dead_code)]
-pub fn get_foldend2<'a, T: AsRef<str>>(
+pub fn get_foldend2<T: AsRef<str>>(
   kw: &Keyword,
   it: &mut Iterator<Item = (usize, T)>,
 ) -> (Option<u64>, Option<Keyword>, Option<u64>) {
@@ -330,7 +318,6 @@ pub fn get_foldend2<'a, T: AsRef<str>>(
     let mut i = 0;
     let mut idx = 0;
     let mut line;
-
 
     while i < num {
       println!("{}", i);
@@ -356,10 +343,8 @@ pub fn get_foldend2<'a, T: AsRef<str>>(
 
     let tmp = it.next();
     match tmp {
-      None => return (Some(idx as u64), None, None),
-      Some((i, l)) => {
-        return (Some(idx as u64), Keyword::parse(&l), Some(i as u64))
-      }
+      None => (Some(idx as u64), None, None),
+      Some((i, l)) => (Some(idx as u64), Keyword::parse(&l), Some(i as u64)),
     }
   } else {
     // !card.ownfold
@@ -400,9 +385,9 @@ pub fn get_foldend2<'a, T: AsRef<str>>(
     }
 
     if idx_before_comment > 0 {
-      return (Some(idx_before_comment as u64), curkw, Some(idx as u64));
+      (Some(idx_before_comment as u64), curkw, Some(idx as u64))
     } else {
-      return (Some(idx as u64 - 1), curkw, Some(idx as u64));
+      (Some(idx as u64 - 1), curkw, Some(idx as u64))
     }
   }
 }
@@ -411,97 +396,86 @@ pub fn get_foldend2<'a, T: AsRef<str>>(
 /// foldlist structure.
 #[inline]
 #[allow(dead_code)]
-  pub fn add_keyword_data<T: AsRef<str>>(
-    foldlist: &mut FoldList,
-    lines: &[T],
-  ) -> Result<(), Error> {
-    let it = lines.iter().map(|s| Keyword::parse(s)).enumerate();
-    let mut curkwstart = 0;
-    let mut curkw: Option<Keyword> = None;
+pub fn add_keyword_data<T: AsRef<str>>(
+  foldlist: &mut FoldList,
+  lines: &[T],
+) -> Result<(), Error> {
+  let it = lines.iter().map(|s| Keyword::parse(s)).enumerate();
+  let mut curkwstart = 0;
+  let mut curkw: Option<Keyword> = None;
 
-    let mut last_before_comment = 0;
+  let mut last_before_comment = 0;
 
-    for (i, linekw) in it {
-      match linekw {
-        None => {
-          if i > 0 {
-            if let Some(c) = curkw {
-              if last_before_comment > 0 {
+  for (i, linekw) in it {
+    match linekw {
+      None => {
+        if i > 0 {
+          if let Some(c) = curkw {
+            if last_before_comment > 0 {
+              foldlist.checked_insert(
+                curkwstart as u64,
+                last_before_comment as u64,
+                c,
+              )?;
+              if i - last_before_comment > 1 {
                 foldlist.checked_insert(
-                  curkwstart as u64,
-                  last_before_comment as u64,
-                  c,
+                  last_before_comment as u64 + 1,
+                  i as u64 - 1,
+                  Keyword::Comment,
                 )?;
-                if i - last_before_comment > 1 {
-                  foldlist.checked_insert(
-                    last_before_comment as u64 + 1,
-                    i as u64 - 1,
-                    Keyword::Comment,
-                  )?;
-                }
-                last_before_comment = 0;
-              } else {
-                foldlist.checked_insert(curkwstart as u64, i as u64 - 1, c)?;
               }
-            }
-          }
-          curkw = None;
-          curkwstart = i;
-        }
-        Some(ref c) => {
-          if linekw == curkw {
-            last_before_comment = 0;
-            continue;
-          } else {
-            if linekw == Some(Keyword::Comment) {
-              if i > 1 && last_before_comment == 0 {
-                last_before_comment = i - 1;
-                continue;
-              } else {
-                if i == 0 {
-                  curkw = Some(Keyword::Comment);
-                  curkwstart = 0;
-                }
-              }
+              last_before_comment = 0;
             } else {
-              // linekw != curkw, and linekw != Some(Comment)
-              if let Some(c) = curkw {
-                if last_before_comment > 0 {
-                  foldlist.checked_insert(
-                    curkwstart as u64,
-                    last_before_comment as u64,
-                    c,
-                  )?;
-                  // probably redundant
-                  if i > 0 {
-                    foldlist.checked_insert(
-                      last_before_comment as u64 + 1,
-                      i as u64 - 1,
-                      Keyword::Comment,
-                    )?;
-                  }
-                  last_before_comment = 0;
-                } else {
-                  if i > 0 {
-                    foldlist.checked_insert(curkwstart as u64, i as u64 - 1, c)?;
-                  }
-                }
-              }
-              curkw = Some(*c);
-              curkwstart = i;
+              foldlist.checked_insert(curkwstart as u64, i as u64 - 1, c)?;
             }
-
           }
+        }
+        curkw = None;
+        curkwstart = i;
+      }
+      Some(ref c) => {
+        if linekw == curkw {
+          last_before_comment = 0;
+          continue;
+        } else if linekw == Some(Keyword::Comment) {
+          if i > 1 && last_before_comment == 0 {
+            last_before_comment = i - 1;
+            continue;
+          } else if i == 0 {
+            curkw = Some(Keyword::Comment);
+            curkwstart = 0;
+          }
+        } else {
+          // linekw != curkw, and linekw != Some(Comment)
+          if let Some(c) = curkw {
+            if last_before_comment > 0 {
+              foldlist.checked_insert(
+                curkwstart as u64,
+                last_before_comment as u64,
+                c,
+              )?;
+              // probably redundant
+              if i > 0 {
+                foldlist.checked_insert(
+                  last_before_comment as u64 + 1,
+                  i as u64 - 1,
+                  Keyword::Comment,
+                )?;
+              }
+              last_before_comment = 0;
+            } else if i > 0 {
+              foldlist.checked_insert(curkwstart as u64, i as u64 - 1, c)?;
+            }
+          }
+          curkw = Some(*c);
+          curkwstart = i;
         }
       }
     }
-    // When through the whole vec, need to insert a last kw
-    if let Some(c) = curkw {
-      foldlist.checked_insert(
-        curkwstart as u64,
-        lines.len() as u64 - 1,
-        c,
-      )?;
-    }
-    Ok(())
   }
+  // When through the whole vec, need to insert a last kw
+  if let Some(c) = curkw {
+    foldlist.checked_insert(curkwstart as u64, lines.len() as u64 - 1, c)?;
+  }
+  Ok(())
+}

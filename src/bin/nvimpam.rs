@@ -1,5 +1,5 @@
 //! The nvimpam binary. Needs to be connected to neovim (currently,
-//! https://github.com/neovim/neovim/pull/5269 is needed) by stdin/stdout like
+//! <https://github.com/neovim/neovim/pull/5269> is needed) by stdin/stdout like
 //! this:
 //!
 //! ```text

@@ -1,5 +1,5 @@
 //! The events that nvimpam needs to accept and deal with. They're sent by the
-//! [NeovimHandler](handler/struct.NeovimHandler.html) to the main loop.
+//! [`NeovimHandler`](handler/struct.NeovimHandler.html) to the main loop.
 use std::fmt;
 use std::sync::mpsc;
 use failure::Error;
@@ -86,11 +86,11 @@ impl Event {
           foldlist.resend_all(&mut nvim)?;
         }
         Ok(LiveUpdate {
-             firstline,
-             numreplaced,
-             linedata,
-             ..
-           }) => {
+          firstline,
+          numreplaced,
+          linedata,
+          ..
+        }) => {
           lines.update(firstline, numreplaced, linedata);
           foldlist.recreate_all(&lines)?;
         }
@@ -123,39 +123,31 @@ impl fmt::Debug for Event {
         ref linedata,
         more,
         ..
-      } => {
-        write!(
-          f,
-          "LiveUpdateStart{{ changedtick: {}, #linedata: {}, \
-                                       more: {} }}",
-          changedtick,
-          linedata.len(),
-          more
-        )
-      }
+      } => write!(
+        f,
+        "LiveUpdateStart{{ changedtick: {}, #linedata: {}, \
+         more: {} }}",
+        changedtick,
+        linedata.len(),
+        more
+      ),
       LiveUpdate {
         changedtick,
         firstline,
         numreplaced,
         ref linedata,
         ..
-      } => {
-        write!(
-          f,
-          "LiveUpdate{{ changedtick: {}, firstline: {}, \
-                                  numreplaced: {}, #linedata: {} }}",
-          changedtick,
-          firstline,
-          numreplaced,
-          linedata.len()
-        )
-      }
+      } => write!(
+        f,
+        "LiveUpdate{{ changedtick: {}, firstline: {}, \
+         numreplaced: {}, #linedata: {} }}",
+        changedtick,
+        firstline,
+        numreplaced,
+        linedata.len()
+      ),
       LiveUpdateTick { changedtick, .. } => {
-        write!(
-                    f,
-                    "LiveUpdateTick{{ changedtick: {} }}",
-                    changedtick,
-                )
+        write!(f, "LiveUpdateTick{{ changedtick: {} }}", changedtick,)
       }
       LiveUpdateEnd { .. } => write!(f, "LiveUpdateEnd"),
       RefreshFolds => write!(f, "RefreshFolds"),

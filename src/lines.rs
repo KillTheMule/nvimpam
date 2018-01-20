@@ -27,6 +27,11 @@ impl Lines {
     self.0.len()
   }
 
+  // Check if there are any lines
+  pub fn is_empty(&self) -> bool {
+    self.0.is_empty()
+  }
+
   /// Update Lines:
   ///   * `firstline` is zero-indexed (just as Lines itself)
   ///   * If `numreplaced` is zero, the lines were added before `firstline`
@@ -93,9 +98,9 @@ where
   /// comment. Return the index and a reference to that line. If all lines
   /// are comments, return `None`.
   pub fn skip_comments<'b>(&'b mut self) -> Option<(usize, &'a T)> {
-    self.it.find(|&(_, ref l)| {
-      Keyword::parse(l) != Some(Keyword::Comment)
-    })
+    self
+      .it
+      .find(|&(_, l)| Keyword::parse(l) != Some(Keyword::Comment))
   }
 
   /// Advance the iterator until meeting the first line with a keyword. Return
@@ -105,14 +110,14 @@ where
   /// NOTE: A Comment line counts as a keyword. Also see
   /// `skip_to_next_real_keyword`.
   pub fn skip_to_next_keyword<'b>(&'b mut self) -> Option<(usize, &'a T)> {
-    self.it.find(|&(_, ref l)| Keyword::parse(l).is_some())
+    self.it.find(|&(_, l)| Keyword::parse(l).is_some())
   }
 
   /// Advance the iterator until meeting the first line with a keyword that's
   /// not a comment. Return the index and a reference to that line. If no
   /// line starts with a keyword, return `None`.
   pub fn skip_to_next_real_keyword<'b>(&'b mut self) -> Option<(usize, &'a T)> {
-    self.it.find(|&(_, ref l)| {
+    self.it.find(|&(_, l)| {
       let kw = Keyword::parse(l);
       kw.is_some() && kw != Some(Keyword::Comment)
     })
@@ -190,28 +195,25 @@ where
         }
       }
     }
-
     if ges.ended_by(&line) {
       let nextline = self.it.next();
 
       match nextline {
-        None => return (None, None),
+        None => (None, None),
         Some((i, l)) => {
           if Keyword::parse(l) != Some(Keyword::Comment) {
-            return (Some((i, l)), Some(i));
+            (Some((i, l)), Some(i))
           } else {
             first_comment_idx = Some(i);
-            return (self.skip_comments(), first_comment_idx);
+            (self.skip_comments(), first_comment_idx)
           }
         }
       }
-    } else {
+    } else if let Some(i) = first_comment_idx {
       // Ges implicitely ended, so it does not encompass the current line
-      if let Some(i) = first_comment_idx {
-        return (Some((idx, line)), Some(i));
-      } else {
-        return (Some((idx, line)), Some(idx));
-      }
+      (Some((idx, line)), Some(i))
+    } else {
+      (Some((idx, line)), Some(idx))
     }
   }
 
@@ -264,30 +266,26 @@ where
     }
 
     for cardline in cardlines {
-      match cardline {
-        &Line::Provides(_s, ref c) => conds.push(c.evaluate(&line)),
-        &Line::Ges(ref g) => {
-          match self.skip_ges(g) {
-            (None, None) => return (None, None),
-            (None, Some(i)) => return (None, Some(i)),
-            (Some(_), None) => unreachable!(),
-            (Some((i, l)), Some(j)) => {
-              line = l;
-              lineidx = i;
-              endidx = Some(j);
-            }
+      match *cardline {
+        Line::Provides(_s, ref c) => conds.push(c.evaluate(&line)),
+        Line::Ges(ref g) => match self.skip_ges(g) {
+          (None, None) => return (None, None),
+          (None, Some(i)) => return (None, Some(i)),
+          (Some(_), None) => unreachable!(),
+          (Some((i, l)), Some(j)) => {
+            line = l;
+            lineidx = i;
+            endidx = Some(j);
           }
-        }
-        &Line::Cells(_s) => {
+        },
+        Line::Cells(_s) => {
           if let Some(kw) = Keyword::parse(line) {
             if kw == Keyword::Comment {
               unreachable!();
+            } else if endidx.is_some() {
+              return (Some((lineidx, line)), endidx);
             } else {
-              if endidx.is_some() {
-                return (Some((lineidx, line)), endidx);
-              } else {
-                return (Some((lineidx, line)), Some(lineidx));
-              }
+              return (Some((lineidx, line)), Some(lineidx));
             }
           } else {
             tmp = self.skip_comments();
@@ -301,35 +299,32 @@ where
             }
           }
         }
-        &Line::Optional(_s, i) => {
+        Line::Optional(_s, i) => {
           if conds.get(i as usize) != Some(&true) {
             continue;
-          } else {
-            if let Some(kw) = Keyword::parse(line) {
-              if kw == Keyword::Comment {
-                unreachable!();
-              } else {
-                return (Some((lineidx, line)), Some(lineidx));
-              }
+          } else if let Some(kw) = Keyword::parse(line) {
+            if kw == Keyword::Comment {
+              unreachable!();
             } else {
-              tmp = self.skip_comments();
-              match tmp {
-                None => return (Some((lineidx, line)), endidx),
-                Some((i, l)) => {
-                  line = l;
-                  lineidx = i;
-                }
+              return (Some((lineidx, line)), Some(lineidx));
+            }
+          } else {
+            tmp = self.skip_comments();
+            match tmp {
+              None => return (Some((lineidx, line)), endidx),
+              Some((i, l)) => {
+                line = l;
+                lineidx = i;
               }
             }
           }
         }
       }
     }
-
     if endidx.is_some() {
-      return (Some((lineidx, line)), endidx);
+      (Some((lineidx, line)), endidx)
     } else {
-      return (Some((lineidx, line)), Some(lineidx));
+      (Some((lineidx, line)), Some(lineidx))
     }
   }
 
@@ -348,7 +343,7 @@ where
 
       match res.0 {
         // file ended before the next non-comment line
-        None => return (None, res.1), 
+        None => return (None, res.1),
         Some((i, l)) => {
           curkw = Keyword::parse(l);
           curline = l;
@@ -356,12 +351,10 @@ where
           endidx = res.1;
         }
       }
-
       if curkw != Some(card.keyword) {
         break;
       }
     }
-
     (Some((curidx, curline)), endidx)
   }
 }
@@ -424,14 +417,7 @@ mod tests {
   }
 
   const COMMENTS: [&'static str; 8] = [
-    "#This",
-    "#is",
-    "#an",
-    "#example",
-    "of",
-    "some",
-    "lines",
-    ".",
+    "#This", "#is", "#an", "#example", "of", "some", "lines", "."
   ];
 
   #[test]
@@ -675,10 +661,10 @@ mod tests {
     let k = &kw;
     let card: &'static Card = k.into();
 
-    assert_eq!(li.skip_card_gather(card), (
-      Some((8, &"SHELL /     ")),
-      Some(8),
-    ));
+    assert_eq!(
+      li.skip_card_gather(card),
+      (Some((8, &"SHELL /     ")), Some(8),)
+    );
   }
 
   const CARD_MASS_INCOMPLETE: [&'static str; 9] = [
@@ -787,10 +773,10 @@ mod tests {
     assert_eq!(li.skip_fold(card), (Some((5, &LINES_GATHER[5])), Some(4)));
     assert_eq!(li.skip_fold(&SHELL), (Some((6, &LINES_GATHER[6])), Some(6)));
     let _ = li.it.next();
-    assert_eq!(li.skip_fold(&SHELL), (
-      Some((18, &LINES_GATHER[18])),
-      Some(16),
-    ));
+    assert_eq!(
+      li.skip_fold(&SHELL),
+      (Some((18, &LINES_GATHER[18])), Some(16),)
+    );
     assert_eq!(li.skip_fold(&NODE), (None, None));
   }
 

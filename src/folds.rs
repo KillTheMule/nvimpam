@@ -1,4 +1,4 @@
-//! This module provides the [FoldList](folds/struct.FoldList.html) struct to
+//! This module provides the [`FoldList`](folds/struct.FoldList.html) struct to
 //! manage folds in a buffer.
 //!
 //! Example usage:
@@ -15,6 +15,7 @@
 use std::collections::BTreeMap;
 use std::collections::btree_map::Entry;
 
+use failure;
 use failure::Error;
 use failure::Fail;
 use failure::ResultExt;
@@ -27,6 +28,7 @@ use lines::LinesIter;
 /// Holds the fold data of the buffer. A fold has the following data:
 /// Linenumbers start, end (indexed from 1), and a
 /// [Keyword](../cards/enum.Keyword.html).
+#[derive(Default, Debug)]
 pub struct FoldList {
   /// List of folds, keyed by [start, end], valued by Keyword, sorted
   /// lexicographically on [start, end].
@@ -58,9 +60,9 @@ impl FoldList {
   /// [removed](struct.FoldList.html#method.remove) beforehand.
   fn insert(&mut self, start: u64, end: u64, kw: Keyword) -> Result<(), Error> {
     match self.folds.entry([start, end]) {
-      Entry::Occupied(_) => Err(format_err!("Fold already in foldlist!")),
+      Entry::Occupied(_) => Err(failure::err_msg("Fold already in foldlist!")),
       Entry::Vacant(entry) => {
-        entry.insert(kw.clone());
+        entry.insert(kw);
         self.folds_inv.insert([end, start], kw);
         Ok(())
       }
@@ -87,12 +89,13 @@ impl FoldList {
   /// Remove a fold (start, end) from the foldlist. Only checks if the fold
   /// is in the FoldList, and returns an error otherwise.
   pub fn remove(&mut self, start: u64, end: u64) -> Result<(), Error> {
-    self.folds.remove(&[start, end]).ok_or(format_err!(
-      "Could not remove fold from foldlist"
-    ))?;
-    self.folds_inv.remove(&[end, start]).ok_or(format_err!(
-      "Could not remove fold from inverse foldlist!"
-    ))?;
+    self
+      .folds
+      .remove(&[start, end])
+      .ok_or_else(|| failure::err_msg("Could not remove fold from foldlist"))?;
+    self.folds_inv.remove(&[end, start]).ok_or_else(|| {
+      failure::err_msg("Could not remove fold from inverse foldlist!")
+    })?;
 
     Ok(())
   }
@@ -110,7 +113,7 @@ impl FoldList {
     nvim.command("normal! zE").context("'normal! zE' failed")?;
 
     // TODO: use nvim_call_atomic
-    for (range, _) in self.folds.iter() {
+    for range in self.folds.keys() {
       nvim
         .command(&format!("{},{}fo", range[0] + 1, range[1] + 1))
         .with_context(|e| {
@@ -159,7 +162,6 @@ impl FoldList {
     let mut nextline = li.skip_to_next_real_keyword();
 
     loop {
-
       match nextline {
         None => return Ok(()),
         Some((i, l)) => {
@@ -172,7 +174,7 @@ impl FoldList {
           };
 
           foldstart = i;
-          
+
           // TODO: make SkipResult, include the keyword
           tmp = li.skip_fold((&foldkw).into());
 
@@ -188,14 +190,11 @@ impl FoldList {
               nextline = None;
             }
           }
-
         }
-
+      }
+      self.checked_insert(foldstart as u64, foldend as u64, foldkw)?
     }
-    self.checked_insert(foldstart as u64, foldend as u64, foldkw)?
-
   }
-}
 }
 
 #[cfg(test)]
@@ -270,7 +269,6 @@ mod tests {
     assert_eq!(v, foldlist.into_vec());
   }
 
-
   const CARD_NSMAS: [&'static str; 7] = [
     "$ NSMAS - Nonstructural mass",
     "$#       IDNODMS            MASS            MLEN            MARE            MVOL",
@@ -291,7 +289,6 @@ mod tests {
     let _ = it.next();
     let _ = it.next();
 
-
     let v = vec![(2, 6, Nsmas)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_NSMAS);
@@ -299,6 +296,7 @@ mod tests {
     assert_eq!(v, foldlist.into_vec());
   }
 
+  #[rustfmt_skip]
   const CARD_MASS: [&'static str; 10] = [
     "$ MASS Card",
     "$#         IDNOD    IFRA   Blank            DISr            DISs            DISt",

@@ -1,5 +1,5 @@
-//! Extending the rpc api provided by neovim_lib with the capabilities provided
-//! by https://github.com/neovim/neovim/pull/5269.
+//! Extending the rpc api provided by `neovim_lib` with the capabilities
+//! provided by <https://github.com/neovim/neovim/pull/5269>
 use neovim_lib::neovim_api::Buffer;
 use neovim_lib::neovim::CallError;
 use neovim_lib::neovim::map_result;

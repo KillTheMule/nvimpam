@@ -7,47 +7,38 @@ pub enum GesType {
 }
 
 impl GesType {
-  pub fn contains<T: AsRef<str>>(&self,line: &T) -> bool {
+  pub fn contains<T: AsRef<str>>(&self, line: &T) -> bool {
     let b = line.as_ref();
 
     match b.get(0..8) {
-      None => return false,
       Some("        ") => {}
-      Some(_) => return false,
+      None | Some(_) => return false,
     }
 
     match b.get(8..12) {
       None => return false,
-      Some("ELE ") => return true,
-      Some("GRP ") => return true,
-      Some("NOD ") => return true,
-      Some("SEG ") => return true,
-      Some("EDG ") => return true,
-      Some("MOD ") => return true,
+      Some("ELE ") | Some("GRP ") | Some("NOD ") | Some("SEG ")
+      | Some("EDG ") | Some("MOD ") => return true,
       Some(_) => {}
     }
 
     match b.get(8..13) {
       None => return false,
-      Some("PART ") => return true,
-      Some("OGRP ") => return true,
+      Some("PART ") | Some("OGRP ") => return true,
       Some(_) => {}
     }
 
     match b.get(8..15) {
       None => return false,
-      Some("DELNOD ") => return true,
-      Some("DELELE ") => return true,
-      Some("DELGRP ") => return true,
-      Some("END_MOD") => return true,
+      Some("DELNOD ") | Some("DELELE ") | Some("DELGRP ") | Some("END_MOD") => {
+        return true
+      }
       Some(_) => {}
     }
 
     match b.get(8..16) {
       None => return false,
-      Some("ELE>NOD ") => return true,
-      Some("GRP>NOD ") => return true,
-      Some("DELPART ") => return true,
+      Some("ELE>NOD ") | Some("GRP>NOD ") | Some("DELPART ") => return true,
       Some(_) => {}
     }
 
@@ -59,15 +50,13 @@ impl GesType {
 
     match b.get(8..19) {
       None => return false,
-      Some("DELELE>NOD ") => return true,
-      Some("DELGRP>NOD ") => return true,
+      Some("DELELE>NOD ") | Some("DELGRP>NOD ") => return true,
       Some(_) => {}
     }
 
     match b.get(8..20) {
-      None => return false,
-      Some("DELPART>NOD ") => return true,
-      Some(_) => return false,
+      Some("DELPART>NOD ") => true,
+      None | Some(_) => false,
     }
   }
 
@@ -78,8 +67,8 @@ impl GesType {
       _ => return false,
     }
     match b.get(11..12) {
-      None => return true,
-      _ => return false,
+      None => true,
+      _ => false,
     }
   }
 }
@@ -105,36 +94,24 @@ mod tests {
   fn test_is_ges() {
     let g = GesType::GesNode;
     let v = vec![
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      false,
-      true,
-      true,
-      true,
+      false, false, false, true, true, false, false, true, true, true
     ];
-    assert_eq!(v, LINES.iter().map(|l| g.contains(&l)).collect::<Vec<bool>>());
+    assert_eq!(
+      v,
+      LINES.iter().map(|l| g.contains(&l)).collect::<Vec<bool>>()
+    );
   }
 
   #[test]
   fn test_ends_ges() {
     let g = GesType::GesNode;
     let v = vec![
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      false,
+      false, false, false, false, false, false, true, false, false, false
     ];
-    assert_eq!(v, LINES.iter().map(|l| g.ended_by(&l)).collect::<Vec<bool>>());
+    assert_eq!(
+      v,
+      LINES.iter().map(|l| g.ended_by(&l)).collect::<Vec<bool>>()
+    );
   }
 
 }
