@@ -296,7 +296,6 @@ mod tests {
     assert_eq!(v, foldlist.into_vec());
   }
 
-  #[rustfmt_skip]
   const CARD_MASS: [&'static str; 10] = [
     "$ MASS Card",
     "$#         IDNOD    IFRA   Blank            DISr            DISs            DISt",
