@@ -6,6 +6,8 @@ use self::test::Bencher;
 
 use nvimpam_lib::card::keyword::Keyword;
 use nvimpam_lib::folds::FoldList;
+use nvimpam_lib::lines::LinesIter;
+use nvimpam_lib::card::ges::GesType;
 
 #[bench]
 fn bench_parse2folddata(b: &mut Bencher) {
@@ -42,4 +44,28 @@ fn bench_parse_str(b: &mut Bencher) {
     let _parsed: Vec<Option<Keyword>> =
       r.iter().map(|s| Keyword::parse(s)).collect();
   })
+}
+
+const GES: [&'static str; 9] = [
+  "        PART 1234",
+  "        OGRP 'hausbau'",
+  "        END",
+  "        DELGRP>NOD 'nix'",
+  "        MOD 10234",
+  "        NOD 1 23 093402 82",
+  "        END_MOD",
+  "        DELELE 12",
+  "        END",
+];
+
+#[bench]
+fn bench_skip_ges(b: &mut Bencher) {
+    let g = GesType::GesNode;
+
+    b.iter(|| {
+      let mut itr = GES.iter().enumerate();
+      let mut li = test::black_box(LinesIter { it: &mut itr });
+      let mut _a = li.skip_ges(&g);
+      _a = li.skip_ges(&g);
+    });
 }

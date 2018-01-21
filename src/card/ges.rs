@@ -8,69 +8,122 @@ pub enum GesType {
 
 impl GesType {
   pub fn contains<T: AsRef<str>>(&self, line: &T) -> bool {
-    let b = line.as_ref();
+    let b = line.as_ref().as_bytes();
 
-    match b.get(0..8) {
-      Some("        ") => {}
-      None | Some(_) => return false,
-    }
-
-    match b.get(8..12) {
-      None => return false,
-      Some("ELE ") | Some("GRP ") | Some("NOD ") | Some("SEG ")
-      | Some("EDG ") | Some("MOD ") => return true,
-      Some(_) => {}
-    }
-
-    match b.get(8..13) {
-      None => return false,
-      Some("PART ") | Some("OGRP ") => return true,
-      Some(_) => {}
-    }
-
-    match b.get(8..15) {
-      None => return false,
-      Some("DELNOD ") | Some("DELELE ") | Some("DELGRP ") | Some("END_MOD") => {
-        return true
+    let len = b.len();
+    
+    if len < 12 {
+      false
+    } else if &b[0..8] != b"        " {
+      false 
+    } else {
+      match &b[8..12] {
+        b"ELE " | b"GRP " | b"NOD " | b"SEG " | b"EDG " | b"MOD " => true,
+        b"OGRP" => {
+          if len < 13 {
+            false
+          } else if &b[12..13] == b" " {
+            true
+          } else { false }
+        }
+        b"DELN" => {
+          if len < 15 {
+            false
+          } else if &b[12..15] == b"NOD " {
+            true
+          } else { false }
+        }
+        b"DELE" => {
+          if len < 15 {
+            false
+          } else {
+            match &b[12..15] {
+              b"LE " => true,
+              b"LE>" => {
+                if len < 19 {
+                  false
+                } else if &b[15..19] == b"NOD" {
+                  true
+                } else {false }
+              }
+              _ => false,
+            }
+          }
+        }
+        b"DELG" => {
+          if len < 15 {
+            false
+          } else {
+            match &b[12..15] {
+              b"RP " => true,
+              b"RP>" => {
+                if len < 19 {
+                  false
+                } else if &b[15..19] == b"NOD " {
+                  true
+                } else { false }
+              }
+              _ => false,
+            }
+          }
+        }
+        b"END_" => {
+          if len < 15 {
+            false
+          } else if &b[12..15] == b"MOD" {
+            true
+          } else { false }
+        }
+        b"ELE>" => {
+          if len < 16 {
+            false
+          } else if &b[12..16] == b"NOD " {
+            true
+          } else { false }
+        }
+        b"GRP>" => {
+          if len < 16 {
+            false
+          } else if &b[12..16] == b"NOD " {
+            true
+          } else { false }
+        }
+        b"DELP" => {
+          if len < 16 {
+            false
+          } else if &b[12..16] == b"ART " {
+            true
+          } else if len < 20 {
+            false
+          } else if &b[12..20] == b"ART>NOD " {
+            true
+          } else { false }
+        }
+        b"PART" => {
+          if len < 13 {
+            false
+          } else if &b[12..13] == b" " {
+            true
+          } else if len < 17 {
+            false
+          } else if &b[12..17] == b">NOD " {
+            true
+          } else { false }
+        }
+        _ => false,
       }
-      Some(_) => {}
-    }
-
-    match b.get(8..16) {
-      None => return false,
-      Some("ELE>NOD ") | Some("GRP>NOD ") | Some("DELPART ") => return true,
-      Some(_) => {}
-    }
-
-    match b.get(8..17) {
-      None => return false,
-      Some("PART>NOD ") => return true,
-      Some(_) => {}
-    }
-
-    match b.get(8..19) {
-      None => return false,
-      Some("DELELE>NOD ") | Some("DELGRP>NOD ") => return true,
-      Some(_) => {}
-    }
-
-    match b.get(8..20) {
-      Some("DELPART>NOD ") => true,
-      None | Some(_) => false,
     }
   }
 
   pub fn ended_by<T: AsRef<str>>(&self, line: &T) -> bool {
-    let b = line.as_ref();
-    match b.get(0..11) {
-      Some("        END") => {}
-      _ => return false,
-    }
-    match b.get(11..12) {
-      None => true,
-      _ => false,
-    }
+    let b = line.as_ref().as_bytes();
+    let len = b.len();
+
+    if len == 11 && &b[0..11] == b"        END" {
+      true
+    } else { false }
   }
+
 }
 
 #[cfg(test)]
