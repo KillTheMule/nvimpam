@@ -23,24 +23,28 @@ impl Keyword {
   pub fn parse<T: AsRef<str>>(s: &T) -> Option<Keyword> {
     use self::Keyword::*;
 
-    let s = s.as_ref();
+    let s = s.as_ref().as_bytes();
+    let len = s.len();
 
-    if s.starts_with('$') || s.starts_with('#') {
-      Some(Comment)
-    } else if s.starts_with("NODE  / ") {
-      Some(Node)
-    } else if s.starts_with("CNODE / ") {
-      Some(Cnode)
-    } else if s.starts_with("MASS  / ") {
-      Some(Mass)
-    } else if s.starts_with("NSMAS / ") {
-      Some(Nsmas)
-    } else if s.starts_with("NSMAS2/ ") {
-      Some(Nsmas2)
-    } else if s.starts_with("SHELL / ") {
-      Some(Shell)
-    } else {
+    if len == 0 {
       None
+    } else if s[0] == b'$' || s[0] == b'#' {
+        Some(Comment)
+    } else if len < 8 {
+      None
+    } else { 
+      let start =  &s[0..8];
+
+      match start {
+        b"NODE  / " => Some(Node),
+        b"CNODE / " => Some(Cnode),
+        b"MASS  / " => Some(Mass),
+        b"NSMAS / " => Some(Nsmas),
+        b"NSMAS2/ " => Some(Nsmas2),
+        b"SHELL / " => Some(Shell),
+        _  => None
+      }
     }
   }
+
 }
