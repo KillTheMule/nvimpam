@@ -171,8 +171,6 @@ impl FoldList {
           };
 
           foldstart = i;
-
-          // TODO: make SkipResult, include the keyword
           nextline = li.skip_fold((&foldkw).into());
 
           if let Some(j) = nextline.idx_after {
