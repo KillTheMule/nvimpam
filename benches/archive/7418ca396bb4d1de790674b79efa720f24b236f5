@@ -1,0 +1,45 @@
+
+running 27 tests
+test card::ges::tests::test_ends_ges ... ignored
+test card::ges::tests::test_is_ges ... ignored
+test card::line::tests::relchar_can_be_evaluated ... ignored
+test card::line::tests::relchar_out_of_bounds ... ignored
+test folds::tests::fold_general ... ignored
+test folds::tests::newfold_mass ... ignored
+test folds::tests::newfold_nsmas ... ignored
+test lines::tests::ges_can_be_skipped ... ignored
+test lines::tests::ges_can_be_skipped_repeatedly ... ignored
+test lines::tests::ges_can_skip_nothing ... ignored
+test lines::tests::ges_ends_without_end ... ignored
+test lines::tests::ges_includes_comments_inside ... ignored
+test lines::tests::ges_skips_over_comments_after_end ... ignored
+test lines::tests::ges_works_with_only_comments ... ignored
+test lines::tests::itr_skips_gather_cards ... ignored
+test lines::tests::itr_skips_incomplete_cards ... ignored
+test lines::tests::itr_skips_nodes ... ignored
+test lines::tests::itr_skips_nsmas ... ignored
+test lines::tests::itr_skips_optional_lines ... ignored
+test lines::tests::lines_can_delete ... ignored
+test lines::tests::lines_can_insert ... ignored
+test lines::tests::lines_can_update ... ignored
+test lines::tests::linesiter_finds_keywords ... ignored
+test lines::tests::linesiter_finds_real_keywords ... ignored
+test lines::tests::linesiter_needs_no_keywords ... ignored
+test lines::tests::linesiter_works_with_slice ... ignored
+test lines::tests::linesiter_works_with_vec ... ignored
+
+test result: ok. 0 passed; 0 failed; 27 ignored; 0 measured; 0 filtered out
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+
+
+running 3 tests
+test bench_parse2folddata ... bench:     302,664 ns/iter (+/- 4,793)
+test bench_parse_str      ... bench:      91,714 ns/iter (+/- 1,955)
+test bench_skip_ges       ... bench:         114 ns/iter (+/- 1)
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 3 measured; 0 filtered out
+

@@ -1,0 +1,12 @@
+rustc 1.24.0-nightly (0a3761e63 2018-01-03)
+
+7418ca396bb4d1de790674b79efa720f24b236f5 Increase the size of the channel to send large files
+07ee407714675e28473fd6b736daf7914f93aa50 Bench skip_ges and speed it up
+a8b88358544dec45715a55c153dd74c1954bd106 Speed up Keyword::parse
+1f8f96ff9d1c605d64c99268d2d17fae050c74d3 Remove non-stable attribute
+c57106fdb563c1e0282199366aaed654259769b4 Clippy + Rustfmt
+c013d592e5e086c6f91466ded1c57091e94e3ca3 Remove printlns, they interfere with mpack communication
+25ffecad8e9d0e04fa36dc64e51ef9af0170c514 Correctly capture stderr
+db291ab4373d427c0b3e92f38f535e9cef6c5b3c Add mpack commandline decoder
+b55cb2515c770fd40a450865c9af849bba135d95 Fix warning in codeyard
+b446580fef99b3f5993d18cbdbf702c0476d1c88 Make redir.sh use the debug binary
