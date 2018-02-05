@@ -80,7 +80,7 @@ where
   pub idx_after: Option<usize>,
 }
 
-impl<'a, T:'a> Default for SkipResult<'a, T>
+impl<'a, T: 'a> Default for SkipResult<'a, T>
 where
   T: AsRef<str>,
 {
@@ -102,7 +102,6 @@ where
   pub it: I,
 }
 
-
 impl<'a, I, T: 'a> LinesIter<'a, I, T>
 where
   I: Iterator<Item = (usize, &'a T)>,
@@ -114,12 +113,10 @@ where
   pub fn skip_comments<'b>(&'b mut self) -> SkipResult<'a, T> {
     let mut kw = None;
 
-    let nextline = self
-      .it
-      .find(|&(_, l)| {
-        kw = Keyword::parse(l);
-        kw != Some(Keyword::Comment)
-      });
+    let nextline = self.it.find(|&(_, l)| {
+      kw = Keyword::parse(l);
+      kw != Some(Keyword::Comment)
+    });
 
     match nextline {
       None => {
@@ -203,10 +200,7 @@ where
   ///      `None`), and the index of the first comment line after the GES
   ///      in the second option.
   ///
-  pub fn skip_ges<'b>(
-    &'b mut self,
-    ges: &GesType,
-  ) -> SkipResult<'a, T> {
+  pub fn skip_ges<'b>(&'b mut self, ges: &GesType) -> SkipResult<'a, T> {
     let mut idx;
     let mut line;
     let mut line_is_comment = false;
@@ -234,9 +228,15 @@ where
       match tmp {
         None => {
           if let Some(i) = first_comment_idx {
-            return SkipResult { idx_after: Some(i), ..Default::default() };
+            return SkipResult {
+              idx_after: Some(i),
+              ..Default::default()
+            };
           } else {
-            return SkipResult { idx_after: Some(idx), .. Default::default() };
+            return SkipResult {
+              idx_after: Some(idx),
+              ..Default::default()
+            };
           }
         }
         Some((i, l)) => {
@@ -257,6 +257,7 @@ where
         }
       }
     }
+
     if ges.ended_by(&line) {
       let nextline = self.it.next();
 
@@ -268,10 +269,13 @@ where
             SkipResult {
               nextline: Some((i, l)),
               nextline_kw: kw,
-              idx_after: Some(i)
+              idx_after: Some(i),
             }
           } else {
-            SkipResult { idx_after: Some(i), .. self.skip_comments() }
+            SkipResult {
+              idx_after: Some(i),
+              ..self.skip_comments()
+            }
           }
         }
       }
@@ -280,21 +284,18 @@ where
       SkipResult {
         nextline: Some((idx, line)),
         nextline_kw: Keyword::parse(&line),
-        idx_after: Some(i)
+        idx_after: Some(i),
       }
     } else {
       SkipResult {
         nextline: Some((idx, line)),
         nextline_kw: Keyword::parse(&line),
-        idx_after: Some(idx)
+        idx_after: Some(idx),
       }
     }
   }
 
-  pub fn skip_fold<'b>(
-    &'b mut self,
-    card: &Card,
-  ) -> SkipResult<'a, T> {
+  pub fn skip_fold<'b>(&'b mut self, card: &Card) -> SkipResult<'a, T> {
     if card.ownfold {
       self.skip_card(card)
     } else {
@@ -302,10 +303,7 @@ where
     }
   }
 
-  pub fn skip_card<'b>(
-    &'b mut self,
-    card: &Card,
-  ) -> SkipResult<'a, T> {
+  pub fn skip_card<'b>(&'b mut self, card: &Card) -> SkipResult<'a, T> {
     let mut cardlines = card.lines.iter();
     let mut conds: Vec<bool> = vec![]; // the vec to hold the conditionals
 
@@ -332,7 +330,12 @@ where
 
       tmp = self.skip_comments();
       match tmp.nextline {
-        None => return SkipResult { idx_after: endidx, .. Default::default() },
+        None => {
+          return SkipResult {
+            idx_after: endidx,
+            ..Default::default()
+          }
+        }
         Some((i, l)) => {
           line = l;
           lineidx = i;
@@ -347,13 +350,16 @@ where
         Line::Ges(ref g) => {
           tmp = self.skip_ges(g);
           match tmp.nextline {
-            None => {
-              match tmp.idx_after {
-                None => return Default::default(),
-                Some(i) => return SkipResult { idx_after: Some(i), ..Default::default() },
+            None => match tmp.idx_after {
+              None => return Default::default(),
+              Some(i) => {
+                return SkipResult {
+                  idx_after: Some(i),
+                  ..Default::default()
+                }
               }
-            }
-            Some((i,l)) => {
+            },
+            Some((i, l)) => {
               if let Some(j) = tmp.idx_after {
                 line = l;
                 lineidx = i;
@@ -370,26 +376,28 @@ where
             if kw == Keyword::Comment {
               unreachable!();
             } else if endidx.is_some() {
-              return SkipResult { 
+              return SkipResult {
                 nextline: Some((lineidx, line)),
                 nextline_kw: linekw,
-                idx_after: endidx
-              }
+                idx_after: endidx,
+              };
             } else {
-              return SkipResult { 
+              return SkipResult {
                 nextline: Some((lineidx, line)),
                 nextline_kw: linekw,
                 idx_after: Some(lineidx),
-              }
+              };
             }
           } else {
             tmp = self.skip_comments();
             match tmp.nextline {
-              None => return SkipResult {
-                nextline: Some((lineidx, line)),
-                nextline_kw: linekw,
-                idx_after: endidx
-              },
+              None => {
+                return SkipResult {
+                  nextline: Some((lineidx, line)),
+                  nextline_kw: linekw,
+                  idx_after: endidx,
+                }
+              }
               Some((i, l)) => {
                 endidx = Some(lineidx + 1);
                 line = l;
@@ -406,20 +414,22 @@ where
             if kw == Keyword::Comment {
               unreachable!();
             } else {
-              return SkipResult { 
+              return SkipResult {
                 nextline: Some((lineidx, line)),
                 nextline_kw: Some(kw),
                 idx_after: Some(lineidx),
-              }
+              };
             }
           } else {
             tmp = self.skip_comments();
             match tmp.nextline {
-              None => return SkipResult {
-                nextline: Some((lineidx, line)),
-                nextline_kw: None,
-                idx_after: endidx
-              },
+              None => {
+                return SkipResult {
+                  nextline: Some((lineidx, line)),
+                  nextline_kw: None,
+                  idx_after: endidx,
+                }
+              }
               Some((i, l)) => {
                 line = l;
                 lineidx = i;
@@ -430,6 +440,7 @@ where
         }
       }
     }
+
     if endidx.is_some() {
       SkipResult {
         nextline: Some((lineidx, line)),
@@ -445,10 +456,7 @@ where
     }
   }
 
-  pub fn skip_card_gather<'b>(
-    &'b mut self,
-    card: &Card,
-  ) -> SkipResult<'a, T> {
+  pub fn skip_card_gather<'b>(&'b mut self, card: &Card) -> SkipResult<'a, T> {
     let mut curkw;
     let mut res;
     let mut curidx;
@@ -460,7 +468,12 @@ where
 
       match res.nextline {
         // file ended before the next non-comment line
-        None => return SkipResult { idx_after: res.idx_after, ..Default::default() },
+        None => {
+          return SkipResult {
+            idx_after: res.idx_after,
+            ..Default::default()
+          }
+        }
         Some((i, l)) => {
           curkw = Keyword::parse(l);
           curline = l;
@@ -476,7 +489,7 @@ where
     SkipResult {
       nextline: Some((curidx, curline)),
       nextline_kw: curkw,
-      idx_after: endidx
+      idx_after: endidx,
     }
   }
 }
@@ -589,10 +602,22 @@ mod tests {
     let mut itr = KEYWORD_LINES.iter().enumerate();
     {
       let mut li = LinesIter { it: &mut itr };
-      assert_eq!(li.skip_to_next_keyword().nextline, Some((0, &KEYWORD_LINES[0])));
-      assert_eq!(li.skip_to_next_keyword().nextline, Some((2, &KEYWORD_LINES[2])));
-      assert_eq!(li.skip_to_next_keyword().nextline, Some((3, &KEYWORD_LINES[3])));
-      assert_eq!(li.skip_to_next_keyword().nextline, Some((4, &KEYWORD_LINES[4])));
+      assert_eq!(
+        li.skip_to_next_keyword().nextline,
+        Some((0, &KEYWORD_LINES[0]))
+      );
+      assert_eq!(
+        li.skip_to_next_keyword().nextline,
+        Some((2, &KEYWORD_LINES[2]))
+      );
+      assert_eq!(
+        li.skip_to_next_keyword().nextline,
+        Some((3, &KEYWORD_LINES[3]))
+      );
+      assert_eq!(
+        li.skip_to_next_keyword().nextline,
+        Some((4, &KEYWORD_LINES[4]))
+      );
       assert_eq!(li.skip_to_next_keyword().nextline, None);
     }
     assert_eq!(itr.next(), None);
@@ -603,8 +628,14 @@ mod tests {
     let mut itr = KEYWORD_LINES.iter().enumerate();
     {
       let mut li = LinesIter { it: &mut itr };
-      assert_eq!(li.skip_to_next_real_keyword().nextline, Some((2, &KEYWORD_LINES[2])));
-      assert_eq!(li.skip_to_next_real_keyword().nextline, Some((4, &KEYWORD_LINES[4])));
+      assert_eq!(
+        li.skip_to_next_real_keyword().nextline,
+        Some((2, &KEYWORD_LINES[2]))
+      );
+      assert_eq!(
+        li.skip_to_next_real_keyword().nextline,
+        Some((4, &KEYWORD_LINES[4]))
+      );
       assert_eq!(li.skip_to_next_real_keyword().nextline, None);
     }
     assert_eq!(itr.next(), None);

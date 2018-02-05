@@ -23,10 +23,8 @@
 
 * Before parsing the vec, maybe sort it?
 
-* Create a struct as return type of the functions that skip the range in the main iterator
-  and need to return data for the last read line (e.g. Keyword::get_foldend)
-
 * Both the Line enum variant and the trait are called ges. Bad?
 * Check out https://www.makeareadme.com/#usage
 
 * Unify skip functions wrt usage of curkw, curidx vs. line, lineidx
+* Write correct doc comments in lines.rs and folds.rs
