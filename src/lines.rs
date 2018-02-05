@@ -112,18 +112,23 @@ where
   /// comment. Return the index and a reference to that line. If all lines
   /// are comments, return `None`.
   pub fn skip_comments<'b>(&'b mut self) -> SkipResult<'a, T> {
+    let mut kw = None;
+
     let nextline = self
       .it
-      .find(|&(_, l)| Keyword::parse(l) != Some(Keyword::Comment));
+      .find(|&(_, l)| {
+        kw = Keyword::parse(l);
+        kw != Some(Keyword::Comment)
+      });
 
     match nextline {
       None => {
         return Default::default();
       }
-      Some((i, l)) => {
+      Some((i, _)) => {
         return SkipResult {
           nextline: nextline,
-          nextline_kw: Keyword::parse(&l),
+          nextline_kw: kw,
           idx_after: Some(i),
         }
       }
