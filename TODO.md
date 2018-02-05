@@ -28,3 +28,5 @@
 
 * Both the Line enum variant and the trait are called ges. Bad?
 * Check out https://www.makeareadme.com/#usage
+
+* Unify skip functions wrt usage of curkw, curidx vs. line, lineidx

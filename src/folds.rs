@@ -149,7 +149,6 @@ impl FoldList {
   /// each card will be in an own fold, or several adjacent (modulo comments)
   /// cards will be subsumed into a fold.
   pub fn add_folds<T: AsRef<str>>(&mut self, lines: &[T]) -> Result<(), Error> {
-    let len = lines.len();
     let mut itr = lines.iter().enumerate();
     let mut li = LinesIter { it: &mut itr };
 
@@ -157,15 +156,13 @@ impl FoldList {
     let mut foldend;
     let mut foldkw;
 
-    let mut tmp;
-
     let mut nextline = li.skip_to_next_real_keyword();
 
     loop {
-      match nextline {
+      match nextline.nextline {
         None => return Ok(()),
-        Some((i, l)) => {
-          foldkw = match Keyword::parse(l) {
+        Some((i, _)) => {
+          foldkw = match nextline.nextline_kw {
             Some(k) => k,
             None => {
               nextline = li.skip_to_next_real_keyword();
@@ -176,19 +173,13 @@ impl FoldList {
           foldstart = i;
 
           // TODO: make SkipResult, include the keyword
-          tmp = li.skip_fold((&foldkw).into());
+          nextline = li.skip_fold((&foldkw).into());
 
-          match tmp {
-            (s, Some(j)) => {
-              foldend = j - 1;
-              nextline = s;
-            }
-            (Some(_), None) => unreachable!(),
-            // only happens if file ends directly after a GES
-            (None, None) => {
-              foldend = len - 1;
-              nextline = None;
-            }
+          if let Some(j) = nextline.idx_after {
+            foldend = j - 1;
+          } else {
+            // This only happens if the file ends directly after a GES
+            foldend = lines.len() - 1;
           }
         }
       }
