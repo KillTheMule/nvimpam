@@ -26,14 +26,12 @@ impl Keyword {
     let s = s.as_ref().as_bytes();
     let len = s.len();
 
-    if len == 0 {
-      None
-    } else if s[0] == b'$' || s[0] == b'#' {
-        Some(Comment)
+    if len > 0 && (s[0] == b'$' || s[0] == b'#') {
+      Some(Comment)
     } else if len < 8 {
       None
-    } else { 
-      let start =  &s[0..8];
+    } else {
+      let start = &s[0..8];
 
       match start {
         b"NODE  / " => Some(Node),
@@ -42,9 +40,8 @@ impl Keyword {
         b"NSMAS / " => Some(Nsmas),
         b"NSMAS2/ " => Some(Nsmas2),
         b"SHELL / " => Some(Shell),
-        _  => None
+        _ => None,
       }
     }
   }
-
 }

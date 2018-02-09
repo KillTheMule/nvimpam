@@ -119,16 +119,12 @@ where
     });
 
     match nextline {
-      None => {
-        return Default::default();
-      }
-      Some((i, _)) => {
-        return SkipResult {
-          nextline: nextline,
-          nextline_kw: kw,
-          idx_after: Some(i),
-        }
-      }
+      None => Default::default(),
+      Some((i, _)) => SkipResult {
+        nextline: nextline,
+        nextline_kw: kw,
+        idx_after: Some(i),
+      },
     }
   }
 
@@ -142,20 +138,16 @@ where
     let nextline = self.it.find(|&(_, l)| Keyword::parse(l).is_some());
 
     match nextline {
-      None => {
-        return SkipResult {
-          nextline: None,
-          nextline_kw: None,
-          idx_after: None,
-        }
-      }
-      Some((i, l)) => {
-        return SkipResult {
-          nextline: nextline,
-          nextline_kw: Keyword::parse(&l),
-          idx_after: Some(i),
-        }
-      }
+      None => SkipResult {
+        nextline: None,
+        nextline_kw: None,
+        idx_after: None,
+      },
+      Some((i, l)) => SkipResult {
+        nextline: nextline,
+        nextline_kw: Keyword::parse(&l),
+        idx_after: Some(i),
+      },
     }
   }
 
@@ -169,16 +161,12 @@ where
     });
 
     match nextline {
-      None => {
-        return Default::default();
-      }
-      Some((i, l)) => {
-        return SkipResult {
-          nextline: nextline,
-          nextline_kw: Keyword::parse(&l),
-          idx_after: Some(i),
-        }
-      }
+      None => Default::default(),
+      Some((i, l)) => SkipResult {
+        nextline: nextline,
+        nextline_kw: Keyword::parse(&l),
+        idx_after: Some(i),
+      },
     }
   }
 

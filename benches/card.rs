@@ -1,6 +1,6 @@
 #![feature(test)]
-extern crate test;
 extern crate nvimpam_lib;
+extern crate test;
 
 use self::test::Bencher;
 
@@ -46,7 +46,7 @@ fn bench_parse_str(b: &mut Bencher) {
   })
 }
 
-const GES: [&'static str; 9] = [
+const GES: [&str; 9] = [
   "        PART 1234",
   "        OGRP 'hausbau'",
   "        END",
@@ -60,12 +60,12 @@ const GES: [&'static str; 9] = [
 
 #[bench]
 fn bench_skip_ges(b: &mut Bencher) {
-    let g = GesType::GesNode;
+  let g = GesType::GesNode;
 
-    b.iter(|| {
-      let mut itr = GES.iter().enumerate();
-      let mut li = test::black_box(LinesIter { it: &mut itr });
-      let mut _a = li.skip_ges(&g);
-      _a = li.skip_ges(&g);
-    });
+  b.iter(|| {
+    let mut itr = GES.iter().enumerate();
+    let mut li = test::black_box(LinesIter { it: &mut itr });
+    let mut _a = li.skip_ges(&g);
+    _a = li.skip_ges(&g);
+  });
 }

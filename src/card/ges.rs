@@ -11,41 +11,21 @@ impl GesType {
     let b = line.as_ref().as_bytes();
 
     let len = b.len();
-    
-    if len < 12 {
+
+    if len < 12 || &b[0..8] != b"        " {
       false
-    } else if &b[0..8] != b"        " {
-      false 
     } else {
       match &b[8..12] {
         b"ELE " | b"GRP " | b"NOD " | b"SEG " | b"EDG " | b"MOD " => true,
-        b"OGRP" => {
-          if len < 13 {
-            false
-          } else if &b[12..13] == b" " {
-            true
-          } else { false }
-        }
-        b"DELN" => {
-          if len < 15 {
-            false
-          } else if &b[12..15] == b"NOD " {
-            true
-          } else { false }
-        }
+        b"OGRP" => len >= 13 && &b[12..13] == b" ",
+        b"DELN" => len >= 15 && &b[12..15] == b"NOD ",
         b"DELE" => {
           if len < 15 {
             false
           } else {
             match &b[12..15] {
               b"LE " => true,
-              b"LE>" => {
-                if len < 19 {
-                  false
-                } else if &b[15..19] == b"NOD" {
-                  true
-                } else {false }
-              }
+              b"LE>" => len >= 19 && &b[15..19] == b"NOD",
               _ => false,
             }
           }
@@ -56,59 +36,19 @@ impl GesType {
           } else {
             match &b[12..15] {
               b"RP " => true,
-              b"RP>" => {
-                if len < 19 {
-                  false
-                } else if &b[15..19] == b"NOD " {
-                  true
-                } else { false }
-              }
+              b"RP>" => len >= 19 && &b[15..19] == b"NOD ",
               _ => false,
             }
           }
         }
-        b"END_" => {
-          if len < 15 {
-            false
-          } else if &b[12..15] == b"MOD" {
-            true
-          } else { false }
-        }
-        b"ELE>" => {
-          if len < 16 {
-            false
-          } else if &b[12..16] == b"NOD " {
-            true
-          } else { false }
-        }
-        b"GRP>" => {
-          if len < 16 {
-            false
-          } else if &b[12..16] == b"NOD " {
-            true
-          } else { false }
-        }
+        b"END_" => len >= 15 && &b[12..15] == b"MOD",
+        b"ELE>" | b"GRP>" => len >= 16 && &b[12..16] == b"NOD ",
         b"DELP" => {
-          if len < 16 {
-            false
-          } else if &b[12..16] == b"ART " {
-            true
-          } else if len < 20 {
-            false
-          } else if &b[12..20] == b"ART>NOD " {
-            true
-          } else { false }
+          len >= 16 && &b[12..16] == b"ART "
+            || len >= 20 && &b[12..20] == b"ART>NOD "
         }
         b"PART" => {
-          if len < 13 {
-            false
-          } else if &b[12..13] == b" " {
-            true
-          } else if len < 17 {
-            false
-          } else if &b[12..17] == b">NOD " {
-            true
-          } else { false }
+          len >= 13 && &b[12..13] == b" " || len >= 17 && &b[12..17] == b">NOD "
         }
         _ => false,
       }
@@ -119,11 +59,8 @@ impl GesType {
     let b = line.as_ref().as_bytes();
     let len = b.len();
 
-    if len == 11 && &b[0..11] == b"        END" {
-      true
-    } else { false }
+    len == 11 && &b[0..11] == b"        END"
   }
-
 }
 
 #[cfg(test)]
