@@ -1,0 +1,12 @@
+rustc 1.25.0-nightly (932c73647 2018-02-08)
+
+ab318e9f39d5a9ba384b4a675c3a0d944a656e86 Clippy, rustfmt
+d3d43c944d843772cbfaa06e129ddf56d50aebfc Update TODO.md, format
+fda85ab42d04ee7a7619352bc3cecb9e90983a00 Benchmarks
+ad62681f2fbd89f0d02c55d7fbe0b781b44a2c5c Speed up comment skipping, maybe
+945c78cd71f61c416f1d8c518a5b74cfaf6ec1b2 Remove TODO
+d1aa7514295067989bb1dd7a2048a9d810441d09 Benchmarks
+d43865d54082a2204ec2cb8c63f0c102f3527da5 Return SkipResult when skipping stuff with LinesIter
+1debae2d31a06d13f585f2fa6800351a7a4566d8 Start benchmark archive
+7418ca396bb4d1de790674b79efa720f24b236f5 Increase the size of the channel to send large files
+07ee407714675e28473fd6b736daf7914f93aa50 Bench skip_ges and speed it up
