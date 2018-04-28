@@ -258,6 +258,68 @@ mod tests {
     assert_eq!(v, foldlist.into_vec());
   }
 
+  const LINES2: [&'static str; 24] = [
+      // 0
+      "NODE  /        1              0.             0.5              0.",
+      // 1
+      "NODE  /        1              0.             0.5              0.",
+      // 2
+      "NODE  /        1              0.             0.5              0.",
+      // 3
+      "NODE  /        1              0.             0.5              0.",
+      // 4
+      "#Comment here",
+      // 5
+      "SHELL /     3129       1       1    2967    2971    2970",
+      // 6
+      "NODE  /     3129       1       1    2967    2971    2970",
+      // 7
+      "NODE  /     3129       1       1    2967    2971    2970",
+      // 8
+      "#Comment",
+      // 9
+      "#Comment",
+      // 10
+      "SHELL /     3129       1       1    2967    2971    2970",
+      // 11
+      "SHELL /     3129       1       1    2967    2971    2970",
+      // 12
+      "$Comment",
+      // 13
+      "SHELL /     3129       1       1    2967    2971    2970",
+      // 14
+      "SHELL /     3129       1       1    2967    2971    2970",
+      // 15
+      "$Comment",
+      // 16
+      "#Comment",
+      // 17
+      "NODE  /        1              0.             0.5              0.",
+      // 18
+      "NODE  /        1              0.             0.5              0.",
+      // 19
+      "NODE  /        1              0.             0.5              0.",
+      // 20
+      "SHELL /     3129       1       1    2967    2971    2970",
+      // 21
+      "SHELL /     3129       1       1    2967    2971    2970",
+      // 22
+      "SHELL /     3129       1       1    2967    2971    2970",
+      // 23
+      "SHELL /     3129       1       1    2967    2971    2970",
+    ];
+
+  #[test]
+  fn fold_general_gather() {
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+    let v = vec![(0, 3, Node), (6, 7, Node), (10, 14, Shell), (17, 19, Node), (20, 23, Shell)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&LINES2);
+    assert_eq!(v, foldlist.into_vec());
+  }
+
   const CARD_NSMAS: [&'static str; 7] = [
     "$ NSMAS - Nonstructural mass",
     "$#       IDNODMS            MASS            MLEN            MARE            MVOL",
