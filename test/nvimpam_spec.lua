@@ -63,7 +63,7 @@ describe('nvimpam', function()
       END_OCTRL                                                                        |
       $                                                                                |
       ^$#         IDNOD               X               Y               Z                 |
-      {1:+--725 lines: NODE  /        1              0.            50.5              0.---}|
+      {1:+--725 lines: NODE  /        1              0.            50.5              0.···}|
       $----------------------------------------------------------------                |
       $     MATERIAL DEFINITIONS                                                       |
       $----------------------------------------------------------------                |
@@ -80,13 +80,13 @@ describe('nvimpam', function()
     feed("1G")
 
     screen:expect([[
-      {1:^+--  4 lines: NODE  /        1              0.             0.5              0.---}|
+      {1:^+--  4 lines: NODE  /        1              0.             0.5              0.···}|
       #Comment here                                                                    |
-      {1:+-- 10 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+      {1:+-- 10 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
       $Comment                                                                         |
       #Comment                                                                         |
-      {1:+--  3 lines: NODE  /        1              0.             0.5              0.---}|
-      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+      {1:+--  3 lines: NODE  /        1              0.             0.5              0.···}|
+      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
                                                                                        |
       {2:~                                                                                }|
       {2:~                                                                                }|
@@ -102,13 +102,13 @@ describe('nvimpam', function()
     feed("yyP")
     command("NvimPamUpdateFolds")
     screen:expect([[
-      {1:^+--  5 lines: NODE  /        1              0.             0.5              0.---}|
+      {1:^+--  5 lines: NODE  /        1              0.             0.5              0.···}|
       #Comment here                                                                    |
-      {1:+-- 10 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+      {1:+-- 10 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
       $Comment                                                                         |
       #Comment                                                                         |
-      {1:+--  3 lines: NODE  /        1              0.             0.5              0.---}|
-      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+      {1:+--  3 lines: NODE  /        1              0.             0.5              0.···}|
+      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
                                                                                        |
       {2:~                                                                                }|
       {2:~                                                                                }|
@@ -128,13 +128,13 @@ describe('nvimpam', function()
     command("7,9d")
     command("NvimPamUpdateFolds")
     screen:expect([[
-      {1:+--  4 lines: NODE  /        1              0.             0.5              0.---}|
+      {1:+--  4 lines: NODE  /        1              0.             0.5              0.···}|
       #Comment here                                                                    |
-      {1:^+--  7 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+      {1:^+--  7 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
       $Comment                                                                         |
       #Comment                                                                         |
-      {1:+--  3 lines: NODE  /        1              0.             0.5              0.---}|
-      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+      {1:+--  3 lines: NODE  /        1              0.             0.5              0.···}|
+      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
                                                                                        |
       {2:~                                                                                }|
       {2:~                                                                                }|
@@ -152,20 +152,21 @@ describe('nvimpam', function()
     feed("1G")
     command("set nohls")
 
+    feed("zR")
     command(":7,9s/^SHELL/NODE ")
     command("NvimPamUpdateFolds")
     screen:expect([[
-      {1:+--  4 lines: NODE  /        1              0.             0.5              0.---}|
+      {1:+--  4 lines: NODE  /        1              0.             0.5              0.···}|
       #Comment here                                                                    |
       SHELL /     3129       1       1    2967    2971    2970                         |
-      {1:^+--  2 lines: NODE  /     3129       1       1    2967    2971    2970-----------}|
+      {1:^+--  2 lines: NODE  /     3129       1       1    2967    2971    2970···········}|
       #Comment                                                                         |
       #Comment                                                                         |
-      {1:+--  5 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+      {1:+--  5 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
       $Comment                                                                         |
       #Comment                                                                         |
-      {1:+--  3 lines: NODE  /        1              0.             0.5              0.---}|
-      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+      {1:+--  3 lines: NODE  /        1              0.             0.5              0.···}|
+      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
                                                                                        |
       {2:~                                                                                }|
       {2:~                                                                                }|
@@ -176,13 +177,13 @@ describe('nvimpam', function()
     command("NvimPamUpdateFolds")
     command("echo") -- clear the command line
     screen:expect([[
-      {1:+--  4 lines: NODE  /        1              0.             0.5              0.---}|
+      {1:+--  4 lines: NODE  /        1              0.             0.5              0.···}|
       #Comment here                                                                    |
-      {1:^+-- 10 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+      {1:^+-- 10 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
       $Comment                                                                         |
       #Comment                                                                         |
-      {1:+--  3 lines: NODE  /        1              0.             0.5              0.---}|
-      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970-----------}|
+      {1:+--  3 lines: NODE  /        1              0.             0.5              0.···}|
+      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
                                                                                        |
       {2:~                                                                                }|
       {2:~                                                                                }|

@@ -33,25 +33,25 @@
 //!
 #[macro_use]
 extern crate log;
-extern crate simplelog;
 extern crate failure;
 extern crate neovim_lib;
 extern crate nvimpam_lib;
+extern crate simplelog;
 
 use std::sync::mpsc;
 
 use failure::Error;
 use failure::ResultExt;
 
-use nvimpam_lib::handler::NeovimHandler;
 use nvimpam_lib::event::Event;
+use nvimpam_lib::handler::NeovimHandler;
 
 use neovim_lib::neovim::Neovim;
 use neovim_lib::neovim_api::NeovimApi;
 use neovim_lib::session::Session;
 
 // use log::SetLoggerError;
-use simplelog::{Config, LogLevel, LogLevelFilter, WriteLogger};
+use simplelog::{Config, Level, LevelFilter, WriteLogger};
 
 fn main() {
   use std::process;
@@ -85,8 +85,8 @@ fn main() {
 
 fn init_logging() -> Result<(), Error> {
   use std::env;
-  use std::fs::File;
   use std::env::VarError;
+  use std::fs::File;
 
   let filepath = match env::var_os("LOG_FILE") {
     Some(s) => s,
@@ -102,19 +102,20 @@ fn init_logging() -> Result<(), Error> {
   };
 
   let log_level = match log_level.to_lowercase().as_ref() {
-    "error" => LogLevelFilter::Error,
-    "warn" => LogLevelFilter::Warn,
-    "info" => LogLevelFilter::Info,
-    "debug" => LogLevelFilter::Debug,
-    "trace" => LogLevelFilter::Trace,
-    _ => LogLevelFilter::Off,
+    "error" => LevelFilter::Error,
+    "warn" => LevelFilter::Warn,
+    "info" => LevelFilter::Info,
+    "debug" => LevelFilter::Debug,
+    "trace" => LevelFilter::Trace,
+    _ => LevelFilter::Off,
   };
 
   let config = Config {
-    time: Some(LogLevel::Error),
-    level: Some(LogLevel::Error),
-    target: Some(LogLevel::Error),
-    location: Some(LogLevel::Error),
+    time: Some(Level::Error),
+    level: Some(Level::Error),
+    target: Some(Level::Error),
+    location: Some(Level::Error),
+    time_format: Some("%+"),
   };
 
   let log_file = File::create(filepath)?;
@@ -134,9 +135,9 @@ fn start_program() -> Result<(), Error> {
     .command("echom \"rust client connected to neovim\"")
     .context("Could not 'echom' to neovim")?;
 
-  nvim.subscribe("quit").context(
-    "error: cannot subscribe to event: quit",
-  )?;
+  nvim
+    .subscribe("quit")
+    .context("error: cannot subscribe to event: quit")?;
 
   Event::event_loop(&receiver, nvim)?;
 

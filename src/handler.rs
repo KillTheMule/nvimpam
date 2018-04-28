@@ -100,7 +100,7 @@ impl NeovimHandler {
 impl Handler for NeovimHandler {
   fn handle_notify(&mut self, name: &str, args: Vec<Value>) {
     match name {
-      "LiveUpdateStart" => {
+      "nvim_buf_updates_start" => {
         if let Ok(event) = self.parse_liveupdatestart(args) {
           info!("{:?}", event);
           if let Err(reason) = self.0.send(event) {
@@ -108,7 +108,7 @@ impl Handler for NeovimHandler {
           }
         }
       }
-      "LiveUpdate" => {
+      "nvim_buf_update" => {
         if let Ok(event) = self.parse_liveupdate(args) {
           info!("{:?}", event);
           if let Err(reason) = self.0.send(event) {
@@ -116,7 +116,7 @@ impl Handler for NeovimHandler {
           }
         }
       }
-      "LiveUpdateTick" => {
+      "nvim_buf_changedtick" => {
         if let Ok(event) = self.parse_liveupdatetick(args) {
           info!("{:?}", event);
           if let Err(reason) = self.0.send(event) {
@@ -124,7 +124,7 @@ impl Handler for NeovimHandler {
           }
         }
       }
-      "LiveUpdateEnd" => {
+      "nvim_buf_updates_end" => {
         if let Ok(event) = self.parse_liveupdateend(args) {
           info!("{:?}", event);
           if let Err(reason) = self.0.send(event) {

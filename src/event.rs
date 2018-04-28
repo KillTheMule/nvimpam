@@ -73,7 +73,7 @@ impl Event {
     use self::Event::*;
 
     let curbuf = nvim.get_current_buf()?;
-    curbuf.live_updates(&mut nvim, true)?;
+    curbuf.event_sub(&mut nvim, true)?;
 
     let mut foldlist = FoldList::new();
     let mut lines = Lines::new(Vec::new());

@@ -4,10 +4,10 @@ name = "nvimpam"
 version = "0.0.1"
 
 [dependencies]
-log = "0.3.8"
-simplelog = "0.4.2"
-neovim-lib = "*"
-failure = "*"
+log = "0.4.1"
+simplelog = "0.5.1"
+neovim-lib = "0.5.2"
+failure = "0.1.1"
 
 [lib]
 name = "nvimpam_lib"

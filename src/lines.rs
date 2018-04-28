@@ -34,10 +34,10 @@ impl Lines {
   }
 
   /// Update Lines:
-  ///   * `firstline` is zero-indexed (just as Lines itself)
-  ///   * If `numreplaced` is zero, the lines were added before `firstline`
-  pub fn update(&mut self, first: u64, num: u64, linedata: Vec<String>) {
-    let range = first as usize..(first as usize + num as usize);
+  ///   * `first` and `last` are zero-indexed (just as Lines itself)
+  ///   * If `numreplaced` is zero, the lines were added before line `first`
+  pub fn update(&mut self, first: u64, last: u64, linedata: Vec<String>) {
+    let range = first as usize .. last as usize;
     let _v = self.0.splice(range, linedata);
   }
 }
@@ -499,7 +499,7 @@ mod tests {
     let v = LINES.iter().map(|s| s.to_string()).collect();
     let mut l = Lines::new(v);
 
-    l.update(1, 6, Vec::new());
+    l.update(1, 7, Vec::new());
     assert_eq!(l[0], "This");
     assert_eq!(l[1], ".");
     assert_eq!(l.len(), 2);
@@ -516,7 +516,7 @@ mod tests {
       "blaaargl".to_string(),
     ];
 
-    l.update(2, 0, newlines);
+    l.update(2, 2, newlines);
     assert_eq!(l[2], "haaargl");
     assert_eq!(l.len(), 11);
   }
@@ -532,7 +532,7 @@ mod tests {
       "blaaargl".to_string(),
     ];
 
-    l.update(1, 6, newlines);
+    l.update(1, 7, newlines);
     assert_eq!(l[0], "This");
     assert_eq!(l[3], "blaaargl");
     assert_eq!(l[4], ".");
