@@ -1,0 +1,12 @@
+rustc 1.27.0-nightly (7f3444e1b 2018-04-26)
+
+26b5fbf97d906e7170f90eeb39b9055f5e987bcd Rustfmt
+940a332fc65833670f6ad609e58d5aeefb7c2c1d Implement Debuf for SkipResult
+52e87b32395c4f42335f5b8543f05ab2cc6a8cd7 Add another fold test
+0df04514a54db0597f07f868e749aba9fd736a0a Clarify this is never a returned value
+61c198392f2cef3445dfe7f2f1820bc4d0c9da80 Update TODO.md
+ad5203094eca00b83cffbb02c808ab0ccc327255 Update dependencies
+cee914f4ac773f6723cbe4b194ec618283ae5b4f Update neovim sources
+0784cf0d5a5329382d823ae1bc56e995e3efe1bf Add benchmarks
+ab318e9f39d5a9ba384b4a675c3a0d944a656e86 Clippy, rustfmt
+d3d43c944d843772cbfaa06e129ddf56d50aebfc Update TODO.md, format
