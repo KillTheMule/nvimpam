@@ -181,7 +181,7 @@ impl FoldList {
           }
         }
       }
-      self.checked_insert(foldstart as u64, foldend as u64, foldkw)?
+      self.checked_insert(foldstart as u64, foldend as u64, foldkw)?;
     }
   }
 }
