@@ -72,19 +72,49 @@ struct interval {
 # include "unicode_tables.generated.h"
 #endif
 
-/*
- * Like utf8len_tab above, but using a zero for illegal lead bytes.
- */
-const uint8_t utf8len_tab_zero[256] =
-{
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-  3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,6,6,0,0,
+// To speed up BYTELEN(); keep a lookup table to quickly get the length in
+// bytes of a UTF-8 character from the first byte of a UTF-8 string.  Bytes
+// which are illegal when used as the first byte have a 1.  The NUL byte has
+// length 1.
+const uint8_t utf8len_tab[] = {
+  // ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?A ?B ?C ?D ?E ?F
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 0?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 1?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 2?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 3?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 4?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 5?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 6?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 7?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 8?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 9?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // A?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // B?
+  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,  // C?
+  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,  // D?
+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,  // E?
+  4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 1, 1,  // F?
+};
+
+// Like utf8len_tab above, but using a zero for illegal lead bytes.
+const uint8_t utf8len_tab_zero[] = {
+  // ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?A ?B ?C ?D ?E ?F
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 0?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 1?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 2?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 3?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 4?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 5?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 6?
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 7?
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 8?
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 9?
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // A?
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // B?
+  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,  // C?
+  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,  // D?
+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,  // E?
+  4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 0, 0,  // F?
 };
 
 /*
@@ -528,45 +558,52 @@ int utf_off2cells(unsigned off, unsigned max_off)
   return (off + 1 < max_off && ScreenLines[off + 1] == 0) ? 2 : 1;
 }
 
-/*
- * Convert a UTF-8 byte sequence to a wide character.
- * If the sequence is illegal or truncated by a NUL the first byte is
- * returned.
- * Does not include composing characters, of course.
- */
-int utf_ptr2char(const char_u *p)
+/// Convert a UTF-8 byte sequence to a wide character
+///
+/// If the sequence is illegal or truncated by a NUL then the first byte is
+/// returned. Does not include composing characters for obvious reasons.
+///
+/// @param[in]  p  String to convert.
+///
+/// @return Unicode codepoint or byte value.
+int utf_ptr2char(const char_u *const p)
+  FUNC_ATTR_PURE FUNC_ATTR_WARN_UNUSED_RESULT
 {
-  uint8_t len;
-
-  if (p[0] < 0x80)      /* be quick for ASCII */
+  if (p[0] < 0x80) {  // Be quick for ASCII.
     return p[0];
+  }
 
-  len = utf8len_tab_zero[p[0]];
+  const uint8_t len = utf8len_tab_zero[p[0]];
   if (len > 1 && (p[1] & 0xc0) == 0x80) {
-    if (len == 2)
+    if (len == 2) {
       return ((p[0] & 0x1f) << 6) + (p[1] & 0x3f);
+    }
     if ((p[2] & 0xc0) == 0x80) {
-      if (len == 3)
-        return ((p[0] & 0x0f) << 12) + ((p[1] & 0x3f) << 6)
-          + (p[2] & 0x3f);
+      if (len == 3) {
+        return (((p[0] & 0x0f) << 12) + ((p[1] & 0x3f) << 6)
+                + (p[2] & 0x3f));
+      }
       if ((p[3] & 0xc0) == 0x80) {
-        if (len == 4)
-          return ((p[0] & 0x07) << 18) + ((p[1] & 0x3f) << 12)
-            + ((p[2] & 0x3f) << 6) + (p[3] & 0x3f);
+        if (len == 4) {
+          return (((p[0] & 0x07) << 18) + ((p[1] & 0x3f) << 12)
+                  + ((p[2] & 0x3f) << 6) + (p[3] & 0x3f));
+        }
         if ((p[4] & 0xc0) == 0x80) {
-          if (len == 5)
-            return ((p[0] & 0x03) << 24) + ((p[1] & 0x3f) << 18)
-              + ((p[2] & 0x3f) << 12) + ((p[3] & 0x3f) << 6)
-              + (p[4] & 0x3f);
-          if ((p[5] & 0xc0) == 0x80 && len == 6)
-            return ((p[0] & 0x01) << 30) + ((p[1] & 0x3f) << 24)
-              + ((p[2] & 0x3f) << 18) + ((p[3] & 0x3f) << 12)
-              + ((p[4] & 0x3f) << 6) + (p[5] & 0x3f);
+          if (len == 5) {
+            return (((p[0] & 0x03) << 24) + ((p[1] & 0x3f) << 18)
+                    + ((p[2] & 0x3f) << 12) + ((p[3] & 0x3f) << 6)
+                    + (p[4] & 0x3f));
+          }
+          if ((p[5] & 0xc0) == 0x80 && len == 6) {
+            return (((p[0] & 0x01) << 30) + ((p[1] & 0x3f) << 24)
+                    + ((p[2] & 0x3f) << 18) + ((p[3] & 0x3f) << 12)
+                    + ((p[4] & 0x3f) << 6) + (p[5] & 0x3f));
+          }
         }
       }
     }
   }
-  /* Illegal value, just return the first byte */
+  // Illegal value: just return the first byte.
   return p[0];
 }
 
@@ -667,12 +704,14 @@ bool utf_composinglike(const char_u *p1, const char_u *p2)
   return arabic_combine(utf_ptr2char(p1), c2);
 }
 
-/*
- * Convert a UTF-8 byte string to a wide character. Also get up to MAX_MCO
- * composing characters.
- *
- * @param [out] pcc: composing chars, last one is 0
- */
+/// Convert a UTF-8 string to a wide character
+///
+/// Also gets up to #MAX_MCO composing characters.
+///
+/// @param[out]  pcc  Location where to store composing characters. Must have
+///                   space at least for #MAX_MCO + 1 elements.
+///
+/// @return leading character.
 int utfc_ptr2char(const char_u *p, int *pcc)
 {
   int len;
@@ -767,23 +806,24 @@ int utfc_char2bytes(int off, char_u *buf)
   return len;
 }
 
-/*
- * Get the length of a UTF-8 byte sequence, not including any following
- * composing characters.
- * Returns 0 for "".
- * Returns 1 for an illegal byte sequence.
- */
-int utf_ptr2len(const char_u *p)
+/// Get the length of a UTF-8 byte sequence representing a single codepoint
+///
+/// @param[in]  p  UTF-8 string.
+///
+/// @return Sequence length, 0 for empty string and 1 for non-UTF-8 byte
+///         sequence.
+int utf_ptr2len(const char_u *const p)
+  FUNC_ATTR_PURE FUNC_ATTR_WARN_UNUSED_RESULT FUNC_ATTR_NONNULL_ALL
 {
-  int len;
-  int i;
-
-  if (*p == NUL)
+  if (*p == NUL) {
     return 0;
-  len = utf8len_tab[*p];
-  for (i = 1; i < len; ++i)
-    if ((p[i] & 0xc0) != 0x80)
+  }
+  const int len = utf8len_tab[*p];
+  for (int i = 1; i < len; i++) {
+    if ((p[i] & 0xc0) != 0x80) {
       return 1;
+    }
+  }
   return len;
 }
 
@@ -824,38 +864,38 @@ int utf_ptr2len_len(const char_u *p, int size)
   return len;
 }
 
-/*
- * Return the number of bytes the UTF-8 encoding of the character at "p" takes.
- * This includes following composing characters.
- */
-int utfc_ptr2len(const char_u *p)
+/// Return the number of bytes occupied by a UTF-8 character in a string
+///
+/// This includes following composing characters.
+int utfc_ptr2len(const char_u *const p)
+  FUNC_ATTR_PURE FUNC_ATTR_WARN_UNUSED_RESULT FUNC_ATTR_NONNULL_ALL
 {
-  int len;
-  int b0 = *p;
-  int prevlen;
+  uint8_t b0 = (uint8_t)(*p);
 
-  if (b0 == NUL)
+  if (b0 == NUL) {
     return 0;
-  if (b0 < 0x80 && p[1] < 0x80)         /* be quick for ASCII */
+  }
+  if (b0 < 0x80 && p[1] < 0x80) {  // be quick for ASCII
     return 1;
+  }
 
-  /* Skip over first UTF-8 char, stopping at a NUL byte. */
-  len = utf_ptr2len(p);
+  // Skip over first UTF-8 char, stopping at a NUL byte.
+  int len = utf_ptr2len(p);
 
-  /* Check for illegal byte. */
-  if (len == 1 && b0 >= 0x80)
+  // Check for illegal byte.
+  if (len == 1 && b0 >= 0x80) {
     return 1;
+  }
 
-  /*
-   * Check for composing characters.  We can handle only the first six, but
-   * skip all of them (otherwise the cursor would get stuck).
-   */
-  prevlen = 0;
-  for (;; ) {
-    if (p[len] < 0x80 || !UTF_COMPOSINGLIKE(p + prevlen, p + len))
+  // Check for composing characters.  We can handle only the first six, but
+  // skip all of them (otherwise the cursor would get stuck).
+  int prevlen = 0;
+  for (;;) {
+    if (p[len] < 0x80 || !UTF_COMPOSINGLIKE(p + prevlen, p + len)) {
       return len;
+    }
 
-    /* Skip over composing char */
+    // Skip over composing char.
     prevlen = len;
     len += utf_ptr2len(p + len);
   }
@@ -913,23 +953,22 @@ int utfc_ptr2len_len(const char_u *p, int size)
   return len;
 }
 
-/*
- * Return the number of bytes the UTF-8 encoding of character "c" takes.
- * This does not include composing characters.
- */
-int utf_char2len(int c)
+/// Determine how many bytes certain unicode codepoint will occupy
+int utf_char2len(const int c)
 {
-  if (c < 0x80)
+  if (c < 0x80) {
     return 1;
-  if (c < 0x800)
+  } else if (c < 0x800) {
     return 2;
-  if (c < 0x10000)
+  } else if (c < 0x10000) {
     return 3;
-  if (c < 0x200000)
+  } else if (c < 0x200000) {
     return 4;
-  if (c < 0x4000000)
+  } else if (c < 0x4000000) {
     return 5;
-  return 6;
+  } else {
+    return 6;
+  }
 }
 
 /// Convert Unicode character to UTF-8 string
@@ -937,46 +976,42 @@ int utf_char2len(int c)
 /// @param c character to convert to \p buf
 /// @param[out] buf UTF-8 string generated from \p c, does not add \0
 /// @return Number of bytes (1-6). Does not include composing characters.
-int utf_char2bytes(int c, char_u *const buf)
+int utf_char2bytes(const int c, char_u *const buf)
 {
-  if (c < 0x80) {               /* 7 bits */
+  if (c < 0x80) {  // 7 bits
     buf[0] = c;
     return 1;
-  }
-  if (c < 0x800) {              /* 11 bits */
+  } else if (c < 0x800) {  // 11 bits
     buf[0] = 0xc0 + ((unsigned)c >> 6);
     buf[1] = 0x80 + (c & 0x3f);
     return 2;
-  }
-  if (c < 0x10000) {            /* 16 bits */
+  } else if (c < 0x10000) {  // 16 bits
     buf[0] = 0xe0 + ((unsigned)c >> 12);
     buf[1] = 0x80 + (((unsigned)c >> 6) & 0x3f);
     buf[2] = 0x80 + (c & 0x3f);
     return 3;
-  }
-  if (c < 0x200000) {           /* 21 bits */
+  } else if (c < 0x200000) {  // 21 bits
     buf[0] = 0xf0 + ((unsigned)c >> 18);
     buf[1] = 0x80 + (((unsigned)c >> 12) & 0x3f);
     buf[2] = 0x80 + (((unsigned)c >> 6) & 0x3f);
     buf[3] = 0x80 + (c & 0x3f);
     return 4;
-  }
-  if (c < 0x4000000) {          /* 26 bits */
+  } else if (c < 0x4000000) {  // 26 bits
     buf[0] = 0xf8 + ((unsigned)c >> 24);
     buf[1] = 0x80 + (((unsigned)c >> 18) & 0x3f);
     buf[2] = 0x80 + (((unsigned)c >> 12) & 0x3f);
     buf[3] = 0x80 + (((unsigned)c >> 6) & 0x3f);
     buf[4] = 0x80 + (c & 0x3f);
     return 5;
+  } else {  // 31 bits
+    buf[0] = 0xfc + ((unsigned)c >> 30);
+    buf[1] = 0x80 + (((unsigned)c >> 24) & 0x3f);
+    buf[2] = 0x80 + (((unsigned)c >> 18) & 0x3f);
+    buf[3] = 0x80 + (((unsigned)c >> 12) & 0x3f);
+    buf[4] = 0x80 + (((unsigned)c >> 6) & 0x3f);
+    buf[5] = 0x80 + (c & 0x3f);
+    return 6;
   }
-  /* 31 bits */
-  buf[0] = 0xfc + ((unsigned)c >> 30);
-  buf[1] = 0x80 + (((unsigned)c >> 24) & 0x3f);
-  buf[2] = 0x80 + (((unsigned)c >> 18) & 0x3f);
-  buf[3] = 0x80 + (((unsigned)c >> 12) & 0x3f);
-  buf[4] = 0x80 + (((unsigned)c >> 6) & 0x3f);
-  buf[5] = 0x80 + (c & 0x3f);
-  return 6;
 }
 
 /*
@@ -1513,14 +1548,15 @@ int utf_head_off(const char_u *base, const char_u *p)
   return (int)(p - q);
 }
 
-/*
- * Copy a character from "*fp" to "*tp" and advance the pointers.
- */
-void mb_copy_char(const char_u **fp, char_u **tp)
+/// Copy a character, advancing the pointers
+///
+/// @param[in,out]  fp  Source of the character to copy.
+/// @param[in,out]  tp  Destination to copy to.
+void mb_copy_char(const char_u **const fp, char_u **const tp)
 {
-  int l = (*mb_ptr2len)(*fp);
+  const size_t l = (size_t)utfc_ptr2len(*fp);
 
-  memmove(*tp, *fp, (size_t)l);
+  memmove(*tp, *fp, l);
   *tp += l;
   *fp += l;
 }
@@ -1943,37 +1979,39 @@ char_u * enc_locale(void)
     return NULL;
   }
 
-  /* The most generic locale format is:
-   * language[_territory][.codeset][@modifier][+special][,[sponsor][_revision]]
-   * If there is a '.' remove the part before it.
-   * if there is something after the codeset, remove it.
-   * Make the name lowercase and replace '_' with '-'.
-   * Exception: "ja_JP.EUC" == "euc-jp", "zh_CN.EUC" = "euc-cn",
-   * "ko_KR.EUC" == "euc-kr"
-   */
+  // The most generic locale format is:
+  // language[_territory][.codeset][@modifier][+special][,[sponsor][_revision]]
+  // If there is a '.' remove the part before it.
+  // if there is something after the codeset, remove it.
+  // Make the name lowercase and replace '_' with '-'.
+  // Exception: "ja_JP.EUC" == "euc-jp", "zh_CN.EUC" = "euc-cn",
+  // "ko_KR.EUC" == "euc-kr"
   const char *p = (char *)vim_strchr((char_u *)s, '.');
   if (p != NULL) {
     if (p > s + 2 && !STRNICMP(p + 1, "EUC", 3)
         && !isalnum((int)p[4]) && p[4] != '-' && p[-3] == '_') {
-      /* copy "XY.EUC" to "euc-XY" to buf[10] */
-      strcpy(buf + 10, "euc-");
-      buf[14] = p[-2];
-      buf[15] = p[-1];
-      buf[16] = 0;
-      s = buf + 10;
-    } else
-      s = p + 1;
-  }
-  for (i = 0; i < (int)sizeof(buf) - 1 && s[i] != NUL; i++) {
-    if (s[i] == '_' || s[i] == '-') {
-      buf[i] = '-';
-    } else if (isalnum((int)s[i])) {
-      buf[i] = TOLOWER_ASC(s[i]);
+      // Copy "XY.EUC" to "euc-XY" to buf[10].
+      memmove(buf, "euc-", 4);
+      buf[4] = (ASCII_ISALNUM(p[-2]) ? TOLOWER_ASC(p[-2]) : 0);
+      buf[5] = (ASCII_ISALNUM(p[-1]) ? TOLOWER_ASC(p[-1]) : 0);
+      buf[6] = NUL;
     } else {
-      break;
+      s = p + 1;
+      goto enc_locale_copy_enc;
     }
+  } else {
+enc_locale_copy_enc:
+    for (i = 0; i < (int)sizeof(buf) - 1 && s[i] != NUL; i++) {
+      if (s[i] == '_' || s[i] == '-') {
+        buf[i] = '-';
+      } else if (ASCII_ISALNUM((uint8_t)s[i])) {
+        buf[i] = TOLOWER_ASC(s[i]);
+      } else {
+        break;
+      }
+    }
+    buf[i] = NUL;
   }
-  buf[i] = NUL;
 
   return enc_canonize((char_u *)buf);
 }
@@ -2262,9 +2300,7 @@ int convert_setup_ext(vimconv_T *vcp, char_u *from, bool from_unicode_is_utf8,
   if (vcp->vc_type == CONV_ICONV && vcp->vc_fd != (iconv_t)-1)
     iconv_close(vcp->vc_fd);
 # endif
-  vcp->vc_type = CONV_NONE;
-  vcp->vc_factor = 1;
-  vcp->vc_fail = false;
+  *vcp = (vimconv_T)MBYTE_NONE_CONV;
 
   /* No conversion when one of the names is empty or they are equal. */
   if (from == NULL || *from == NUL || to == NULL || *to == NUL

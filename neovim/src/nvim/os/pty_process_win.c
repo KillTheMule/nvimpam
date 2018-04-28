@@ -1,3 +1,6 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -44,7 +47,7 @@ int pty_process_spawn(PtyProcess *ptyproc)
   wchar_t *cwd = NULL;
   const char *emsg = NULL;
 
-  assert(!proc->err);
+  assert(proc->err.closed);
 
   cfg = winpty_config_new(WINPTY_FLAG_ALLOW_CURPROC_DESKTOP_CREATION, &err);
   if (cfg == NULL) {
@@ -71,20 +74,20 @@ int pty_process_spawn(PtyProcess *ptyproc)
     goto cleanup;
   }
 
-  if (proc->in != NULL) {
+  if (!proc->in.closed) {
     in_req = xmalloc(sizeof(uv_connect_t));
     uv_pipe_connect(
         in_req,
-        &proc->in->uv.pipe,
+        &proc->in.uv.pipe,
         in_name,
         pty_process_connect_cb);
   }
 
-  if (proc->out != NULL) {
+  if (!proc->out.closed) {
     out_req = xmalloc(sizeof(uv_connect_t));
     uv_pipe_connect(
         out_req,
-        &proc->out->uv.pipe,
+        &proc->out.uv.pipe,
         out_name,
         pty_process_connect_cb);
   }
@@ -131,7 +134,7 @@ int pty_process_spawn(PtyProcess *ptyproc)
     }
     goto cleanup;
   }
-  proc->pid = GetProcessId(process_handle);
+  proc->pid = (int)GetProcessId(process_handle);
 
   if (!RegisterWaitForSingleObject(
       &ptyproc->finish_wait,
@@ -228,7 +231,7 @@ static void wait_eof_timer_cb(uv_timer_t *wait_eof_timer)
   PtyProcess *ptyproc = wait_eof_timer->data;
   Process *proc = (Process *)ptyproc;
 
-  if (!proc->out || !uv_is_readable(proc->out->uvstream)) {
+  if (proc->out.closed || !uv_is_readable(proc->out.uvstream)) {
     uv_timer_stop(&ptyproc->wait_eof_timer);
     pty_process_finish2(ptyproc);
   }
@@ -339,20 +342,20 @@ static void quote_cmd_arg(char *dest, size_t dest_remaining, const char *src)
   }
 
   // Expected input/output:
-  //   input : hello"world
-  //   output: "hello\"world"
-  //   input : hello""world
-  //   output: "hello\"\"world"
-  //   input : hello\world
-  //   output: hello\world
-  //   input : hello\\world
-  //   output: hello\\world
-  //   input : hello\"world
-  //   output: "hello\\\"world"
-  //   input : hello\\"world
-  //   output: "hello\\\\\"world"
-  //   input : hello world\
-  //   output: "hello world\\"
+  //   input : 'hello"world'
+  //   output: '"hello\"world"'
+  //   input : 'hello""world'
+  //   output: '"hello\"\"world"'
+  //   input : 'hello\world'
+  //   output: 'hello\world'
+  //   input : 'hello\\world'
+  //   output: 'hello\\world'
+  //   input : 'hello\"world'
+  //   output: '"hello\\\"world"'
+  //   input : 'hello\\"world'
+  //   output: '"hello\\\\\"world"'
+  //   input : 'hello world\'
+  //   output: '"hello world\\"'
 
   assert(dest_remaining--);
   *(dest++) = NUL;

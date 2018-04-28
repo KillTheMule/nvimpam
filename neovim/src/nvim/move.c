@@ -155,12 +155,11 @@ void update_topline(void)
   old_topline = curwin->w_topline;
   old_topfill = curwin->w_topfill;
 
-  /*
-   * If the buffer is empty, always set topline to 1.
-   */
-  if (bufempty()) {             /* special case - file is empty */
-    if (curwin->w_topline != 1)
+  // If the buffer is empty, always set topline to 1.
+  if (BUFEMPTY()) {             // special case - file is empty
+    if (curwin->w_topline != 1) {
       redraw_later(NOT_VALID);
+    }
     curwin->w_topline = 1;
     curwin->w_botline = 2;
     curwin->w_valid |= VALID_BOTLINE|VALID_BOTLINE_AP;
@@ -673,7 +672,7 @@ int win_col_off(win_T *wp)
   return ((wp->w_p_nu || wp->w_p_rnu) ? number_width(wp) + 1 : 0)
          + (cmdwin_type == 0 || wp != curwin ? 0 : 1)
          + (int)wp->w_p_fdc
-         + (signcolumn_on(wp) ? 2 : 0);
+         + (signcolumn_on(wp) ? win_signcol_width(wp) : 0);
 }
 
 int curwin_col_off(void)
@@ -1989,9 +1988,8 @@ void halfpage(bool flag, linenr_T Prenum)
     while (n > 0 && curwin->w_botline <= curbuf->b_ml.ml_line_count) {
       if (curwin->w_topfill > 0) {
         i = 1;
-        if (--n < 0 && scrolled > 0)
-          break;
-        --curwin->w_topfill;
+        n--;
+        curwin->w_topfill--;
       } else {
         i = plines_nofill(curwin->w_topline);
         n -= i;
@@ -2067,9 +2065,8 @@ void halfpage(bool flag, linenr_T Prenum)
     while (n > 0 && curwin->w_topline > 1) {
       if (curwin->w_topfill < diff_check_fill(curwin, curwin->w_topline)) {
         i = 1;
-        if (--n < 0 && scrolled > 0)
-          break;
-        ++curwin->w_topfill;
+        n--;
+        curwin->w_topfill++;
       } else {
         i = plines_nofill(curwin->w_topline - 1);
         n -= i;

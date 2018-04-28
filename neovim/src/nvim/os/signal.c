@@ -10,6 +10,7 @@
 #endif
 
 #include "nvim/ascii.h"
+#include "nvim/log.h"
 #include "nvim/vim.h"
 #include "nvim/globals.h"
 #include "nvim/memline.h"
@@ -144,7 +145,7 @@ static void on_signal(SignalWatcher *handle, int signum, void *data)
     case SIGPWR:
       // Signal of a power failure(eg batteries low), flush the swap files to
       // be safe
-      ml_sync_all(false, false);
+      ml_sync_all(false, false, true);
       break;
 #endif
 #ifdef SIGPIPE
@@ -162,7 +163,7 @@ static void on_signal(SignalWatcher *handle, int signum, void *data)
       }
       break;
     default:
-      fprintf(stderr, "Invalid signal %d", signum);
+      ELOG("invalid signal: %d", signum);
       break;
   }
 }

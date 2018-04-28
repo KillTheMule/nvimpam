@@ -40,10 +40,11 @@ char		action	~
 						*i_CTRL-[* *i_<Esc>*
 <Esc> or CTRL-[	End insert or Replace mode, go back to Normal mode.  Finish
 		abbreviation.
-		Note: If your <Esc> key is hard to hit on your keyboard, train
-		yourself to use CTRL-[.
-		If Esc doesn't work and you are using a Mac, try CTRL-Esc.
-		Or disable Listening under Accessibility preferences.
+		Note: If your <Esc> key is hard to hit, try CTRL-[ instead.
+						*i_META* *i_ALT*
+                |ALT| (|META|) acts like <Esc> if the chord is not mapped.
+		For example <A-x> acts like <Esc>x if <A-x> does not have an
+                insert-mode mapping.
 						*i_CTRL-C*
 CTRL-C		Quit insert mode, go back to Normal mode.  Do not check for
 		abbreviations.  Does not trigger the |InsertLeave| autocommand
@@ -146,7 +147,8 @@ CTRL-R CTRL-R {0-9a-z"%#*+/:.-=}			*i_CTRL-R_CTRL-R*
 CTRL-R CTRL-O {0-9a-z"%#*+/:.-=}			*i_CTRL-R_CTRL-O*
 		Insert the contents of a register literally and don't
 		auto-indent.  Does the same as pasting with the mouse
-		|<MiddleMouse>|.
+		|<MiddleMouse>|. When the register is linewise this will
+		insert the text above the current line, like with `P`.
 		Does not replace characters!
 		The '.' register (last inserted text) is still inserted as
 		typed.
@@ -607,13 +609,13 @@ Completion can be done for:
 10. User defined completion				|i_CTRL-X_CTRL-U|
 11. omni completion					|i_CTRL-X_CTRL-O|
 12. Spelling suggestions				|i_CTRL-X_s|
-13. keywords in 'complete'				|i_CTRL-N|
+13. keywords in 'complete'				|i_CTRL-N| |i_CTRL-P|
 
-All these (except 2) are done in CTRL-X mode.  This is a sub-mode of Insert
-and Replace modes.  You enter CTRL-X mode by typing CTRL-X and one of the
-CTRL-X commands.  You exit CTRL-X mode by typing a key that is not a valid
-CTRL-X mode command.  Valid keys are the CTRL-X command itself, CTRL-N (next),
-and CTRL-P (previous).
+All these, except CTRL-N and CTRL-P, are done in CTRL-X mode.  This is a
+sub-mode of Insert and Replace modes.  You enter CTRL-X mode by typing CTRL-X
+and one of the CTRL-X commands.  You exit CTRL-X mode by typing a key that is
+not a valid CTRL-X mode command.  Valid keys are the CTRL-X command itself,
+CTRL-N (next), and CTRL-P (previous).
 
 Also see the 'infercase' option if you want to adjust the case of the match.
 
@@ -1076,8 +1078,10 @@ items:
 			item with the same word is already present.
 	empty		when non-zero this match will be added even when it is
 			an empty string
+	user_data 	custom data which is associated with the item and
+			available in |v:completed_item|
 
-All of these except 'icase', 'dup' and 'empty' must be a string.  If an item
+All of these except "icase", "dup" and "empty" must be a string.  If an item
 does not meet these requirements then an error message is given and further
 items in the list are not used.  You can mix string and Dictionary items in
 the returned list.
@@ -1169,6 +1173,8 @@ The menu is used when:
 
 The 'pumheight' option can be used to set a maximum height.  The default is to
 use all space available.
+The 'pumwidth' option can be used to set a minimum width.  The default is 15
+characters.
 
 There are three states:
 1. A complete match has been inserted, e.g., after using CTRL-N or CTRL-P.

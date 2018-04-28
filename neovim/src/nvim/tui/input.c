@@ -14,8 +14,6 @@
 #include "nvim/event/rstream.h"
 
 #define PASTETOGGLE_KEY "<Paste>"
-#define FOCUSGAINED_KEY "<FocusGained>"
-#define FOCUSLOST_KEY   "<FocusLost>"
 #define KEY_BUFFER_SIZE 0xfff
 
 #ifdef INCLUDE_GENERATED_DECLARATIONS
@@ -49,9 +47,11 @@ void term_input_init(TermInput *input, Loop *loop)
   termkey_set_canonflags(input->tk, curflags | TERMKEY_CANON_DELBS);
   // setup input handle
 #ifdef WIN32
-  uv_tty_init(loop, &input->tty_in, 0, 1);
+  uv_tty_init(&loop->uv, &input->tty_in, 0, 1);
   uv_tty_set_mode(&input->tty_in, UV_TTY_MODE_RAW);
-  rstream_init_stream(&input->read_stream, &input->tty_in, 0xfff);
+  rstream_init_stream(&input->read_stream,
+                      (uv_stream_t *)&input->tty_in,
+                      0xfff);
 #else
   rstream_init_fd(loop, &input->read_stream, input->in_fd, 0xfff);
 #endif
@@ -170,11 +170,21 @@ static void forward_mouse_event(TermInput *input, TermKeyKey *key)
   char buf[64];
   size_t len = 0;
   int button, row, col;
+  static int last_pressed_button = 0;
   TermKeyMouseEvent ev;
   termkey_interpret_mouse(input->tk, key, &ev, &button, &row, &col);
 
-  if (ev != TERMKEY_MOUSE_PRESS && ev != TERMKEY_MOUSE_DRAG
-      && ev != TERMKEY_MOUSE_RELEASE) {
+  if ((ev == TERMKEY_MOUSE_RELEASE || ev == TERMKEY_MOUSE_DRAG)
+      && button == 0) {
+    // Some terminals (like urxvt) don't report which button was released.
+    // libtermkey reports button 0 in this case.
+    // For drag and release, we can reasonably infer the button to be the last
+    // pressed one.
+    button = last_pressed_button;
+  }
+
+  if (button == 0 || (ev != TERMKEY_MOUSE_PRESS && ev != TERMKEY_MOUSE_DRAG
+                      && ev != TERMKEY_MOUSE_RELEASE)) {
     return;
   }
 
@@ -201,18 +211,26 @@ static void forward_mouse_event(TermInput *input, TermKeyKey *key)
     len += (size_t)snprintf(buf + len, sizeof(buf) - len, "Right");
   }
 
-  if (ev == TERMKEY_MOUSE_PRESS) {
-    if (button == 4) {
-      len += (size_t)snprintf(buf + len, sizeof(buf) - len, "ScrollWheelUp");
-    } else if (button == 5) {
-      len += (size_t)snprintf(buf + len, sizeof(buf) - len, "ScrollWheelDown");
-    } else {
-      len += (size_t)snprintf(buf + len, sizeof(buf) - len, "Mouse");
-    }
-  } else if (ev == TERMKEY_MOUSE_DRAG) {
-    len += (size_t)snprintf(buf + len, sizeof(buf) - len, "Drag");
-  } else if (ev == TERMKEY_MOUSE_RELEASE) {
-    len += (size_t)snprintf(buf + len, sizeof(buf) - len, "Release");
+  switch (ev) {
+    case TERMKEY_MOUSE_PRESS:
+      if (button == 4) {
+        len += (size_t)snprintf(buf + len, sizeof(buf) - len, "ScrollWheelUp");
+      } else if (button == 5) {
+        len += (size_t)snprintf(buf + len, sizeof(buf) - len,
+                                "ScrollWheelDown");
+      } else {
+        len += (size_t)snprintf(buf + len, sizeof(buf) - len, "Mouse");
+        last_pressed_button = button;
+      }
+      break;
+    case TERMKEY_MOUSE_DRAG:
+      len += (size_t)snprintf(buf + len, sizeof(buf) - len, "Drag");
+      break;
+    case TERMKEY_MOUSE_RELEASE:
+      len += (size_t)snprintf(buf + len, sizeof(buf) - len, "Release");
+      break;
+    case TERMKEY_MOUSE_UNKNOWN:
+      assert(false);
   }
 
   len += (size_t)snprintf(buf + len, sizeof(buf) - len, "><%d,%d>", col, row);

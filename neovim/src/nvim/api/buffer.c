@@ -24,7 +24,7 @@
 #include "nvim/syntax.h"
 #include "nvim/window.h"
 #include "nvim/undo.h"
-#include "nvim/liveupdate.h"
+#include "nvim/buffer_updates.h"
 
 #ifdef INCLUDE_GENERATED_DECLARATIONS
 # include "api/buffer.c.generated.h"
@@ -75,19 +75,19 @@ String buffer_get_line(Buffer buffer, Integer index, Error *err)
   return rv;
 }
 
-/// Activate live updates from this buffer to the current channel.
-///
+/// Activate updates from this buffer to the current channel.
 ///
 /// @param buffer The buffer handle
-/// @param enabled True turns on live updates, False turns them off.
+/// @param send_buffer Set to true if the initial notification should contain
+///        the whole buffer
 /// @param[out] err Details of an error that may have occurred
-/// @return False when live updates couldn't be enabled because the buffer isn't
+/// @return False when updates couldn't be enabled because the buffer isn't
 ///         loaded; otherwise True.
-Boolean nvim_buf_live_updates(uint64_t channel_id,
-                              Buffer buffer,
-                              Boolean enabled,
-                              Error *err)
-  FUNC_API_SINCE(3) FUNC_API_REMOTE_ONLY
+Boolean nvim_buf_event_sub(uint64_t channel_id,
+                           Buffer buffer,
+                           Boolean send_buffer,
+                           Error *err)
+  FUNC_API_SINCE(4) FUNC_API_REMOTE_ONLY
 {
   buf_T *buf = find_buffer_by_handle(buffer, err);
 
@@ -95,11 +95,27 @@ Boolean nvim_buf_live_updates(uint64_t channel_id,
     return false;
   }
 
-  if (enabled) {
-    return liveupdate_register(buf, channel_id);
+  return buf_updates_register(buf, channel_id, send_buffer);
+}
+//
+/// Deactivate updates from this buffer to the current channel.
+///
+/// @param buffer The buffer handle
+/// @param[out] err Details of an error that may have occurred
+/// @return False when updates couldn't be disabled because the buffer
+///         isn't loaded; otherwise True.
+Boolean nvim_buf_event_unsub(uint64_t channel_id,
+                             Buffer buffer,
+                             Error *err)
+  FUNC_API_SINCE(4) FUNC_API_REMOTE_ONLY
+{
+  buf_T *buf = find_buffer_by_handle(buffer, err);
+
+  if (!buf) {
+    return false;
   }
 
-  liveupdate_unregister(buf, channel_id);
+  buf_updates_unregister(buf, channel_id);
   return true;
 }
 
@@ -215,12 +231,12 @@ ArrayOf(String) nvim_buf_get_lines(uint64_t channel_id,
   for (size_t i = 0; i < rv.size; i++) {
     int64_t lnum = start + (int64_t)i;
 
-    if (lnum > LONG_MAX) {
+    if (lnum >= MAXLNUM) {
       api_set_error(err, kErrorTypeValidation, "Line index is too high");
       goto end;
     }
 
-    const char *bufstr = (char *) ml_get_buf(buf, (linenr_T) lnum, false);
+    const char *bufstr = (char *)ml_get_buf(buf, (linenr_T)lnum, false);
     Object str = STRING_OBJ(cstr_to_string(bufstr));
 
     // Vim represents NULs as NLs, but this may confuse clients.
@@ -389,7 +405,7 @@ void nvim_buf_set_lines(uint64_t channel_id,
   for (size_t i = 0; i < to_replace; i++) {
     int64_t lnum = start + (int64_t)i;
 
-    if (lnum > LONG_MAX) {
+    if (lnum >= MAXLNUM) {
       api_set_error(err, kErrorTypeValidation, "Index value is too high");
       goto end;
     }
@@ -407,7 +423,7 @@ void nvim_buf_set_lines(uint64_t channel_id,
   for (size_t i = to_replace; i < new_len; i++) {
     int64_t lnum = start + (int64_t)i - 1;
 
-    if (lnum > LONG_MAX) {
+    if (lnum >= MAXLNUM) {
       api_set_error(err, kErrorTypeValidation, "Index value is too high");
       goto end;
     }
@@ -428,7 +444,11 @@ void nvim_buf_set_lines(uint64_t channel_id,
   // Only adjust marks if we managed to switch to a window that holds
   // the buffer, otherwise line numbers will be invalid.
   if (save_curbuf.br_buf == NULL) {
-    mark_adjust((linenr_T)start, (linenr_T)(end - 1), MAXLNUM, extra, false);
+    mark_adjust((linenr_T)start,
+                (linenr_T)(end - 1),
+                MAXLNUM,
+                (long)extra,
+                false);
   }
 
   changed_lines((linenr_T)start, 0, (linenr_T)end, (long)extra, true);
@@ -468,6 +488,7 @@ Object nvim_buf_get_var(Buffer buffer, String name, Error *err)
 /// Gets a changed tick of a buffer
 ///
 /// @param[in]  buffer  Buffer handle.
+/// @param[out] err     Error details, if any
 ///
 /// @return `b:changedtick` value.
 Integer nvim_buf_get_changedtick(Buffer buffer, Error *err)
@@ -482,14 +503,14 @@ Integer nvim_buf_get_changedtick(Buffer buffer, Error *err)
   return buf->b_changedtick;
 }
 
-/// Get a list of dictionaries describing buffer-local mappings
-/// Note that the buffer key in the dictionary will represent the buffer
-/// handle where the mapping is present
+/// Gets a list of dictionaries describing buffer-local mappings.
+/// The "buffer" key in the returned dictionary reflects the buffer
+/// handle where the mapping is present.
 ///
-/// @param  mode  The abbreviation for the mode
-/// @param  buffer_id  Buffer handle
+/// @param  mode       Mode short-name ("n", "i", "v", ...)
+/// @param  buffer     Buffer handle
 /// @param[out]  err   Error details, if any
-/// @returns An array of maparg() like dictionaries describing mappings
+/// @returns Array of maparg()-like dictionaries describing mappings
 ArrayOf(Dictionary) nvim_buf_get_keymap(Buffer buffer, String mode, Error *err)
     FUNC_API_SINCE(3)
 {
@@ -768,31 +789,31 @@ ArrayOf(Integer, 2) nvim_buf_get_mark(Buffer buffer, String name, Error *err)
 
 /// Adds a highlight to buffer.
 ///
-/// This can be used for plugins which dynamically generate highlights to a
-/// buffer (like a semantic highlighter or linter). The function adds a single
+/// Useful for plugins that dynamically generate highlights to a buffer
+/// (like a semantic highlighter or linter). The function adds a single
 /// highlight to a buffer. Unlike matchaddpos() highlights follow changes to
 /// line numbering (as lines are inserted/removed above the highlighted line),
 /// like signs and marks do.
 ///
-/// "src_id" is useful for batch deletion/updating of a set of highlights. When
-/// called with src_id = 0, an unique source id is generated and returned.
-/// Succesive calls can pass in it as "src_id" to add new highlights to the same
-/// source group. All highlights in the same group can then be cleared with
-/// nvim_buf_clear_highlight. If the highlight never will be manually deleted
-/// pass in -1 for "src_id".
+/// `src_id` is useful for batch deletion/updating of a set of highlights. When
+/// called with `src_id = 0`, an unique source id is generated and returned.
+/// Successive calls can pass that `src_id` to associate new highlights with
+/// the same source group. All highlights in the same group can be cleared
+/// with `nvim_buf_clear_highlight`. If the highlight never will be manually
+/// deleted, pass `src_id = -1`.
 ///
-/// If "hl_group" is the empty string no highlight is added, but a new src_id
+/// If `hl_group` is the empty string no highlight is added, but a new `src_id`
 /// is still returned. This is useful for an external plugin to synchrounously
-/// request an unique src_id at initialization, and later asynchronously add and
-/// clear highlights in response to buffer changes.
+/// request an unique `src_id` at initialization, and later asynchronously add
+/// and clear highlights in response to buffer changes.
 ///
 /// @param buffer     Buffer handle
 /// @param src_id     Source group to use or 0 to use a new group,
 ///                   or -1 for ungrouped highlight
 /// @param hl_group   Name of the highlight group to use
-/// @param line       Line to highlight
-/// @param col_start  Start of range of columns to highlight
-/// @param col_end    End of range of columns to highlight,
+/// @param line       Line to highlight (zero-indexed)
+/// @param col_start  Start of (byte-indexed) column range to highlight
+/// @param col_end    End of (byte-indexed) column range to highlight,
 ///                   or -1 to highlight to end of line
 /// @param[out] err   Error details, if any
 /// @return The src_id that was used
@@ -834,7 +855,7 @@ Integer nvim_buf_add_highlight(Buffer buffer,
 
 /// Clears highlights from a given source group and a range of lines
 ///
-/// To clear a source group in the entire buffer, pass in 1 and -1 to
+/// To clear a source group in the entire buffer, pass in 0 and -1 to
 /// line_start and line_end respectively.
 ///
 /// @param buffer     Buffer handle

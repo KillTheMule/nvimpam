@@ -28,7 +28,7 @@
 #include "nvim/getchar.h"
 #include "nvim/indent.h"
 #include "nvim/indent_c.h"
-#include "nvim/liveupdate.h"
+#include "nvim/buffer_updates.h"
 #include "nvim/main.h"
 #include "nvim/mark.h"
 #include "nvim/mbyte.h"
@@ -750,8 +750,9 @@ open_line (
     // Postpone calling changed_lines(), because it would mess up folding
     // with markers.
     // Skip mark_adjust when adding a line after the last one, there can't
-    // be marks there.
-    if (curwin->w_cursor.lnum + 1 < curbuf->b_ml.ml_line_count) {
+    // be marks there. But still needed in diff mode.
+    if (curwin->w_cursor.lnum + 1 < curbuf->b_ml.ml_line_count
+        || curwin->w_p_diff) {
       mark_adjust(curwin->w_cursor.lnum + 1, (linenr_T)MAXLNUM, 1L, 0L, false);
     }
     did_append = true;
@@ -836,7 +837,7 @@ open_line (
       if (did_append) {
         changed_lines(curwin->w_cursor.lnum, curwin->w_cursor.col,
                       curwin->w_cursor.lnum + 1, 1L, true);
-        did_append = FALSE;
+        did_append = false;
 
         /* Move marks after the line break to the new line. */
         if (flags & OPENLINE_MARKFIX)
@@ -1470,7 +1471,7 @@ void ins_char_bytes(char_u *buf, size_t charlen)
     }
   }
 
-  char_u *newp = (char_u *) xmalloc((size_t)(linelen + newlen - oldlen));
+  char_u *newp = xmalloc((size_t)(linelen + newlen - oldlen));
 
   // Copy bytes before the cursor.
   if (col > 0) {
@@ -1479,7 +1480,10 @@ void ins_char_bytes(char_u *buf, size_t charlen)
 
   // Copy bytes after the changed character(s).
   char_u *p = newp + col;
-  memmove(p + newlen, oldp + col + oldlen, (size_t)(linelen - col - oldlen));
+  if (linelen > col + oldlen) {
+    memmove(p + newlen, oldp + col + oldlen,
+            (size_t)(linelen - col - oldlen));
+  }
 
   // Insert or overwrite the new character.
   memmove(p, buf, charlen);
@@ -1818,8 +1822,8 @@ void changed_bytes(linenr_T lnum, colnr_T col)
   changedOneline(curbuf, lnum);
   changed_common(lnum, col, lnum + 1, 0L);
   // notify any channels that are watching
-  if (kv_size(curbuf->liveupdate_channels)) {
-    liveupdate_send_changes(curbuf, lnum, 1, 1, true);
+  if (kv_size(curbuf->update_channels)) {
+    buf_updates_send_changes(curbuf, lnum, 1, 1, true);
   }
 
   /* Diff highlighting in other diff windows may need to be updated too. */
@@ -1870,8 +1874,8 @@ void appended_lines(linenr_T lnum, long count)
 void appended_lines_mark(linenr_T lnum, long count)
 {
   // Skip mark_adjust when adding a line after the last one, there can't
-  // be marks there.
-  if (lnum + count < curbuf->b_ml.ml_line_count) {
+  // be marks there. But it's still needed in diff mode.
+  if (lnum + count < curbuf->b_ml.ml_line_count || curwin->w_p_diff) {
     mark_adjust(lnum + 1, (linenr_T)MAXLNUM, count, 0L, false);
   }
   changed_lines(lnum + 1, 0, lnum + 1, count, true);
@@ -1910,16 +1914,16 @@ void deleted_lines_mark(linenr_T lnum, long count)
  * Takes care of calling changed() and updating b_mod_*.
  * Careful: may trigger autocommands that reload the buffer.
  */
-void 
-changed_lines (
-    linenr_T lnum,              /* first line with change */
-    colnr_T col,                /* column in first line with change */
-    linenr_T lnume,             /* line below last changed line */
-    long xtra,                  /* number of extra lines (negative when deleting) */
-    bool send_liveupdate  // some callers like undo/redo call changed_lines()
-                          // and then increment b_changedtick *again*. This flag
-                          // allows these callers to send the LiveUpdate events
-                          // after they're done modifying b_changedtick.
+void
+changed_lines(
+    linenr_T lnum,        // first line with change
+    colnr_T col,          // column in first line with change
+    linenr_T lnume,       // line below last changed line
+    long xtra,            // number of extra lines (negative when deleting)
+    bool do_buf_event  // some callers like undo/redo call changed_lines()
+                      // and then increment b_changedtick *again*. This flag
+                      // allows these callers to send the nvim_buf_update events
+                      // after they're done modifying b_changedtick.
 )
 {
   changed_lines_buf(curbuf, lnum, lnume, xtra);
@@ -1944,10 +1948,10 @@ changed_lines (
 
   changed_common(lnum, col, lnume, xtra);
 
-  if (send_liveupdate && kv_size(curbuf->liveupdate_channels)) {
+  if (do_buf_event && kv_size(curbuf->update_channels)) {
     int64_t num_added = (int64_t)(lnume + xtra - lnum);
     int64_t num_removed = lnume - lnum;
-    liveupdate_send_changes(curbuf, lnum, num_added, num_removed, true);
+    buf_updates_send_changes(curbuf, lnum, num_added, num_removed, true);
   }
 }
 
@@ -2625,20 +2629,22 @@ int match_user(char_u *name)
   return result;
 }
 
-/*
- * Preserve files and exit.
- * When called IObuff must contain a message.
- * NOTE: This may be called from deathtrap() in a signal handler, avoid unsafe
- * functions, such as allocating memory.
- */
+/// Preserve files and exit.
+/// @note IObuff must contain a message.
+/// @note This may be called from deadly_signal() in a signal handler, avoid
+///       unsafe functions, such as allocating memory.
 void preserve_exit(void)
+  FUNC_ATTR_NORETURN
 {
   // 'true' when we are sure to exit, e.g., after a deadly signal
   static bool really_exiting = false;
 
   // Prevent repeated calls into this method.
   if (really_exiting) {
-    stream_set_blocking(input_global_fd(), true);  //normalize stream (#2598)
+    if (input_global_fd() >= 0) {
+      // normalize stream (#2598)
+      stream_set_blocking(input_global_fd(), true);
+    }
     exit(2);
   }
 
@@ -2653,7 +2659,7 @@ void preserve_exit(void)
     if (buf->b_ml.ml_mfp != NULL && buf->b_ml.ml_mfp->mf_fname != NULL) {
       mch_errmsg((uint8_t *)"Vim: preserving files...\n");
       ui_flush();
-      ml_sync_all(false, false);    // preserve all swap files
+      ml_sync_all(false, false, true);  // preserve all swap files
       break;
     }
   }

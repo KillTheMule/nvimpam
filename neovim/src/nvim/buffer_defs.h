@@ -605,6 +605,7 @@ struct file_buffer {
   char_u *b_p_bt;               ///< 'buftype'
   int b_has_qf_entry;           ///< quickfix exists for buffer
   int b_p_bl;                   ///< 'buflisted'
+  long b_p_channel;             ///< 'channel'
   int b_p_cin;                  ///< 'cindent'
   char_u *b_p_cino;             ///< 'cinoptions'
   char_u *b_p_cink;             ///< 'cinkeys'
@@ -638,6 +639,7 @@ struct file_buffer {
   uint32_t b_p_fex_flags;       ///< flags for 'formatexpr'
   char_u *b_p_kp;               ///< 'keywordprg'
   int b_p_lisp;                 ///< 'lisp'
+  char_u *b_p_menc;             ///< 'makeencoding'
   char_u *b_p_mps;              ///< 'matchpairs'
   int b_p_ml;                   ///< 'modeline'
   int b_p_ml_nobin;             ///< b_p_ml saved for binary mode
@@ -718,6 +720,7 @@ struct file_buffer {
   int b_ind_hash_comment;
   int b_ind_cpp_namespace;
   int b_ind_if_for_while;
+  int b_ind_cpp_extern_c;
 
   linenr_T b_no_eol_lnum;       /* non-zero lnum when last line of next binary
                                  * write should not have an end-of-line */
@@ -766,9 +769,9 @@ struct file_buffer {
 
   kvec_t(BufhlLine *) b_bufhl_move_space;  // temporary space for highlights
 
-  // array of channelids which have asked to receive live updates for this
+  // array of channelids which have asked to receive updates for this
   // buffer.
-  kvec_t(uint64_t) liveupdate_channels;
+  kvec_t(uint64_t) update_channels;
 };
 
 /*

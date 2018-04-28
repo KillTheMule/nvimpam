@@ -313,69 +313,112 @@ void trans_characters(char_u *buf, int bufsize)
   }
 }
 
-/// Translate a string into allocated memory, replacing special chars with
-/// printable chars.
+/// Find length of a string capable of holding s with all specials replaced
 ///
-/// @param s
+/// Assumes replacing special characters with printable ones just like
+/// strtrans() does.
 ///
-/// @return translated string
-char_u *transstr(char_u *s) FUNC_ATTR_NONNULL_RET
+/// @param[in]  s  String to check.
+///
+/// @return number of bytes needed to hold a translation of `s`, NUL byte not
+///         included.
+size_t transstr_len(const char *const s)
+  FUNC_ATTR_WARN_UNUSED_RESULT FUNC_ATTR_PURE
 {
-  char_u *res;
-  char_u *p;
-  int c;
-  size_t l;
-  char_u hexbuf[11];
+  const char *p = s;
+  size_t len = 0;
 
+  while (*p) {
+    const size_t l = (size_t)utfc_ptr2len((const char_u *)p);
+    if (l > 1) {
+      int pcc[MAX_MCO + 2];
+      pcc[0] = utfc_ptr2char((const char_u *)p, &pcc[1]);
+
+      if (vim_isprintc(pcc[0])) {
+        len += l;
+      } else {
+        for (size_t i = 0; i < ARRAY_SIZE(pcc); i++) {
+          char hexbuf[11];
+          len += transchar_hex(hexbuf, pcc[i]);
+        }
+      }
+      p += l;
+    } else {
+      const int b2c_l = byte2cells((uint8_t)(*p++));
+      // Illegal byte sequence may occupy up to 4 characters.
+      len += (size_t)(b2c_l > 0 ? b2c_l : 4);
+    }
+  }
+  return len;
+}
+
+/// Replace special characters with printable ones
+///
+/// @param[in]  s  String to replace characters from.
+/// @param[out]  buf  Buffer to which result should be saved.
+/// @param[in]  len  Buffer length. Resulting string may not occupy more then
+///                  len - 1 bytes (one for trailing NUL byte).
+///
+/// @return length of the resulting string, without the NUL byte.
+size_t transstr_buf(const char *const s, char *const buf, const size_t len)
+  FUNC_ATTR_NONNULL_ALL
+{
+  const char *p = s;
+  char *buf_p = buf;
+  char *const buf_e = buf_p + len - 1;
+
+  while (*p != NUL && buf_p < buf_e) {
+    const size_t l = (size_t)utfc_ptr2len((const char_u *)p);
+    if (l > 1) {
+      if (buf_p + l >= buf_e) {
+        break;
+      }
+      int pcc[MAX_MCO + 2];
+      pcc[0] = utfc_ptr2char((const char_u *)p, &pcc[1]);
+
+      if (vim_isprintc(pcc[0])) {
+        memmove(buf_p, p, l);
+        buf_p += l;
+      } else {
+        for (size_t i = 0; i < ARRAY_SIZE(pcc); i++) {
+          char hexbuf[11];
+          const size_t hexlen = transchar_hex(hexbuf, pcc[i]);
+          if (buf_p + hexlen >= buf_e) {
+            break;
+          }
+          memmove(buf_p, hexbuf, hexlen);
+          buf_p += hexlen;
+        }
+      }
+      p += l;
+    } else {
+      const char *const tb = (const char *)transchar_byte((uint8_t)(*p++));
+      const size_t tb_len = strlen(tb);
+      memmove(buf_p, tb, tb_len);
+      buf_p += tb_len;
+    }
+  }
+  *buf_p = NUL;
+  assert(buf_p <= buf_e);
+  return (size_t)(buf_p - buf);
+}
+
+/// Copy string and replace special characters with printable characters
+///
+/// Works like `strtrans()` does, used for that and in some other places.
+///
+/// @param[in]  s  String to replace characters from.
+///
+/// @return [allocated] translated string
+char *transstr(const char *const s)
+  FUNC_ATTR_NONNULL_RET
+{
   // Compute the length of the result, taking account of unprintable
   // multi-byte characters.
-  size_t len = 0;
-  p = s;
-
-  while (*p != NUL) {
-    if ((l = (size_t)(*mb_ptr2len)(p)) > 1) {
-      c = (*mb_ptr2char)(p);
-      p += l;
-
-      if (vim_isprintc(c)) {
-        len += l;
-      } else {
-        transchar_hex(hexbuf, c);
-        len += STRLEN(hexbuf);
-      }
-    } else {
-      l = (size_t)byte2cells(*p++);
-
-      if (l > 0) {
-        len += l;
-      } else {
-        // illegal byte sequence
-        len += 4;
-      }
-    }
-  }
-  res = xmallocz(len);
-
-  *res = NUL;
-  p = s;
-
-  while (*p != NUL) {
-    if ((l = (size_t)(*mb_ptr2len)(p)) > 1) {
-      c = (*mb_ptr2char)(p);
-
-      if (vim_isprintc(c)) {
-        // append printable multi-byte char
-        STRNCAT(res, p, l);
-      } else {
-        transchar_hex(res + STRLEN(res), c);
-      }
-      p += l;
-    } else {
-      STRCAT(res, transchar_byte(*p++));
-    }
-  }
-
-  return res;
+  const size_t len = transstr_len((const char *)s) + 1;
+  char *const buf = xmalloc(len);
+  transstr_buf(s, buf, len);
+  return buf;
 }
 
 /// Convert the string "str[orglen]" to do ignore-case comparing.
@@ -474,14 +517,16 @@ char_u* str_foldcase(char_u *str, int orglen, char_u *buf, int buflen)
 // Does NOT work for multi-byte characters, c must be <= 255.
 // Also doesn't work for the first byte of a multi-byte, "c" must be a
 // character!
-static char_u transchar_buf[7];
+static char_u transchar_buf[11];
 
-/// Translates a character
+/// Translate a character into a printable one, leaving printable ASCII intact
 ///
-/// @param c
+/// All unicode characters are considered non-printable in this function.
 ///
-/// @return translated character.
-char_u* transchar(int c)
+/// @param[in]  c  Character to translate.
+///
+/// @return translated character into a static buffer.
+char_u *transchar(int c)
 {
   int i = 0;
   if (IS_SPECIAL(c)) {
@@ -494,23 +539,27 @@ char_u* transchar(int c)
 
   if ((!chartab_initialized && (((c >= ' ') && (c <= '~'))
                                 || (p_altkeymap && F_ischar(c))))
-      || ((c < 256) && vim_isprintc_strict(c))) {
+      || ((c <= 0xFF) && vim_isprintc_strict(c))) {
     // printable character
     transchar_buf[i] = (char_u)c;
     transchar_buf[i + 1] = NUL;
-  } else {
+  } else if (c <= 0xFF) {
     transchar_nonprint(transchar_buf + i, c);
+  } else {
+    transchar_hex((char *)transchar_buf + i, c);
   }
   return transchar_buf;
 }
 
-/// Like transchar(), but called with a byte instead of a character.  Checks
-/// for an illegal UTF-8 byte.
+/// Like transchar(), but called with a byte instead of a character
 ///
-/// @param c
+/// Checks for an illegal UTF-8 byte.
+///
+/// @param[in]  c  Byte to translate.
 ///
 /// @return pointer to translated character in transchar_buf.
-char_u* transchar_byte(int c)
+char_u *transchar_byte(const int c)
+  FUNC_ATTR_WARN_UNUSED_RESULT
 {
   if (c >= 0x80) {
     transchar_nonprint(transchar_buf, c);
@@ -519,12 +568,14 @@ char_u* transchar_byte(int c)
   return transchar(c);
 }
 
-/// Convert non-printable character to two or more printable characters in
-/// "buf[]".  "buf" needs to be able to hold five bytes.
-/// Does NOT work for multi-byte characters, c must be <= 255.
+/// Convert non-printable characters to 2..4 printable ones
 ///
-/// @param buf
-/// @param c
+/// @warning Does not work for multi-byte characters, c must be <= 255.
+///
+/// @param[out]  buf  Buffer to store result in, must be able to hold at least
+///                   5 bytes (conversion result + NUL).
+/// @param[in]  c  Character to convert. NUL is assumed to be NL according to
+///                `:h NL-used-for-NUL`.
 void transchar_nonprint(char_u *buf, int c)
 {
   if (c == NL) {
@@ -534,54 +585,63 @@ void transchar_nonprint(char_u *buf, int c)
     // we use CR in place of  NL in this case
     c = NL;
   }
+  assert(c <= 0xff);
 
-  if (dy_flags & DY_UHEX) {
+  if (dy_flags & DY_UHEX || c > 0x7f) {
     // 'display' has "uhex"
-    transchar_hex(buf, c);
-  } else if (c <= 0x7f) {
+    transchar_hex((char *)buf, c);
+  } else {
     // 0x00 - 0x1f and 0x7f
     buf[0] = '^';
     // DEL displayed as ^?
     buf[1] = (char_u)(c ^ 0x40);
 
     buf[2] = NUL;
-  } else {
-    transchar_hex(buf, c);
   }
 }
 
-/// Convert a non-printable character to hex.
+/// Convert a non-printable character to hex C string like "<FFFF>"
 ///
-/// @param buf
-/// @param c
-void transchar_hex(char_u *buf, int c)
+/// @param[out]  buf  Buffer to store result in.
+/// @param[in]  c  Character to convert.
+///
+/// @return Number of bytes stored in buffer, excluding trailing NUL byte.
+size_t transchar_hex(char *const buf, const int c)
+  FUNC_ATTR_NONNULL_ALL
 {
-  int i = 0;
+  size_t i = 0;
 
-  buf[0] = '<';
+  buf[i++] = '<';
   if (c > 255) {
-    buf[++i] = (char_u)nr2hex((unsigned)c >> 12);
-    buf[++i] = (char_u)nr2hex((unsigned)c >> 8);
+    if (c > 255 * 256) {
+      buf[i++] = (char)nr2hex((unsigned)c >> 20);
+      buf[i++] = (char)nr2hex((unsigned)c >> 16);
+    }
+    buf[i++] = (char)nr2hex((unsigned)c >> 12);
+    buf[i++] = (char)nr2hex((unsigned)c >> 8);
   }
-  buf[++i] = (char_u)(nr2hex((unsigned)c >> 4));
-  buf[++i] = (char_u)(nr2hex((unsigned)c));
-  buf[++i] = '>';
-  buf[++i] = NUL;
+  buf[i++] = (char)(nr2hex((unsigned)c >> 4));
+  buf[i++] = (char)(nr2hex((unsigned)c));
+  buf[i++] = '>';
+  buf[i] = NUL;
+  return i;
 }
 
-/// Convert the lower 4 bits of byte "c" to its hex character.
+/// Convert the lower 4 bits of byte "c" to its hex character
+///
 /// Lower case letters are used to avoid the confusion of <F1> being 0xf1 or
 /// function key 1.
 ///
-/// @param c
+/// @param[in]  n  Number to convert.
 ///
 /// @return the hex character.
-static unsigned nr2hex(unsigned c)
+static inline unsigned nr2hex(unsigned n)
+  FUNC_ATTR_CONST FUNC_ATTR_WARN_UNUSED_RESULT
 {
-  if ((c & 0xf) <= 9) {
-    return (c & 0xf) + '0';
+  if ((n & 0xf) <= 9) {
+    return (n & 0xf) + '0';
   }
-  return (c & 0xf) - 10 + 'a';
+  return (n & 0xf) - 10 + 'a';
 }
 
 /// Return number of display cells occupied by byte "b".
@@ -863,7 +923,7 @@ bool vim_isprintc(int c)
   if (c >= 0x100) {
     return utf_printable(c);
   }
-  return c >= 0x100 || (c > 0 && (g_chartab[c] & CT_PRINT_CHAR));
+  return c > 0 && (g_chartab[c] & CT_PRINT_CHAR);
 }
 
 /// Strict version of vim_isprintc(c), don't return true if "c" is the head
@@ -1611,141 +1671,134 @@ bool vim_isblankline(char_u *lbuf)
 /// If maxlen > 0, check at a maximum maxlen chars.
 ///
 /// @param start
-/// @param prep Returns type of number 0 = decimal, 'x' or 'X' is hex,
-///        '0' = octal, 'b' or 'B' is bin
+/// @param prep Returns guessed type of number 0 = decimal, 'x' or 'X' is
+///             hexadecimal, '0' = octal, 'b' or 'B' is binary. When using
+///             STR2NR_FORCE is always zero.
 /// @param len Returns the detected length of number.
-/// @param what Recognizes what number passed.
+/// @param what Recognizes what number passed, @see ChStr2NrFlags.
 /// @param nptr Returns the signed result.
 /// @param unptr Returns the unsigned result.
 /// @param maxlen Max length of string to check.
 void vim_str2nr(const char_u *const start, int *const prep, int *const len,
                 const int what, varnumber_T *const nptr,
                 uvarnumber_T *const unptr, const int maxlen)
+  FUNC_ATTR_NONNULL_ARG(1)
 {
-  const char_u *ptr = start;
+  const char *ptr = (const char *)start;
+#define STRING_ENDED(ptr) \
+    (!(maxlen == 0 || (int)((ptr) - (const char *)start) < maxlen))
   int pre = 0;  // default is decimal
-  bool negative = false;
+  const bool negative = (ptr[0] == '-');
   uvarnumber_T un = 0;
 
-  if (ptr[0] == '-') {
-    negative = true;
+  if (negative) {
     ptr++;
   }
 
-  // Recognize hex, octal and bin.
-  if ((ptr[0] == '0') && (ptr[1] != '8') && (ptr[1] != '9')
-      && (maxlen == 0 || maxlen > 1)) {
-    pre = ptr[1];
-
-    if ((what & STR2NR_HEX)
-        && ((pre == 'X') || (pre == 'x'))
-        && ascii_isxdigit(ptr[2])
-        && (maxlen == 0 || maxlen > 2)) {
-      // hexadecimal
-      ptr += 2;
-    } else if ((what & STR2NR_BIN)
-               && ((pre == 'B') || (pre == 'b'))
-               && ascii_isbdigit(ptr[2])
-               && (maxlen == 0 || maxlen > 2)) {
-      // binary
-      ptr += 2;
-    } else {
-      // decimal or octal, default is decimal
-      pre = 0;
-
-      if (what & STR2NR_OCT) {
-        // Don't interpret "0", "08" or "0129" as octal.
-        for (int n = 1; ascii_isdigit(ptr[n]); ++n) {
-          if (ptr[n] > '7') {
-            // can't be octal
-            pre = 0;
-            break;
-          }
-          if (ptr[n] >= '0') {
-            // assume octal
-            pre = '0';
-          }
-          if (n == maxlen) {
-            break;
-          }
+  if (what & STR2NR_FORCE) {
+    // When forcing main consideration is skipping the prefix. Octal and decimal
+    // numbers have no prefixes to skip. pre is not set.
+    switch ((unsigned)what & (~(unsigned)STR2NR_FORCE)) {
+      case STR2NR_HEX: {
+        if (!STRING_ENDED(ptr + 2)
+            && ptr[0] == '0'
+            && (ptr[1] == 'x' || ptr[1] == 'X')
+            && ascii_isxdigit(ptr[2])) {
+          ptr += 2;
         }
+        goto vim_str2nr_hex;
+      }
+      case STR2NR_BIN: {
+        if (!STRING_ENDED(ptr + 2)
+            && ptr[0] == '0'
+            && (ptr[1] == 'b' || ptr[1] == 'B')
+            && ascii_isbdigit(ptr[2])) {
+          ptr += 2;
+        }
+        goto vim_str2nr_bin;
+      }
+      case STR2NR_OCT: {
+        goto vim_str2nr_oct;
+      }
+      case 0: {
+        goto vim_str2nr_dec;
+      }
+      default: {
+        assert(false);
       }
     }
+  } else if ((what & (STR2NR_HEX|STR2NR_OCT|STR2NR_BIN))
+             && !STRING_ENDED(ptr + 1)
+             && ptr[0] == '0' && ptr[1] != '8' && ptr[1] != '9') {
+    pre = ptr[1];
+    // Detect hexadecimal: 0x or 0X followed by hex digit.
+    if ((what & STR2NR_HEX)
+        && !STRING_ENDED(ptr + 2)
+        && (pre == 'X' || pre == 'x')
+        && ascii_isxdigit(ptr[2])) {
+      ptr += 2;
+      goto vim_str2nr_hex;
+    }
+    // Detect binary: 0b or 0B followed by 0 or 1.
+    if ((what & STR2NR_BIN)
+        && !STRING_ENDED(ptr + 2)
+        && (pre == 'B' || pre == 'b')
+        && ascii_isbdigit(ptr[2])) {
+      ptr += 2;
+      goto vim_str2nr_bin;
+    }
+    // Detect octal number: zero followed by octal digits without '8' or '9'.
+    pre = 0;
+    if (!(what & STR2NR_OCT)
+        || !('0' <= ptr[1] && ptr[1] <= '7')) {
+      goto vim_str2nr_dec;
+    }
+    for (int i = 2; !STRING_ENDED(ptr + i) && ascii_isdigit(ptr[i]); i++) {
+      if (ptr[i] > '7') {
+        goto vim_str2nr_dec;
+      }
+    }
+    pre = '0';
+    goto vim_str2nr_oct;
+  } else {
+    goto vim_str2nr_dec;
   }
 
   // Do the string-to-numeric conversion "manually" to avoid sscanf quirks.
-  int n = 1;
-  if ((pre == 'B') || (pre == 'b') || what == STR2NR_BIN + STR2NR_FORCE) {
-    // bin
-    if (pre != 0) {
-      n += 2;  // skip over "0b"
-    }
-    while ('0' <= *ptr && *ptr <= '1') {
-      // avoid ubsan error for overflow
-      if (un < UVARNUMBER_MAX / 2) {
-        un = 2 * un + (uvarnumber_T)(*ptr - '0');
-      } else {
-        un = UVARNUMBER_MAX;
-      }
-      ptr++;
-      if (n++ == maxlen) {
-        break;
-      }
-    }
-  } else if ((pre == '0') || what == STR2NR_OCT + STR2NR_FORCE) {
-    // octal
-    while ('0' <= *ptr && *ptr <= '7') {
-      // avoid ubsan error for overflow
-      if (un < UVARNUMBER_MAX / 8) {
-        un = 8 * un + (uvarnumber_T)(*ptr - '0');
-      } else {
-        un = UVARNUMBER_MAX;
-      }
-      ptr++;
-      if (n++ == maxlen) {
-        break;
-      }
-    }
-  } else if ((pre == 'X') || (pre == 'x')
-             || what == STR2NR_HEX + STR2NR_FORCE) {
-    // hex
-    if (pre != 0) {
-      n += 2;  // skip over "0x"
-    }
-    while (ascii_isxdigit(*ptr)) {
-      // avoid ubsan error for overflow
-      if (un < UVARNUMBER_MAX / 16) {
-        un = 16 * un + (uvarnumber_T)hex2nr(*ptr);
-      } else {
-        un = UVARNUMBER_MAX;
-      }
-      ptr++;
-      if (n++ == maxlen) {
-        break;
-      }
-    }
-  } else {
-    // decimal
-    while (ascii_isdigit(*ptr)) {
-      // avoid ubsan error for overflow
-      if (un < UVARNUMBER_MAX / 10) {
-        un = 10 * un + (uvarnumber_T)(*ptr - '0');
-      } else {
-        un = UVARNUMBER_MAX;
-      }
-      ptr++;
-      if (n++ == maxlen) {
-        break;
-      }
-    }
-  }
+  assert(false);  // Should’ve used goto earlier.
+#define PARSE_NUMBER(base, cond, conv) \
+  do { \
+    while (!STRING_ENDED(ptr) && (cond)) { \
+      /* avoid ubsan error for overflow */ \
+      if (un < UVARNUMBER_MAX / base) { \
+        un = base * un + (uvarnumber_T)(conv); \
+      } else { \
+        un = UVARNUMBER_MAX; \
+      } \
+      ptr++; \
+    } \
+  } while (0)
+vim_str2nr_bin:
+  PARSE_NUMBER(2, (*ptr == '0' || *ptr == '1'), (*ptr - '0'));
+  goto vim_str2nr_proceed;
+vim_str2nr_oct:
+  PARSE_NUMBER(8, ('0' <= *ptr && *ptr <= '7'), (*ptr - '0'));
+  goto vim_str2nr_proceed;
+vim_str2nr_dec:
+  PARSE_NUMBER(10, (ascii_isdigit(*ptr)), (*ptr - '0'));
+  goto vim_str2nr_proceed;
+vim_str2nr_hex:
+  PARSE_NUMBER(16, (ascii_isxdigit(*ptr)), (hex2nr(*ptr)));
+  goto vim_str2nr_proceed;
+#undef PARSE_NUMBER
 
+vim_str2nr_proceed:
   if (prep != NULL) {
     *prep = pre;
   }
 
   if (len != NULL) {
-    *len = (int)(ptr - start);
+    *len = (int)(ptr - (const char *)start);
   }
 
   if (nptr != NULL) {
@@ -1767,6 +1820,7 @@ void vim_str2nr(const char_u *const start, int *const prep, int *const len,
   if (unptr != NULL) {
     *unptr = un;
   }
+#undef STRING_ENDED
 }
 
 /// Return the value of a single hex character.

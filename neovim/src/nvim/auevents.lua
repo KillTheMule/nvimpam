@@ -19,6 +19,8 @@ return {
     'BufWriteCmd',            -- write buffer using command
     'BufWritePost',           -- after writing a buffer
     'BufWritePre',            -- before writing a buffer
+    'CmdLineEnter',           -- after entering cmdline mode
+    'CmdLineLeave',           -- before leaving cmdline mode
     'CmdUndefined',           -- command undefined
     'CmdWinEnter',            -- after entering the cmdline window
     'CmdWinLeave',            -- before leaving the cmdline window
@@ -90,6 +92,8 @@ return {
     'VimLeave',               -- before exiting Vim
     'VimLeavePre',            -- before exiting Vim and writing ShaDa file
     'VimResized',             -- after Vim window was resized
+    'VimResume',              -- after Nvim is resumed
+    'VimSuspend',             -- before Nvim is suspended
     'WinNew',                 -- when entering a new window
     'WinEnter',               -- after entering a window
     'WinLeave',               -- before leaving a window

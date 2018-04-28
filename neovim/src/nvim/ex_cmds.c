@@ -35,7 +35,7 @@
 #include "nvim/fold.h"
 #include "nvim/getchar.h"
 #include "nvim/indent.h"
-#include "nvim/liveupdate.h"
+#include "nvim/buffer_updates.h"
 #include "nvim/main.h"
 #include "nvim/mark.h"
 #include "nvim/mbyte.h"
@@ -110,82 +110,86 @@ typedef struct {
 # include "ex_cmds.c.generated.h"
 #endif
 
-/*
- * ":ascii" and "ga".
- */
-void do_ascii(exarg_T *eap)
+/// ":ascii" and "ga" implementation
+void do_ascii(const exarg_T *const eap)
 {
-  int c;
-  int cval;
-  char buf1[20];
-  char buf2[20];
-  char_u buf3[7];
   int cc[MAX_MCO];
-  int ci = 0;
-  int len;
-  const bool l_enc_utf8 = enc_utf8;
-
-  if (l_enc_utf8)
-    c = utfc_ptr2char(get_cursor_pos_ptr(), cc);
-  else
-    c = gchar_cursor();
+  int c = utfc_ptr2char(get_cursor_pos_ptr(), cc);
   if (c == NUL) {
     MSG("NUL");
     return;
   }
 
-  IObuff[0] = NUL;
-  if (!has_mbyte || (enc_dbcs != 0 && c < 0x100) || c < 0x80) {
-    if (c == NL)            /* NUL is stored as NL */
+  size_t iobuff_len = 0;
+
+  int ci = 0;
+  if (c < 0x80) {
+    if (c == NL) {  // NUL is stored as NL.
       c = NUL;
-    if (c == CAR && get_fileformat(curbuf) == EOL_MAC)
-      cval = NL;            /* NL is stored as CR */
-    else
-      cval = c;
-    if (vim_isprintc_strict(c) && (c < ' '
-                                   || c > '~'
-                                   )) {
+    }
+    const int cval = (c == CAR && get_fileformat(curbuf) == EOL_MAC
+                      ? NL  // NL is stored as CR.
+                      : c);
+    char buf1[20];
+    if (vim_isprintc_strict(c) && (c < ' ' || c > '~')) {
+      char_u buf3[7];
       transchar_nonprint(buf3, c);
       vim_snprintf(buf1, sizeof(buf1), "  <%s>", (char *)buf3);
-    } else
+    } else {
       buf1[0] = NUL;
-    if (c >= 0x80)
-      vim_snprintf(buf2, sizeof(buf2), "  <M-%s>",
-          (char *)transchar(c & 0x7f));
-    else
-      buf2[0] = NUL;
-    vim_snprintf((char *)IObuff, IOSIZE,
-        _("<%s>%s%s  %d,  Hex %02x,  Octal %03o"),
-        transchar(c), buf1, buf2, cval, cval, cval);
-    if (l_enc_utf8)
-      c = cc[ci++];
-    else
-      c = 0;
+    }
+    char buf2[20];
+    buf2[0] = NUL;
+    iobuff_len += (
+        vim_snprintf((char *)IObuff + iobuff_len, sizeof(IObuff) - iobuff_len,
+                     _("<%s>%s%s  %d,  Hex %02x,  Octal %03o"),
+                     transchar(c), buf1, buf2, cval, cval, cval));
+    c = cc[ci++];
   }
 
-  /* Repeat for combining characters. */
-  while (has_mbyte && (c >= 0x100 || (l_enc_utf8 && c >= 0x80))) {
-    len = (int)STRLEN(IObuff);
-    /* This assumes every multi-byte char is printable... */
-    if (len > 0)
-      IObuff[len++] = ' ';
-    IObuff[len++] = '<';
-    if (l_enc_utf8 && utf_iscomposing(c)
-# ifdef USE_GUI
-        && !gui.in_use
-# endif
-        )
-      IObuff[len++] = ' ';       /* draw composing char on top of a space */
-    len += (*mb_char2bytes)(c, IObuff + len);
-    vim_snprintf((char *)IObuff + len, IOSIZE - len,
-        c < 0x10000 ? _("> %d, Hex %04x, Octal %o")
-        : _("> %d, Hex %08x, Octal %o"), c, c, c);
-    if (ci == MAX_MCO)
+#define SPACE_FOR_DESC (1 + 1 + 1 + MB_MAXBYTES + 16 + 4 + 3 + 3 + 1)
+  // Space for description:
+  // - 1 byte for separator (starting from second entry)
+  // - 1 byte for "<"
+  // - 1 byte for space to draw composing character on (optional, but really
+  //   mostly required)
+  // - up to MB_MAXBYTES bytes for character itself
+  // - 16 bytes for raw text ("> , Hex , Octal ").
+  // - at least 4 bytes for hexadecimal representation
+  // - at least 3 bytes for decimal representation
+  // - at least 3 bytes for octal representation
+  // - 1 byte for NUL
+  //
+  // Taking into account MAX_MCO and characters which need 8 bytes for
+  // hexadecimal representation, but not taking translation into account:
+  // resulting string will occupy less then 400 bytes (conservative estimate).
+  //
+  // Less then 1000 bytes if translation multiplies number of bytes needed for
+  // raw text by 6, so it should always fit into 1025 bytes reserved for IObuff.
+
+  // Repeat for combining characters, also handle multiby here.
+  while (c >= 0x80 && iobuff_len < sizeof(IObuff) - SPACE_FOR_DESC) {
+    // This assumes every multi-byte char is printable...
+    if (iobuff_len > 0) {
+      IObuff[iobuff_len++] = ' ';
+    }
+    IObuff[iobuff_len++] = '<';
+    if (utf_iscomposing(c)) {
+      IObuff[iobuff_len++] = ' ';  // Draw composing char on top of a space.
+    }
+    iobuff_len += utf_char2bytes(c, IObuff + iobuff_len);
+    iobuff_len += (
+        vim_snprintf((char *)IObuff + iobuff_len, sizeof(IObuff) - iobuff_len,
+                     (c < 0x10000
+                      ? _("> %d, Hex %04x, Octal %o")
+                      : _("> %d, Hex %08x, Octal %o")), c, c, c));
+    if (ci == MAX_MCO) {
       break;
-    if (l_enc_utf8)
-      c = cc[ci++];
-    else
-      c = 0;
+    }
+    c = cc[ci++];
+  }
+  if (ci != MAX_MCO && c != 0) {
+    xstrlcpy((char *)IObuff + iobuff_len, " ...", sizeof(IObuff) - iobuff_len);
   }
 
   msg(IObuff);
@@ -741,8 +745,9 @@ void ex_retab(exarg_T *eap)
 
   if (curbuf->b_p_ts != new_ts)
     redraw_curbuf_later(NOT_VALID);
-  if (first_line != 0)
+  if (first_line != 0) {
     changed_lines(first_line, 0, last_line + 1, 0L, true);
+  }
 
   curwin->w_p_list = save_list;         /* restore 'list' */
 
@@ -828,9 +833,9 @@ int do_move(linenr_T line1, linenr_T line2, linenr_T dest)
                      -(last_line - dest - extra), 0L, true);
   changed_lines(last_line - num_lines + 1, 0, last_line + 1, -extra, false);
 
-  // send live update regarding the new lines that were added
-  if (kv_size(curbuf->liveupdate_channels)) {
-    liveupdate_send_changes(curbuf, dest + 1, num_lines, 0, true);
+  // send update regarding the new lines that were added
+  if (kv_size(curbuf->update_channels)) {
+    buf_updates_send_changes(curbuf, dest + 1, num_lines, 0, true);
   }
 
   /*
@@ -867,9 +872,9 @@ int do_move(linenr_T line1, linenr_T line2, linenr_T dest)
     changed_lines(dest + 1, 0, line1 + num_lines, 0L, false);
   }
 
-  // send LiveUpdate regarding lines that were deleted
-  if (kv_size(curbuf->liveupdate_channels)) {
-    liveupdate_send_changes(curbuf, line1 + extra, 0, num_lines, true);
+  // send nvim_buf_update regarding lines that were deleted
+  if (kv_size(curbuf->update_channels)) {
+    buf_updates_send_changes(curbuf, line1 + extra, 0, num_lines, true);
   }
 
   return OK;
@@ -1188,7 +1193,7 @@ static void do_filter(
   // to read the error messages. Otherwise errors are ignored, so you can see
   // the error messages from the command that appear on stdout; use 'u' to fix
   // the text.
-  // Pass on the kShellDoOut flag when the output is being redirected.
+  // Pass on the kShellOptDoOut flag when the output is being redirected.
   if (call_shell(
         cmd_buf,
         kShellOptFilter | shell_flags,
@@ -1430,7 +1435,7 @@ char_u *make_filter_cmd(char_u *cmd, char_u *itmp, char_u *otmp)
 #else
   // For shells that don't understand braces around commands, at least allow
   // the use of commands in a pipe.
-  xstrlcpy(buf, cmd, len);
+  xstrlcpy(buf, (char *)cmd, len);
   if (itmp != NULL) {
     // If there is a pipe, we have to put the '<' in front of it.
     // Don't do this when 'shellquote' is not empty, otherwise the
@@ -2026,17 +2031,18 @@ int getfile(int fnum, char_u *ffname, char_u *sfname, int setpm, linenr_T lnum, 
   } else
     other = (fnum != curbuf->b_fnum);
 
-  if (other)
-    ++no_wait_return;               /* don't wait for autowrite message */
-  if (other && !forceit && curbuf->b_nwindows == 1 && !P_HID(curbuf)
+  if (other) {
+    no_wait_return++;               // don't wait for autowrite message
+  }
+  if (other && !forceit && curbuf->b_nwindows == 1 && !buf_hide(curbuf)
       && curbufIsChanged() && autowrite(curbuf, forceit) == FAIL) {
-    if (p_confirm && p_write)
-      dialog_changed(curbuf, FALSE);
+    if (p_confirm && p_write) {
+      dialog_changed(curbuf, false);
+    }
     if (curbufIsChanged()) {
-      if (other)
-        --no_wait_return;
+      no_wait_return--;
       EMSG(_(e_nowrtmsg));
-      retval = 2;       /* file has been changed */
+      retval = 2;  // File has been changed.
       goto theend;
     }
   }
@@ -2045,17 +2051,19 @@ int getfile(int fnum, char_u *ffname, char_u *sfname, int setpm, linenr_T lnum, 
   if (setpm)
     setpcmark();
   if (!other) {
-    if (lnum != 0)
+    if (lnum != 0) {
       curwin->w_cursor.lnum = lnum;
+    }
     check_cursor_lnum();
     beginline(BL_SOL | BL_FIX);
-    retval = 0;         /* it's in the same file */
+    retval = 0;         // it's in the same file
   } else if (do_ecmd(fnum, ffname, sfname, NULL, lnum,
-                 (P_HID(curbuf) ? ECMD_HIDE : 0) + (forceit ? ECMD_FORCEIT : 0),
-                 curwin) == OK)
-    retval = -1;        /* opened another file */
-  else
-    retval = 1;         /* error encountered */
+                     (buf_hide(curbuf) ? ECMD_HIDE : 0)
+                     + (forceit ? ECMD_FORCEIT : 0), curwin) == OK) {
+    retval = -1;        // opened another file
+  } else {
+    retval = 1;         // error encountered
+  }
 
 theend:
   xfree(free_me);
@@ -2434,7 +2442,7 @@ int do_ecmd(
         goto theend;
       }
       u_unchanged(curbuf);
-      liveupdate_unregister_all(curbuf);
+      buf_updates_unregister_all(curbuf);
       buf_freeall(curbuf, BFA_KEEP_UNDO);
 
       // Tell readfile() not to clear or reload undo info.
@@ -3160,9 +3168,10 @@ static char_u *sub_parse_flags(char_u *cmd, subflags_T *subflags,
 ///
 /// The usual escapes are supported as described in the regexp docs.
 ///
+/// @param do_buf_event If `true`, send buffer updates.
 /// @return buffer used for 'inccommand' preview
 static buf_T *do_sub(exarg_T *eap, proftime_T timeout,
-                     bool send_liveupdate_changedtick)
+                     bool do_buf_event)
 {
   long i = 0;
   regmmatch_T regmatch;
@@ -3493,6 +3502,10 @@ static buf_T *do_sub(exarg_T *eap, proftime_T timeout,
             else
               ++matchcol;
           }
+          // match will be pushed to preview_lines, bring it into a proper state
+          current_match.start.col = matchcol;
+          current_match.end.lnum = sub_firstlnum;
+          current_match.end.col = matchcol;
           goto skip;
         }
 
@@ -3552,6 +3565,9 @@ static buf_T *do_sub(exarg_T *eap, proftime_T timeout,
 
               getvcol(curwin, &curwin->w_cursor, &sc, NULL, NULL);
               curwin->w_cursor.col = regmatch.endpos[0].col - 1;
+              if (curwin->w_cursor.col < 0) {
+                curwin->w_cursor.col = 0;
+              }
               getvcol(curwin, &curwin->w_cursor, NULL, NULL, &ec);
               if (subflags.do_number || curwin->w_p_nu) {
                 int numw = number_width(curwin) + 1;
@@ -4003,11 +4019,11 @@ skip:
     i = curbuf->b_ml.ml_line_count - old_line_count;
     changed_lines(first_line, 0, last_line - i, i, false);
 
-    if (kv_size(curbuf->liveupdate_channels)) {
+    if (kv_size(curbuf->update_channels)) {
       int64_t num_added = last_line - first_line;
       int64_t num_removed = num_added - i;
-      liveupdate_send_changes(curbuf, first_line, num_added, num_removed,
-                              send_liveupdate_changedtick);
+      buf_updates_send_changes(curbuf, first_line, num_added, num_removed,
+                               do_buf_event);
     }
   }
 
@@ -4635,18 +4651,20 @@ int find_help_tags(char_u *arg, int *num_matches, char_u ***matches, int keep_la
   static char *(mtable[]) = {"*", "g*", "[*", "]*",
                              "/*", "/\\*", "\"*", "**",
                              "/\\(\\)", "/\\%(\\)",
-                             "?", ":?", "?<CR>", "g?", "g?g?", "g??", "z?",
+                             "?", ":?", "?<CR>", "g?", "g?g?", "g??",
                              "/\\?", "/\\z(\\)", "\\=", ":s\\=",
-                             "[count]", "[quotex]", "[range]",
+                             "[count]", "[quotex]",
+                             "[range]", ":[range]",
                              "[pattern]", "\\|", "\\%$",
                              "s/\\~", "s/\\U", "s/\\L",
                              "s/\\1", "s/\\2", "s/\\3", "s/\\9"};
   static char *(rtable[]) = {"star", "gstar", "[star", "]star",
                              "/star", "/\\\\star", "quotestar", "starstar",
                              "/\\\\(\\\\)", "/\\\\%(\\\\)",
-                             "?", ":?", "?<CR>", "g?", "g?g?", "g??", "z?",
+                             "?", ":?", "?<CR>", "g?", "g?g?", "g??",
                              "/\\\\?", "/\\\\z(\\\\)", "\\\\=", ":s\\\\=",
-                             "\\[count]", "\\[quotex]", "\\[range]",
+                             "\\[count]", "\\[quotex]",
+                             "\\[range]", ":\\[range]",
                              "\\[pattern]", "\\\\bar", "/\\\\%\\$",
                              "s/\\\\\\~", "s/\\\\U", "s/\\\\L",
                              "s/\\\\1", "s/\\\\2", "s/\\\\3", "s/\\\\9"};
@@ -4874,7 +4892,9 @@ void fix_help_buffer(void)
   char_u      *rt;
 
   // Set filetype to "help".
-  set_option_value("ft", 0L, "help", OPT_LOCAL);
+  if (STRCMP(curbuf->b_p_ft, "help") != 0) {
+    set_option_value("ft", 0L, "help", OPT_LOCAL);
+  }
 
   if (!syntax_present(curwin)) {
     for (lnum = 1; lnum <= curbuf->b_ml.ml_line_count; ++lnum) {
@@ -5310,7 +5330,6 @@ static void do_helptags(char_u *dirname, bool add_help_tags)
   if (!add_pathsep((char *)NameBuff)
       || STRLCAT(NameBuff, "**", sizeof(NameBuff)) >= MAXPATHL) {
     EMSG(_(e_fnametoolong));
-    xfree(dirname);
     return;
   }
 
@@ -5321,7 +5340,6 @@ static void do_helptags(char_u *dirname, bool add_help_tags)
                            EW_FILE|EW_SILENT) == FAIL
       || filecount == 0) {
     EMSG2(_("E151: No match: %s"), NameBuff);
-    xfree(dirname);
     return;
   }
 
@@ -5838,7 +5856,8 @@ static void sign_list_defined(sign_T *sp)
   }
   if (sp->sn_line_hl > 0) {
     msg_puts(" linehl=");
-    const char *const p = get_highlight_name(NULL, sp->sn_line_hl - 1);
+    const char *const p = get_highlight_name_ext(NULL,
+                                                 sp->sn_line_hl - 1, false);
     if (p == NULL) {
       msg_puts("NONE");
     } else {
@@ -5847,7 +5866,8 @@ static void sign_list_defined(sign_T *sp)
   }
   if (sp->sn_text_hl > 0) {
     msg_puts(" texthl=");
-    const char *const p = get_highlight_name(NULL, sp->sn_text_hl - 1);
+    const char *const p = get_highlight_name_ext(NULL,
+                                                 sp->sn_text_hl - 1, false);
     if (p == NULL) {
       msg_puts("NONE");
     } else {
@@ -6274,7 +6294,7 @@ void ex_substitute(exarg_T *eap)
   // Don't show search highlighting during live substitution
   bool save_hls = p_hls;
   p_hls = false;
-  buf_T *preview_buf = do_sub(eap, profile_setlimit(p_rdt), true);
+  buf_T *preview_buf = do_sub(eap, profile_setlimit(p_rdt), false);
   p_hls = save_hls;
 
   if (save_changedtick != curbuf->b_changedtick) {
@@ -6354,7 +6374,6 @@ char_u *skip_vimgrep_pat(char_u *p, char_u **s, int *flags)
 void ex_oldfiles(exarg_T *eap)
 {
   list_T      *l = get_vim_var_list(VV_OLDFILES);
-  listitem_T  *li;
   long nr = 0;
 
   if (l == NULL) {
@@ -6362,19 +6381,22 @@ void ex_oldfiles(exarg_T *eap)
   } else {
     msg_start();
     msg_scroll = true;
-    for (li = l->lv_first; li != NULL && !got_int; li = li->li_next) {
+    TV_LIST_ITER(l, li, {
+      if (got_int) {
+        break;
+      }
       nr++;
-      const char *fname = tv_get_string(&li->li_tv);
+      const char *fname = tv_get_string(TV_LIST_ITEM_TV(li));
       if (!message_filtered((char_u *)fname)) {
         msg_outnum(nr);
         MSG_PUTS(": ");
-        msg_outtrans((char_u *)tv_get_string(&li->li_tv));
+        msg_outtrans((char_u *)tv_get_string(TV_LIST_ITEM_TV(li)));
         msg_clr_eos();
         msg_putchar('\n');
         ui_flush();                  // output one line at a time
         os_breakcheck();
       }
-    }
+    });
 
     // Assume "got_int" was set to truncate the listing.
     got_int = false;
@@ -6384,7 +6406,7 @@ void ex_oldfiles(exarg_T *eap)
       quit_more = false;
       nr = prompt_for_number(false);
       msg_starthere();
-      if (nr > 0 && nr <= l->lv_len) {
+      if (nr > 0 && nr <= tv_list_len(l)) {
         const char *const p = tv_list_find_str(l, nr - 1);
         if (p == NULL) {
           return;

@@ -19,6 +19,13 @@
 #define MB_BYTE2LEN(b)         utf8len_tab[b]
 #define MB_BYTE2LEN_CHECK(b)   (((b) < 0 || (b) > 255) ? 1 : utf8len_tab[b])
 
+/// Maximum value for 'maxcombine'
+///
+/// At most that number of composing characters may be attached to the leading
+/// character by various `utfc_*` functions. Note that some functions do not
+/// have this limit.
+enum { MAX_MCO = 6 };
+
 // max length of an unicode char
 #define MB_MAXCHAR     6
 
@@ -60,6 +67,12 @@ typedef enum {
   CONV_ICONV     = 5,
 } ConvFlags;
 
+#define MBYTE_NONE_CONV { \
+  .vc_type = CONV_NONE, \
+  .vc_factor = 1, \
+  .vc_fail = false, \
+}
+
 /// Structure used for string conversions
 typedef struct {
   int vc_type;  ///< Zero or more ConvFlags.
@@ -72,6 +85,8 @@ typedef struct {
 } vimconv_T;
 
 extern const uint8_t utf8len_tab_zero[256];
+
+extern const uint8_t utf8len_tab[256];
 
 #ifdef INCLUDE_GENERATED_DECLARATIONS
 # include "mbyte.h.generated.h"
