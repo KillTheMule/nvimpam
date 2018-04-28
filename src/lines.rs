@@ -7,6 +7,7 @@
 //! lines instead of strings), rope (adapted to lines instead of strings)
 use std::ops;
 use std::default::Default;
+use std::fmt;
 
 use card::Card;
 use card::keyword::Keyword;
@@ -89,6 +90,32 @@ where
       nextline: None,
       nextline_kw: None,
       idx_after: None,
+    }
+  }
+}
+
+impl<'a, T: 'a> fmt::Debug for SkipResult<'a, T>
+where
+  T: AsRef<str>,
+{
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    if self.nextline.is_none() {
+      write!(
+        f,
+        "SkipResult {{ nextline: None, nextline_kw: {:?}, idx_after: {:?} }}",
+        self.nextline_kw, self.idx_after
+      )
+    } else {
+      let n = self.nextline.unwrap();
+      write!(
+        f,
+        "SkipResult {{ nextline: ({:?}, {:?}), nextline_kw: {:?}, \
+         idx_after: {:?} }}",
+        n.0,
+        n.1.as_ref(),
+        self.nextline_kw,
+        self.idx_after
+      )
     }
   }
 }
