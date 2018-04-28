@@ -12,8 +12,8 @@
 //! assert!(foldlist.remove(1,2).is_ok());
 //! ```
 //!
-use std::collections::BTreeMap;
 use std::collections::btree_map::Entry;
+use std::collections::BTreeMap;
 
 use failure;
 use failure::Error;
@@ -93,9 +93,12 @@ impl FoldList {
       .folds
       .remove(&[start, end])
       .ok_or_else(|| failure::err_msg("Could not remove fold from foldlist"))?;
-    self.folds_inv.remove(&[end, start]).ok_or_else(|| {
-      failure::err_msg("Could not remove fold from inverse foldlist!")
-    })?;
+    self
+      .folds_inv
+      .remove(&[end, start])
+      .ok_or_else(|| {
+        failure::err_msg("Could not remove fold from inverse foldlist!")
+      })?;
 
     Ok(())
   }
@@ -110,7 +113,9 @@ impl FoldList {
   /// Delete all folds in nvim, and create the ones from the FoldList
   /// TODO: Check if we're using the best method to send
   pub fn resend_all(&self, nvim: &mut Neovim) -> Result<(), Error> {
-    nvim.command("normal! zE").context("'normal! zE' failed")?;
+    nvim
+      .command("normal! zE")
+      .context("'normal! zE' failed")?;
 
     // TODO: use nvim_call_atomic
     for range in self.folds.keys() {
@@ -259,62 +264,68 @@ mod tests {
   }
 
   const LINES2: [&'static str; 24] = [
-      // 0
-      "NODE  /        1              0.             0.5              0.",
-      // 1
-      "NODE  /        1              0.             0.5              0.",
-      // 2
-      "NODE  /        1              0.             0.5              0.",
-      // 3
-      "NODE  /        1              0.             0.5              0.",
-      // 4
-      "#Comment here",
-      // 5
-      "SHELL /     3129       1       1    2967    2971    2970",
-      // 6
-      "NODE  /     3129       1       1    2967    2971    2970",
-      // 7
-      "NODE  /     3129       1       1    2967    2971    2970",
-      // 8
-      "#Comment",
-      // 9
-      "#Comment",
-      // 10
-      "SHELL /     3129       1       1    2967    2971    2970",
-      // 11
-      "SHELL /     3129       1       1    2967    2971    2970",
-      // 12
-      "$Comment",
-      // 13
-      "SHELL /     3129       1       1    2967    2971    2970",
-      // 14
-      "SHELL /     3129       1       1    2967    2971    2970",
-      // 15
-      "$Comment",
-      // 16
-      "#Comment",
-      // 17
-      "NODE  /        1              0.             0.5              0.",
-      // 18
-      "NODE  /        1              0.             0.5              0.",
-      // 19
-      "NODE  /        1              0.             0.5              0.",
-      // 20
-      "SHELL /     3129       1       1    2967    2971    2970",
-      // 21
-      "SHELL /     3129       1       1    2967    2971    2970",
-      // 22
-      "SHELL /     3129       1       1    2967    2971    2970",
-      // 23
-      "SHELL /     3129       1       1    2967    2971    2970",
-    ];
+    // 0
+    "NODE  /        1              0.             0.5              0.",
+    // 1
+    "NODE  /        1              0.             0.5              0.",
+    // 2
+    "NODE  /        1              0.             0.5              0.",
+    // 3
+    "NODE  /        1              0.             0.5              0.",
+    // 4
+    "#Comment here",
+    // 5
+    "SHELL /     3129       1       1    2967    2971    2970",
+    // 6
+    "NODE  /     3129       1       1    2967    2971    2970",
+    // 7
+    "NODE  /     3129       1       1    2967    2971    2970",
+    // 8
+    "#Comment",
+    // 9
+    "#Comment",
+    // 10
+    "SHELL /     3129       1       1    2967    2971    2970",
+    // 11
+    "SHELL /     3129       1       1    2967    2971    2970",
+    // 12
+    "$Comment",
+    // 13
+    "SHELL /     3129       1       1    2967    2971    2970",
+    // 14
+    "SHELL /     3129       1       1    2967    2971    2970",
+    // 15
+    "$Comment",
+    // 16
+    "#Comment",
+    // 17
+    "NODE  /        1              0.             0.5              0.",
+    // 18
+    "NODE  /        1              0.             0.5              0.",
+    // 19
+    "NODE  /        1              0.             0.5              0.",
+    // 20
+    "SHELL /     3129       1       1    2967    2971    2970",
+    // 21
+    "SHELL /     3129       1       1    2967    2971    2970",
+    // 22
+    "SHELL /     3129       1       1    2967    2971    2970",
+    // 23
+    "SHELL /     3129       1       1    2967    2971    2970",
+  ];
 
   #[test]
   fn fold_general_gather() {
     use card::keyword::Keyword::*;
     use folds::FoldList;
 
-    let v = vec![(0, 3, Node), (6, 7, Node), (10, 14, Shell), (17, 19, Node), (20, 23, Shell)];
+    let v = vec![
+      (0, 3, Node),
+      (6, 7, Node),
+      (10, 14, Shell),
+      (17, 19, Node),
+      (20, 23, Shell),
+    ];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&LINES2);
     assert_eq!(v, foldlist.into_vec());
@@ -362,8 +373,8 @@ mod tests {
 
   #[test]
   fn newfold_mass() {
-    use card::keyword::Keyword::*;
     use card::keyword::Keyword;
+    use card::keyword::Keyword::*;
     use folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(2, 9, Mass)];

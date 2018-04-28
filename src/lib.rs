@@ -4,11 +4,11 @@ extern crate failure;
 extern crate log;
 extern crate neovim_lib;
 
-pub mod handler;
+pub mod card;
+pub mod carddata;
+pub mod codeyard;
 pub mod event;
 pub mod folds;
-pub mod neovim_ext;
-pub mod card;
-pub mod codeyard;
+pub mod handler;
 pub mod lines;
-pub mod carddata;
+pub mod neovim_ext;

@@ -84,11 +84,14 @@ mod tests {
   fn test_is_ges() {
     let g = GesType::GesNode;
     let v = vec![
-      false, false, false, true, true, false, false, true, true, true
+      false, false, false, true, true, false, false, true, true, true,
     ];
     assert_eq!(
       v,
-      LINES.iter().map(|l| g.contains(&l)).collect::<Vec<bool>>()
+      LINES
+        .iter()
+        .map(|l| g.contains(&l))
+        .collect::<Vec<bool>>()
     );
   }
 
@@ -96,11 +99,14 @@ mod tests {
   fn test_ends_ges() {
     let g = GesType::GesNode;
     let v = vec![
-      false, false, false, false, false, false, true, false, false, false
+      false, false, false, false, false, false, true, false, false, false,
     ];
     assert_eq!(
       v,
-      LINES.iter().map(|l| g.ended_by(&l)).collect::<Vec<bool>>()
+      LINES
+        .iter()
+        .map(|l| g.ended_by(&l))
+        .collect::<Vec<bool>>()
     );
   }
 

@@ -4,10 +4,10 @@ extern crate test;
 
 use self::test::Bencher;
 
+use nvimpam_lib::card::ges::GesType;
 use nvimpam_lib::card::keyword::Keyword;
 use nvimpam_lib::folds::FoldList;
 use nvimpam_lib::lines::LinesIter;
-use nvimpam_lib::card::ges::GesType;
 
 #[bench]
 fn bench_parse2folddata(b: &mut Bencher) {

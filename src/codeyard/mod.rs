@@ -2,8 +2,8 @@
 //! to use right now, but want to keep for later.
 use std::str::Bytes;
 
-use failure::Error;
 use failure;
+use failure::Error;
 
 use card::keyword::Keyword;
 use card::Card;
@@ -72,8 +72,8 @@ pub fn parse_str3(s: &str) -> Option<Keyword> {
 #[allow(dead_code)]
 pub fn parse_str4(s: &str) -> Option<Keyword> {
   use card::keyword::Keyword::*;
-  use std::ptr;
   use std::cmp;
+  use std::ptr;
 
   // I only wrote the little-endian version
   assert!(cfg!(target_endian = "little"));
@@ -344,7 +344,11 @@ pub fn get_foldend2<T: AsRef<str>>(
     let tmp = it.next();
     match tmp {
       None => (Some(idx as u64), None, None),
-      Some((i, l)) => (Some(idx as u64), Keyword::parse(&l), Some(i as u64)),
+      Some((i, l)) => (
+        Some(idx as u64),
+        Keyword::parse(&l),
+        Some(i as u64),
+      ),
     }
   } else {
     // !card.ownfold
@@ -385,7 +389,11 @@ pub fn get_foldend2<T: AsRef<str>>(
     }
 
     if idx_before_comment > 0 {
-      (Some(idx_before_comment as u64), curkw, Some(idx as u64))
+      (
+        Some(idx_before_comment as u64),
+        curkw,
+        Some(idx as u64),
+      )
     } else {
       (Some(idx as u64 - 1), curkw, Some(idx as u64))
     }
@@ -400,7 +408,10 @@ pub fn add_keyword_data<T: AsRef<str>>(
   foldlist: &mut FoldList,
   lines: &[T],
 ) -> Result<(), Error> {
-  let it = lines.iter().map(|s| Keyword::parse(s)).enumerate();
+  let it = lines
+    .iter()
+    .map(|s| Keyword::parse(s))
+    .enumerate();
   let mut curkwstart = 0;
   let mut curkw: Option<Keyword> = None;
 

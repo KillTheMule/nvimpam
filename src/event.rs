@@ -1,11 +1,11 @@
 //! The events that nvimpam needs to accept and deal with. They're sent by the
 //! [`NeovimHandler`](handler/struct.NeovimHandler.html) to the main loop.
+use failure::Error;
 use std::fmt;
 use std::sync::mpsc;
-use failure::Error;
 
-use neovim_lib::neovim_api::Buffer;
 use neovim_lib::neovim::Neovim;
+use neovim_lib::neovim_api::Buffer;
 use neovim_lib::neovim_api::NeovimApi;
 
 use folds::FoldList;
@@ -38,7 +38,10 @@ pub enum Event {
   },
   /// Update notification for a new `changedtick` without a buffer change.
   /// Used by undo/redo.
-  LiveUpdateTick { buf: Buffer, changedtick: u64 },
+  LiveUpdateTick {
+    buf: Buffer,
+    changedtick: u64,
+  },
   /// Notification the liveupdates are ending. Possible causes:
   ///  - Closing all a buffer's windows (unless 'hidden' is enabled).
   ///  - Using |:edit| to reload the buffer
@@ -146,9 +149,13 @@ impl fmt::Debug for Event {
         numreplaced,
         linedata.len()
       ),
-      LiveUpdateTick { changedtick, .. } => {
-        write!(f, "LiveUpdateTick{{ changedtick: {} }}", changedtick,)
-      }
+      LiveUpdateTick {
+        changedtick, ..
+      } => write!(
+        f,
+        "LiveUpdateTick{{ changedtick: {} }}",
+        changedtick,
+      ),
       LiveUpdateEnd { .. } => write!(f, "LiveUpdateEnd"),
       RefreshFolds => write!(f, "RefreshFolds"),
       Quit => write!(f, "Quit"),

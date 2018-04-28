@@ -1,10 +1,10 @@
 //! The handler for the rpc events sent by `neovim_lib`
 use std::sync::mpsc;
 
-use neovim_lib::{Handler, Value};
-use neovim_lib::neovim_api::Buffer;
 use failure;
 use failure::Error;
+use neovim_lib::neovim_api::Buffer;
+use neovim_lib::{Handler, Value};
 
 use event::Event;
 
@@ -54,14 +54,22 @@ impl NeovimHandler {
       &mut args,
       "Not enough arguments in LiveUpdate!",
     )?)?;
-    let numreplaced =
-      parse_u64(&last_arg(&mut args, "Not enough arguments in LiveUpdate!")?)?;
-    let firstline =
-      parse_u64(&last_arg(&mut args, "Not enough arguments in LiveUpdate!")?)?;
-    let changedtick =
-      parse_u64(&last_arg(&mut args, "Not enough arguments in LiveUpdate!")?)?;
-    let buf =
-      parse_buf(last_arg(&mut args, "Not enough arguments in LiveUpdate!")?);
+    let numreplaced = parse_u64(&last_arg(
+      &mut args,
+      "Not enough arguments in LiveUpdate!",
+    )?)?;
+    let firstline = parse_u64(&last_arg(
+      &mut args,
+      "Not enough arguments in LiveUpdate!",
+    )?)?;
+    let changedtick = parse_u64(&last_arg(
+      &mut args,
+      "Not enough arguments in LiveUpdate!",
+    )?)?;
+    let buf = parse_buf(last_arg(
+      &mut args,
+      "Not enough arguments in LiveUpdate!",
+    )?);
 
     Ok(Event::LiveUpdate {
       buf,
@@ -78,11 +86,18 @@ impl NeovimHandler {
     &mut self,
     mut args: Vec<Value>,
   ) -> Result<Event, Error> {
-    let changedtick =
-      parse_u64(&last_arg(&mut args, "Not enough arguments in LiveUpdate!")?)?;
-    let buf =
-      parse_buf(last_arg(&mut args, "Not enough arguments in LiveUpdate!")?);
-    Ok(Event::LiveUpdateTick { buf, changedtick })
+    let changedtick = parse_u64(&last_arg(
+      &mut args,
+      "Not enough arguments in LiveUpdate!",
+    )?)?;
+    let buf = parse_buf(last_arg(
+      &mut args,
+      "Not enough arguments in LiveUpdate!",
+    )?);
+    Ok(Event::LiveUpdateTick {
+      buf,
+      changedtick,
+    })
   }
 
   /// Parse a LiveUpdateEnd notification into a
@@ -91,8 +106,10 @@ impl NeovimHandler {
     &mut self,
     mut args: Vec<Value>,
   ) -> Result<Event, Error> {
-    let buf =
-      parse_buf(last_arg(&mut args, "Not enough arguments in LiveUpdate!")?);
+    let buf = parse_buf(last_arg(
+      &mut args,
+      "Not enough arguments in LiveUpdate!",
+    )?);
     Ok(Event::LiveUpdateEnd { buf })
   }
 }

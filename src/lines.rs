@@ -5,14 +5,14 @@
 //!
 //! Future ideas, if performance isn't enough: Skip list, gap buffer (adapted to
 //! lines instead of strings), rope (adapted to lines instead of strings)
-use std::ops;
 use std::default::Default;
 use std::fmt;
+use std::ops;
 
-use card::Card;
-use card::keyword::Keyword;
 use card::ges::GesType;
+use card::keyword::Keyword;
 use card::line::Line;
+use card::Card;
 
 /// The struct to hold the lines.
 #[derive(Debug)]
@@ -38,7 +38,7 @@ impl Lines {
   ///   * `first` and `last` are zero-indexed (just as Lines itself)
   ///   * If `numreplaced` is zero, the lines were added before line `first`
   pub fn update(&mut self, first: u64, last: u64, linedata: Vec<String>) {
-    let range = first as usize .. last as usize;
+    let range = first as usize..last as usize;
     let _v = self.0.splice(range, linedata);
   }
 }
@@ -162,7 +162,9 @@ where
   /// NOTE: A Comment line counts as a keyword. Also see
   /// `skip_to_next_real_keyword`.
   pub fn skip_to_next_keyword<'b>(&'b mut self) -> SkipResult<'a, T> {
-    let nextline = self.it.find(|&(_, l)| Keyword::parse(l).is_some());
+    let nextline = self
+      .it
+      .find(|&(_, l)| Keyword::parse(l).is_some());
 
     match nextline {
       None => SkipResult {
@@ -511,15 +513,16 @@ where
 
 #[cfg(test)]
 mod tests {
-  use lines::Lines;
-  use lines::LinesIter;
   use card::ges::GesType;
   use card::keyword::Keyword;
   use card::Card;
   use carddata::*;
+  use lines::Lines;
+  use lines::LinesIter;
 
-  const LINES: [&'static str; 8] =
-    ["This", "is", "an", "example", "of", "some", "lines", "."];
+  const LINES: [&'static str; 8] = [
+    "This", "is", "an", "example", "of", "some", "lines", ".",
+  ];
 
   #[test]
   fn lines_can_delete() {
@@ -567,7 +570,7 @@ mod tests {
   }
 
   const COMMENTS: [&'static str; 8] = [
-    "#This", "#is", "#an", "#example", "of", "some", "lines", "."
+    "#This", "#is", "#an", "#example", "of", "some", "lines", ".",
   ];
 
   #[test]
