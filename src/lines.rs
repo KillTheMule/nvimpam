@@ -148,7 +148,7 @@ where
     match nextline {
       None => Default::default(),
       Some((i, _)) => SkipResult {
-        nextline: nextline,
+        nextline,
         nextline_kw: kw,
         idx_after: Some(i),
       },
@@ -173,7 +173,7 @@ where
         idx_after: None,
       },
       Some((i, l)) => SkipResult {
-        nextline: nextline,
+        nextline,
         nextline_kw: Keyword::parse(&l),
         idx_after: Some(i),
       },
@@ -192,7 +192,7 @@ where
     match nextline {
       None => Default::default(),
       Some((i, l)) => SkipResult {
-        nextline: nextline,
+        nextline,
         nextline_kw: Keyword::parse(&l),
         idx_after: Some(i),
       },
