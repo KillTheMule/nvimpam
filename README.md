@@ -2,7 +2,7 @@
 
 The beginning of a neovim rpc plugin for pamcrash files. Right now, it does some folding, badly. Future dreams include good folding, syntax highlighting and status line hints. 
 
-Based on [neovim-scorched-earth](https://github.com/boxofrox/neovim-scorched-earth). Uses [daa84/neovim-lib](https://github.com/daa84/neovim-lib). Also uses https://github.com/neovim/neovim/pull/5269, so building a patched neovim is necessary (patched sources included).
+Based on [neovim-scorched-earth](https://github.com/boxofrox/neovim-scorched-earth). Uses [daa84/neovim-lib](https://github.com/daa84/neovim-lib). Also uses https://github.com/neovim/neovim/pull/7917, so building a patched neovim is necessary (patched sources included).
 
 ## Running tests
 
