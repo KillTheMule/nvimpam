@@ -160,7 +160,9 @@ impl Handler for NeovimHandler {
           error!("{}", reason);
         }
       }
-      _ => {}
+      unknown => {
+        error!("Receveid unknown event: {}!", unknown);
+      }
     }
   }
 

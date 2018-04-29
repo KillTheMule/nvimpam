@@ -1,5 +1,3 @@
-* Log an error when receiving an unknown event
-
 * Run it all through clippy
 * Add benchmarks
   * Maybe https://docs.rs/bencher/0.1.4/bencher/?

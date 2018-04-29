@@ -104,10 +104,10 @@ impl Event {
           break;
         }
         Ok(o) => {
-          info!("receiver recieved {:?}", o);
+          warn!("receiver recieved {:?}", o);
         }
         Err(e) => {
-          info!("receiver received error: {:?}", e);
+          warn!("receiver received error: {:?}", e);
         }
       }
     }
