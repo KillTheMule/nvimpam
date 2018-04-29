@@ -14,12 +14,12 @@ use neovim_ext::BufferExt;
 
 /// The event list the main loop reacts to
 pub enum Event {
-  /// Neovim's answer after sending live_updates(true) for a buffer.
+  /// Neovim's answer after sending registering for buffer events.
   /// `linedata` contains the buffers contents, without newlines. `more`
   /// indicates if we need to expect another event of this type with more
   /// lines, in case Neovim decided to split up the buffer (not yet
   /// implemented).
-  LiveUpdateStart {
+  UpdatesStart {
     buf: Buffer,
     changedtick: u64,
     linedata: Vec<String>,
@@ -29,7 +29,7 @@ pub enum Event {
   /// is zero-indexed (i.e. a change on the first line will have `firstline =
   /// 0`).  If `numreplaced` is 0, the lines were added before `firstline`,
   /// but none were deleted.
-  LiveUpdate {
+  Update {
     buf: Buffer,
     changedtick: u64,
     firstline: u64,
@@ -38,7 +38,7 @@ pub enum Event {
   },
   /// Update notification for a new `changedtick` without a buffer change.
   /// Used by undo/redo.
-  LiveUpdateTick {
+  ChangedTick {
     buf: Buffer,
     changedtick: u64,
   },
@@ -46,7 +46,7 @@ pub enum Event {
   ///  - Closing all a buffer's windows (unless 'hidden' is enabled).
   ///  - Using |:edit| to reload the buffer
   ///  - reloading the buffer after it is changed from outside neovim.
-  LiveUpdateEnd { buf: Buffer },
+  UpdatesEnd { buf: Buffer },
   /// Recreate and resend the folds
   RefreshFolds,
   /// This plugin should quit. Currently only sent by the user directly.
@@ -58,7 +58,7 @@ impl Event {
   /// [handler](../handler/struct.NeovimHandler.html).
   ///
   /// The loop starts by enabling
-  /// [live_updates](../neovim_ext/trait.BufferExt.html#method.live_updates).
+  /// [buffer events](../neovim_ext/trait.BufferExt.html#method.event_sub).
   /// It creates [`lines`](../lines/struct.Lines.html) and a
   /// [`foldlist`](../folds/struct.FoldList.html)  and updates them from the
   /// events received. It calls
@@ -83,12 +83,12 @@ impl Event {
 
     loop {
       match receiver.recv() {
-        Ok(LiveUpdateStart { linedata, .. }) => {
+        Ok(UpdatesStart { linedata, .. }) => {
           lines = Lines::new(linedata);
           foldlist.recreate_all(&lines)?;
           foldlist.resend_all(&mut nvim)?;
         }
-        Ok(LiveUpdate {
+        Ok(Update {
           firstline,
           numreplaced,
           linedata,
@@ -121,20 +121,20 @@ impl fmt::Debug for Event {
     use self::Event::*;
 
     match *self {
-      LiveUpdateStart {
+      UpdatesStart {
         changedtick,
         ref linedata,
         more,
         ..
       } => write!(
         f,
-        "LiveUpdateStart{{ changedtick: {}, #linedata: {}, \
+        "UpdatesStart{{ changedtick: {}, #linedata: {}, \
          more: {} }}",
         changedtick,
         linedata.len(),
         more
       ),
-      LiveUpdate {
+      Update {
         changedtick,
         firstline,
         numreplaced,
@@ -142,21 +142,21 @@ impl fmt::Debug for Event {
         ..
       } => write!(
         f,
-        "LiveUpdate{{ changedtick: {}, firstline: {}, \
+        "Update{{ changedtick: {}, firstline: {}, \
          numreplaced: {}, #linedata: {} }}",
         changedtick,
         firstline,
         numreplaced,
         linedata.len()
       ),
-      LiveUpdateTick {
+      ChangedTick {
         changedtick, ..
       } => write!(
         f,
-        "LiveUpdateTick{{ changedtick: {} }}",
+        "ChangedTick{{ changedtick: {} }}",
         changedtick,
       ),
-      LiveUpdateEnd { .. } => write!(f, "LiveUpdateEnd"),
+      UpdatesEnd { .. } => write!(f, "UpdatesEnd"),
       RefreshFolds => write!(f, "RefreshFolds"),
       Quit => write!(f, "Quit"),
     }
