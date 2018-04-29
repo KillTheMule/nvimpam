@@ -28,7 +28,7 @@ impl Keyword {
 
     if len > 0 && (s[0] == b'$' || s[0] == b'#') {
       Some(Comment)
-    } else if len < 8 {
+    } else if len == 0 || len < 8 {
       None
     } else {
       let start = &s[0..8];
