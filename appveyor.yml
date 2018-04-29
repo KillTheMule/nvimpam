@@ -1,4 +1,7 @@
 environment:
+  APPVEYOR_CACHE_ENTRY_ZIP_ARGS: "-t7z -m0=lzma -mx=9"
+  # image maybe needed by neovim build script
+  image: Visual Studio 2017
   global:
   # This is the Rust channel that build jobs will use by default but can be
   # overridden on a case by case basis down below
@@ -9,7 +12,9 @@ environment:
 
   matrix:
     # MinGW
+    # CONFIGURATION used by nvim build script
     - TARGET: i686-pc-windows-gnu
+      CONFIGURATION: MINGW_32
       RUST_VERSION: stable
       FUNCTIONALTESTS: true
     - TARGET: i686-pc-windows-gnu
@@ -23,10 +28,6 @@ environment:
     - TARGET: i686-pc-windows-msvc
       RUST_VERSION: stable
       FUNCTIONALTESTS: false
-    #- TARGET: i686-pc-windows-msvc
-    #  RUST_VERSION: beta
-    #- TARGET: i686-pc-windows-msvc
-    #  RUST_VERSION: nightly
 
 matrix:
   allow_failures:
@@ -47,25 +48,14 @@ install:
   - rustc -Vv
   - cargo -V
 
-# This is the "test phase", tweak it as you see fit
 test_script:
-  - if [%FUNCTIONALTESTS%]==[false] (
-      cargo build &&
-      cargo test
-    )
-  - if [%FUNCTIONALTESTS%]==[true] (
-        cargo build &&
-        cargo test &&
-        set TEST_FILE="..\test\nvimpam_spec.lua" &&
-        cd neovim &&
-        call ci\build.bat
-    )
+  - powershell .\appveyor.ps1
 
 cache:
-  - C:\Users\appveyor\.cargo\registry
-  - target 
+  #- C:\Users\appveyor\.cargo
+  #- target 
   - neovim\.deps -> neovim\third-party\**
-#- C:\msys64\var\cache\pacman\pkg -> neovim\ci\build.bat
+  - neovim\build -> neovim\src\nvim\**
 
 # Building is done in the test phase, so we disable Appveyor's build phase.
 build: false

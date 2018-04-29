@@ -61,22 +61,22 @@ elseif ($compiler -eq 'MSVC') {
 # Remove Git Unix utilities from the PATH
 $env:PATH = $env:PATH.Replace('C:\Program Files\Git\usr\bin', '')
 
-# Setup python (use AppVeyor system python)
-C:\Python27\python.exe -m pip install neovim ; exitIfFailed
-C:\Python35\python.exe -m pip install neovim ; exitIfFailed
+## Setup python (use AppVeyor system python)
+#C:\Python27\python.exe -m pip install neovim ; exitIfFailed
+#C:\Python35\python.exe -m pip install neovim ; exitIfFailed
 # Disambiguate python3
-move c:\Python35\python.exe c:\Python35\python3.exe
-$env:PATH = "C:\Python35;C:\Python27;$env:PATH"
+#move c:\Python35\python.exe c:\Python35\python3.exe
+#$env:PATH = "C:\Python35;C:\Python27;$env:PATH"
 # Sanity check
-python  -c "import neovim; print(str(neovim))" ; exitIfFailed
-python3 -c "import neovim; print(str(neovim))" ; exitIfFailed
+#python  -c "import neovim; print(str(neovim))" ; exitIfFailed
+#python3 -c "import neovim; print(str(neovim))" ; exitIfFailed
 
-$env:PATH = "C:\Ruby24\bin;$env:PATH"
-cmd /c gem.cmd install neovim ; exitIfFailed
-where.exe neovim-ruby-host.bat ; exitIfFailed
+#$env:PATH = "C:\Ruby24\bin;$env:PATH"
+#cmd /c gem.cmd install neovim ; exitIfFailed
+#where.exe neovim-ruby-host.bat ; exitIfFailed
 
-cmd /c npm.cmd install -g neovim ; exitIfFailed
-where.exe neovim-node-host.cmd ; exitIfFailed
+#cmd /c npm.cmd install -g neovim ; exitIfFailed
+#where.exe neovim-node-host.cmd ; exitIfFailed
 
 function convertToCmakeArgs($vars) {
   return $vars.GetEnumerator() | foreach { "-D$($_.Key)=$($_.Value)" }
@@ -106,23 +106,4 @@ cmake --build . --config $cmakeBuildType --target functionaltest -- $cmakeGenera
 Set-PSDebug -Trace 1
 if ($failed) {
   exit $LastExitCode
-}
-
-
-if ($uploadToCodecov) {
-  C:\msys64\usr\bin\bash -lc "cd /c/projects/neovim; bash <(curl -s https://codecov.io/bash) -c -F functionaltest || echo 'codecov upload failed.'"
-}
-
-# Old tests
-$env:PATH = "C:\msys64\usr\bin;$env:PATH"
-& "C:\msys64\mingw$bits\bin\mingw32-make.exe" -C $(Convert-Path ..\src\nvim\testdir) VERBOSE=1
-
-if ($uploadToCodecov) {
-  C:\msys64\usr\bin\bash -lc "cd /c/projects/neovim; bash <(curl -s https://codecov.io/bash) -c -F oldtest || echo 'codecov upload failed.'"
-}
-
-# Build artifacts
-cpack -G ZIP -C RelWithDebInfo
-if ($env:APPVEYOR_REPO_TAG_NAME -ne $null) {
-  cpack -G NSIS -C RelWithDebInfo
 }
