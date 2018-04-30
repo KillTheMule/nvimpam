@@ -154,14 +154,18 @@ impl FoldList {
   /// each card will be in an own fold, or several adjacent (modulo comments)
   /// cards will be subsumed into a fold.
   pub fn add_folds<T: AsRef<str>>(&mut self, lines: &[T]) -> Result<(), Error> {
-    let mut itr = lines.iter().enumerate();
+    let mut itr = lines.iter().enumerate().filter(|(_,s)| {
+      let t = s.as_ref();
+      let l = t.len();
+      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
+      }); 
     let mut li = LinesIter { it: &mut itr };
 
     let mut foldstart;
     let mut foldend;
     let mut foldkw;
 
-    let mut nextline = li.skip_to_next_real_keyword();
+    let mut nextline = li.skip_to_next_keyword();
 
     loop {
       match nextline.nextline {
@@ -170,7 +174,7 @@ impl FoldList {
           foldkw = match nextline.nextline_kw {
             Some(k) => k,
             None => {
-              nextline = li.skip_to_next_real_keyword();
+              nextline = li.skip_to_next_keyword();
               continue;
             }
           };
@@ -178,8 +182,8 @@ impl FoldList {
           foldstart = i;
           nextline = li.skip_fold((&foldkw).into());
 
-          if let Some(j) = nextline.idx_after {
-            foldend = j - 1;
+          if let Some(j) = nextline.skip_end {
+            foldend = j;
           } else {
             // This only happens if the file ends directly after a GES
             foldend = lines.len() - 1;

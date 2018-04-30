@@ -66,19 +66,15 @@ impl ops::Deref for Lines {
 /// It will be `None` in those cases where the iterator returned `None` before
 /// such a line could be found, i.e. the file ended.
 ///
-/// `idx_after` is the index of the line after the thing we wanted to skip. This
-/// might not be the index of `nextline` if there were comments after the thing
-/// to skip, in which case `idx_after` is the index of the first comment line
-/// after the skipped thing, and `nextline` will be the first non-comment line
-/// after that. `idx_after` will be `None` if skipping brought us to the end of
-/// the file with no comment after our thing.
+/// `skip_end` is the index of the last line we skipped. It will be `None` if
+/// skipping brought us to the end of the file with no comment after our thing.
 pub struct SkipResult<'a, T: 'a>
 where
   T: AsRef<str>,
 {
   pub nextline: Option<(usize, &'a T)>,
   pub nextline_kw: Option<Keyword>,
-  pub idx_after: Option<usize>,
+  pub skip_end: Option<usize>,
 }
 
 impl<'a, T: 'a> Default for SkipResult<'a, T>
@@ -89,7 +85,7 @@ where
     SkipResult {
       nextline: None,
       nextline_kw: None,
-      idx_after: None,
+      skip_end: None,
     }
   }
 }
@@ -102,19 +98,19 @@ where
     if self.nextline.is_none() {
       write!(
         f,
-        "SkipResult {{ nextline: None, nextline_kw: {:?}, idx_after: {:?} }}",
-        self.nextline_kw, self.idx_after
+        "SkipResult {{ nextline: None, nextline_kw: {:?}, skip_end: {:?} }}",
+        self.nextline_kw, self.skip_end
       )
     } else {
       let n = self.nextline.unwrap();
       write!(
         f,
         "SkipResult {{ nextline: ({:?}, {:?}), nextline_kw: {:?}, \
-         idx_after: {:?} }}",
+         skip_end: {:?} }}",
         n.0,
         n.1.as_ref(),
         self.nextline_kw,
-        self.idx_after
+        self.skip_end
       )
     }
   }
@@ -137,23 +133,23 @@ where
   /// Advance the iterator until meeting the first line that is not a
   /// comment. Return the index and a reference to that line. If all lines
   /// are comments, return `None`.
-  pub fn skip_comments<'b>(&'b mut self) -> SkipResult<'a, T> {
-    let mut kw = None;
-
-    let nextline = self.it.find(|&(_, l)| {
-      kw = Keyword::parse(l);
-      kw != Some(Keyword::Comment)
-    });
-
-    match nextline {
-      None => Default::default(),
-      Some((i, _)) => SkipResult {
-        nextline,
-        nextline_kw: kw,
-        idx_after: Some(i),
-      },
-    }
-  }
+//  pub fn skip_comments<'b>(&'b mut self) -> SkipResult<'a, T> {
+//    let mut kw = None;
+//
+//    let nextline = self.it.find(|&(_, l)| {
+//      kw = Keyword::parse(l);
+//      kw != Some(Keyword::Comment)
+//    });
+//
+//    match nextline {
+//      None => Default::default(),
+//      Some((i, _)) => SkipResult {
+//        nextline,
+//        nextline_kw: kw,
+//        idx_after: Some(i),
+//      },
+//    }
+//  }
 
   /// Advance the iterator until meeting the first line with a keyword. Return
   /// the index and a reference to that line. If no line starts with a
@@ -162,20 +158,46 @@ where
   /// NOTE: A Comment line counts as a keyword. Also see
   /// `skip_to_next_real_keyword`.
   pub fn skip_to_next_keyword<'b>(&'b mut self) -> SkipResult<'a, T> {
-    let nextline = self
-      .it
-      .find(|&(_, l)| Keyword::parse(l).is_some());
+    let mut prevline = None;
+    let mut nextline;
+    let mut done = false;
+
+    nextline = self.it.next();
+
+    if nextline.is_none() {
+      return Default::default();
+    }
+
+    if Keyword::parse(nextline.unwrap().1).is_some() {
+        done = true;
+      }
+
+    while !done {
+      prevline = nextline;
+      nextline = self.it.next();
+      if nextline.is_none() {
+        return Default::default();
+      }
+      if Keyword::parse(nextline.unwrap().1).is_some() {
+        done = true;
+      }
+    }
+
+    let last = match prevline {
+      Some((i,_l)) => Some(i),
+      None => None
+    };
 
     match nextline {
       None => SkipResult {
         nextline: None,
         nextline_kw: None,
-        idx_after: None,
+        skip_end: None,
       },
-      Some((i, l)) => SkipResult {
+      Some((_i, l)) => SkipResult {
         nextline,
         nextline_kw: Keyword::parse(&l),
-        idx_after: Some(i),
+        skip_end: last,
       },
     }
   }
@@ -183,21 +205,21 @@ where
   /// Advance the iterator until meeting the first line with a keyword that's
   /// not a comment. Return the index and a reference to that line. If no
   /// line starts with a keyword, return `None`.
-  pub fn skip_to_next_real_keyword<'b>(&'b mut self) -> SkipResult<'a, T> {
-    let nextline = self.it.find(|&(_, l)| {
-      let kw = Keyword::parse(l);
-      kw.is_some() && kw != Some(Keyword::Comment)
-    });
-
-    match nextline {
-      None => Default::default(),
-      Some((i, l)) => SkipResult {
-        nextline,
-        nextline_kw: Keyword::parse(&l),
-        idx_after: Some(i),
-      },
-    }
-  }
+//  pub fn skip_to_next_real_keyword<'b>(&'b mut self) -> SkipResult<'a, T> {
+//    let nextline = self.it.find(|&(_, l)| {
+//      let kw = Keyword::parse(l);
+//      kw.is_some() && kw != Some(Keyword::Comment)
+//    });
+//
+//    match nextline {
+//      None => Default::default(),
+//      Some((i, l)) => SkipResult {
+//        nextline,
+//        nextline_kw: Keyword::parse(&l),
+//        idx_after: Some(i),
+//      },
+//    }
+//  }
 
   /// Advance the iterator until the first line after a General Entity
   /// Selection (GES). Return the index, a reference to that line and the
@@ -218,11 +240,10 @@ where
   ///      in the second option.
   ///
   pub fn skip_ges<'b>(&'b mut self, ges: &GesType) -> SkipResult<'a, T> {
+    let mut previdx = None;
     let mut idx;
     let mut line;
-    let mut line_is_comment = false;
     let mut ges_contains_line;
-    let mut first_comment_idx = None;
 
     let tmp = self.it.next();
     match tmp {
@@ -231,44 +252,21 @@ where
         idx = i;
         line = l;
         ges_contains_line = ges.contains(&line);
-        if !ges_contains_line {
-          line_is_comment = Keyword::parse(&line) == Some(Keyword::Comment);
-          if line_is_comment {
-            first_comment_idx = Some(idx);
-          }
-        }
       }
     }
 
-    while ges_contains_line || line_is_comment {
+    while ges_contains_line {
       let tmp = self.it.next();
       match tmp {
         None => {
-          if let Some(i) = first_comment_idx {
             return SkipResult {
-              idx_after: Some(i),
+              skip_end: Some(idx),
               ..Default::default()
             };
-          } else {
-            return SkipResult {
-              idx_after: Some(idx),
-              ..Default::default()
-            };
-          }
         }
         Some((i, l)) => {
+          previdx = Some(idx);
           ges_contains_line = ges.contains(&l);
-          if !ges_contains_line {
-            line_is_comment = Keyword::parse(&l) == Some(Keyword::Comment);
-            if line_is_comment && first_comment_idx.is_none() {
-              first_comment_idx = Some(i);
-            }
-          }
-          // Keep order! If `ges_contains_line`, the other variable might just
-          // be wrong, we only set it when really necessary.
-          if ges_contains_line || !line_is_comment {
-            first_comment_idx = None;
-          }
           idx = i;
           line = l;
         }
@@ -276,38 +274,29 @@ where
     }
 
     if ges.ended_by(&line) {
+      previdx = Some(idx);
       let nextline = self.it.next();
 
       match nextline {
-        None => Default::default(),
-        Some((i, l)) => {
-          let kw = Keyword::parse(l);
-          if kw != Some(Keyword::Comment) {
-            SkipResult {
-              nextline: Some((i, l)),
-              nextline_kw: kw,
-              idx_after: Some(i),
-            }
-          } else {
-            SkipResult {
-              idx_after: Some(i),
-              ..self.skip_comments()
-            }
+        None => {
+          SkipResult {
+            skip_end: previdx,
+            .. Default::default()
           }
         }
-      }
-    } else if let Some(i) = first_comment_idx {
-      // Ges implicitely ended, so it does not encompass the current line
-      SkipResult {
-        nextline: Some((idx, line)),
-        nextline_kw: Keyword::parse(&line),
-        idx_after: Some(i),
+        Some((i, l)) => {
+            SkipResult {
+              nextline: Some((i, l)),
+              nextline_kw: Keyword::parse(l),
+              skip_end: previdx,
+            }
+        }
       }
     } else {
       SkipResult {
         nextline: Some((idx, line)),
         nextline_kw: Keyword::parse(&line),
-        idx_after: Some(idx),
+        skip_end: previdx,
       }
     }
   }
@@ -330,7 +319,7 @@ where
     let mut line; // line of the iterator we're currently processing
     let mut lineidx; // index of the currently processed line
     let mut linekw; // Keyword of the currently processed line
-    let mut endidx = None; // index of the first line after the card
+    let mut previdx = None; // index of the last line of the card
     let mut tmp;
 
     match self.it.next() {
@@ -342,46 +331,27 @@ where
       }
     }
 
-    if linekw == Some(Keyword::Comment) {
-      endidx = Some(lineidx);
-
-      tmp = self.skip_comments();
-      match tmp.nextline {
-        None => {
-          return SkipResult {
-            idx_after: endidx,
-            ..Default::default()
-          }
-        }
-        Some((i, l)) => {
-          line = l;
-          lineidx = i;
-          linekw = tmp.nextline_kw;
-        }
-      }
-    }
-
     for cardline in cardlines {
       match *cardline {
         Line::Provides(_s, ref c) => conds.push(c.evaluate(&line)),
         Line::Ges(ref g) => {
           tmp = self.skip_ges(g);
           match tmp.nextline {
-            None => match tmp.idx_after {
+            None => match tmp.skip_end {
               None => return Default::default(),
               Some(i) => {
                 return SkipResult {
-                  idx_after: Some(i),
+                  skip_end: Some(i),
                   ..Default::default()
                 }
               }
             },
             Some((i, l)) => {
-              if let Some(j) = tmp.idx_after {
+              if let Some(j) = tmp.skip_end {
                 line = l;
                 lineidx = i;
                 linekw = tmp.nextline_kw;
-                endidx = Some(j);
+                previdx = Some(j);
               } else {
                 unreachable!();
               }
@@ -389,37 +359,26 @@ where
           }
         }
         Line::Cells(_s) => {
-          if let Some(kw) = Keyword::parse(line) {
-            if kw == Keyword::Comment {
-              unreachable!();
-            } else if endidx.is_some() {
-              return SkipResult {
-                nextline: Some((lineidx, line)),
-                nextline_kw: linekw,
-                idx_after: endidx,
-              };
-            } else {
-              return SkipResult {
-                nextline: Some((lineidx, line)),
-                nextline_kw: linekw,
-                idx_after: Some(lineidx),
-              };
-            }
+          if linekw.is_some() {
+            return SkipResult {
+              nextline: Some((lineidx, line)),
+              nextline_kw: linekw,
+              skip_end: previdx,
+            };
           } else {
-            tmp = self.skip_comments();
-            match tmp.nextline {
+            let tmp = self.it.next();
+            match tmp {
               None => {
                 return SkipResult {
-                  nextline: Some((lineidx, line)),
-                  nextline_kw: linekw,
-                  idx_after: endidx,
-                }
+                  skip_end: Some(lineidx),
+                  .. Default::default()
+                };
               }
               Some((i, l)) => {
-                endidx = Some(lineidx + 1);
+                previdx = Some(lineidx);
                 line = l;
                 lineidx = i;
-                linekw = tmp.nextline_kw;
+                linekw = Keyword::parse(l);
               }
             }
           }
@@ -428,29 +387,25 @@ where
           if conds.get(i as usize) != Some(&true) {
             continue;
           } else if let Some(kw) = Keyword::parse(line) {
-            if kw == Keyword::Comment {
-              unreachable!();
-            } else {
-              return SkipResult {
-                nextline: Some((lineidx, line)),
-                nextline_kw: Some(kw),
-                idx_after: Some(lineidx),
-              };
-            }
+            return SkipResult {
+              nextline: Some((lineidx, line)),
+              nextline_kw: Some(kw),
+              skip_end: previdx,
+            };
           } else {
-            tmp = self.skip_comments();
-            match tmp.nextline {
+            let tmp = self.it.next();
+            match tmp {
               None => {
                 return SkipResult {
-                  nextline: Some((lineidx, line)),
-                  nextline_kw: None,
-                  idx_after: endidx,
-                }
+                  skip_end: Some(lineidx),
+                  .. Default::default()
+                };
               }
               Some((i, l)) => {
+                previdx = Some(lineidx);
                 line = l;
                 lineidx = i;
-                linekw = None;
+                linekw = Keyword::parse(l);
               }
             }
           }
@@ -458,19 +413,11 @@ where
       }
     }
 
-    if endidx.is_some() {
       SkipResult {
         nextline: Some((lineidx, line)),
         nextline_kw: linekw,
-        idx_after: endidx,
+        skip_end: previdx,
       }
-    } else {
-      SkipResult {
-        nextline: Some((lineidx, line)),
-        nextline_kw: linekw,
-        idx_after: Some(lineidx),
-      }
-    }
   }
 
   pub fn skip_card_gather<'b>(&'b mut self, card: &Card) -> SkipResult<'a, T> {
@@ -478,16 +425,16 @@ where
     let mut res;
     let mut curidx;
     let mut curline;
-    let mut endidx;
+    let mut previdx = None;
 
     loop {
       res = self.skip_card(card);
-
+      println!("Res: {:?}", res);
       match res.nextline {
         // file ended before the next non-comment line
         None => {
           return SkipResult {
-            idx_after: res.idx_after,
+            skip_end: res.skip_end,
             ..Default::default()
           }
         }
@@ -495,18 +442,20 @@ where
           curkw = Keyword::parse(l);
           curline = l;
           curidx = i;
-          endidx = res.idx_after;
+          previdx = previdx.or(Some(curidx-1));
         }
       }
       if curkw != Some(card.keyword) {
         break;
+      } else {
+        previdx = Some(curidx);
       }
     }
 
     SkipResult {
       nextline: Some((curidx, curline)),
       nextline_kw: curkw,
-      idx_after: endidx,
+      skip_end: previdx,
     }
   }
 }
@@ -573,6 +522,7 @@ mod tests {
     "#This", "#is", "#an", "#example", "of", "some", "lines", ".",
   ];
 
+  /*
   #[test]
   fn linesiter_works_with_slice() {
     let mut itr = COMMENTS.iter().enumerate();
@@ -583,16 +533,21 @@ mod tests {
     }
     assert_eq!(itr.next(), Some((5, &COMMENTS[5])));
   }
+  */
 
   #[test]
   fn linesiter_works_with_vec() {
     let v: Vec<String> = vec!["abc".to_owned(), "abc".to_owned()];
 
-    let mut itr = v.iter().enumerate();
+    let mut itr = v.iter().enumerate().filter(|(_,s)| {
+      let t:&str = s.as_ref();
+      let l = t.len();
+      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
+      });
     {
-      let mut li = LinesIter { it: &mut itr };
-      let nextline = li.skip_comments();
-      assert_eq!(nextline.nextline, Some((0, &v[0])));
+      let li = LinesIter { it: &mut itr };
+      let nextline = li.it.next();
+      assert_eq!(nextline, Some((0, &v[0])));
     }
     assert_eq!(itr.next(), Some((1, &v[1])));
   }
@@ -610,51 +565,33 @@ mod tests {
 
   #[test]
   fn linesiter_needs_no_keywords() {
-    let mut itr = COMMENTS.iter().skip(4).enumerate();
+    let mut itr = COMMENTS.iter().skip(4).enumerate().filter(|(_,s)| {
+      let t:&str = s.as_ref();
+      let l = t.len();
+      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
+      });
     let mut li = LinesIter { it: &mut itr };
     assert_eq!(li.skip_to_next_keyword().nextline, None);
   }
 
   #[test]
-  fn linesiter_finds_keywords() {
-    let mut itr = KEYWORD_LINES.iter().enumerate();
+  fn linesiter_finds_real_keywords() {
+    let mut itr = KEYWORD_LINES.iter().enumerate().filter(|(_,s)| {
+      let t:&str = s.as_ref();
+      let l = t.len();
+      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
+      });
     {
       let mut li = LinesIter { it: &mut itr };
       assert_eq!(
         li.skip_to_next_keyword().nextline,
-        Some((0, &KEYWORD_LINES[0]))
-      );
-      assert_eq!(
-        li.skip_to_next_keyword().nextline,
         Some((2, &KEYWORD_LINES[2]))
-      );
-      assert_eq!(
-        li.skip_to_next_keyword().nextline,
-        Some((3, &KEYWORD_LINES[3]))
       );
       assert_eq!(
         li.skip_to_next_keyword().nextline,
         Some((4, &KEYWORD_LINES[4]))
       );
       assert_eq!(li.skip_to_next_keyword().nextline, None);
-    }
-    assert_eq!(itr.next(), None);
-  }
-
-  #[test]
-  fn linesiter_finds_real_keywords() {
-    let mut itr = KEYWORD_LINES.iter().enumerate();
-    {
-      let mut li = LinesIter { it: &mut itr };
-      assert_eq!(
-        li.skip_to_next_real_keyword().nextline,
-        Some((2, &KEYWORD_LINES[2]))
-      );
-      assert_eq!(
-        li.skip_to_next_real_keyword().nextline,
-        Some((4, &KEYWORD_LINES[4]))
-      );
-      assert_eq!(li.skip_to_next_real_keyword().nextline, None);
     }
     assert_eq!(itr.next(), None);
   }
@@ -670,7 +607,11 @@ mod tests {
   #[test]
   fn ges_can_be_skipped() {
     let g = GesType::GesNode;
-    let mut itr = GES1.iter().enumerate();
+    let mut itr = GES1.iter().enumerate().filter(|(_,s)| {
+      let t:&str = s.as_ref();
+      let l = t.len();
+      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
+      });
     let mut li = LinesIter { it: &mut itr };
 
     assert_eq!(li.skip_ges(&g).nextline, Some((4, &GES1[4])));
@@ -692,7 +633,11 @@ mod tests {
   #[test]
   fn ges_can_be_skipped_repeatedly() {
     let g = GesType::GesNode;
-    let mut itr = GES2.iter().enumerate();
+    let mut itr = GES2.iter().enumerate().filter(|(_,s)| {
+      let t:&str = s.as_ref();
+      let l = t.len();
+      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
+      });
     let mut li = LinesIter { it: &mut itr };
 
     assert_eq!(li.skip_ges(&g).nextline, Some((3, &GES2[3])));
@@ -715,7 +660,11 @@ mod tests {
   #[test]
   fn ges_ends_without_end() {
     let g = GesType::GesNode;
-    let mut itr = GES3.iter().enumerate();
+    let mut itr = GES3.iter().enumerate().filter(|(_,s)| {
+      let t:&str = s.as_ref();
+      let l = t.len();
+      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
+      });
     let mut li = LinesIter { it: &mut itr };
 
     assert_eq!(li.skip_ges(&g).nextline, Some((2, &GES3[2])));
@@ -728,7 +677,11 @@ mod tests {
   #[test]
   fn ges_can_skip_nothing() {
     let g = GesType::GesNode;
-    let mut itr = GES4.iter().enumerate();
+    let mut itr = GES4.iter().enumerate().filter(|(_,s)| {
+      let t:&str = s.as_ref();
+      let l = t.len();
+      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
+      });
     let mut li = LinesIter { it: &mut itr };
 
     assert_eq!(li.skip_ges(&g).nextline, Some((0, &GES4[0])));
@@ -748,12 +701,16 @@ mod tests {
   #[test]
   fn ges_includes_comments_inside() {
     let g = GesType::GesNode;
-    let mut itr = GES6.iter().enumerate();
+    let mut itr = GES6.iter().enumerate().filter(|(_,s)| {
+      let t:&str= s.as_ref();
+      let l = t.len();
+      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
+      });
     let mut li = LinesIter { it: &mut itr };
 
     let tmp = li.skip_ges(&g);
     assert_eq!(tmp.nextline, Some((6, &GES6[6])));
-    assert_eq!(tmp.idx_after, Some(5));
+    assert_eq!(tmp.skip_end, Some(4));
     assert_eq!(li.it.next(), None);
   }
 
@@ -767,12 +724,16 @@ mod tests {
   #[test]
   fn ges_works_with_only_comments() {
     let g = GesType::GesNode;
-    let mut itr = GES7.iter().enumerate();
+    let mut itr = GES7.iter().enumerate().filter(|(_,s)| {
+      let t:&str = s.as_ref();
+      let l = t.len();
+      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
+      });
     let mut li = LinesIter { it: &mut itr };
 
     let tmp = li.skip_ges(&g);
     assert_eq!(tmp.nextline, None);
-    assert_eq!(tmp.idx_after, Some(0));
+    assert_eq!(tmp.skip_end, None);
     assert_eq!(li.it.next(), None);
   }
 
@@ -786,12 +747,16 @@ mod tests {
   #[test]
   fn ges_skips_over_comments_after_end() {
     let g = GesType::GesNode;
-    let mut itr = GES8.iter().enumerate();
+    let mut itr = GES8.iter().enumerate().filter(|(_,s)| {
+      let t:&str = s.as_ref();
+      let l = t.len();
+      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
+      });
     let mut li = LinesIter { it: &mut itr };
 
     let tmp = li.skip_ges(&g);
     assert_eq!(tmp.nextline, None);
-    assert_eq!(tmp.idx_after, Some(1));
+    assert_eq!(tmp.skip_end, Some(0));
     assert_eq!(li.it.next(), None);
   }
 
@@ -807,7 +772,11 @@ mod tests {
 
   #[test]
   fn itr_skips_nsmas() {
-    let mut itr = CARD_NSMAS.iter().enumerate();
+    let mut itr = CARD_NSMAS.iter().enumerate().filter(|(_,s)| {
+      let t:&str = s.as_ref();
+      let l = t.len();
+      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
+      });
     let mut li = LinesIter { it: &mut itr };
     let firstline = li.it.next();
     let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
@@ -816,7 +785,7 @@ mod tests {
 
     let tmp = li.skip_card(card);
     assert_eq!(tmp.nextline, None);
-    assert_eq!(tmp.idx_after, Some(6));
+    assert_eq!(tmp.skip_end, Some(5));
   }
 
   const CARD_NODES: [&'static str; 9] = [
@@ -833,7 +802,11 @@ mod tests {
 
   #[test]
   fn itr_skips_nodes() {
-    let mut itr = CARD_NODES.iter().enumerate();
+    let mut itr = CARD_NODES.iter().enumerate().filter(|(_,s)| {
+      let t:&str = s.as_ref();
+      let l = t.len();
+      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
+      });
     let mut li = LinesIter { it: &mut itr };
     let firstline = li.it.next();
     let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
@@ -842,7 +815,7 @@ mod tests {
 
     let tmp = li.skip_card_gather(card);
     assert_eq!(tmp.nextline, Some((8, &"SHELL /     ")));
-    assert_eq!(tmp.idx_after, Some(8));
+    assert_eq!(tmp.skip_end, Some(7));
   }
 
   const CARD_MASS_INCOMPLETE: [&'static str; 9] = [
@@ -859,7 +832,11 @@ mod tests {
 
   #[test]
   fn itr_skips_incomplete_cards() {
-    let mut itr = CARD_MASS_INCOMPLETE.iter().enumerate().skip(2);
+    let mut itr = CARD_MASS_INCOMPLETE.iter().enumerate().skip(2).filter(|(_,s)| {
+      let t:&str = s.as_ref();
+      let l = t.len();
+      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
+      });
     let mut li = LinesIter { it: &mut itr };
     let firstline = li.it.next();
     let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
@@ -868,7 +845,7 @@ mod tests {
 
     let tmp = li.skip_card(card);
     assert_eq!(tmp.nextline, Some((7, &"NODE  /      ")));
-    assert_eq!(tmp.idx_after, Some(5));
+    assert_eq!(tmp.skip_end, Some(4));
   }
 
   const CARD_MASS_OPT: [&'static str; 12] = [
@@ -888,7 +865,11 @@ mod tests {
 
   #[test]
   fn itr_skips_optional_lines() {
-    let mut itr = CARD_MASS_OPT.iter().enumerate();
+    let mut itr = CARD_MASS_OPT.iter().enumerate().filter(|(_,s)| {
+      let t:&str = s.as_ref();
+      let l = t.len();
+      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
+      });
     let mut li = LinesIter { it: &mut itr };
     let firstline = li.it.next();
     let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
@@ -897,7 +878,7 @@ mod tests {
 
     let tmp = li.skip_card(card);
     assert_eq!(tmp.nextline, None);
-    assert_eq!(tmp.idx_after, Some(11));
+    assert_eq!(tmp.skip_end, Some(10));
   }
 
   const LINES_GATHER: [&'static str; 20] = [
@@ -945,7 +926,11 @@ mod tests {
 
   #[test]
   fn itr_skips_gather_cards() {
-    let mut itr = LINES_GATHER.iter().enumerate();
+    let mut itr = LINES_GATHER.iter().enumerate().filter(|(_,s)| {
+      let t:&str = s.as_ref();
+      let l = t.len();
+      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
+      });
     let mut li = LinesIter { it: &mut itr };
     let firstline = li.it.next();
     let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
@@ -954,20 +939,20 @@ mod tests {
 
     let mut tmp = li.skip_fold(card);
     assert_eq!(tmp.nextline, Some((5, &LINES_GATHER[5])));
-    assert_eq!(tmp.idx_after, Some(4));
+    assert_eq!(tmp.skip_end, Some(3));
 
     tmp = li.skip_fold(&SHELL);
     assert_eq!(tmp.nextline, Some((6, &LINES_GATHER[6])));
-    assert_eq!(tmp.idx_after, Some(6));
+    assert_eq!(tmp.skip_end, Some(5));
 
     let _ = li.it.next();
     tmp = li.skip_fold(&SHELL);
     assert_eq!(tmp.nextline, Some((18, &LINES_GATHER[18])));
-    assert_eq!(tmp.idx_after, Some(16));
+    assert_eq!(tmp.skip_end, Some(15));
 
     tmp = li.skip_fold(&NODE);
     assert_eq!(tmp.nextline, None);
-    assert_eq!(tmp.idx_after, None);
+    assert_eq!(tmp.skip_end, None);
   }
 
 }
