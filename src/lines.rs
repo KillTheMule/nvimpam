@@ -429,7 +429,7 @@ where
 
     loop {
       res = self.skip_card(card);
-      println!("Res: {:?}", res);
+
       match res.nextline {
         // file ended before the next non-comment line
         None => {
