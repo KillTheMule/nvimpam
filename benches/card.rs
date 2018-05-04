@@ -19,6 +19,7 @@ fn bench_parse2folddata(b: &mut Bencher) {
     .lines()
     .map(|l| l.unwrap())
     .collect();
+  // let v = include!("../files/example.rs");
 
   let mut f = FoldList::new();
   b.iter(|| {
