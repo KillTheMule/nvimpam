@@ -94,3 +94,61 @@ pub static NSMAS2: Card = Card {
   ownfold: true,
   keyword: Nsmas2,
 };
+
+#[cfg(test)]
+mod tests {
+
+  const CARD_NSMAS: [&'static str; 7] = [
+    "$ NSMAS - Nonstructural mass",
+    "$#       IDNODMS            MASS            MLEN            MARE            MVOL",
+    "NSMAS /        1              0.                                                ",
+    "$#                                                                         TITLE",
+    "NAME NSMAS / ->1                                                                ",
+    "        ELE",
+    "        END",
+  ];
+
+  #[test]
+  fn fold_nsmas() {
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+    let mut it = CARD_NSMAS.iter().enumerate();
+    let _ = it.next();
+    let _ = it.next();
+    let _ = it.next();
+
+    let v = vec![(2, 6, Nsmas)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_NSMAS);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  const CARD_MASS: [&'static str; 10] = [
+    "$ MASS Card",
+    "$#         IDNOD    IFRA   Blank            DISr            DISs            DISt",
+    "MASS  /        0       0                                                        ",
+    "$#                                                                         TITLE",
+    "NAME MASS  / ->1                                                                ",
+    "$# BLANK              Mx              My              Mz",
+    "                                                        ",
+    "$# BLANK              Ix              Iy              Iz                   Blank",
+    "                                                                                ",
+    "        END",
+  ];
+
+  #[test]
+  fn fold_mass() {
+    use card::keyword::Keyword;
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+    let v: Vec<(u64, u64, Keyword)> = vec![(2, 9, Mass)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_MASS);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+}
