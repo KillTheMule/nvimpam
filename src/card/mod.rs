@@ -1,3 +1,15 @@
+//! A datastructure to represent a `Card` of the FEM-Solver Pamcrash.
+//!
+//! There is a 1-1 correspondence between a [`Card`](Card) and
+//! a [`Keyword`](Keyword), but are used differently. A
+//! [`Keyword`](keyword) is used as a parsing result for
+//! strings all over the place, while [`Card`](Card) is used to
+//! define global static values the represent the concrete CARD entities of
+//! Pamcrash.
+//!
+//! The definitions of the global static values can be found in the
+//! [`carddata`](::carddata) module.
+//!
 pub mod cell;
 pub mod ges;
 pub mod keyword;
@@ -7,6 +19,10 @@ use self::keyword::Keyword;
 use self::line::Line;
 use carddata::*;
 
+/// A card consists of severals [`Line`](::card::line::Line)s, and starts with a
+/// given [`Keyword`](::card::keyword::Keyword). If `ownfold` is true, than each
+/// card of this type will get an own fold. Otherwise, all adjacent cards of
+/// that types are gathered into one fold.
 #[derive(Debug)]
 pub struct Card {
   pub lines: &'static [Line],

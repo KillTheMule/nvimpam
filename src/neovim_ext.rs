@@ -1,5 +1,5 @@
 //! Extending the rpc api provided by `neovim_lib` with the capabilities
-//! provided by <https://github.com/neovim/neovim/pull/5269>
+//! provided by [Neovim#7917](https://github.com/neovim/neovim/pull/7917)
 use neovim_lib::neovim::map_generic_error;
 use neovim_lib::neovim::map_result;
 use neovim_lib::neovim::CallError;

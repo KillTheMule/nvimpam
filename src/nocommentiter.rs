@@ -1,10 +1,17 @@
+//! This module holds [`NoCommentIter`](NoCommentIter), the central
+//! datastructure for the folding functionality of nvimpam.
+//!
+//! It returns enumerated Lines, but skips Comments (lines starting with `$` or
+//! `#`). All skip functions, used by
+//! [`add_folds`](::folds::FoldList::add_folds), work on a
+//! [`NoCommentIter`](NoCommentIter).
 use std::default::Default;
 
-use skipresult::SkipResult;
 use card::ges::GesType;
 use card::keyword::Keyword;
 use card::line::Line;
 use card::Card;
+use skipresult::SkipResult;
 
 /// Designates that the comments have been removed.
 pub trait CommentLess {
@@ -13,6 +20,8 @@ pub trait CommentLess {
     Self: Sized;
 }
 
+/// The struct simply holds a type instance. Skipping comments is done in the
+/// Iterator implementation.
 pub struct NoCommentIter<I> {
   it: I,
 }
@@ -174,6 +183,9 @@ where
     }
   }
 
+  /// A wrapper around [`skip_card`](NoCommentIter::skip_card) and
+  /// [`skip_card_gather`](NoCommentIter::skip_card_gather), dispatching by
+  /// value of [`Card.ownfold`](::card::Card)
   pub fn skip_fold<'b>(&'b mut self, card: &Card) -> SkipResult<'a, T> {
     if card.ownfold {
       self.skip_card(card)
@@ -182,6 +194,13 @@ where
     }
   }
 
+  /// Let [`NoCommentIter`](NoCommentIter) skip the given
+  /// [`Card`](::card::Card), but only skip this 1 card. This only really makes
+  /// sense when the last line the iterator returned is the line with the
+  /// keyword starting that card.
+  ///
+  /// If you want to skip all cards of a given type, use
+  /// [`skip_card_gather`](NoCommentIter::skip_card_gather)
   pub fn skip_card<'b>(&'b mut self, card: &Card) -> SkipResult<'a, T> {
     let mut cardlines = card.lines.iter();
     let mut conds: Vec<bool> = vec![]; // the vec to hold the conditionals
@@ -293,6 +312,10 @@ where
     }
   }
 
+  /// Let [`NoCommentIter`](NoCommentIter) skip all given
+  /// [`Card`](::card::Card)s, until the next card starts. The basic assumption
+  /// is that the last line the iterator returned is a the first line of a card
+  /// of the given type, but that might not always be strictly neccessary.
   pub fn skip_card_gather<'b>(&'b mut self, card: &Card) -> SkipResult<'a, T> {
     let mut curkw;
     let mut res;

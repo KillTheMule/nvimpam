@@ -1,5 +1,5 @@
 //! The events that nvimpam needs to accept and deal with. They're sent by the
-//! [`NeovimHandler`](handler/struct.NeovimHandler.html) to the main loop.
+//! [`NeovimHandler`](::handler::NeovimHandler) to the main loop.
 use failure::Error;
 use std::fmt;
 use std::sync::mpsc;
@@ -58,12 +58,12 @@ impl Event {
   /// [handler](../handler/struct.NeovimHandler.html).
   ///
   /// The loop starts by enabling
-  /// [buffer events](../neovim_ext/trait.BufferExt.html#method.event_sub).
-  /// It creates [`lines`](../lines/struct.Lines.html) and a
-  /// [`foldlist`](../folds/struct.FoldList.html)  and updates them from the
+  /// [buffer events](::neovim_ext::BufferExt::event_sub).
+  /// It creates [`lines`](::lines::Lines) and a
+  /// [`foldlist`](::folds::FoldList)  and updates them from the
   /// events received. It calls
-  /// [`resend_all`](../folds/struct.FoldList.html#method.resend_all) when
-  /// the [`foldlist`](../folds/struct.FoldList.html) was created, or the
+  /// [`resend_all`](::folds::FoldList::resend_all) when
+  /// the [`foldlist`](::folds::FoldList) was created, or the
   /// [`RefreshFolds`](../event/enum.Event.html#variant.RefreshFolds) event
   /// was sent.
   ///

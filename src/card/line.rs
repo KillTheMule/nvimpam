@@ -1,6 +1,9 @@
+//! An enum to classify the several types of lines that can occur inside a card
+//! of a Pamcrash input file. Might not really be a line (see GES).
 use card::cell::Cell;
 use card::ges::GesType;
 
+/// A line inside a card in a Pamcrash input file.
 #[derive(Debug, PartialEq)]
 pub enum Line {
   /// A standard line, containing several cells of a fixed width

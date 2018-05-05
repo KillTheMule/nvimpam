@@ -4,9 +4,9 @@ use std::str::Bytes;
 
 use card::keyword::Keyword;
 
-/// [`parse_str`](../cards/enum.Keyword.html#method.parse_str) seems to largely
+/// parse_str seems to largely
 /// dominate the benchmark for
-/// [`create_card_data`](../cards/enum.Keyword.html#method.create_card_data),
+/// create_card_data,
 /// this might be a faster alternative. Needs real benchmarks!
 #[inline]
 #[allow(dead_code)]
@@ -20,7 +20,7 @@ pub fn parse_str2(s: &str) -> Option<Keyword> {
   }
 }
 
-/// Helper function used by [`parse_str3`](fn.parse_str3.html).
+/// Helper function used by parse_str3.
 #[inline]
 #[allow(dead_code)]
 pub fn check_rest(
@@ -36,9 +36,9 @@ pub fn check_rest(
   Some(card)
 }
 
-/// [`parse_str`](../cards/enum.Keyword.html#method.parse_str) seems to largely
+/// parse_str seems to largely
 /// dominate the benchmark for
-/// [`create_card_data`](../cards/enum.Keyword.html#method.create_card_data),
+/// create_card_data,
 /// this might be a faster alternative. Needs real benchmarks!
 #[inline]
 #[allow(dead_code)]
@@ -59,9 +59,9 @@ pub fn parse_str3(s: &str) -> Option<Keyword> {
   }
 }
 
-/// [`parse_str`](../cards/enum.Keyword.html#method.parse_str) seems to largely
+/// parse_str seems to largely
 /// dominate the benchmark for
-/// [`create_card_data`](../cards/enum.Keyword.html#method.create_card_data),
+/// create_card_data,
 /// this might be a faster alternative. Needs real benchmarks!
 #[inline]
 #[allow(dead_code)]
@@ -119,15 +119,14 @@ pub struct Folds<I> {
   ncard: Option<Fold>, // saved up the next fold
 }
 
-/// Trait that creates an iterator adaptor to contract folding data [like
-/// this](../cards/enum.Keyword.html#method.create_card_data).
+/// Trait that creates an iterator adaptor to contract folding data.
 pub trait FoldExt: Sized {
   fn folds(self) -> Folds<Self>;
 }
 
 /// Impl the iterator adaptors for iterators that return a numbering of card
 /// classifications, as we get from Vec<String> by first mapping
-/// [`parse_str`](../cards/enum.Keyword.html#method.parse_str) and then calling
+/// parse_str and then calling
 /// enumerate()
 impl<I> FoldExt for I
 where
@@ -142,7 +141,7 @@ where
 }
 
 /// Iterating over fold data and returning a fold range for each next() call.
-/// Might not be correct, see this [comment](struct.Folds.html)
+/// Might not be correct.
 impl<I> Iterator for Folds<I>
 where
   I: ExactSizeIterator<Item = (usize, Option<Keyword>)>,
@@ -191,16 +190,16 @@ where
           if *linecard == curcard {
             last_before_comment = 0;
             continue;
-          } 
-//          else if *linecard == Some(Keyword::Comment) {
-//           if *i > 1 && last_before_comment == 0 {
-//             last_before_comment = i - 1;
-//             continue;
-//           } else if *i == 0 {
-//             curcard = Some(Keyword::Comment);
-//             curcardstart = 0;
-//           }
-           else {
+          }
+          //          else if *linecard == Some(Keyword::Comment) {
+          //           if *i > 1 && last_before_comment == 0 {
+          //             last_before_comment = i - 1;
+          //             continue;
+          //           } else if *i == 0 {
+          //             curcard = Some(Keyword::Comment);
+          //             curcardstart = 0;
+          //           }
+          else {
             // linecard != curcard, and linecard != Some(Comment)
             if last_before_comment > 0 {
               return Some(Fold {
@@ -232,9 +231,9 @@ where
   }
 }
 
-/// Use [`FoldExt`](trait.FoldExt.html) to creat the card data. Seems slower
+/// Use FoldExt to creat the card data. Seems slower
 /// than the direct way.  Might not be correct, see this
-/// [comment](struct.Folds.html)
+/// comment.
 #[inline]
 #[allow(dead_code)]
 pub fn create_card_data5<T: AsRef<str>>(
@@ -252,4 +251,3 @@ pub fn create_card_data5<T: AsRef<str>>(
   }
   v
 }
-

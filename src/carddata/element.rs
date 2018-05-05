@@ -1,3 +1,5 @@
+//! This modules holds the the global static element [`Card`](::card::Card)
+//! instances.
 use card::cell::Cell::*;
 use card::keyword::Keyword::*;
 use card::line::Line::*;

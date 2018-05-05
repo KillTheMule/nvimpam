@@ -1,3 +1,6 @@
+//! The General Entity Selection scheme of Pamcrash.
+
+/// An enum to denote the type of a GES. Not yet used.
 #[derive(Debug, PartialEq)]
 pub enum GesType {
   GesNode,
@@ -7,6 +10,8 @@ pub enum GesType {
 }
 
 impl GesType {
+  /// Checks if a given line fits the basic format of a line in a GES: 8 blanks
+  /// followed by one of several keywords. Checks nothing else.
   pub fn contains<T: AsRef<str>>(&self, line: &T) -> bool {
     let b = line.as_ref().as_bytes();
 
@@ -55,6 +60,8 @@ impl GesType {
     }
   }
 
+  /// Check if a given line ends a GES. That is, it consists of 8 blanks
+  /// followed by "END"
   pub fn ended_by<T: AsRef<str>>(&self, line: &T) -> bool {
     let b = line.as_ref().as_bytes();
     let len = b.len();

@@ -46,10 +46,7 @@ impl NeovimHandler {
 
   /// Parse a nvim_buf_update notification into a
   /// [Update](../event/enum.Event.html#variant.Update) event
-  pub fn parse_update(
-    &mut self,
-    mut args: Vec<Value>,
-  ) -> Result<Event, Error> {
+  pub fn parse_update(&mut self, mut args: Vec<Value>) -> Result<Event, Error> {
     let linedata = parse_vecstr(last_arg(
       &mut args,
       "Not enough arguments in nvim_buf_update!",

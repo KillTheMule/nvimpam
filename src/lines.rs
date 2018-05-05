@@ -1,7 +1,5 @@
 //! This module holds the datastructure for the Lines of the buffer. For now,
-//! it's simply a `Vec<String>` with an appropriate API. Also home to
-//! `LinesIter` which is used to iterate over the lines to parse them into the
-//! fold structure.
+//! it's simply a `Vec<String>` with an appropriate API.
 //!
 //! Future ideas, if performance isn't enough: Skip list, gap buffer (adapted to
 //! lines instead of strings), rope (adapted to lines instead of strings)

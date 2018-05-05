@@ -1,3 +1,4 @@
+//! This module contains all the global static [`Card`](::card::Card) instances
 pub mod element;
 pub mod node;
 

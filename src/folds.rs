@@ -1,4 +1,4 @@
-//! This module provides the [`FoldList`](folds/struct.FoldList.html) struct to
+//! This module provides the [`FoldList`](::folds::FoldList) struct to
 //! manage folds in a buffer.
 //!
 //! Example usage:
@@ -27,7 +27,7 @@ use nocommentiter::CommentLess;
 
 /// Holds the fold data of the buffer. A fold has the following data:
 /// Linenumbers start, end (indexed from 1), and a
-/// [Keyword](../cards/enum.Keyword.html).
+/// [Keyword](::card::Keyword).
 #[derive(Default, Debug)]
 pub struct FoldList {
   /// List of folds, keyed by [start, end], valued by Keyword, sorted
@@ -150,11 +150,11 @@ impl FoldList {
   ///
   /// Creates only level 1 folds. Depending on the
   /// [ownfold](../card/struct.Card.html#structfield.ownfold) parameter in the
-  /// definition of the card in the [carddata](../carddata/index.html) module,
-  /// each card will be in an own fold, or several adjacent (modulo comments)
-  /// cards will be subsumed into a fold.
+  /// definition of the card in the [carddata](::carddata) module, each card
+  /// will be in an own fold, or several adjacent (modulo comments) cards will
+  /// be subsumed into a fold.
   pub fn add_folds<T: AsRef<str>>(&mut self, lines: &[T]) -> Result<(), Error> {
-    let mut li = lines.iter().enumerate().remove_comments(); 
+    let mut li = lines.iter().enumerate().remove_comments();
 
     let mut foldstart;
     let mut foldend;

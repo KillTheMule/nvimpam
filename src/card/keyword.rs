@@ -1,7 +1,7 @@
-//! This module provides the [Keyword](cards/enum.Keyword.html) enum to
-//! classify lines
-//! according to what card type they belong to. The term "Keyword" is from the
-//! FEM solver Pamcrash, but generally used among FEM solvers.
+//! This module provides the [Keyword](Keyword) enum to
+//! classify lines according to what card type they belong to. The term
+//! "Keyword" is from the FEM solver Pamcrash, but generally used among FEM
+//! solvers.
 
 /// An enum to denote the several types of cards a line might belong to. For now
 /// carries only information equivalent to the keyword, not the subtypes, e.g.
