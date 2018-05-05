@@ -2,12 +2,7 @@
 //! to use right now, but want to keep for later.
 use std::str::Bytes;
 
-use failure;
-use failure::Error;
-
 use card::keyword::Keyword;
-use card::Card;
-use folds::FoldList;
 
 /// [`parse_str`](../cards/enum.Keyword.html#method.parse_str) seems to largely
 /// dominate the benchmark for
@@ -20,7 +15,7 @@ pub fn parse_str2(s: &str) -> Option<Keyword> {
   match s.bytes().next() {
     Some(b'N') if s.starts_with("NODE") => Some(Node),
     Some(b'S') if s.starts_with("SHELL") => Some(Shell),
-    Some(b'$') | Some(b'#') => Some(Comment),
+    //Some(b'$') | Some(b'#') => Some(Comment),
     _ => None,
   }
 }
@@ -59,7 +54,7 @@ pub fn parse_str3(s: &str) -> Option<Keyword> {
       _ => None,
     },
     Some(b'S') => check_rest(bytes, b"HELL", Shell),
-    Some(b'$') | Some(b'#') => Some(Comment),
+    //Some(b'$') | Some(b'#') => Some(Comment),
     _ => None,
   }
 }
@@ -89,10 +84,10 @@ pub fn parse_str4(s: &str) -> Option<Keyword> {
       cmp::min(8, b.len()),
     );
   }
-  let m0 = m as u8;
-  if m0 == b'$' || m0 == b'#' {
-    return Some(Comment);
-  }
+  //let m0 = m as u8;
+  //if m0 == b'$' || m0 == b'#' {
+  //  return Some(Comment);
+  //}
   if m as u32 == NODE {
     return Some(Node);
   }
@@ -171,11 +166,11 @@ where
         None => {
           if *i > 0 && last_before_comment > 0 {
             if i - last_before_comment > 1 {
-              self.ncard = Some(Fold {
-                start: last_before_comment as u64 + 1,
-                end: *i as u64 - 1,
-                card: Some(Keyword::Comment),
-              });
+              //self.ncard = Some(Fold {
+              //  start: last_before_comment as u64 + 1,
+              //  end: *i as u64 - 1,
+              //  card: Some(Keyword::Comment),
+              //});
               return Some(Fold {
                 start: curcardstart as u64,
                 end: last_before_comment as u64,
@@ -196,15 +191,16 @@ where
           if *linecard == curcard {
             last_before_comment = 0;
             continue;
-          } else if *linecard == Some(Keyword::Comment) {
-            if *i > 1 && last_before_comment == 0 {
-              last_before_comment = i - 1;
-              continue;
-            } else if *i == 0 {
-              curcard = Some(Keyword::Comment);
-              curcardstart = 0;
-            }
-          } else {
+          } 
+//          else if *linecard == Some(Keyword::Comment) {
+//           if *i > 1 && last_before_comment == 0 {
+//             last_before_comment = i - 1;
+//             continue;
+//           } else if *i == 0 {
+//             curcard = Some(Keyword::Comment);
+//             curcardstart = 0;
+//           }
+           else {
             // linecard != curcard, and linecard != Some(Comment)
             if last_before_comment > 0 {
               return Some(Fold {
@@ -257,236 +253,3 @@ pub fn create_card_data5<T: AsRef<str>>(
   v
 }
 
-/// Alternative to `add_folds` on a `foldlist`
-/// DOES NOT WORK. Needs to properly deal with the results of `get_foldend2`
-#[allow(dead_code)]
-pub fn add_folds2<T: AsRef<str>>(
-  foldlist: &mut FoldList,
-  lines: &[T],
-) -> Result<(), Error> {
-  if lines.is_empty() {
-    return Err(failure::err_msg("No lines passed!"));
-  }
-  // Iterate over the lines once
-  let mut lines_enumerated_without_comments = Box::new(
-    lines
-      .iter()
-      .enumerate()
-      .filter(|&(_, l)| Keyword::parse(&l) != Some(Keyword::Comment)),
-  );
-  // Iterator may be advanced by this loop or `get_foldend`
-  while let Some((cur_idx, cur_line)) = lines_enumerated_without_comments.next()
-  {
-    let cur_kw;
-    match Keyword::parse(&cur_line) {
-      None => continue,
-      // None |
-      // Some(Keyword::Comment) => continue,
-      Some(kw) => cur_kw = kw,
-    }
-
-    match cur_kw {
-      Keyword::Comment => unreachable!(),
-      c => {
-        let foldend = get_foldend2(&c, &mut lines_enumerated_without_comments);
-        if let Some(i) = foldend.0 {
-          foldlist.checked_insert(cur_idx as u64, i, c)?;
-        }
-        //cur_kw = foldend.1.unwrap();
-
-        //if let Some(i) = foldend.2 {
-        //  cur_idx = i as usize;
-        //}
-      }
-    }
-  }
-  Ok(())
-}
-
-/// Alternative to `get_foldend` to use with `add_folds2`
-/// Needs a trait object because the use of filter make the types not writeable
-#[inline]
-#[allow(dead_code)]
-pub fn get_foldend2<T: AsRef<str>>(
-  kw: &Keyword,
-  it: &mut Iterator<Item = (usize, T)>,
-) -> (Option<u64>, Option<Keyword>, Option<u64>) {
-  let card: &Card = kw.into();
-
-  if card.ownfold {
-    let num = card.lines.len();
-    let mut i = 0;
-    let mut idx = 0;
-    let mut line;
-
-    while i < num {
-      println!("{}", i);
-      let tmp = it.next();
-      match tmp {
-        None => return (None, None, None),
-        Some((j, l)) => {
-          idx = j;
-          line = l;
-        }
-      }
-
-      if let Some(k) = Keyword::parse(&line) {
-        if k == Keyword::Comment {
-          i += 1;
-          continue;
-        }
-        return (None, Some(k), Some(idx as u64));
-      } else {
-        i += 1;
-      }
-    }
-
-    let tmp = it.next();
-    match tmp {
-      None => (Some(idx as u64), None, None),
-      Some((i, l)) => (
-        Some(idx as u64),
-        Keyword::parse(&l),
-        Some(i as u64),
-      ),
-    }
-  } else {
-    // !card.ownfold
-    let mut idx;
-    let mut line;
-    let mut curkw;
-    let mut idx_before_comment = 0;
-
-    let tmp = it.next();
-    match tmp {
-      None => return (None, None, None),
-      Some((j, l)) => {
-        idx = j;
-        line = l;
-        curkw = Keyword::parse(&line);
-      }
-    }
-
-    if curkw.is_none() {
-      return (None, None, None);
-    }
-
-    while curkw == Some(*kw) || curkw == Some(Keyword::Comment) {
-      if curkw == Some(Keyword::Comment) && idx_before_comment == 0 {
-        idx_before_comment = idx - 1;
-      } else if curkw == Some(*kw) && idx_before_comment > 0 {
-        idx_before_comment = 0;
-      }
-      let tmp = it.next();
-      match tmp {
-        None => return (Some(idx as u64), None, None),
-        Some((j, l)) => {
-          idx = j;
-          line = l;
-          curkw = Keyword::parse(&line);
-        }
-      }
-    }
-
-    if idx_before_comment > 0 {
-      (
-        Some(idx_before_comment as u64),
-        curkw,
-        Some(idx as u64),
-      )
-    } else {
-      (Some(idx as u64 - 1), curkw, Some(idx as u64))
-    }
-  }
-}
-
-/// The old implementation for parsing the lines of the file into the
-/// foldlist structure.
-#[inline]
-#[allow(dead_code)]
-pub fn add_keyword_data<T: AsRef<str>>(
-  foldlist: &mut FoldList,
-  lines: &[T],
-) -> Result<(), Error> {
-  let it = lines
-    .iter()
-    .map(|s| Keyword::parse(s))
-    .enumerate();
-  let mut curkwstart = 0;
-  let mut curkw: Option<Keyword> = None;
-
-  let mut last_before_comment = 0;
-
-  for (i, linekw) in it {
-    match linekw {
-      None => {
-        if i > 0 {
-          if let Some(c) = curkw {
-            if last_before_comment > 0 {
-              foldlist.checked_insert(
-                curkwstart as u64,
-                last_before_comment as u64,
-                c,
-              )?;
-              if i - last_before_comment > 1 {
-                foldlist.checked_insert(
-                  last_before_comment as u64 + 1,
-                  i as u64 - 1,
-                  Keyword::Comment,
-                )?;
-              }
-              last_before_comment = 0;
-            } else {
-              foldlist.checked_insert(curkwstart as u64, i as u64 - 1, c)?;
-            }
-          }
-        }
-        curkw = None;
-        curkwstart = i;
-      }
-      Some(ref c) => {
-        if linekw == curkw {
-          last_before_comment = 0;
-          continue;
-        } else if linekw == Some(Keyword::Comment) {
-          if i > 1 && last_before_comment == 0 {
-            last_before_comment = i - 1;
-            continue;
-          } else if i == 0 {
-            curkw = Some(Keyword::Comment);
-            curkwstart = 0;
-          }
-        } else {
-          // linekw != curkw, and linekw != Some(Comment)
-          if let Some(c) = curkw {
-            if last_before_comment > 0 {
-              foldlist.checked_insert(
-                curkwstart as u64,
-                last_before_comment as u64,
-                c,
-              )?;
-              // probably redundant
-              if i > 0 {
-                foldlist.checked_insert(
-                  last_before_comment as u64 + 1,
-                  i as u64 - 1,
-                  Keyword::Comment,
-                )?;
-              }
-              last_before_comment = 0;
-            } else if i > 0 {
-              foldlist.checked_insert(curkwstart as u64, i as u64 - 1, c)?;
-            }
-          }
-          curkw = Some(*c);
-          curkwstart = i;
-        }
-      }
-    }
-  }
-  // When through the whole vec, need to insert a last kw
-  if let Some(c) = curkw {
-    foldlist.checked_insert(curkwstart as u64, lines.len() as u64 - 1, c)?;
-  }
-  Ok(())
-}

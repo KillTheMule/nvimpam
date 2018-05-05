@@ -20,7 +20,6 @@ impl<'a> From<&'a Keyword> for &'static Card {
       Keyword::Node => &NODE,
       Keyword::Cnode => &CNODE,
       Keyword::Shell => &SHELL,
-      Keyword::Comment => &COMMENT,
       Keyword::Mass => &MASS,
       Keyword::Nsmas => &NSMAS,
       Keyword::Nsmas2 => &NSMAS2,

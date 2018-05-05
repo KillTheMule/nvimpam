@@ -7,7 +7,7 @@ use self::test::Bencher;
 use nvimpam_lib::card::ges::GesType;
 use nvimpam_lib::card::keyword::Keyword;
 use nvimpam_lib::folds::FoldList;
-use nvimpam_lib::lines::LinesIter;
+use nvimpam_lib::lines::CommentLess;
 
 #[bench]
 fn bench_parse2folddata(b: &mut Bencher) {
@@ -64,8 +64,7 @@ fn bench_skip_ges(b: &mut Bencher) {
   let g = GesType::GesNode;
 
   b.iter(|| {
-    let mut itr = GES.iter().enumerate();
-    let mut li = test::black_box(LinesIter { it: &mut itr });
+    let mut li = test::black_box(GES.iter().enumerate().remove_comments());
     let mut _a = li.skip_ges(&g);
     _a = li.skip_ges(&g);
   });

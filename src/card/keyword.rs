@@ -11,7 +11,6 @@ pub enum Keyword {
   Node,
   Cnode,
   Shell,
-  Comment,
   Mass,
   Nsmas,
   Nsmas2,
@@ -26,9 +25,7 @@ impl Keyword {
     let s = s.as_ref().as_bytes();
     let len = s.len();
 
-    if len > 0 && (s[0] == b'$' || s[0] == b'#') {
-      Some(Comment)
-    } else if len == 0 || len < 8 {
+    if len == 0 || len < 8 {
       None
     } else {
       let start = &s[0..8];

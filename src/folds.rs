@@ -23,7 +23,7 @@ use failure::ResultExt;
 use neovim_lib::{Neovim, NeovimApi};
 
 use card::keyword::Keyword;
-use lines::LinesIter;
+use lines::CommentLess;
 
 /// Holds the fold data of the buffer. A fold has the following data:
 /// Linenumbers start, end (indexed from 1), and a
@@ -80,7 +80,7 @@ impl FoldList {
     end: u64,
     kw: Keyword,
   ) -> Result<(), Error> {
-    if start < end && kw != Keyword::Comment {
+    if start < end {
       self.insert(start, end, kw)?
     }
     Ok(())
@@ -154,12 +154,7 @@ impl FoldList {
   /// each card will be in an own fold, or several adjacent (modulo comments)
   /// cards will be subsumed into a fold.
   pub fn add_folds<T: AsRef<str>>(&mut self, lines: &[T]) -> Result<(), Error> {
-    let mut itr = lines.iter().enumerate().filter(|(_,s)| {
-      let t = s.as_ref();
-      let l = t.len();
-      !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$'))
-      }); 
-    let mut li = LinesIter { it: &mut itr };
+    let mut li = lines.iter().enumerate().remove_comments(); 
 
     let mut foldstart;
     let mut foldend;
