@@ -23,7 +23,7 @@ use failure::ResultExt;
 use neovim_lib::{Neovim, NeovimApi};
 
 use card::keyword::Keyword;
-use lines::CommentLess;
+use nocommentiter::CommentLess;
 
 /// Holds the fold data of the buffer. A fold has the following data:
 /// Linenumbers start, end (indexed from 1), and a

@@ -12,3 +12,5 @@ pub mod folds;
 pub mod handler;
 pub mod lines;
 pub mod neovim_ext;
+pub mod nocommentiter;
+pub mod skipresult;
