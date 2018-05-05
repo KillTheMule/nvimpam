@@ -18,4 +18,6 @@ pub enum Cell {
   Cont,
   /// A string of a given maximum length
   Str(u8),
+  /// A sequence of 0 and 1
+  Binary(u8),
 }

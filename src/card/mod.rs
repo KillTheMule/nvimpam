@@ -33,12 +33,27 @@ pub struct Card {
 impl<'a> From<&'a Keyword> for &'static Card {
   fn from(kw: &'a Keyword) -> &'static Card {
     match *kw {
+      // Node
       Keyword::Node => &NODE,
       Keyword::Cnode => &CNODE,
-      Keyword::Shell => &SHELL,
       Keyword::Mass => &MASS,
       Keyword::Nsmas => &NSMAS,
       Keyword::Nsmas2 => &NSMAS2,
+      // Element
+      Keyword::Solid => &SOLID,
+      Keyword::Hexa20 => &HEXA20,
+      Keyword::Pent15 => &PENT15,
+      Keyword::Penta6 => &PENTA6,
+      Keyword::Tetr10 => &TETR10,
+      Keyword::Tetr4 => &TETR4,
+      Keyword::Bshel => &BSHEL,
+      Keyword::Tshel => &TSHEL,
+      Keyword::Shell => &SHELL,
+      Keyword::Shel6 => &SHEL6,
+      Keyword::Shel8 => &SHEL8,
+      Keyword::Membr => &MEMBR,
+      Keyword::Beam => &BEAM,
+      Keyword::Sprgbm => &SPRGBM,
     }
   }
 }

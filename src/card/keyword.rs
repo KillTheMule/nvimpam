@@ -8,12 +8,27 @@
 /// CNTAC types 33 and 36 will both be denoted by type Cntac
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Keyword {
+  // Node
   Node,
   Cnode,
-  Shell,
   Mass,
   Nsmas,
   Nsmas2,
+  // Element
+  Solid,
+  Hexa20,
+  Pent15,
+  Penta6,
+  Tetr10,
+  Tetr4,
+  Bshel,
+  Tshel,
+  Shell,
+  Shel6,
+  Shel8,
+  Membr,
+  Beam,
+  Sprgbm,
 }
 
 impl Keyword {
@@ -31,12 +46,27 @@ impl Keyword {
       let start = &s[0..8];
 
       match start {
+        // Node
         b"NODE  / " => Some(Node),
         b"CNODE / " => Some(Cnode),
         b"MASS  / " => Some(Mass),
         b"NSMAS / " => Some(Nsmas),
         b"NSMAS2/ " => Some(Nsmas2),
+        // Element
+        b"SOLID / " => Some(Solid),
+        b"HEXA20/ " => Some(Hexa20),
+        b"PENT15/ " => Some(Pent15),
+        b"PENTA6/ " => Some(Penta6),
+        b"TETR10/ " => Some(Tetr10),
+        b"TETR4 / " => Some(Tetr4),
+        b"BSHEL / " => Some(Bshel),
+        b"TSHEL / " => Some(Tshel),
         b"SHELL / " => Some(Shell),
+        b"SHEL6 / " => Some(Shel6),
+        b"SHEL8 / " => Some(Shel8),
+        b"MEMBR / " => Some(Membr),
+        b"BEAM  / " => Some(Beam),
+        b"SPRGBM/ " => Some(Sprgbm),
         _ => None,
       }
     }
