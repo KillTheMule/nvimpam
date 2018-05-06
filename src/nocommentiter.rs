@@ -245,7 +245,11 @@ where
                 linekw = tmp.nextline_kw;
                 previdx = Some(j);
               } else {
-                unreachable!();
+                // GES was ended by an invalid line before it was begun
+                // Note: Keeping the old previdx here, is that correct?
+                line = l;
+                lineidx = i;
+                linekw = tmp.nextline_kw;
               }
             }
           }
