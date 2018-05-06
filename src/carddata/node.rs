@@ -104,7 +104,7 @@ mod tests {
     "NSMAS /        1              0.                                                ",
     "$#                                                                         TITLE",
     "NAME NSMAS / ->1                                                                ",
-    "        ELE",
+    "        ELE ",
     "        END",
   ];
 

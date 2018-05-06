@@ -225,31 +225,72 @@ where
 
     for cardline in cardlines {
       match *cardline {
-        Line::Provides(_s, ref c) => conds.push(c.evaluate(&line)),
+        Line::Provides(_s, ref c) => {
+          conds.push(c.evaluate(&line));
+          let tmp = self.next();
+          match tmp {
+            None => {
+              return SkipResult {
+                skip_end: Some(lineidx),
+                ..Default::default()
+              };
+            }
+            Some((i, l)) => {
+              previdx = Some(lineidx);
+              line = l;
+              lineidx = i;
+              linekw = Keyword::parse(l);
+            }
+          }
+        }
         Line::Ges(ref g) => {
-          tmp = self.skip_ges(g);
-          match tmp.nextline {
-            None => match tmp.skip_end {
-              None => return Default::default(),
-              Some(i) => {
-                return SkipResult {
-                  skip_end: Some(i),
-                  ..Default::default()
+          let contains = g.contains(line);
+          let ended = g.ended_by(line);
+          if contains || ended {
+            if ended {
+              let tmp = self.next();
+              match tmp {
+                None => {
+                  return SkipResult {
+                    skip_end: Some(lineidx),
+                    ..Default::default()
+                  };
+                }
+                Some((i, l)) => {
+                  return SkipResult {
+                    nextline: Some((i, l)),
+                    nextline_kw: Keyword::parse(l),
+                    skip_end: Some(lineidx),
+                  }
                 }
               }
-            },
-            Some((i, l)) => {
-              if let Some(j) = tmp.skip_end {
-                line = l;
-                lineidx = i;
-                linekw = tmp.nextline_kw;
-                previdx = Some(j);
-              } else {
-                // GES was ended by an invalid line before it was begun
-                // Note: Keeping the old previdx here, is that correct?
-                line = l;
-                lineidx = i;
-                linekw = tmp.nextline_kw;
+            } else {
+              tmp = self.skip_ges(g);
+
+              match tmp.nextline {
+                None => match tmp.skip_end {
+                  None => return Default::default(),
+                  Some(i) => {
+                    return SkipResult {
+                      skip_end: Some(i),
+                      ..Default::default()
+                    }
+                  }
+                },
+                Some((i, l)) => {
+                  if let Some(j) = tmp.skip_end {
+                    line = l;
+                    lineidx = i;
+                    linekw = tmp.nextline_kw;
+                    previdx = Some(j);
+                  } else {
+                    // GES was ended by an invalid line before it was begun
+                    // Note: Keeping the old previdx here, is that correct?
+                    line = l;
+                    lineidx = i;
+                    linekw = tmp.nextline_kw;
+                  }
+                }
               }
             }
           }
