@@ -1,0 +1,11 @@
+cargo 1.27.0-nightly (0a1add2d8 2018-04-20)
+64a59cc526b08e7cd8a00c99afc6e6ec63804c70 Finish adding element cards, start adding link cards
+b18db11b065841e9b2342c3e894f0348d3179a74 Fix skipping a GES and lines providing a conditional
+b45db039ed139cf5fe4b5fa69ba62e508bccf206 Fix unreachable code
+9b2f2754d6d48b1c33a8010b58587f8f0fd69ad1 Implement and test several element cards
+ecea88a3e51cabad4a041ae5faefa83cba686111 Move tests
+9c91da454373f6366dc082c826bf647a290e6171 Doc, rustfmt
+be9bde9f37db85de54e98c116ddee6f7d8266b9c Put SkipResult and NoCommentIter in own modules
+f2c394777db4b8fb939938018b5b82ce20f16e2c Introduce NoCommentIter
+10f8504962052b0c667b9102a07882c0b7a7b2a7 Remove stray println
+5585db2928f34ce97a5af858e9f3154b416c47bf Add rs file to include for possible benchmark variation
