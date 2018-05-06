@@ -54,6 +54,17 @@ impl<'a> From<&'a Keyword> for &'static Card {
       Keyword::Membr => &MEMBR,
       Keyword::Beam => &BEAM,
       Keyword::Sprgbm => &SPRGBM,
+      Keyword::Bar => &BAR,
+      Keyword::Spring => &SPRING,
+      Keyword::Joint => &JOINT,
+      Keyword::Kjoin => &KJOIN,
+      Keyword::Mtojnt => &MTOJNT,
+      Keyword::Sphel => &SPHEL,
+      Keyword::Sphelo => &SPHELO,
+      Keyword::Gap => &GAP,
+      Keyword::Impma => &IMPMA,
+      // Link
+      Keyword::Elink => &ELINK,
     }
   }
 }

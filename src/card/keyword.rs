@@ -29,6 +29,17 @@ pub enum Keyword {
   Membr,
   Beam,
   Sprgbm,
+  Bar,
+  Spring,
+  Joint,
+  Kjoin,
+  Mtojnt,
+  Sphel,
+  Sphelo,
+  Gap,
+  Impma,
+  // Link
+  Elink,
 }
 
 impl Keyword {
@@ -67,6 +78,17 @@ impl Keyword {
         b"MEMBR / " => Some(Membr),
         b"BEAM  / " => Some(Beam),
         b"SPRGBM/ " => Some(Sprgbm),
+        b"BAR   / " => Some(Bar),
+        b"SPRING/ " => Some(Spring),
+        b"JOINT / " => Some(Joint),
+        b"KJOIN / " => Some(Kjoin),
+        b"MTOJNT/ " => Some(Mtojnt),
+        b"SPHEL / " => Some(Sphel),
+        b"SPHELO/ " => Some(Sphelo),
+        b"GAP   / " => Some(Gap),
+        b"IMPMA / " => Some(Impma),
+        // Link
+        b"ELINK / " => Some(Elink),
         _ => None,
       }
     }

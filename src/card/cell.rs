@@ -20,4 +20,6 @@ pub enum Cell {
   Str(u8),
   /// A sequence of 0 and 1
   Binary(u8),
+  /// An alternative of 2 cells
+  IntegerorBlank(u8)
 }

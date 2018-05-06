@@ -126,18 +126,16 @@ pub static TETR10: Card = Card {
   keyword: Tetr10,
 };
 
-pub static TETR4: Card = Card {
+pub static BAR: Card = Card {
   lines: &[Cells(&[
     Kw,
     Integer(8),
     Integer(8),
     Integer(8),
     Integer(8),
-    Integer(8),
-    Integer(8),
   ])],
   ownfold: false,
-  keyword: Tetr4,
+  keyword: Bar,
 };
 
 pub static BSHEL: Card = Card {
@@ -296,6 +294,150 @@ pub static SPRGBM: Card = Card {
   ownfold: false,
   keyword: Sprgbm,
 };
+
+pub static TETR4: Card = Card {
+  lines: &[Cells(&[
+    Kw,
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+  ])],
+  ownfold: false,
+  keyword: Tetr4,
+};
+
+pub static SPRING: Card = Card {
+  lines: &[Cells(&[
+    Kw,
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    IntegerorBlank(8)
+  ])],
+  ownfold: false,
+  keyword: Spring,
+};
+
+pub static JOINT: Card = Card {
+  lines: &[Cells(&[
+    Kw,
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    IntegerorBlank(8),
+    Float(8),
+    Float(8),
+    Integer(8)
+  ])],
+  ownfold: false,
+  keyword: Joint,
+};
+
+pub static KJOIN: Card = Card {
+  lines: &[Cells(&[
+    Kw,
+    Integer(8),
+    Integer(8),
+    Str(8),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Float(8),
+  ]),
+  Cells(&[
+    Blank(10),
+    Binary(6)
+  ])],
+  ownfold: false,
+  keyword: Kjoin,
+};
+
+pub static MTOJNT: Card = Card {
+  lines: &[Cells(&[
+    Kw,
+    Integer(8),
+    Integer(8),
+    Str(8),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+  ]),
+  Cells(&[
+    Blank(10),
+    Binary(6)
+  ])],
+  ownfold: false,
+  keyword: Mtojnt,
+};
+
+pub static SPHEL: Card = Card {
+  lines: &[Cells(&[
+    Kw,
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Float(8),
+  ])],
+  ownfold: false,
+  keyword: Sphel,
+};
+
+pub static SPHELO: Card = Card {
+  lines: &[Cells(&[
+    Kw,
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Float(8),
+  ])],
+  ownfold: false,
+  keyword: Sphelo,
+};
+
+pub static GAP: Card = Card {
+  lines: &[Cells(&[
+    Kw,
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+  ])],
+  ownfold: false,
+  keyword: Gap,
+};
+
+pub static IMPMA: Card = Card {
+  lines: &[Cells(&[
+    Kw,
+    Integer(8),
+    Str(8),
+    Str(8),
+    Str(8),
+    Integer(8),
+  ]),
+  Cells(&[
+    Fixed("NAME"),
+    Str(76),
+  ]),
+  Cells(&[
+        Blank(8),
+        Str(76),
+  ])],
+  ownfold: false,
+  keyword: Impma,
+};
+
 
 #[cfg(test)]
 mod tests {
@@ -668,6 +810,209 @@ mod tests {
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 8, Sprgbm)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_SPRGBM);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  const CARD_BAR: [&'static str; 6] = [
+    "$BAR  Element",
+    "BAR   /                                                 ",
+    "BAR   /                                                 ",
+    "BAR   /                                                 ",
+    "BAR   /                                                 ",
+    "BAR   /                                                 ",
+  ];
+
+  #[test]
+  fn fold_bar() {
+    use card::keyword::Keyword;
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+    let v: Vec<(u64, u64, Keyword)> = vec![(1, 5, Bar)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_BAR );
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  const CARD_SPRING: [&'static str; 7] = [
+    "$SPRING  Element",
+    "SPRING/                                                 ",
+    "SPRING/                                                 ",
+    "$SPRING  Element",
+    "SPRING/                                                 ",
+    "SPRING/                                                 ",
+    "SPRING/                                                 ",
+  ];
+
+  #[test]
+  fn fold_spring() {
+    use card::keyword::Keyword;
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+    let v: Vec<(u64, u64, Keyword)> = vec![(1, 6, Spring)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_SPRING);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  const CARD_JOINT : [&'static str; 3] = [
+    "JOINT /                                                 ",
+    "JOINT /                                                 ",
+    "JOINT /                                                 ",
+  ];
+
+  #[test]
+  fn fold_joint() {
+    use card::keyword::Keyword;
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+    let v: Vec<(u64, u64, Keyword)> = vec![(0, 2, Joint)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_JOINT);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  const CARD_KJOIN: [&'static str; 8] = [
+    "$KJOIN Element",
+    "KJOIN /                                                                 ",
+    "                ",
+    "KJOIN /                                                                 ",
+    "                ",
+    "$KJOIN Element",
+    "KJOIN /                                                                 ",
+    "                ",
+  ];
+
+  #[test]
+  fn fold_kjoin() {
+    use card::keyword::Keyword;
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+    let v: Vec<(u64, u64, Keyword)> = vec![(1, 7, Kjoin)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_KJOIN);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  const CARD_MTOJNT: [&'static str; 7] = [
+    "$MTOJNTElement",
+    "MTOJNT/                                                                 ",
+    "                ",
+    "MTOJNT/                                                                 ",
+    "                ",
+    "MTOJNT/                                                                 ",
+    "                ",
+  ];
+
+  #[test]
+  fn fold_mtojnt() {
+    use card::keyword::Keyword;
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+    let v: Vec<(u64, u64, Keyword)> = vec![(1, 6, Mtojnt)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_MTOJNT);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  const CARD_SPHEL: [&'static str; 6] = [
+    "SPHEL /                                                                 ",
+    "SPHEL /                                                                 ",
+    "$SPHEL Element",
+    "SPHEL /                                                                 ",
+    "$SPHEL Element",
+    "SPHEL /                                                                 ",
+  ];
+
+  #[test]
+  fn fold_sphel() {
+    use card::keyword::Keyword;
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+    let v: Vec<(u64, u64, Keyword)> = vec![(0, 5, Sphel)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_SPHEL);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  const CARD_SPHELO: [&'static str; 2] = [
+    "SPHELO/                                                                 ",
+    "SPHELO/                                                                 ",
+  ];
+
+  #[test]
+  fn fold_sphelo() {
+    use card::keyword::Keyword;
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+    let v: Vec<(u64, u64, Keyword)> = vec![(0, 1, Sphelo)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_SPHELO);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  const CARD_GAP: [&'static str; 6] = [
+    "GAP   /                                                                 ",
+    "GAP   /                                                                 ",
+    "GAP   /                                                                 ",
+    "#COMMENT",
+    "GAP   /                                                                 ",
+    "GAP   /                                                                 ",
+  ];
+
+  #[test]
+  fn fold_gap() {
+    use card::keyword::Keyword;
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+    let v: Vec<(u64, u64, Keyword)> = vec![(0, 5, Gap)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_GAP);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  const CARD_IMPMA: [&'static str; 14] = [
+    "$IMPMA Super Element Matrix Import",
+    "$#       IDIMPMAQUALIFY1QUALIFY2QUALIFY3  IMATYP    ISEL",
+    "IMPMA /        1                               0         ",
+    "$#                                                                         TITLE",
+    "NAME IMPMA / ->1                                                                ",
+    "$#                                                                       FNAMEma",
+    "                                                                                ",
+    "$IMPMA Super Element Matrix Import",
+    "$#       IDIMPMAQUALIFY1QUALIFY2QUALIFY3  IMATYP    ISEL",
+    "IMPMA /        1                               0         ",
+    "$#                                                                         TITLE",
+    "NAME IMPMA / ->1                                                                ",
+    "$#                                                                       FNAMEma",
+    "                                                                                ",
+  ];
+
+  #[test]
+  fn fold_impma() {
+    use card::keyword::Keyword;
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+    let v: Vec<(u64, u64, Keyword)> = vec![(2, 13, Impma)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_IMPMA);
 
     assert_eq!(v, foldlist.into_vec());
   }
