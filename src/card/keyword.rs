@@ -40,6 +40,10 @@ pub enum Keyword {
   Impma,
   // Link
   Elink,
+  Llink,
+  Slink,
+  Plink,
+  Tied,
 }
 
 impl Keyword {
@@ -89,6 +93,10 @@ impl Keyword {
         b"IMPMA / " => Some(Impma),
         // Link
         b"ELINK / " => Some(Elink),
+        b"LLINK / " => Some(Llink),
+        b"SLINK / " => Some(Slink),
+        b"PLINK / " => Some(Plink),
+        b"TIED  / " => Some(Tied),
         _ => None,
       }
     }

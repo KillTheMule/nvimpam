@@ -65,6 +65,10 @@ impl<'a> From<&'a Keyword> for &'static Card {
       Keyword::Impma => &IMPMA,
       // Link
       Keyword::Elink => &ELINK,
+      Keyword::Llink => &LLINK,
+      Keyword::Slink => &SLINK,
+      Keyword::Plink => &PLINK,
+      Keyword::Tied => &TIED,
     }
   }
 }
