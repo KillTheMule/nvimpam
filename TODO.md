@@ -1,4 +1,7 @@
-* Run it all through clippy
+* Do we need the channel between the handler and the event loop? How about just having the handler call what's neccessary?
+
+* Check out https://github.com/sunng87/cargo-release
+
 * Add benchmarks
   * Maybe https://docs.rs/bencher/0.1.4/bencher/?
   * Need integration benchmarks, so make something cust0m in viml?
