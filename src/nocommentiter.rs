@@ -63,47 +63,30 @@ where
   /// NOTE: A Comment line counts as a keyword. Also see
   /// `skip_to_next_real_keyword`.
   pub fn skip_to_next_keyword<'b>(&'b mut self) -> SkipResult<'a, T> {
-    let mut prevline = None;
-    let mut nextline;
-    let mut done = false;
+    let mut prevline;
+    let mut nextline = None;
 
-    nextline = self.next();
-
-    if nextline.is_none() {
-      return Default::default();
-    }
-
-    if Keyword::parse(nextline.unwrap().1).is_some() {
-      done = true;
-    }
-
-    while !done {
+    loop {
       prevline = nextline;
       nextline = self.next();
-      if nextline.is_none() {
-        return Default::default();
-      }
-      if Keyword::parse(nextline.unwrap().1).is_some() {
-        done = true;
-      }
-    }
 
-    let last = match prevline {
-      Some((i, _l)) => Some(i),
-      None => None,
-    };
-
-    match nextline {
-      None => SkipResult {
-        nextline: None,
-        nextline_kw: None,
-        skip_end: None,
-      },
-      Some((_i, l)) => SkipResult {
-        nextline,
-        nextline_kw: Keyword::parse(&l),
-        skip_end: last,
-      },
+      match nextline {
+        None => return Default::default(),
+        Some(n) => {
+          let nextline_kw = Keyword::parse(n.1);
+          if nextline_kw.is_some() {
+            let skip_end = match prevline {
+              Some((i, _l)) => Some(i),
+              None => None,
+            };
+            return SkipResult {
+              nextline,
+              nextline_kw,
+              skip_end,
+            };
+          }
+        }
+      }
     }
   }
 

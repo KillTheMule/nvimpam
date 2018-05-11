@@ -41,15 +41,13 @@ where
   T: AsRef<str>,
 {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    if self.nextline.is_none() {
-      write!(
+    match self.nextline {
+      None => write!(
         f,
         "SkipResult {{ nextline: None, nextline_kw: {:?}, skip_end: {:?} }}",
         self.nextline_kw, self.skip_end
-      )
-    } else {
-      let n = self.nextline.unwrap();
-      write!(
+      ),
+      Some(n) => write!(
         f,
         "SkipResult {{ nextline: ({:?}, {:?}), nextline_kw: {:?}, \
          skip_end: {:?} }}",
@@ -57,7 +55,7 @@ where
         n.1.as_ref(),
         self.nextline_kw,
         self.skip_end
-      )
+      ),
     }
   }
 }
