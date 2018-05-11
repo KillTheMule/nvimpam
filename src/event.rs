@@ -38,10 +38,7 @@ pub enum Event {
   },
   /// Update notification for a new `changedtick` without a buffer change.
   /// Used by undo/redo.
-  ChangedTick {
-    buf: Buffer,
-    changedtick: u64,
-  },
+  ChangedTick { buf: Buffer, changedtick: u64 },
   /// Notification the liveupdates are ending. Possible causes:
   ///  - Closing all a buffer's windows (unless 'hidden' is enabled).
   ///  - Using |:edit| to reload the buffer
@@ -149,13 +146,9 @@ impl fmt::Debug for Event {
         numreplaced,
         linedata.len()
       ),
-      ChangedTick {
-        changedtick, ..
-      } => write!(
-        f,
-        "ChangedTick{{ changedtick: {} }}",
-        changedtick,
-      ),
+      ChangedTick { changedtick, .. } => {
+        write!(f, "ChangedTick{{ changedtick: {} }}", changedtick,)
+      }
       UpdatesEnd { .. } => write!(f, "UpdatesEnd"),
       RefreshFolds => write!(f, "RefreshFolds"),
       Quit => write!(f, "Quit"),

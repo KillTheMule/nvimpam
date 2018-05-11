@@ -95,10 +95,7 @@ mod tests {
     ];
     assert_eq!(
       v,
-      LINES
-        .iter()
-        .map(|l| g.contains(&l))
-        .collect::<Vec<bool>>()
+      LINES.iter().map(|l| g.contains(&l)).collect::<Vec<bool>>()
     );
   }
 
@@ -110,10 +107,7 @@ mod tests {
     ];
     assert_eq!(
       v,
-      LINES
-        .iter()
-        .map(|l| g.ended_by(&l))
-        .collect::<Vec<bool>>()
+      LINES.iter().map(|l| g.ended_by(&l)).collect::<Vec<bool>>()
     );
   }
 

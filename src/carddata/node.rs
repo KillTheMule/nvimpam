@@ -8,50 +8,24 @@ use card::line::Line::*;
 use card::Card;
 
 pub static NODE: Card = Card {
-  lines: &[Cells(&[
-    Kw,
-    Integer(16),
-    Float(16),
-    Float(16),
-    Float(16),
-  ])],
+  lines: &[Cells(&[Kw, Integer(16), Float(16), Float(16), Float(16)])],
   ownfold: false,
   keyword: Node,
 };
 
 pub static CNODE: Card = Card {
-  lines: &[Cells(&[
-    Kw,
-    Integer(16),
-    Float(16),
-    Float(16),
-    Float(16),
-  ])],
+  lines: &[Cells(&[Kw, Integer(16), Float(16), Float(16), Float(16)])],
   ownfold: false,
   keyword: Cnode,
 };
 
 pub static MASS: Card = Card {
   lines: &[
-    Cells(&[
-      Kw,
-      Integer(8),
-      Integer(8),
-      Float(16),
-      Float(16),
-      Float(16),
-    ]),
+    Cells(&[Kw, Integer(8), Integer(8), Float(16), Float(16), Float(16)]),
     Cells(&[Fixed("NAME"), Str(76)]),
     Cells(&[Float(16), Float(16), Float(16)]),
     Provides(
-      &[
-        Blank(8),
-        Float(16),
-        Float(16),
-        Float(16),
-        Blank(24),
-        Cont,
-      ],
+      &[Blank(8), Float(16), Float(16), Float(16), Blank(24), Cont],
       RelChar(80, '&'),
     ),
     Optional(&[Blank(8), Float(16), Float(16), Float(16)], 0),
@@ -63,14 +37,7 @@ pub static MASS: Card = Card {
 
 pub static NSMAS: Card = Card {
   lines: &[
-    Cells(&[
-      Kw,
-      Integer(8),
-      Float(16),
-      Float(16),
-      Float(16),
-      Float(16),
-    ]),
+    Cells(&[Kw, Integer(8), Float(16), Float(16), Float(16), Float(16)]),
     Cells(&[Fixed("NAME"), Str(76)]),
     Ges(GesEle),
   ],
@@ -80,14 +47,7 @@ pub static NSMAS: Card = Card {
 
 pub static NSMAS2: Card = Card {
   lines: &[
-    Cells(&[
-      Kw,
-      Integer(8),
-      Float(16),
-      Float(16),
-      Float(16),
-      Float(16),
-    ]),
+    Cells(&[Kw, Integer(8), Float(16), Float(16), Float(16), Float(16)]),
     Cells(&[Fixed("NAME"), Str(76)]),
     Ges(GesEle),
   ],

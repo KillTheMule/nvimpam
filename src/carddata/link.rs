@@ -1,20 +1,14 @@
 //! This modules holds the the global static link [`Card`](::card::Card)
 //! instances.
 use card::cell::Cell::*;
+use card::ges::GesType::*;
 use card::keyword::Keyword::*;
 use card::line::Line::*;
 use card::Card;
-use card::ges::GesType::*;
 
 pub static ELINK: Card = Card {
   lines: &[
-    Cells(&[
-      Kw,
-      Integer(8),
-      Integer(8),
-      Integer(8),
-      Integer(8),
-    ]),
+    Cells(&[Kw, Integer(8), Integer(8), Integer(8), Integer(8)]),
     Ges(GesFace),
   ],
   ownfold: false,
@@ -24,7 +18,7 @@ pub static ELINK: Card = Card {
 #[cfg(test)]
 mod tests {
 
-  const CARD_ELINK: [&'static str; 13]= [
+  const CARD_ELINK: [&'static str; 13] = [
     "$ELINK Element",
     "ELINK /                                 ",
     "        PART ",

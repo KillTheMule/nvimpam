@@ -21,5 +21,5 @@ pub enum Cell {
   /// A sequence of 0 and 1
   Binary(u8),
   /// An alternative of 2 cells
-  IntegerorBlank(u8)
+  IntegerorBlank(u8),
 }

@@ -93,12 +93,9 @@ impl FoldList {
       .folds
       .remove(&[start, end])
       .ok_or_else(|| failure::err_msg("Could not remove fold from foldlist"))?;
-    self
-      .folds_inv
-      .remove(&[end, start])
-      .ok_or_else(|| {
-        failure::err_msg("Could not remove fold from inverse foldlist!")
-      })?;
+    self.folds_inv.remove(&[end, start]).ok_or_else(|| {
+      failure::err_msg("Could not remove fold from inverse foldlist!")
+    })?;
 
     Ok(())
   }
@@ -113,9 +110,7 @@ impl FoldList {
   /// Delete all folds in nvim, and create the ones from the FoldList
   /// TODO: Check if we're using the best method to send
   pub fn resend_all(&self, nvim: &mut Neovim) -> Result<(), Error> {
-    nvim
-      .command("normal! zE")
-      .context("'normal! zE' failed")?;
+    nvim.command("normal! zE").context("'normal! zE' failed")?;
 
     // TODO: use nvim_call_atomic
     for range in self.folds.keys() {

@@ -91,10 +91,7 @@ impl NeovimHandler {
       &mut args,
       "Not enough arguments in nvim_buf_changedtick!",
     )?);
-    Ok(Event::ChangedTick {
-      buf,
-      changedtick,
-    })
+    Ok(Event::ChangedTick { buf, changedtick })
   }
 
   /// Parse a nvim_buf_updates_end notification into a

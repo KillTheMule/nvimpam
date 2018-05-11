@@ -54,9 +54,8 @@ impl ops::Deref for Lines {
 mod tests {
   use lines::Lines;
 
-  const LINES: [&'static str; 8] = [
-    "This", "is", "an", "example", "of", "some", "lines", ".",
-  ];
+  const LINES: [&'static str; 8] =
+    ["This", "is", "an", "example", "of", "some", "lines", "."];
 
   #[test]
   fn lines_can_delete() {

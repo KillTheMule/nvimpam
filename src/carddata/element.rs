@@ -49,13 +49,7 @@ pub static HEXA20: Card = Card {
       Integer(8),
       Integer(8),
     ]),
-    Cells(&[
-      Blank(16),
-      Integer(8),
-      Integer(8),
-      Integer(8),
-      Integer(8),
-    ]),
+    Cells(&[Blank(16), Integer(8), Integer(8), Integer(8), Integer(8)]),
   ],
   ownfold: false,
   keyword: Hexa20,
@@ -127,13 +121,7 @@ pub static TETR10: Card = Card {
 };
 
 pub static BAR: Card = Card {
-  lines: &[Cells(&[
-    Kw,
-    Integer(8),
-    Integer(8),
-    Integer(8),
-    Integer(8),
-  ])],
+  lines: &[Cells(&[Kw, Integer(8), Integer(8), Integer(8), Integer(8)])],
   ownfold: false,
   keyword: Bar,
 };
@@ -216,13 +204,7 @@ pub static SHEL8: Card = Card {
       Integer(8),
       Integer(8),
     ]),
-    Cells(&[
-      Blank(24),
-      Integer(8),
-      Integer(8),
-      Integer(8),
-      Integer(8),
-    ]),
+    Cells(&[Blank(24), Integer(8), Integer(8), Integer(8), Integer(8)]),
   ],
   ownfold: false,
   keyword: Shel8,
@@ -260,22 +242,8 @@ pub static BEAM: Card = Card {
       Binary(6),
       Integer(8),
     ]),
-    Cells(&[
-      Blank(8),
-      Float(8),
-      Float(8),
-      Float(8),
-      Float(8),
-      Float(8),
-    ]),
-    Cells(&[
-      Blank(8),
-      Float(8),
-      Float(8),
-      Float(8),
-      Float(8),
-      Float(8),
-    ]),
+    Cells(&[Blank(8), Float(8), Float(8), Float(8), Float(8), Float(8)]),
+    Cells(&[Blank(8), Float(8), Float(8), Float(8), Float(8), Float(8)]),
   ],
   ownfold: false,
   keyword: Beam,
@@ -318,7 +286,7 @@ pub static SPRING: Card = Card {
     Integer(8),
     Integer(8),
     Integer(8),
-    IntegerorBlank(8)
+    IntegerorBlank(8),
   ])],
   ownfold: false,
   keyword: Spring,
@@ -335,71 +303,57 @@ pub static JOINT: Card = Card {
     IntegerorBlank(8),
     Float(8),
     Float(8),
-    Integer(8)
+    Integer(8),
   ])],
   ownfold: false,
   keyword: Joint,
 };
 
 pub static KJOIN: Card = Card {
-  lines: &[Cells(&[
-    Kw,
-    Integer(8),
-    Integer(8),
-    Str(8),
-    Integer(8),
-    Integer(8),
-    Integer(8),
-    Integer(8),
-    Float(8),
-  ]),
-  Cells(&[
-    Blank(10),
-    Binary(6)
-  ])],
+  lines: &[
+    Cells(&[
+      Kw,
+      Integer(8),
+      Integer(8),
+      Str(8),
+      Integer(8),
+      Integer(8),
+      Integer(8),
+      Integer(8),
+      Float(8),
+    ]),
+    Cells(&[Blank(10), Binary(6)]),
+  ],
   ownfold: false,
   keyword: Kjoin,
 };
 
 pub static MTOJNT: Card = Card {
-  lines: &[Cells(&[
-    Kw,
-    Integer(8),
-    Integer(8),
-    Str(8),
-    Integer(8),
-    Integer(8),
-    Integer(8),
-    Integer(8),
-  ]),
-  Cells(&[
-    Blank(10),
-    Binary(6)
-  ])],
+  lines: &[
+    Cells(&[
+      Kw,
+      Integer(8),
+      Integer(8),
+      Str(8),
+      Integer(8),
+      Integer(8),
+      Integer(8),
+      Integer(8),
+    ]),
+    Cells(&[Blank(10), Binary(6)]),
+  ],
   ownfold: false,
   keyword: Mtojnt,
 };
 
 pub static SPHEL: Card = Card {
-  lines: &[Cells(&[
-    Kw,
-    Integer(8),
-    Integer(8),
-    Integer(8),
-    Float(8),
-  ])],
+  lines: &[Cells(&[Kw, Integer(8), Integer(8), Integer(8), Float(8)])],
   ownfold: false,
   keyword: Sphel,
 };
 
 pub static SPHELO: Card = Card {
-  lines: &[Cells(&[
-    Kw,
-    Integer(8),
-    Integer(8),
-    Integer(8),
-    Float(8),
-  ])],
+  lines: &[Cells(&[Kw, Integer(8), Integer(8), Integer(8), Float(8)])],
   ownfold: false,
   keyword: Sphelo,
 };
@@ -418,26 +372,14 @@ pub static GAP: Card = Card {
 };
 
 pub static IMPMA: Card = Card {
-  lines: &[Cells(&[
-    Kw,
-    Integer(8),
-    Str(8),
-    Str(8),
-    Str(8),
-    Integer(8),
-  ]),
-  Cells(&[
-    Fixed("NAME"),
-    Str(76),
-  ]),
-  Cells(&[
-        Blank(8),
-        Str(76),
-  ])],
+  lines: &[
+    Cells(&[Kw, Integer(8), Str(8), Str(8), Str(8), Integer(8)]),
+    Cells(&[Fixed("NAME"), Str(76)]),
+    Cells(&[Blank(8), Str(76)]),
+  ],
   ownfold: false,
   keyword: Impma,
 };
-
 
 #[cfg(test)]
 mod tests {
@@ -831,7 +773,7 @@ mod tests {
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 5, Bar)];
     let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_BAR );
+    let _ = foldlist.add_folds(&CARD_BAR);
 
     assert_eq!(v, foldlist.into_vec());
   }
@@ -859,7 +801,7 @@ mod tests {
     assert_eq!(v, foldlist.into_vec());
   }
 
-  const CARD_JOINT : [&'static str; 3] = [
+  const CARD_JOINT: [&'static str; 3] = [
     "JOINT /                                                 ",
     "JOINT /                                                 ",
     "JOINT /                                                 ",

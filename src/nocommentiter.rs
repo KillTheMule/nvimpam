@@ -421,20 +421,13 @@ mod tests {
 
   #[test]
   fn linesiter_needs_no_keywords() {
-    let mut li = COMMENTS
-      .iter()
-      .skip(4)
-      .enumerate()
-      .remove_comments();
+    let mut li = COMMENTS.iter().skip(4).enumerate().remove_comments();
     assert_eq!(li.skip_to_next_keyword().nextline, None);
   }
 
   #[test]
   fn linesiter_finds_real_keywords() {
-    let mut li = KEYWORD_LINES
-      .iter()
-      .enumerate()
-      .remove_comments();
+    let mut li = KEYWORD_LINES.iter().enumerate().remove_comments();
     {
       assert_eq!(
         li.skip_to_next_keyword().nextline,
@@ -672,10 +665,7 @@ mod tests {
 
   #[test]
   fn itr_skips_optional_lines() {
-    let mut li = CARD_MASS_OPT
-      .iter()
-      .enumerate()
-      .remove_comments();
+    let mut li = CARD_MASS_OPT.iter().enumerate().remove_comments();
     let firstline = li.next();
     let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
     let k = &kw;
@@ -731,10 +721,7 @@ mod tests {
 
   #[test]
   fn itr_skips_gather_cards() {
-    let mut li = LINES_GATHER
-      .iter()
-      .enumerate()
-      .remove_comments();
+    let mut li = LINES_GATHER.iter().enumerate().remove_comments();
     let firstline = li.it.next();
     let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
     let k = &kw;
