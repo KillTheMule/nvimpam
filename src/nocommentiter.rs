@@ -261,18 +261,10 @@ where
                   }
                 },
                 Some((i, l)) => {
-                  if let Some(j) = tmp.skip_end {
-                    line = l;
-                    lineidx = i;
-                    linekw = tmp.nextline_kw;
-                    previdx = Some(j);
-                  } else {
-                    // GES was ended by an invalid line before it was begun
-                    // Note: Keeping the old previdx here, is that correct?
-                    line = l;
-                    lineidx = i;
-                    linekw = tmp.nextline_kw;
-                  }
+                  line = l;
+                  lineidx = i;
+                  linekw = tmp.nextline_kw;
+                  previdx = tmp.skip_end.or(previdx);;
                 }
               }
             }
