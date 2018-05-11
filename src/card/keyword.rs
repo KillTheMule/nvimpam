@@ -44,6 +44,32 @@ pub enum Keyword {
   Slink,
   Plink,
   Tied,
+  // Part 3D
+  PartSolid,
+  PartBshell,
+  PartTetra,
+  PartSphel,
+  PartCos3d,
+  // Part 2D
+  PartTshel,
+  PartShell,
+  PartMembr,
+  // Part 1D
+  PartBar,
+  PartBeam,
+  PartSpring,
+  PartSprgbm,
+  PartMbspr,
+  PartJoint,
+  PartKjoin,
+  PartMbkjn,
+  PartMtojnt,
+  PartTied,
+  PartSlink,
+  PartElink,
+  PartLlink,
+  PartPlink,
+  PartGap,
 }
 
 impl Keyword {
@@ -97,6 +123,39 @@ impl Keyword {
         b"SLINK / " => Some(Slink),
         b"PLINK / " => Some(Plink),
         b"TIED  / " => Some(Tied),
+        b"PART  / " => {
+          if len < 24 {
+            None
+          } else {
+            let p = &s[16..24];
+
+            match p {
+              b"   SOLID" => Some(PartSolid),
+              b"  BSHELL" => Some(PartBshell),
+              b"   TETRA" => Some(PartTetra),
+              b"   SPHEL" => Some(PartSphel),
+              b"   COS3D" => Some(PartCos3d),
+              b"   TSHEL" => Some(PartTshel),
+              b"   SHELL" => Some(PartShell),
+              b"   MEMBR" => Some(PartMembr),
+              b"     BAR" => Some(PartBar),
+              b"    BEAM" => Some(PartBeam),
+              b"  SPRING" => Some(PartSpring),
+              b"  SPRGBM" => Some(PartSprgbm),
+              b"   MBSPR" => Some(PartMbspr),
+              b"   JOINT" => Some(PartJoint),
+              b"   KJOIN" => Some(PartKjoin),
+              b"  MTOJNT" => Some(PartMtojnt),
+              b"    TIED" => Some(PartTied),
+              b"   SLINK" => Some(PartSlink),
+              b"   ELINK" => Some(PartElink),
+              b"   LLINK" => Some(PartLlink),
+              b"   PLINK" => Some(PartPlink),
+              b"     GAP" => Some(PartGap),
+              _ => None,
+            }
+          }
+        },
         _ => None,
       }
     }

@@ -2,6 +2,7 @@
 pub mod element;
 pub mod link;
 pub mod node;
+pub mod part;
 
 pub use self::element::*;
 pub use self::link::*;
@@ -10,3 +11,4 @@ pub use self::link::*;
 /// use carddata::*;
 /// ```
 pub use self::node::*;
+pub use self::part::*;

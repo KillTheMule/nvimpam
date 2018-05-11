@@ -69,6 +69,33 @@ impl<'a> From<&'a Keyword> for &'static Card {
       Keyword::Slink => &SLINK,
       Keyword::Plink => &PLINK,
       Keyword::Tied => &TIED,
+      // Part 3D
+      Keyword::PartSolid => &PARTSOLID,
+      //Keyword::PartBshell => &PARTBSHELL,
+      //Keyword::PartTetra => &PARTTETRA,
+      //Keyword::PartSphel => &PARTSPHEL,
+      //Keyword::PartCos3d => &PARTCOS3D,
+      //// Part 2D
+      //Keyword::PartTshel => &PARTTSHEL,
+      //Keyword::PartShell => &PARTSHELL,
+      //Keyword::PartMembr => &PARTMEMBR,
+      //// Part 1D
+      //Keyword::PartBar => &PARTBAR,
+      //Keyword::PartBeam => &PARTBEAM,
+      //Keyword::PartSpring => &PARTSPRING,
+      //Keyword::PartSprgbm => &PARTSPRGBM,
+      //Keyword::PartMbspr => &PARTMBSPR,
+      //Keyword::PartJoint => &PARTJOINT,
+      //Keyword::PartKjoin => &PARTKJOIN,
+      //Keyword::PartMbkjn => &PARTMBKJN,
+      //Keyword::PartMtojnt => &PARTMTOJNT,
+      //Keyword::PartTied => &PARTTIED,
+      //Keyword::PartSlink => &PARTSLINK,
+      //Keyword::PartElink => &PARTELINK,
+      //Keyword::PartLlink => &PARTLLINK,
+      //Keyword::PartPlink => &PARTPLINK,
+      //Keyword::PartGap => &PARTGAP,
+      _ => &TIED,
     }
   }
 }

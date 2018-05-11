@@ -1,5 +1,7 @@
 //! An enum to classify the several types of lines that can occur inside a card
 //! of a Pamcrash input file. Might not really be a line (see GES).
+use std::ops::Range;
+
 use card::cell::Cell;
 use card::ges::GesType;
 
@@ -26,6 +28,8 @@ pub enum Line {
 pub enum Conditional {
   /// The char at the given index (0-based!) is the given one.
   RelChar(u8, char),
+  // The integer at the cell given by the first number is the second number
+  Int(Range<usize>, u8)
 }
 
 impl Conditional {
@@ -38,6 +42,19 @@ impl Conditional {
       Conditional::RelChar(idx, c) => {
         let idx = idx as usize;
         line.as_ref().get(idx..idx + 1) == Some(&c.to_string())
+      }
+      Conditional::Int(ref r, b) => {
+        let cell = line.as_ref().get(r.clone());
+
+        match cell {
+          None => false,
+          Some(s) => {
+            match s.parse::<u8>() {
+              Ok(x) if x == b => true,
+              _ => false
+            }
+          }
+        }
       }
     }
   }
