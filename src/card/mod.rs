@@ -71,10 +71,10 @@ impl<'a> From<&'a Keyword> for &'static Card {
       Keyword::Tied => &TIED,
       // Part 3D
       Keyword::PartSolid => &PARTSOLID,
-      //Keyword::PartBshell => &PARTBSHELL,
-      //Keyword::PartTetra => &PARTTETRA,
-      //Keyword::PartSphel => &PARTSPHEL,
-      //Keyword::PartCos3d => &PARTCOS3D,
+      Keyword::PartBshel => &PARTBSHEL,
+      Keyword::PartTetra => &PARTTETRA,
+      Keyword::PartSphel => &PARTSPHEL,
+      Keyword::PartCos3d => &PARTCOS3D,
       //// Part 2D
       //Keyword::PartTshel => &PARTTSHEL,
       //Keyword::PartShell => &PARTSHELL,

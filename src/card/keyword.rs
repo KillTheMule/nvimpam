@@ -46,7 +46,7 @@ pub enum Keyword {
   Tied,
   // Part 3D
   PartSolid,
-  PartBshell,
+  PartBshel,
   PartTetra,
   PartSphel,
   PartCos3d,
@@ -131,7 +131,7 @@ impl Keyword {
 
             match p {
               b"   SOLID" => Some(PartSolid),
-              b"  BSHELL" => Some(PartBshell),
+              b"   BSHEL" => Some(PartBshel),
               b"   TETRA" => Some(PartTetra),
               b"   SPHEL" => Some(PartSphel),
               b"   COS3D" => Some(PartCos3d),
