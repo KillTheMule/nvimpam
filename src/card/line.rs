@@ -21,6 +21,11 @@ pub enum Line {
   /// occurence. The optional lines will index directly into the Vec to check
   /// for the result of their conditional.
   Optional(&'static [Cell], u8),
+  /// A line that is repeated
+  ///
+  /// The [number of repeats](::card::line::CondResult) is given as an index,
+  /// see the doc for [`Optional`](::card::line::Line)
+  Repeat(&'static [Cell], u8),
 }
 
 /// An enum to represent different conditionals on lines
@@ -29,31 +34,55 @@ pub enum Conditional {
   /// The char at the given index (0-based!) is the given one.
   RelChar(u8, char),
   // The integer at the cell given by the first number is the second number
-  Int(Range<usize>, u8)
+  Int(Range<usize>, u8),
+  // Read a number from a given cell
+  Number(Range<usize>),
+}
+
+// An enum to represent the different results of conditionals
+#[derive(Debug, PartialEq)]
+pub enum CondResult {
+  Bool(bool),
+  Number(Option<usize>),
 }
 
 impl Conditional {
   /// Given a line, evaluate the condition on it
-  pub fn evaluate<'a, T: 'a>(&self, line: &'a T) -> bool
+  pub fn evaluate<'a, T: 'a>(&self, line: &'a T) -> CondResult
   where
     T: AsRef<str>,
   {
+    use self::CondResult::*;
+
     match *self {
       Conditional::RelChar(idx, c) => {
         let idx = idx as usize;
-        line.as_ref().get(idx..idx + 1) == Some(&c.to_string())
+        Bool(line.as_ref().get(idx..idx + 1) == Some(&c.to_string()))
       }
       Conditional::Int(ref r, b) => {
         let cell = line.as_ref().get(r.clone());
 
         match cell {
-          None => false,
+          None => Bool(false),
+          Some(s) => match s.trim().parse::<u8>() {
+            Ok(x) if x == b => Bool(true),
+            _ => Bool(false),
+          },
+        }
+      }
+      Conditional::Number(ref r) => {
+        let cell = line.as_ref().get(r.clone());
+
+        match cell {
+          None => Number(None),
           Some(s) => {
-            match s.trim().parse::<u8>() {
-              Ok(x) if x == b => true,
-              _ => false
+            match s.trim().parse::<usize>() {
+              Ok(x) => {
+                return Number(Some(x));
+              }
+              _ => Number(None),
             }
-          }
+          },
         }
       }
     }
@@ -62,6 +91,7 @@ impl Conditional {
 
 #[cfg(test)]
 mod tests {
+  use card::line::CondResult::*;
   use card::line::Conditional;
 
   #[test]
@@ -70,8 +100,8 @@ mod tests {
     let cond2 = Conditional::RelChar(3, 'b');
     let line = "abbxy oaslkj";
 
-    assert!(cond1.evaluate(&line));
-    assert!(!cond2.evaluate(&line));
+    assert_eq!(Bool(true), cond1.evaluate(&line));
+    assert_eq!(Bool(false), cond2.evaluate(&line));
   }
 
   #[test]
@@ -79,7 +109,7 @@ mod tests {
     let cond1 = Conditional::RelChar(95, 'b');
     let line = "abbxy oaslkj";
 
-    assert!(!cond1.evaluate(&line));
+    assert_eq!(Bool(false), cond1.evaluate(&line));
   }
 
 }

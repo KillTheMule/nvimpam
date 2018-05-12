@@ -9,6 +9,7 @@ use std::default::Default;
 
 use card::ges::GesType;
 use card::keyword::Keyword;
+use card::line::CondResult;
 use card::line::Line;
 use card::Card;
 use skipresult::SkipResult;
@@ -169,10 +170,13 @@ where
   /// A wrapper around [`skip_card`](NoCommentIter::skip_card) and
   /// [`skip_card_gather`](NoCommentIter::skip_card_gather), dispatching by
   /// value of [`Card.ownfold`](::card::Card)
-  pub fn skip_fold<'b>(&'b mut self, nextline: SkipResult<'a, T>) -> SkipResult<'a, T> {
+  pub fn skip_fold<'b>(
+    &'b mut self,
+    nextline: SkipResult<'a, T>,
+  ) -> SkipResult<'a, T> {
     let card: &Card = match nextline.nextline_kw {
       None => return Default::default(),
-      Some(ref k) => k.into()
+      Some(ref k) => k.into(),
     };
 
     if card.ownfold {
@@ -189,23 +193,26 @@ where
   ///
   /// If you want to skip all cards of a given type, use
   /// [`skip_card_gather`](NoCommentIter::skip_card_gather)
-  pub fn skip_card<'b>(&'b mut self, nextline: SkipResult<'a, T>) -> SkipResult<'a, T> {
+  pub fn skip_card<'b>(
+    &'b mut self,
+    nextline: SkipResult<'a, T>,
+  ) -> SkipResult<'a, T> {
     let card: &Card = match nextline.nextline_kw {
       None => unreachable!(),
-      Some(ref k) => k.into()
+      Some(ref k) => k.into(),
     };
     let mut cardlines = card.lines.iter();
-    let mut conds: Vec<bool> = vec![]; // the vec to hold the conditionals
+    let mut conds: Vec<CondResult> = vec![]; // the vec to hold the conditionals
 
-    let cardline =  match cardlines.next() {
+    let cardline = match cardlines.next() {
       None => unreachable!(),
-      Some(c) => c
+      Some(c) => c,
     };
 
     if let Line::Provides(_s, ref c) = cardline {
       match nextline.nextline {
         None => unreachable!(),
-        Some((_,l)) => conds.push(c.evaluate(l)),
+        Some((_, l)) => conds.push(c.evaluate(l)),
       }
     }
 
@@ -226,9 +233,13 @@ where
 
     // TODO: Maybe this is clearer with loop?
     for cardline in cardlines {
+        println!("Cardline: {:?}", cardline);
+        println!("Line: {:?}", line.as_ref());
       match *cardline {
         Line::Provides(_s, ref c) => {
+          //println!("Evaluating on {:?}|{:?}", lineidx, line.as_ref());
           conds.push(c.evaluate(&line));
+          //println!("Conds {:?}", conds);
           let tmp = self.next();
           match tmp {
             None => {
@@ -315,7 +326,7 @@ where
           }
         }
         Line::Optional(_s, i) => {
-          if conds.get(i as usize) != Some(&true) {
+          if conds.get(i as usize) != Some(&CondResult::Bool(true)) {
             continue;
           } else if let Some(kw) = Keyword::parse(line) {
             return SkipResult {
@@ -341,9 +352,33 @@ where
             }
           }
         }
+        Line::Repeat(_s, i) => {
+          let num = match conds.get(i as usize) {
+            Some(CondResult::Number(Some(u))) => u,
+            _ => continue,
+          };
+
+          for _ in 0..*num {
+            let tmp = self.next();
+
+            match tmp {
+              None => {
+                return SkipResult {
+                  skip_end: Some(lineidx),
+                  ..Default::default()
+                };
+              }
+              Some((i, l)) => {
+                previdx = Some(lineidx);
+                line = l;
+                lineidx = i;
+                linekw = Keyword::parse(l);
+              }
+            }
+          }
+        }
       }
     }
-
     SkipResult {
       nextline: Some((lineidx, line)),
       nextline_kw: linekw,
@@ -355,7 +390,10 @@ where
   /// [`Card`](::card::Card)s, until the next card starts. The basic assumption
   /// is that the last line the iterator returned is a the first line of a card
   /// of the given type, but that might not always be strictly neccessary.
-  pub fn skip_card_gather<'b>(&'b mut self, nextline: SkipResult<'a, T>) -> SkipResult<'a, T> {
+  pub fn skip_card_gather<'b>(
+    &'b mut self,
+    nextline: SkipResult<'a, T>,
+  ) -> SkipResult<'a, T> {
     let mut curkw;
     let mut res = nextline;
     let mut curidx;
@@ -364,7 +402,7 @@ where
 
     let card: &Card = match res.nextline_kw {
       None => unreachable!(),
-      Some(ref k) => k.into()
+      Some(ref k) => k.into(),
     };
 
     loop {
@@ -612,7 +650,7 @@ mod tests {
     let sr = SkipResult {
       nextline: Some((firstline.0, firstline.1)),
       nextline_kw: kw,
-      skip_end: None
+      skip_end: None,
     };
 
     let tmp = li.skip_card(sr);
@@ -640,7 +678,7 @@ mod tests {
     let sr = SkipResult {
       nextline: Some((firstline.0, firstline.1)),
       nextline_kw: kw,
-      skip_end: None
+      skip_end: None,
     };
 
     let tmp = li.skip_card_gather(sr);
@@ -672,7 +710,7 @@ mod tests {
     let sr = SkipResult {
       nextline: Some((firstline.0, firstline.1)),
       nextline_kw: kw,
-      skip_end: None
+      skip_end: None,
     };
 
     let tmp = li.skip_card(sr);
@@ -703,7 +741,7 @@ mod tests {
     let sr = SkipResult {
       nextline: Some((firstline.0, firstline.1)),
       nextline_kw: kw,
-      skip_end: None
+      skip_end: None,
     };
 
     let tmp = li.skip_card(sr);
@@ -762,7 +800,7 @@ mod tests {
     let sr = SkipResult {
       nextline: Some((firstline.0, firstline.1)),
       nextline_kw: kw,
-      skip_end: None
+      skip_end: None,
     };
 
     let mut tmp = li.skip_fold(sr);
