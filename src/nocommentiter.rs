@@ -180,7 +180,7 @@ where
     };
 
     if card.ownfold {
-      self.skip_card(nextline)
+      self.skip_card(&nextline)
     } else {
       self.skip_card_gather(nextline)
     }
@@ -195,7 +195,7 @@ where
   /// [`skip_card_gather`](NoCommentIter::skip_card_gather)
   pub fn skip_card<'b>(
     &'b mut self,
-    nextline: SkipResult<'a, T>,
+    nextline: &SkipResult<'a, T>,
   ) -> SkipResult<'a, T> {
     let card: &Card = match nextline.nextline_kw {
       None => unreachable!(),
@@ -406,7 +406,7 @@ where
     };
 
     loop {
-      res = self.skip_card(res);
+      res = self.skip_card(&res);
 
       match res.nextline {
         // file ended before the next non-comment line
@@ -653,7 +653,7 @@ mod tests {
       skip_end: None,
     };
 
-    let tmp = li.skip_card(sr);
+    let tmp = li.skip_card(&sr);
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, Some(5));
   }
@@ -713,7 +713,7 @@ mod tests {
       skip_end: None,
     };
 
-    let tmp = li.skip_card(sr);
+    let tmp = li.skip_card(&sr);
     assert_eq!(tmp.nextline, Some((7, &"NODE  /      ")));
     assert_eq!(tmp.skip_end, Some(4));
   }
@@ -744,7 +744,7 @@ mod tests {
       skip_end: None,
     };
 
-    let tmp = li.skip_card(sr);
+    let tmp = li.skip_card(&sr);
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, Some(10));
   }

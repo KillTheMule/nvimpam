@@ -76,16 +76,14 @@ impl Conditional {
         match cell {
           None => Number(None),
           Some(s) => match s.trim().parse::<usize>() {
-            Ok(x) => {
-              return Number(Some(x));
+              Ok(x) => Number(Some(x)),
+              _ => Number(None),
             }
-            _ => Number(None),
-          },
+          }
         }
       }
     }
   }
-}
 
 #[cfg(test)]
 mod tests {
