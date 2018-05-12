@@ -166,8 +166,8 @@ impl FoldList {
               // Can this really happen?
               nextline = li.skip_to_next_keyword();
               continue;
-            },
-            Some(k) => foldkw = k
+            }
+            Some(k) => foldkw = k,
           };
 
           foldstart = i;

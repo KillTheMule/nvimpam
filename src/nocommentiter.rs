@@ -233,8 +233,8 @@ where
 
     // TODO: Maybe this is clearer with loop?
     for cardline in cardlines {
-        println!("Cardline: {:?}", cardline);
-        println!("Line: {:?}", line.as_ref());
+      println!("Cardline: {:?}", cardline);
+      println!("Line: {:?}", line.as_ref());
       match *cardline {
         Line::Provides(_s, ref c) => {
           //println!("Evaluating on {:?}|{:?}", lineidx, line.as_ref());

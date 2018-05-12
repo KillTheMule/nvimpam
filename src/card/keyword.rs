@@ -155,7 +155,7 @@ impl Keyword {
               _ => None,
             }
           }
-        },
+        }
         _ => None,
       }
     }

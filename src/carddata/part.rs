@@ -7,7 +7,7 @@ use card::line::Line::*;
 use card::Card;
 
 macro_rules! part3d {
-  ($($e: expr),+; $k: expr) => { 
+  ($($e: expr),+; $k: expr) => {
     Card {
       lines: &[
         Provides(&[
@@ -40,7 +40,7 @@ pub static PARTSOLID: Card = part3d!(
 pub static PARTCOS3D: Card = part3d!(
   Cells(&[Blank(10), Float(10), Float(10), Float(10), Float(10), Integer(10)])
   ;PartCos3d);
-  
+
 pub static PARTBSHEL: Card = part3d!(
   Cells(&[Blank(0)])
   ;PartBshel);
@@ -49,17 +49,18 @@ pub static PARTTETRA: Card = part3d!(
   Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10)]),
   Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10)])
   ; PartTetra);
-  
+
 pub static PARTSPHEL: Card = part3d!(
   Provides(&[Float(10), Float(10), Float(10), Float(10), Integer(5), Integer(5),
-  Float(10), Float(10), Integer(5)], Number(46..51)),
+             Float(10), Float(10), Integer(5)],
+           Number(46..51)),
   Repeat(&[Integer(10), Float(10)], 1)
   ; PartSphel);
 
 #[cfg(test)]
 mod tests {
-  use card::keyword::Keyword::*;
   use card::keyword::Keyword;
+  use card::keyword::Keyword::*;
 
   const CARD_PARTSOLID: [&'static str; 22] = [
     "$PART Type SOLID",
@@ -122,8 +123,7 @@ mod tests {
   fn fold_partsolid2() {
     use folds::FoldList;
 
-    let v: Vec<(u64, u64, Keyword)> =
-      vec![(2, 14, PartSolid)];
+    let v: Vec<(u64, u64, Keyword)> = vec![(2, 14, PartSolid)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSOLID2);
 
@@ -150,8 +150,7 @@ mod tests {
   fn fold_partcos3d() {
     use folds::FoldList;
 
-    let v: Vec<(u64, u64, Keyword)> =
-      vec![(2, 12, PartCos3d)];
+    let v: Vec<(u64, u64, Keyword)> = vec![(2, 12, PartCos3d)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTCOS3D);
 
@@ -177,8 +176,7 @@ mod tests {
   fn fold_partbshel() {
     use folds::FoldList;
 
-    let v: Vec<(u64, u64, Keyword)> =
-      vec![(2, 11, PartBshel)];
+    let v: Vec<(u64, u64, Keyword)> = vec![(2, 11, PartBshel)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTBSHEL);
 
@@ -207,8 +205,7 @@ mod tests {
   fn fold_parttetra() {
     use folds::FoldList;
 
-    let v: Vec<(u64, u64, Keyword)> =
-      vec![(2, 14, PartTetra)];
+    let v: Vec<(u64, u64, Keyword)> = vec![(2, 14, PartTetra)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTTETRA);
 
@@ -235,8 +232,7 @@ mod tests {
   fn fold_partsphel() {
     use folds::FoldList;
 
-    let v: Vec<(u64, u64, Keyword)> =
-      vec![(2, 12, PartSphel)];
+    let v: Vec<(u64, u64, Keyword)> = vec![(2, 12, PartSphel)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSPHEL);
 
@@ -266,8 +262,7 @@ mod tests {
   fn fold_partsphel2() {
     use folds::FoldList;
 
-    let v: Vec<(u64, u64, Keyword)> =
-      vec![(2, 15, PartSphel)];
+    let v: Vec<(u64, u64, Keyword)> = vec![(2, 15, PartSphel)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSPHEL2);
 
