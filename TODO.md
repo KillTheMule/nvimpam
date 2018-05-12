@@ -1,3 +1,5 @@
+* skip_card doesn't need to allocate a vec most of the time!
+
 * Do we need the channel between the handler and the event loop? How about just having the handler call what's neccessary?
 
 * Check out https://github.com/sunng87/cargo-release
