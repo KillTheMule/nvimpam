@@ -161,16 +161,17 @@ impl FoldList {
       match nextline.nextline {
         None => return Ok(()),
         Some((i, _)) => {
-          foldkw = match nextline.nextline_kw {
-            Some(k) => k,
+          match nextline.nextline_kw {
             None => {
+              // Can this really happen?
               nextline = li.skip_to_next_keyword();
               continue;
-            }
+            },
+            Some(k) => foldkw = k
           };
 
           foldstart = i;
-          nextline = li.skip_fold((&foldkw).into());
+          nextline = li.skip_fold(nextline);
 
           if let Some(j) = nextline.skip_end {
             foldend = j;

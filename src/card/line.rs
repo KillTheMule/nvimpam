@@ -49,7 +49,7 @@ impl Conditional {
         match cell {
           None => false,
           Some(s) => {
-            match s.parse::<u8>() {
+            match s.trim().parse::<u8>() {
               Ok(x) if x == b => true,
               _ => false
             }

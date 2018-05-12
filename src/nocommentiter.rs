@@ -169,11 +169,16 @@ where
   /// A wrapper around [`skip_card`](NoCommentIter::skip_card) and
   /// [`skip_card_gather`](NoCommentIter::skip_card_gather), dispatching by
   /// value of [`Card.ownfold`](::card::Card)
-  pub fn skip_fold<'b>(&'b mut self, card: &Card) -> SkipResult<'a, T> {
+  pub fn skip_fold<'b>(&'b mut self, nextline: SkipResult<'a, T>) -> SkipResult<'a, T> {
+    let card: &Card = match nextline.nextline_kw {
+      None => return Default::default(),
+      Some(ref k) => k.into()
+    };
+
     if card.ownfold {
-      self.skip_card(card)
+      self.skip_card(nextline)
     } else {
-      self.skip_card_gather(card)
+      self.skip_card_gather(nextline)
     }
   }
 
@@ -184,12 +189,25 @@ where
   ///
   /// If you want to skip all cards of a given type, use
   /// [`skip_card_gather`](NoCommentIter::skip_card_gather)
-  pub fn skip_card<'b>(&'b mut self, card: &Card) -> SkipResult<'a, T> {
+  pub fn skip_card<'b>(&'b mut self, nextline: SkipResult<'a, T>) -> SkipResult<'a, T> {
+    let card: &Card = match nextline.nextline_kw {
+      None => unreachable!(),
+      Some(ref k) => k.into()
+    };
     let mut cardlines = card.lines.iter();
     let mut conds: Vec<bool> = vec![]; // the vec to hold the conditionals
 
-    // We've already seen this line from the iterator
-    let _ = cardlines.next();
+    let cardline =  match cardlines.next() {
+      None => unreachable!(),
+      Some(c) => c
+    };
+
+    if let Line::Provides(_s, ref c) = cardline {
+      match nextline.nextline {
+        None => unreachable!(),
+        Some((_,l)) => conds.push(c.evaluate(l)),
+      }
+    }
 
     let mut line; // line of the iterator we're currently processing
     let mut lineidx; // index of the currently processed line
@@ -206,6 +224,7 @@ where
       }
     }
 
+    // TODO: Maybe this is clearer with loop?
     for cardline in cardlines {
       match *cardline {
         Line::Provides(_s, ref c) => {
@@ -336,15 +355,20 @@ where
   /// [`Card`](::card::Card)s, until the next card starts. The basic assumption
   /// is that the last line the iterator returned is a the first line of a card
   /// of the given type, but that might not always be strictly neccessary.
-  pub fn skip_card_gather<'b>(&'b mut self, card: &Card) -> SkipResult<'a, T> {
+  pub fn skip_card_gather<'b>(&'b mut self, nextline: SkipResult<'a, T>) -> SkipResult<'a, T> {
     let mut curkw;
-    let mut res;
+    let mut res = nextline;
     let mut curidx;
     let mut curline;
     let mut previdx = None;
 
+    let card: &Card = match res.nextline_kw {
+      None => unreachable!(),
+      Some(ref k) => k.into()
+    };
+
     loop {
-      res = self.skip_card(card);
+      res = self.skip_card(res);
 
       match res.nextline {
         // file ended before the next non-comment line
@@ -381,9 +405,8 @@ where
 mod tests {
   use card::ges::GesType;
   use card::keyword::Keyword;
-  use card::Card;
-  use carddata::*;
   use nocommentiter::CommentLess;
+  use skipresult::SkipResult;
 
   const COMMENTS: [&'static str; 8] = [
     "#This", "#is", "#an", "#example", "of", "some", "lines", ".",
@@ -584,12 +607,15 @@ mod tests {
   #[test]
   fn itr_skips_nsmas() {
     let mut li = CARD_NSMAS.iter().enumerate().remove_comments();
-    let firstline = li.next();
-    let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
-    let k = &kw;
-    let card: &'static Card = k.into();
+    let firstline = li.next().unwrap();
+    let kw = Keyword::parse(&firstline.1);
+    let sr = SkipResult {
+      nextline: Some((firstline.0, firstline.1)),
+      nextline_kw: kw,
+      skip_end: None
+    };
 
-    let tmp = li.skip_card(card);
+    let tmp = li.skip_card(sr);
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, Some(5));
   }
@@ -609,12 +635,15 @@ mod tests {
   #[test]
   fn itr_skips_nodes() {
     let mut li = CARD_NODES.iter().enumerate().remove_comments();
-    let firstline = li.next();
-    let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
-    let k = &kw;
-    let card: &'static Card = k.into();
+    let firstline = li.next().unwrap();
+    let kw = Keyword::parse(&firstline.1);
+    let sr = SkipResult {
+      nextline: Some((firstline.0, firstline.1)),
+      nextline_kw: kw,
+      skip_end: None
+    };
 
-    let tmp = li.skip_card_gather(card);
+    let tmp = li.skip_card_gather(sr);
     assert_eq!(tmp.nextline, Some((8, &"SHELL /     ")));
     assert_eq!(tmp.skip_end, Some(7));
   }
@@ -638,12 +667,15 @@ mod tests {
       .enumerate()
       .skip(2)
       .remove_comments();
-    let firstline = li.next();
-    let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
-    let k = &kw;
-    let card: &'static Card = k.into();
+    let firstline = li.next().unwrap();
+    let kw = Keyword::parse(&firstline.1);
+    let sr = SkipResult {
+      nextline: Some((firstline.0, firstline.1)),
+      nextline_kw: kw,
+      skip_end: None
+    };
 
-    let tmp = li.skip_card(card);
+    let tmp = li.skip_card(sr);
     assert_eq!(tmp.nextline, Some((7, &"NODE  /      ")));
     assert_eq!(tmp.skip_end, Some(4));
   }
@@ -666,12 +698,15 @@ mod tests {
   #[test]
   fn itr_skips_optional_lines() {
     let mut li = CARD_MASS_OPT.iter().enumerate().remove_comments();
-    let firstline = li.next();
-    let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
-    let k = &kw;
-    let card: &'static Card = k.into();
+    let firstline = li.next().unwrap();
+    let kw = Keyword::parse(&firstline.1);
+    let sr = SkipResult {
+      nextline: Some((firstline.0, firstline.1)),
+      nextline_kw: kw,
+      skip_end: None
+    };
 
-    let tmp = li.skip_card(card);
+    let tmp = li.skip_card(sr);
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, Some(10));
   }
@@ -722,25 +757,28 @@ mod tests {
   #[test]
   fn itr_skips_gather_cards() {
     let mut li = LINES_GATHER.iter().enumerate().remove_comments();
-    let firstline = li.it.next();
-    let kw: Keyword = Keyword::parse(&firstline.unwrap().1).unwrap();
-    let k = &kw;
-    let card: &'static Card = k.into();
+    let firstline = li.next().unwrap();
+    let kw = Keyword::parse(&firstline.1);
+    let sr = SkipResult {
+      nextline: Some((firstline.0, firstline.1)),
+      nextline_kw: kw,
+      skip_end: None
+    };
 
-    let mut tmp = li.skip_fold(card);
+    let mut tmp = li.skip_fold(sr);
     assert_eq!(tmp.nextline, Some((5, &LINES_GATHER[5])));
     assert_eq!(tmp.skip_end, Some(3));
 
-    tmp = li.skip_fold(&SHELL);
+    tmp = li.skip_fold(tmp);
     assert_eq!(tmp.nextline, Some((6, &LINES_GATHER[6])));
     assert_eq!(tmp.skip_end, Some(5));
 
-    let _ = li.it.next();
-    tmp = li.skip_fold(&SHELL);
+    tmp = li.skip_to_next_keyword();
+    tmp = li.skip_fold(tmp);
     assert_eq!(tmp.nextline, Some((18, &LINES_GATHER[18])));
     assert_eq!(tmp.skip_end, Some(15));
 
-    tmp = li.skip_fold(&NODE);
+    tmp = li.skip_fold(tmp);
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, None);
   }
