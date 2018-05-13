@@ -1,6 +1,7 @@
 //! An enum to classify the several types of lines that can occur inside a card
 //! of a Pamcrash input file. Might not really be a line (see GES).
 use std::ops::Range;
+use std::cmp;
 
 use card::cell::Cell;
 use card::ges::GesType;
@@ -60,7 +61,14 @@ impl Conditional {
         Bool(line.as_ref().get(idx..idx + 1) == Some(&c.to_string()))
       }
       Conditional::Int(ref r, b) => {
-        let cell = line.as_ref().get(r.clone());
+        let lineref = line.as_ref();
+        let linelen = lineref.len();
+        let lower = r.start;
+        let upper = r.end;
+        let new_upper = cmp::min(linelen, upper);
+        let range = lower..new_upper;
+
+        let cell = lineref.get(range);
 
         match cell {
           None => Bool(false),
@@ -71,7 +79,14 @@ impl Conditional {
         }
       }
       Conditional::Number(ref r) => {
-        let cell = line.as_ref().get(r.clone());
+        let s = line.as_ref();
+        let l = s.len();
+        let lower = r.start;
+        let upper = r.end;
+        let new_upper = cmp::min(l, upper);
+        let range = lower..new_upper;
+
+        let cell = s.get(range);
 
         match cell {
           None => Number(None),
