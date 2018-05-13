@@ -1,0 +1,11 @@
+cargo 1.27.0-nightly (9e53ac6e6 2018-05-07)
+5189668163696396de3a12f29a9588a3e5c3067e Implement 1D Parts
+8c618ff4a33d68c400806cbb0102d95ba841b012 Improve getting a conditional number for lines that are to short
+d6a5cb44df8b20589f7f0382924fa8f1b635151f Implemente 2D Parts
+b1fd921258160b0d0b12cf3d1cfba02f33a079d0 Make skip_cards_gather take a reference
+613835be1c98ab9354d5ef94d4f41e6433da4a08 Remove stray printlns
+4292419fa6884505705ea8187fcfa619ed7f45e3 Update TODO.md
+6dfb426b8b5bf8934ce18a37192b7ac3247964e3 Clippy
+f57b6a3726ba855fb9b84c30506d4ce9b284e3d7 Rustfmt
+2d44931b31101d9513710fe83a6b43e9a30a733e Implement the missing PART3D cards
+e4a184cf7b921e84d1efaddaa499cf9a6097c47b Implement more flexible conditionals, and repeating lines in cards

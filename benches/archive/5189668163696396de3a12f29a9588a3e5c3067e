@@ -1,0 +1,100 @@
+
+running 82 tests
+test card::ges::tests::test_ends_ges ... ignored
+test card::ges::tests::test_is_ges ... ignored
+test card::line::tests::relchar_can_be_evaluated ... ignored
+test card::line::tests::relchar_out_of_bounds ... ignored
+test carddata::element::tests::fold_bar ... ignored
+test carddata::element::tests::fold_beam ... ignored
+test carddata::element::tests::fold_bshel ... ignored
+test carddata::element::tests::fold_gap ... ignored
+test carddata::element::tests::fold_hexa20 ... ignored
+test carddata::element::tests::fold_impma ... ignored
+test carddata::element::tests::fold_joint ... ignored
+test carddata::element::tests::fold_kjoin ... ignored
+test carddata::element::tests::fold_membr ... ignored
+test carddata::element::tests::fold_mtojnt ... ignored
+test carddata::element::tests::fold_pent15 ... ignored
+test carddata::element::tests::fold_penta6 ... ignored
+test carddata::element::tests::fold_shel6 ... ignored
+test carddata::element::tests::fold_shel8 ... ignored
+test carddata::element::tests::fold_shell ... ignored
+test carddata::element::tests::fold_solid ... ignored
+test carddata::element::tests::fold_sphel ... ignored
+test carddata::element::tests::fold_sphelo ... ignored
+test carddata::element::tests::fold_sprgbm ... ignored
+test carddata::element::tests::fold_spring ... ignored
+test carddata::element::tests::fold_tetr10 ... ignored
+test carddata::element::tests::fold_tetr4 ... ignored
+test carddata::element::tests::fold_tshel ... ignored
+test carddata::link::tests::fold_elink ... ignored
+test carddata::link::tests::fold_llink ... ignored
+test carddata::link::tests::fold_plink ... ignored
+test carddata::link::tests::fold_slink ... ignored
+test carddata::link::tests::fold_tied ... ignored
+test carddata::node::tests::fold_mass ... ignored
+test carddata::node::tests::fold_nsmas ... ignored
+test carddata::part::tests::fold_partbar ... ignored
+test carddata::part::tests::fold_partbeam ... ignored
+test carddata::part::tests::fold_partbeam2 ... ignored
+test carddata::part::tests::fold_partbshel ... ignored
+test carddata::part::tests::fold_partcos3d ... ignored
+test carddata::part::tests::fold_partelink ... ignored
+test carddata::part::tests::fold_partgap ... ignored
+test carddata::part::tests::fold_partjoint ... ignored
+test carddata::part::tests::fold_partkjoin ... ignored
+test carddata::part::tests::fold_partllink ... ignored
+test carddata::part::tests::fold_partmbkjn ... ignored
+test carddata::part::tests::fold_partmbspr ... ignored
+test carddata::part::tests::fold_partmembr ... ignored
+test carddata::part::tests::fold_partmtojnt ... ignored
+test carddata::part::tests::fold_partplink ... ignored
+test carddata::part::tests::fold_partshell ... ignored
+test carddata::part::tests::fold_partshphel2 ... ignored
+test carddata::part::tests::fold_partslink ... ignored
+test carddata::part::tests::fold_partsolid ... ignored
+test carddata::part::tests::fold_partsolid2 ... ignored
+test carddata::part::tests::fold_partsphel ... ignored
+test carddata::part::tests::fold_partsprgbm ... ignored
+test carddata::part::tests::fold_partspring ... ignored
+test carddata::part::tests::fold_parttetra ... ignored
+test carddata::part::tests::fold_parttied ... ignored
+test carddata::part::tests::fold_parttied2 ... ignored
+test carddata::part::tests::fold_parttshel ... ignored
+test folds::tests::fold_general ... ignored
+test folds::tests::fold_general_gather ... ignored
+test lines::tests::lines_can_delete ... ignored
+test lines::tests::lines_can_insert ... ignored
+test lines::tests::lines_can_update ... ignored
+test nocommentiter::tests::ges_can_be_skipped ... ignored
+test nocommentiter::tests::ges_can_be_skipped_repeatedly ... ignored
+test nocommentiter::tests::ges_can_skip_nothing ... ignored
+test nocommentiter::tests::ges_ends_without_end ... ignored
+test nocommentiter::tests::ges_includes_comments_inside ... ignored
+test nocommentiter::tests::ges_skips_over_comments_after_end ... ignored
+test nocommentiter::tests::ges_works_with_only_comments ... ignored
+test nocommentiter::tests::itr_skips_gather_cards ... ignored
+test nocommentiter::tests::itr_skips_incomplete_cards ... ignored
+test nocommentiter::tests::itr_skips_nodes ... ignored
+test nocommentiter::tests::itr_skips_nsmas ... ignored
+test nocommentiter::tests::itr_skips_optional_lines ... ignored
+test nocommentiter::tests::linesiter_finds_real_keywords ... ignored
+test nocommentiter::tests::linesiter_needs_no_keywords ... ignored
+test nocommentiter::tests::linesiter_works_with_vec ... ignored
+test nocommentiter::tests::nocommentiter_works_with_slice ... ignored
+
+test result: ok. 0 passed; 0 failed; 82 ignored; 0 measured; 0 filtered out
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+
+
+running 3 tests
+test bench_parse2folddata ... bench:     455,629 ns/iter (+/- 7,798)
+test bench_parse_str      ... bench:     111,500 ns/iter (+/- 2,325)
+test bench_skip_ges       ... bench:          84 ns/iter (+/- 1)
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 3 measured; 0 filtered out
+
