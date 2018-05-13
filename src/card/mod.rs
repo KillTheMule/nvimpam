@@ -76,9 +76,9 @@ impl<'a> From<&'a Keyword> for &'static Card {
       Keyword::PartSphel => &PARTSPHEL,
       Keyword::PartCos3d => &PARTCOS3D,
       //// Part 2D
-      //Keyword::PartTshel => &PARTTSHEL,
-      //Keyword::PartShell => &PARTSHELL,
-      //Keyword::PartMembr => &PARTMEMBR,
+      Keyword::PartTshel => &PARTTSHEL,
+      Keyword::PartShell => &PARTSHELL,
+      Keyword::PartMembr => &PARTMEMBR,
       //// Part 1D
       //Keyword::PartBar => &PARTBAR,
       //Keyword::PartBeam => &PARTBEAM,

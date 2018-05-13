@@ -6,7 +6,7 @@ use card::line::Conditional::*;
 use card::line::Line::*;
 use card::Card;
 
-macro_rules! part3d {
+macro_rules! part {
   ($($e: expr),+; $k: expr) => {
     Card {
       lines: &[
@@ -32,30 +32,49 @@ macro_rules! part3d {
   };
 }
 
-pub static PARTSOLID: Card = part3d!(
+// Part 3D
+pub static PARTSOLID: Card = part!(
   Cells(&[Integer(5), Float(10), Float(10), Float(10)]),
   Cells(&[Integer(5), Float(10), Float(10), Float(10)])
   ;PartSolid);
 
-pub static PARTCOS3D: Card = part3d!(
+pub static PARTCOS3D: Card = part!(
   Cells(&[Blank(10), Float(10), Float(10), Float(10), Float(10), Integer(10)])
   ;PartCos3d);
 
-pub static PARTBSHEL: Card = part3d!(
+pub static PARTBSHEL: Card = part!(
   Cells(&[Blank(0)])
   ;PartBshel);
 
-pub static PARTTETRA: Card = part3d!(
+pub static PARTTETRA: Card = part!(
   Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10)]),
   Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10)])
   ; PartTetra);
 
-pub static PARTSPHEL: Card = part3d!(
+pub static PARTSPHEL: Card = part!(
   Provides(&[Float(10), Float(10), Float(10), Float(10), Integer(5), Integer(5),
              Float(10), Float(10), Integer(5)],
            Number(46..51)),
   Repeat(&[Integer(10), Float(10)], 1)
   ; PartSphel);
+
+// PART 2D
+pub static PARTTSHEL: Card = part!(
+  Cells(&[Float(10), Integer(5)])
+  ;PartTshel);
+
+pub static PARTSHELL: Card = part!(
+  Cells(&[Float(10), Integer(5), Float(10), Integer(5)]),
+  Cells(&[Integer(5), Float(10), Float(10), Float(10), Float(10)])
+  ;PartShell);
+
+pub static PARTMEMBR: Card = part!(
+  Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10), Float(10),
+          Float(10), Float(10), Float(10),]),
+  Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10), Float(10),
+          Float(10), Float(10), Float(10),])
+  ;PartMembr);
+
 
 #[cfg(test)]
 mod tests {
@@ -259,12 +278,99 @@ mod tests {
   ];
 
   #[test]
-  fn fold_partsphel2() {
+  fn fold_partshphel2() {
     use folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(2, 15, PartSphel)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSPHEL2);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  const CARD_PARTTSHEL: [&'static str; 12] = [
+    "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",
+    "PART  /        1   TSHEL       1       0       0       0",
+    "$#                                                                         TITLE",
+    "NAME PART_1                                                                     ",
+    "$#  DTELIM    TSCALF   DTRATIO",
+    "                              ",
+    "$#   TCONT    EPSINI  COULFRIC",
+    "                              ",
+    "$#       H NINT",
+    "               ",
+    "$#      ",
+    "END_PART",
+  ];
+
+  #[test]
+  fn fold_parttshel() {
+    use folds::FoldList;
+
+    let v: Vec<(u64, u64, Keyword)> = vec![(1, 11, PartTshel)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_PARTTSHEL);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+
+  const CARD_PARTSHELL: [&'static str; 15] = [
+    "$PART Type SHELL",
+    "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",
+    "PART  /        1   SHELL       2       0       0       0",
+    "$#                                                                         TITLE",
+    "NAME PART_1                                                                     ",
+    "$#  DTELIM    TSCALF   DTRATIO",
+    "                              ",
+    "$#   TCONT    EPSINI  COULFRIC",
+    "                              ",
+    "$#       H NINT    OFFSETNTDOF",
+    "              5               ",
+    "$#ORTBLANK      XDIR      YDIR      ZDIR",
+    "    0                                   ",
+    "$#      ",
+    "END_PART",
+  ];
+
+  #[test]
+  fn fold_partshell() {
+    use folds::FoldList;
+
+    let v: Vec<(u64, u64, Keyword)> = vec![(2, 14, PartShell)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_PARTSHELL);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  const CARD_PARTMEMBR: [&'static str; 17] = [
+    "$PART Type MEMBR",
+    "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",
+    "PART  /        1   MEMBR       0       2       0       0",
+    "$#                                                                         TITLE",
+    "NAME PART_1                                                                     ",
+    "$#  DTELIM    TSCALF   DTRATIO",
+    "                              ",
+    "$#   TCONT    EPSINI  COULFRIC",
+    "                              ",
+    "$#       H     NDOFs",
+    "                    ",
+    "$#RT1            VX1       VY1       VZ1   ALPHof1       TX1       TY1       TZ1",
+    "                                                                                ",
+    "$#RT2            VX2       VY2       VZ2   ALPHof2       TX2       TY2       TZ2",
+    "                                                                                ",
+    "$#      ",
+    "END_PART",
+  ];
+
+  #[test]
+  fn fold_partmembr() {
+    use folds::FoldList;
+
+    let v: Vec<(u64, u64, Keyword)> = vec![(2, 16, PartMembr)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_PARTMEMBR);
 
     assert_eq!(v, foldlist.into_vec());
   }
