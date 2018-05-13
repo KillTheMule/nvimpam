@@ -172,7 +172,7 @@ where
   /// value of [`Card.ownfold`](::card::Card)
   pub fn skip_fold<'b>(
     &'b mut self,
-    nextline: SkipResult<'a, T>,
+    nextline: &SkipResult<'a, T>,
   ) -> SkipResult<'a, T> {
     let card: &Card = match nextline.nextline_kw {
       None => return Default::default(),
@@ -180,7 +180,7 @@ where
     };
 
     if card.ownfold {
-      self.skip_card(&nextline)
+      self.skip_card(nextline)
     } else {
       self.skip_card_gather(nextline)
     }
@@ -388,22 +388,22 @@ where
   /// of the given type, but that might not always be strictly neccessary.
   pub fn skip_card_gather<'b>(
     &'b mut self,
-    nextline: SkipResult<'a, T>,
+    nextline: &SkipResult<'a, T>,
   ) -> SkipResult<'a, T> {
     let mut curkw;
-    let mut res = nextline;
+    let mut res;
     let mut curidx;
     let mut curline;
     let mut previdx = None;
 
-    let card: &Card = match res.nextline_kw {
+    let card: &Card = match nextline.nextline_kw {
       None => unreachable!(),
       Some(ref k) => k.into(),
     };
 
-    loop {
-      res = self.skip_card(&res);
+    res = self.skip_card(nextline);
 
+    loop {
       match res.nextline {
         // file ended before the next non-comment line
         None => {
@@ -425,6 +425,8 @@ where
       } else {
         previdx = Some(curidx);
       }
+
+      res = self.skip_card(&res);
     }
 
     SkipResult {
@@ -677,7 +679,7 @@ mod tests {
       skip_end: None,
     };
 
-    let tmp = li.skip_card_gather(sr);
+    let tmp = li.skip_card_gather(&sr);
     assert_eq!(tmp.nextline, Some((8, &"SHELL /     ")));
     assert_eq!(tmp.skip_end, Some(7));
   }
@@ -799,20 +801,20 @@ mod tests {
       skip_end: None,
     };
 
-    let mut tmp = li.skip_fold(sr);
+    let mut tmp = li.skip_fold(&sr);
     assert_eq!(tmp.nextline, Some((5, &LINES_GATHER[5])));
     assert_eq!(tmp.skip_end, Some(3));
 
-    tmp = li.skip_fold(tmp);
+    tmp = li.skip_fold(&tmp);
     assert_eq!(tmp.nextline, Some((6, &LINES_GATHER[6])));
     assert_eq!(tmp.skip_end, Some(5));
 
     tmp = li.skip_to_next_keyword();
-    tmp = li.skip_fold(tmp);
+    tmp = li.skip_fold(&tmp);
     assert_eq!(tmp.nextline, Some((18, &LINES_GATHER[18])));
     assert_eq!(tmp.skip_end, Some(15));
 
-    tmp = li.skip_fold(tmp);
+    tmp = li.skip_fold(&tmp);
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, None);
   }

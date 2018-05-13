@@ -171,7 +171,7 @@ impl FoldList {
           };
 
           foldstart = i;
-          nextline = li.skip_fold(nextline);
+          nextline = li.skip_fold(&nextline);
 
           if let Some(j) = nextline.skip_end {
             foldend = j;
