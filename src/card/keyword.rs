@@ -146,6 +146,7 @@ impl Keyword {
               b"   JOINT" => Some(PartJoint),
               b"   KJOIN" => Some(PartKjoin),
               b"  MTOJNT" => Some(PartMtojnt),
+              b"   MBKJN" => Some(PartMbkjn),
               b"    TIED" => Some(PartTied),
               b"   SLINK" => Some(PartSlink),
               b"   ELINK" => Some(PartElink),
