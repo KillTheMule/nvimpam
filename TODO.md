@@ -1,4 +1,4 @@
-* See if we can't unify the signatures of skip_card and skip_card_gather
+* Check out https://github.com/kernelmachine/cargo-profiler
 
 * skip_card doesn't need to allocate a vec most of the time!
 
