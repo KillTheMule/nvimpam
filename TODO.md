@@ -1,5 +1,7 @@
 * Work on skip_card if we can't reduce the amount of repitition 
 
+* Check out https://github.com/kernelmachine/cargo-profiler
+
 * skip_card doesn't need to allocate a vec most of the time!
 
 * Do we need the channel between the handler and the event loop? How about just having the handler call what's neccessary?
