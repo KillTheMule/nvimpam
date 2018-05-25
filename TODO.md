@@ -1,4 +1,4 @@
-* See if we can't unify the signatures of skip_card and skip_card_gather
+* Work on skip_card if we can't reduce the amount of repitition 
 
 * skip_card doesn't need to allocate a vec most of the time!
 
