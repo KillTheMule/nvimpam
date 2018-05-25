@@ -70,6 +70,9 @@ pub enum Keyword {
   PartLlink,
   PartPlink,
   PartGap,
+  // Contrain
+  Mtoco,
+  Otmco,
 }
 
 impl Keyword {
@@ -123,6 +126,7 @@ impl Keyword {
         b"SLINK / " => Some(Slink),
         b"PLINK / " => Some(Plink),
         b"TIED  / " => Some(Tied),
+        // Part
         b"PART  / " => {
           if len < 24 {
             None
@@ -157,6 +161,9 @@ impl Keyword {
             }
           }
         }
+        // Constraint
+        b"MTOCO / " => Some(Mtoco),
+        b"OTMCO / " => Some(Otmco),
         _ => None,
       }
     }

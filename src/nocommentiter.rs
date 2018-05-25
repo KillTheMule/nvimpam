@@ -373,6 +373,49 @@ where
             }
           }
         }
+        Line::Block(_l, s) => loop {
+          let tmp = self.next();
+
+          match tmp {
+            None => {
+              return SkipResult {
+                skip_end: Some(lineidx),
+                ..Default::default()
+              };
+            }
+            Some((i, l)) => {
+              previdx = Some(lineidx);
+              line = l;
+              lineidx = i;
+              linekw = Keyword::parse(l);
+
+              match linekw {
+                Some(_) => break,
+                None => {
+                  if line.as_ref().starts_with(s) {
+                    let tmp = self.next();
+
+                    match tmp {
+                      None => {
+                        return SkipResult {
+                          skip_end: Some(lineidx),
+                          ..Default::default()
+                        };
+                      }
+                      Some((i, l)) => {
+                        return SkipResult {
+                          nextline: Some((i, l)),
+                          nextline_kw: Keyword::parse(l),
+                          skip_end: previdx,
+                        };
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
       }
     }
     SkipResult {

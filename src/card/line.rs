@@ -27,6 +27,8 @@ pub enum Line {
   /// The [number of repeats](::card::line::CondResult) is given as an index,
   /// see the doc for [`Optional`](::card::line::Line)
   Repeat(&'static [Cell], u8),
+  /// A block of lines, ended by a line starting with the given string.
+  Block(&'static [Line], &'static str),
 }
 
 /// An enum to represent different conditionals on lines

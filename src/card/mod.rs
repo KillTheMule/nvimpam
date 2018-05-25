@@ -75,11 +75,11 @@ impl<'a> From<&'a Keyword> for &'static Card {
       Keyword::PartTetra => &PARTTETRA,
       Keyword::PartSphel => &PARTSPHEL,
       Keyword::PartCos3d => &PARTCOS3D,
-      //// Part 2D
+      // Part 2D
       Keyword::PartTshel => &PARTTSHEL,
       Keyword::PartShell => &PARTSHELL,
       Keyword::PartMembr => &PARTMEMBR,
-      //// Part 1D
+      // Part 1D
       Keyword::PartBar => &PARTBAR,
       Keyword::PartBeam => &PARTBEAM,
       Keyword::PartSpring => &PARTSPRING,
@@ -95,6 +95,9 @@ impl<'a> From<&'a Keyword> for &'static Card {
       Keyword::PartLlink => &PARTLLINK,
       Keyword::PartPlink => &PARTPLINK,
       Keyword::PartGap => &PARTGAP,
+      // Constraint
+      Keyword::Mtoco => &MTOCO,
+      Keyword::Otmco => &OTMCO,
     }
   }
 }
