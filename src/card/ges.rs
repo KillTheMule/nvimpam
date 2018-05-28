@@ -23,7 +23,7 @@ impl GesType {
       match &b[8..12] {
         b"ELE " | b"GRP " | b"NOD " | b"SEG " | b"EDG " | b"MOD " => true,
         b"OGRP" => len >= 13 && &b[12..13] == b" ",
-        b"DELN" => len >= 15 && &b[12..15] == b"NOD ",
+        b"DELN" => len >= 15 && &b[12..15] == b"OD ",
         b"DELE" => {
           if len < 15 {
             false
