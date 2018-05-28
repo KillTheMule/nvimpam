@@ -68,6 +68,124 @@ pub static OTMCO: Card = Card {
   keyword: Otmco,
 };
 
+pub static RBODY0: Card = Card {
+  lines: &[
+    Cells(&[
+      Kw,
+      Integer(8),
+      Blank(8),
+      Integer(8),
+      Integer(8),
+      Integer(8),
+      Blank(8),
+      Integer(8),
+      Blank(8),
+      Float(8),
+    ]),
+    Cells(&[Fixed("NAME"), Str(76)]),
+    Ges(GesNode),
+  ],
+
+  ownfold: true,
+  keyword: Rbody0,
+};
+
+pub static RBODY1: Card = Card {
+  lines: &[
+    Cells(&[
+      Kw,
+      Integer(8),
+      Blank(8),
+      Integer(8),
+      Integer(8),
+      Blank(16),
+      Integer(8),
+      Blank(8),
+      Float(8),
+    ]),
+    Cells(&[Fixed("NAME"), Str(76)]),
+    Cells(&[
+      Blank(8),
+      Float(8),
+      Float(8),
+      Float(8),
+      Float(8),
+      Float(8),
+      Float(8),
+      Integer(8),
+      Float(8),
+      Float(8),
+    ]),
+    Ges(GesNode),
+  ],
+
+  ownfold: true,
+  keyword: Rbody1,
+};
+
+pub static RBODY2: Card = Card {
+  lines: &[
+    Cells(&[
+      Kw,
+      Integer(8),
+      Blank(8),
+      Integer(8),
+      Integer(8),
+      Blank(16),
+      Integer(8),
+      Blank(8),
+      Float(8),
+    ]),
+    Cells(&[Fixed("NAME"), Str(76)]),
+    Cells(&[
+      Blank(8),
+      Float(8),
+      Float(8),
+      Float(8),
+      Float(8),
+      Float(8),
+      Float(8),
+      Integer(8),
+    ]),
+    Ges(GesNode),
+  ],
+
+  ownfold: true,
+  keyword: Rbody2,
+};
+
+pub static RBODY3: Card = Card {
+  lines: &[
+    Cells(&[
+      Kw,
+      Integer(8),
+      Blank(8),
+      Integer(8),
+      Integer(8),
+      Integer(8),
+      Integer(8),
+      Blank(8),
+      Integer(8),
+      Float(8),
+    ]),
+    Cells(&[Fixed("NAME"), Str(76)]),
+    Cells(&[
+      Integer(8),
+      Float(8),
+      Float(8),
+      Float(8),
+      Float(8),
+      Float(8),
+      Float(8),
+      Float(8),
+    ]),
+    Ges(GesNode),
+  ],
+
+  ownfold: true,
+  keyword: Rbody3,
+};
+
 #[cfg(test)]
 mod tests {
 
@@ -164,4 +282,94 @@ mod tests {
     assert_eq!(v, foldlist.into_vec());
   }
 
+  const CARD_RBODY0: [&'static str; 6] = [
+    "$RBODY Type 0",
+    "$#          IDRB   BLANK    ITRBIDNODcog    ICOG           ISENS    IFRA     HRB",
+    "RBODY /        1               0       0                       0       0        ",
+    "$#                                                                         TITLE",
+    "NAME RBODY / ->1                                                                ",
+    "        END",
+  ];
+
+  #[test]
+  fn fold_rbody0() {
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+     let v = vec![(2, 5, Rbody0)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_RBODY0);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  const CARD_RBODY1: [&'static str; 10] = [
+    "$RBODY Type 1",
+    "$#          IDRB   BLANK    ITRBIDNODcog                   ISENS    IFRA     HRB",
+    "RBODY /        1               1       0                       0       0        ",
+    "$#                                                                         TITLE",
+    "NAME RBODY / ->1                                                                ",
+    "$# BLANK   TFAIL   FAILD  AFAILN  AFAILS      A1      A2    INTF      D1      D2",
+    "              0.      0.      0.      0.      0.      0.       0      0.      0.",
+    "        PART 123",
+    "        NOD 1",
+    "        END",
+  ];
+
+  #[test]
+  fn fold_rbody1() {
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+     let v = vec![(2, 9, Rbody1)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_RBODY1);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  const CARD_RBODY2: [&'static str; 7] = [
+    "$#          IDRB   BLANK    ITRBIDNODcog                   ISENS    IFRA     HRB",
+    "RBODY /        1               2       0                       0       0        ",
+    "$#                                                                         TITLE",
+    "NAME RBODY / ->1                                                                ",
+    "$# BLANK   TFAIL   FAILD  AFAILN  AFAILS      A1      A2    INTF",
+    "              0.      0.      0.      0.      0.      0.       0",
+    "        END",
+  ];
+
+  #[test]
+  fn fold_rbody2() {
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+     let v = vec![(1, 6, Rbody2)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_RBODY2);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
+  const CARD_RBODY3: [&'static str; 8] = [
+    "$RBODY Type 3",
+    "$#          IDRB   BLANK    ITRBIDNODcog  IDNOD1  IDNOD2   ISENS    IFRA     HRB",
+    "RBODY /        1               3       0       0       0       0       0        ",
+    "$#                                                                         TITLE",
+    "NAME RBODY / ->1                                                                ",
+    "$# IT3FL     Mrb      I1      I2      I3   BLANK   BLANK   BLANK",
+    "              0.      0.      0.      0.                        ",
+    "        END",
+  ];
+
+  #[test]
+  fn fold_rbody3() {
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+     let v = vec![(2, 7, Rbody3)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_RBODY3);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
 }

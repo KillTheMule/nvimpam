@@ -98,6 +98,10 @@ impl<'a> From<&'a Keyword> for &'static Card {
       // Constraint
       Keyword::Mtoco => &MTOCO,
       Keyword::Otmco => &OTMCO,
+      Keyword::Rbody0 => &RBODY0,
+      Keyword::Rbody1 => &RBODY1,
+      Keyword::Rbody2 => &RBODY2,
+      Keyword::Rbody3 => &RBODY3,
     }
   }
 }

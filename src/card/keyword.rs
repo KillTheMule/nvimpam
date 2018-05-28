@@ -73,6 +73,10 @@ pub enum Keyword {
   // Contrain
   Mtoco,
   Otmco,
+  Rbody0,
+  Rbody1,
+  Rbody2,
+  Rbody3,
 }
 
 impl Keyword {
@@ -164,6 +168,21 @@ impl Keyword {
         // Constraint
         b"MTOCO / " => Some(Mtoco),
         b"OTMCO / " => Some(Otmco),
+        b"RBODY / " => {
+          if len < 32 {
+            None
+          } else {
+            let p = &s[24..32];
+
+            match p.iter().find(|&&x| x != b' ') {
+              Some(b'0') => Some(Rbody0),
+              Some(b'1') => Some(Rbody1),
+              Some(b'2') => Some(Rbody2),
+              Some(b'3') => Some(Rbody3),
+              _ => None,
+            }
+          }
+        },
         _ => None,
       }
     }
