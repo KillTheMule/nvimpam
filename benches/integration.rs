@@ -35,11 +35,9 @@ fn bench_folds(b: &mut Bencher) {
 
   let curbuf = nvim.get_current_buf().expect("3");
 
-  let mut foldlist = FoldList::new();
-  let mut lines = Lines::new(Vec::new());
-
-
   b.iter(|| {
+    let mut foldlist = FoldList::new();
+    let mut lines;
     curbuf.event_sub(&mut nvim, true).expect("4");
     loop {
       match receiver.recv() {
