@@ -347,6 +347,13 @@ static uint8_t *command_line_enter(int firstc, long count, int indent)
     redrawcmd();
   }
 
+  // redraw the statusline for statuslines that display the current mode
+  // using the mode() function.
+  if (KeyTyped) {
+    curwin->w_redr_status = true;
+    redraw_statuslines();
+  }
+
   did_emsg = false;
   got_int = false;
   s->state.check = command_line_check;
@@ -634,6 +641,7 @@ static int command_line_execute(VimState *state, int key)
         save_p_ls = -1;
       } else {
         win_redraw_last_status(topframe);
+        wild_menu_showing = 0;  // must be before redraw_statuslines #8385
         redraw_statuslines();
       }
       KeyTyped = skt;

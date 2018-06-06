@@ -396,15 +396,14 @@ void terminal_enter(void)
   win_T *save_curwin = curwin;
   int save_w_p_cul = curwin->w_p_cul;
   int save_w_p_cuc = curwin->w_p_cuc;
-  int save_w_p_rnu = curwin->w_p_rnu;
   curwin->w_p_cul = false;
   curwin->w_p_cuc = false;
-  curwin->w_p_rnu = false;
 
   adjust_topline(s->term, buf, 0);  // scroll to end
   // erase the unfocused cursor
   invalidate_terminal(s->term, s->term->cursor.row, s->term->cursor.row + 1);
   showmode();
+  curwin->w_redr_status = true;  // For mode() in statusline. #8323
   ui_busy_start();
   redraw(false);
 
@@ -417,7 +416,6 @@ void terminal_enter(void)
   if (save_curwin == curwin) {  // save_curwin may be invalid (window closed)!
     curwin->w_p_cul = save_w_p_cul;
     curwin->w_p_cuc = save_w_p_cuc;
-    curwin->w_p_rnu = save_w_p_rnu;
   }
 
   // draw the unfocused cursor
@@ -619,6 +617,11 @@ void terminal_get_line_attributes(Terminal *term, win_T *wp, int linenr,
 
     term_attrs[col] = attr_id;
   }
+}
+
+Buffer terminal_buf(const Terminal *term)
+{
+  return term->buf_handle;
 }
 
 // }}}
@@ -1231,7 +1234,7 @@ static void refresh_screen(Terminal *term, buf_T *buf)
 
   int change_start = row_to_linenr(term, term->invalid_start);
   int change_end = change_start + changed;
-  // Note: don't send nvim_buf_update event for a :terminal buffer
+  // Note: don't send nvim_buf_lines_event event for a :terminal buffer
   changed_lines(change_start, 0, change_end, added, false);
   term->invalid_start = INT_MAX;
   term->invalid_end = -1;

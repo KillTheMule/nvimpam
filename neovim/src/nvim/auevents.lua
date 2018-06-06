@@ -19,6 +19,8 @@ return {
     'BufWriteCmd',            -- write buffer using command
     'BufWritePost',           -- after writing a buffer
     'BufWritePre',            -- before writing a buffer
+    'ChanOpen',               -- channel was opened
+    'ChanInfo',               -- info was received about channel
     'CmdLineEnter',           -- after entering cmdline mode
     'CmdLineLeave',           -- before leaving cmdline mode
     'CmdUndefined',           -- command undefined
@@ -85,7 +87,8 @@ return {
     'TermOpen',               -- after opening a terminal buffer
     'TermResponse',           -- after setting "v:termresponse"
     'TextChanged',            -- text was modified
-    'TextChangedI',           -- text was modified in Insert mode
+    'TextChangedI',           -- text was modified in Insert mode(no popup)
+    'TextChangedP',           -- text was modified in Insert mode(popup)
     'TextYankPost',           -- after a yank or delete was done (y, d, c)
     'User',                   -- user defined autocommand
     'VimEnter',               -- after starting Vim

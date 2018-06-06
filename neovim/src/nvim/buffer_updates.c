@@ -28,39 +28,51 @@ bool buf_updates_register(buf_T *buf, uint64_t channel_id, bool send_buffer)
   // append the channelid to the list
   kv_push(buf->update_channels, channel_id);
 
-  Array linedata = ARRAY_DICT_INIT;
   if (send_buffer) {
+    Array args = ARRAY_DICT_INIT;
+    args.size = 6;
+    args.items = xcalloc(sizeof(Object), args.size);
+
+    // the first argument is always the buffer handle
+    args.items[0] = BUFFER_OBJ(buf->handle);
+    args.items[1] = INTEGER_OBJ(buf->b_changedtick);
+    // the first line that changed (zero-indexed)
+    args.items[2] = INTEGER_OBJ(0);
+    // the last line that was changed
+    args.items[3] = INTEGER_OBJ(-1);
+    Array linedata = ARRAY_DICT_INIT;
+
     // collect buffer contents
+
     // True now, but a compile time reminder for future systems we support
     STATIC_ASSERT(SIZE_MAX >= MAXLNUM, "size_t to small to hold the number of"
                   " lines in a buffer");
     size_t line_count = (size_t)buf->b_ml.ml_line_count;
-    linedata.size = line_count;
-    linedata.items = xcalloc(sizeof(Object), line_count);
-    for (size_t i = 0; i < line_count; i++) {
-      linenr_T lnum = 1 + (linenr_T)i;
 
-      const char *bufstr = (char *)ml_get_buf(buf, lnum, false);
-      Object str = STRING_OBJ(cstr_to_string(bufstr));
+    if (line_count >= 1) {
+      linedata.size = line_count;
+      linedata.items = xcalloc(sizeof(Object), line_count);
+      for (size_t i = 0; i < line_count; i++) {
+        linenr_T lnum = 1 + (linenr_T)i;
 
-      // Vim represents NULs as NLs, but this may confuse clients.
-      strchrsub(str.data.string.data, '\n', '\0');
+        const char *bufstr = (char *)ml_get_buf(buf, lnum, false);
+        Object str = STRING_OBJ(cstr_to_string(bufstr));
 
-      linedata.items[i] = str;
+        // Vim represents NULs as NLs, but this may confuse clients.
+        strchrsub(str.data.string.data, '\n', '\0');
+
+        linedata.items[i] = str;
+      }
     }
+
+    args.items[4] = ARRAY_OBJ(linedata);
+    args.items[5] = BOOLEAN_OBJ(false);
+
+    rpc_send_event(channel_id, "nvim_buf_lines_event", args);
+  } else {
+    buf_updates_changedtick_single(buf, channel_id);
   }
 
-  Array args = ARRAY_DICT_INIT;
-  args.size = 4;
-  args.items = xcalloc(sizeof(Object), args.size);
-
-  // the first argument is always the buffer handle
-  args.items[0] = BUFFER_OBJ(buf->handle);
-  args.items[1] = INTEGER_OBJ(buf->b_changedtick);
-  args.items[2] = ARRAY_OBJ(linedata);
-  args.items[3] = BOOLEAN_OBJ(false);
-
-  rpc_send_event(channel_id, "nvim_buf_updates_start", args);
   return true;
 }
 
@@ -70,7 +82,7 @@ void buf_updates_send_end(buf_T *buf, uint64_t channelid)
     args.size = 1;
     args.items = xcalloc(sizeof(Object), args.size);
     args.items[0] = BUFFER_OBJ(buf->handle);
-    rpc_send_event(channelid, "nvim_buf_updates_end", args);
+    rpc_send_event(channelid, "nvim_buf_detach_event", args);
 }
 
 void buf_updates_unregister(buf_T *buf, uint64_t channelid)
@@ -137,7 +149,7 @@ void buf_updates_send_changes(buf_T *buf,
 
     // send through the changes now channel contents now
     Array args = ARRAY_DICT_INIT;
-    args.size = 5;
+    args.size = 6;
     args.items = xcalloc(sizeof(Object), args.size);
 
     // the first argument is always the buffer handle
@@ -174,7 +186,8 @@ void buf_updates_send_changes(buf_T *buf,
         }
     }
     args.items[4] = ARRAY_OBJ(linedata);
-    if (!rpc_send_event(channelid, "nvim_buf_update", args)) {
+    args.items[5] = BOOLEAN_OBJ(false);
+    if (!rpc_send_event(channelid, "nvim_buf_lines_event", args)) {
       // We can't unregister the channel while we're iterating over the
       // update_channels array, so we remember its ID to unregister it at
       // the end.
@@ -195,9 +208,13 @@ void buf_updates_changedtick(buf_T *buf)
 {
   // notify each of the active channels
   for (size_t i = 0; i < kv_size(buf->update_channels); i++) {
-    uint64_t channelid = kv_A(buf->update_channels, i);
+    uint64_t channel_id = kv_A(buf->update_channels, i);
+    buf_updates_changedtick_single(buf, channel_id);
+  }
+}
 
-    // send through the changes now channel contents now
+void buf_updates_changedtick_single(buf_T *buf, uint64_t channel_id)
+{
     Array args = ARRAY_DICT_INIT;
     args.size = 2;
     args.items = xcalloc(sizeof(Object), args.size);
@@ -209,6 +226,5 @@ void buf_updates_changedtick(buf_T *buf)
     args.items[1] = INTEGER_OBJ(buf->b_changedtick);
 
     // don't try and clean up dead channels here
-    rpc_send_event(channelid, "nvim_buf_changedtick", args);
-  }
+    rpc_send_event(channel_id, "nvim_buf_changedtick_event", args);
 }

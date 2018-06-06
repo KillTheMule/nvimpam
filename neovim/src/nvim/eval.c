@@ -6241,20 +6241,21 @@ bool set_ref_in_func(char_u *name, ufunc_T *fp_in, int copyID)
 /// invoked function uses them. It is called like this:
 ///   new_argcount = argv_func(current_argcount, argv, called_func_argcount)
 ///
-/// Return FAIL when the function can't be called,  OK otherwise.
-/// Also returns OK when an error was encountered while executing the function.
+/// @return FAIL if function cannot be called, else OK (even if an error
+///         occurred while executing the function! Set `msg_list` to capture
+///         the error, see do_cmdline()).
 int
 call_func(
     const char_u *funcname,         // name of the function
     int len,                        // length of "name"
-    typval_T *rettv,                // return value goes here
+    typval_T *rettv,                // [out] value goes here
     int argcount_in,                // number of "argvars"
     typval_T *argvars_in,           // vars for arguments, must have "argcount"
                                     // PLUS ONE elements!
     ArgvFunc argv_func,             // function to fill in argvars
     linenr_T firstline,             // first line of range
     linenr_T lastline,              // last line of range
-    int *doesrange,                 // return: function handled range
+    int *doesrange,                 // [out] function handled range
     bool evaluate,
     partial_T *partial,             // optional, can be NULL
     dict_T *selfdict_in             // Dictionary for "self"
@@ -6428,21 +6429,25 @@ call_func(
   return ret;
 }
 
-/*
- * Give an error message with a function name.  Handle <SNR> things.
- * "ermsg" is to be passed without translation, use N_() instead of _().
- */
+/// Give an error message with a function name.  Handle <SNR> things.
+///
+/// @param ermsg must be passed without translation (use N_() instead of _()).
+/// @param name function name
 static void emsg_funcname(char *ermsg, char_u *name)
 {
-  char_u      *p;
+  char_u *p;
 
-  if (*name == K_SPECIAL)
+  if (*name == K_SPECIAL) {
     p = concat_str((char_u *)"<SNR>", name + 3);
-  else
+  } else {
     p = name;
+  }
+
   EMSG2(_(ermsg), p);
-  if (p != name)
+
+  if (p != name) {
     xfree(p);
+  }
 }
 
 /*
@@ -15707,6 +15712,9 @@ static void get_xdg_var_list(const XDGVarType xdg, typval_T *rettv)
   rettv->vval.v_list = list;
   tv_list_ref(list);
   char *const dirs = stdpaths_get_xdg_var(xdg);
+  if (dirs == NULL) {
+    return;
+  }
   do {
     size_t dir_len;
     const char *dir;
@@ -15732,15 +15740,15 @@ static void f_stdpath(typval_T *argvars, typval_T *rettv, FunPtr fptr)
     return;  // Type error; errmsg already given.
   }
 
-  if (strcmp(p, "config") == 0) {
+  if (strequal(p, "config")) {
     rettv->vval.v_string = (char_u *)get_xdg_home(kXDGConfigHome);
-  } else if (strcmp(p, "data") == 0) {
+  } else if (strequal(p, "data")) {
     rettv->vval.v_string = (char_u *)get_xdg_home(kXDGDataHome);
-  } else if (strcmp(p, "cache") == 0) {
+  } else if (strequal(p, "cache")) {
     rettv->vval.v_string = (char_u *)get_xdg_home(kXDGCacheHome);
-  } else if (strcmp(p, "config_dirs") == 0) {
+  } else if (strequal(p, "config_dirs")) {
     get_xdg_var_list(kXDGConfigDirs, rettv);
-  } else if (strcmp(p, "data_dirs") == 0) {
+  } else if (strequal(p, "data_dirs")) {
     get_xdg_var_list(kXDGDataDirs, rettv);
   } else {
     EMSG2(_("E6100: \"%s\" is not a valid stdpath"), p);
@@ -17034,7 +17042,8 @@ static void timer_stop(timer_T *timer)
   time_watcher_close(&timer->tw, timer_close_cb);
 }
 
-// invoked on next event loop tick, so queue is empty
+// This will be run on the main loop after the last timer_due_cb, so at this
+// point it is safe to free the callback.
 static void timer_close_cb(TimeWatcher *tw, void *data)
 {
   timer_T *timer = (timer_T *)data;
@@ -22061,12 +22070,27 @@ int store_session_globals(FILE *fd)
  */
 void last_set_msg(scid_T scriptID)
 {
-  if (scriptID != 0) {
-    char_u *p = home_replace_save(NULL, get_scriptname(scriptID));
+  const LastSet last_set = (LastSet){
+    .script_id = scriptID,
+    .channel_id = 0,
+  };
+  option_last_set_msg(last_set);
+}
+
+/// Displays where an option was last set.
+///
+/// Should only be invoked when 'verbose' is non-zero.
+void option_last_set_msg(LastSet last_set)
+{
+  if (last_set.script_id != 0) {
+    bool should_free;
+    char_u *p = get_scriptname(last_set, &should_free);
     verbose_enter();
     MSG_PUTS(_("\n\tLast set from "));
     MSG_PUTS(p);
-    xfree(p);
+    if (should_free) {
+      xfree(p);
+    }
     verbose_leave();
   }
 }

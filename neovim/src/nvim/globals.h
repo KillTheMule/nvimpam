@@ -390,16 +390,20 @@ EXTERN int may_garbage_collect INIT(= FALSE);
 EXTERN int want_garbage_collect INIT(= FALSE);
 EXTERN int garbage_collect_at_exit INIT(= FALSE);
 
-/* Special values for current_SID. */
-#define SID_MODELINE    -1      /* when using a modeline */
-#define SID_CMDARG      -2      /* for "--cmd" argument */
-#define SID_CARG        -3      /* for "-c" argument */
-#define SID_ENV         -4      /* for sourcing environment variable */
-#define SID_ERROR       -5      /* option was reset because of an error */
-#define SID_NONE        -6      /* don't set scriptID */
+// Special values for current_SID.
+#define SID_MODELINE    -1      // when using a modeline
+#define SID_CMDARG      -2      // for "--cmd" argument
+#define SID_CARG        -3      // for "-c" argument
+#define SID_ENV         -4      // for sourcing environment variable
+#define SID_ERROR       -5      // option was reset because of an error
+#define SID_NONE        -6      // don't set scriptID
+#define SID_LUA         -7      // for Lua scripts/chunks
+#define SID_API_CLIENT  -8      // for API clients
 
-/* ID of script being sourced or was sourced to define the current function. */
+// ID of script being sourced or was sourced to define the current function.
 EXTERN scid_T current_SID INIT(= 0);
+// ID of the current channel making a client API call
+EXTERN uint64_t current_channel_id INIT(= 0);
 
 EXTERN bool did_source_packages INIT(= false);
 
@@ -539,10 +543,6 @@ EXTERN buf_T    *curbuf INIT(= NULL);    // currently active buffer
   for (buf_T *buf = firstbuf; buf != NULL; buf = buf->b_next)
 #define FOR_ALL_BUFFERS_BACKWARDS(buf) \
   for (buf_T *buf = lastbuf; buf != NULL; buf = buf->b_prev)
-
-/* Flag that is set when switching off 'swapfile'.  It means that all blocks
- * are to be loaded into memory.  Shouldn't be global... */
-EXTERN int mf_dont_release INIT(= FALSE);       /* don't release blocks */
 
 /*
  * List of files being edited (global argument list).  curwin->w_alist points
@@ -745,11 +745,9 @@ EXTERN int State INIT(= NORMAL);        /* This is the current state of the
 EXTERN bool finish_op INIT(= false);    // true while an operator is pending
 EXTERN long opcount INIT(= 0);          // count for pending operator
 
-/*
- * ex mode (Q) state
- */
-EXTERN int exmode_active INIT(= 0);     /* zero, EXMODE_NORMAL or EXMODE_VIM */
-EXTERN int ex_no_reprint INIT(= FALSE); /* no need to print after z or p */
+// Ex Mode (Q) state
+EXTERN int exmode_active INIT(= 0);     // zero, EXMODE_NORMAL or EXMODE_VIM
+EXTERN int ex_no_reprint INIT(= false);  // no need to print after z or p
 
 EXTERN int Recording INIT(= FALSE);     /* TRUE when recording into a reg. */
 EXTERN int Exec_reg INIT(= FALSE);      /* TRUE when executing a register */
@@ -867,9 +865,6 @@ EXTERN char_u *autocmd_match INIT(= NULL);     // name for <amatch> on cmdline
 EXTERN int did_cursorhold INIT(= false);       // set when CursorHold t'gerd
 // for CursorMoved event
 EXTERN pos_T last_cursormoved INIT(= INIT_POS_T(0, 0, 0));
-
-EXTERN varnumber_T last_changedtick INIT(= 0);  // for TextChanged event
-EXTERN buf_T    *last_changedtick_buf INIT(= NULL);
 
 EXTERN int postponed_split INIT(= 0);       /* for CTRL-W CTRL-] command */
 EXTERN int postponed_split_flags INIT(= 0);       /* args for win_split() */

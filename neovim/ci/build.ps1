@@ -61,7 +61,7 @@ elseif ($compiler -eq 'MSVC') {
 # Remove Git Unix utilities from the PATH
 $env:PATH = $env:PATH.Replace('C:\Program Files\Git\usr\bin', '')
 
-## Setup python (use AppVeyor system python)
+# Setup python (use AppVeyor system python)
 #C:\Python27\python.exe -m pip install neovim ; exitIfFailed
 #C:\Python35\python.exe -m pip install neovim ; exitIfFailed
 # Disambiguate python3
@@ -107,3 +107,22 @@ Set-PSDebug -Trace 1
 if ($failed) {
   exit $LastExitCode
 }
+
+
+#if ($uploadToCodecov) {
+#  C:\msys64\usr\bin\bash -lc "cd /c/projects/neovim; bash <(curl -s https://codecov.io/bash) -c -F functionaltest || echo 'codecov upload failed.'"
+#}
+
+# Old tests
+#$env:PATH = "C:\msys64\usr\bin;$env:PATH"
+#& "C:\msys64\mingw$bits\bin\mingw32-make.exe" -C $(Convert-Path ..\src\nvim\testdir) VERBOSE=1
+
+#if ($uploadToCodecov) {
+#  C:\msys64\usr\bin\bash -lc "cd /c/projects/neovim; bash <(curl -s https://codecov.io/bash) -c -F oldtest || echo 'codecov upload failed.'"
+#}
+
+# Build artifacts
+#cpack -G ZIP -C RelWithDebInfo
+#if ($env:APPVEYOR_REPO_TAG_NAME -ne $null) {
+#  cpack -G NSIS -C RelWithDebInfo
+#}

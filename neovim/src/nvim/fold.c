@@ -746,7 +746,7 @@ deleteFold (
   if (last_lnum > 0) {
     changed_lines(first_lnum, (colnr_T)0, last_lnum, 0L, false);
 
-    // send one nvim_buf_update at the end
+    // send one nvim_buf_lines_event at the end
     if (kv_size(curbuf->update_channels)) {
       // last_lnum is the line *after* the last line of the outermost fold
       // that was modified. Note also that deleting a fold might only require
@@ -1608,7 +1608,7 @@ static void foldCreateMarkers(linenr_T start, linenr_T end)
   if (kv_size(curbuf->update_channels)) {
     // Note: foldAddMarker() may not actually change start and/or end if
     // u_save() is unable to save the buffer line, but we send the
-    // nvim_buf_update anyway since it won't do any harm.
+    // nvim_buf_lines_event anyway since it won't do any harm.
     int64_t num_changed = 1 + end - start;
     buf_updates_send_changes(curbuf, start, num_changed, num_changed, true);
   }
@@ -2464,27 +2464,27 @@ static linenr_T foldUpdateIEMSRecurse(garray_T *gap, int level,
       flp->lnum - 1 - fp->fd_top);
 
   if (lvl < level) {
-    /* End of fold found, update the length when it got shorter. */
+    // End of fold found, update the length when it got shorter.
     if (fp->fd_len != flp->lnum - fp->fd_top) {
-      if (fp->fd_top + fp->fd_len > bot + 1) {
-        /* fold continued below bot */
+      if (fp->fd_top + fp->fd_len - 1 > bot) {
+        // fold continued below bot
         if (getlevel == foldlevelMarker
             || getlevel == foldlevelExpr
             || getlevel == foldlevelSyntax) {
-          /* marker method: truncate the fold and make sure the
-           * previously included lines are processed again */
+          // marker method: truncate the fold and make sure the
+          // previously included lines are processed again
           bot = fp->fd_top + fp->fd_len - 1;
           fp->fd_len = flp->lnum - fp->fd_top;
         } else {
-          /* indent or expr method: split fold to create a new one
-           * below bot */
+          // indent or expr method: split fold to create a new one
+          // below bot
           i = (int)(fp - (fold_T *)gap->ga_data);
           foldSplit(gap, i, flp->lnum, bot);
           fp = (fold_T *)gap->ga_data + i;
         }
       } else
         fp->fd_len = flp->lnum - fp->fd_top;
-      fold_changed = TRUE;
+      fold_changed = true;
     }
   }
 

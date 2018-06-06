@@ -187,16 +187,16 @@ static long p_tw_nopaste;
 static long p_wm_nopaste;
 
 typedef struct vimoption {
-  char        *fullname;        /* full option name */
-  char        *shortname;       /* permissible abbreviation */
-  uint32_t flags;               /* see below */
-  char_u      *var;             /* global option: pointer to variable;
-                                * window-local option: VAR_WIN;
-                                * buffer-local option: global value */
-  idopt_T indir;                /* global option: PV_NONE;
-                                 * local option: indirect option index */
-  char_u      *def_val[2];      /* default values for variable (vi and vim) */
-  scid_T scriptID;              /* script in which the option was last set */
+  char        *fullname;        // full option name
+  char        *shortname;       // permissible abbreviation
+  uint32_t flags;               // see below
+  char_u      *var;             // global option: pointer to variable;
+                                // window-local option: VAR_WIN;
+                                // buffer-local option: global value
+  idopt_T indir;                // global option: PV_NONE;
+                                // local option: indirect option index
+  char_u      *def_val[2];      // default values for variable (vi and vim)
+  LastSet last_set;             // script in which the option was last set
 # define SCRIPTID_INIT , 0
 } vimoption_T;
 
@@ -619,27 +619,6 @@ void set_init_1(void)
     }
   }
 
-  /*
-   * 'maxmemtot' and 'maxmem' may have to be adjusted for available memory
-   */
-  opt_idx = findoption("maxmemtot");
-  if (opt_idx >= 0) {
-    {
-      // Use half of amount of memory available to Vim.
-      // If too much to fit in uintptr_t, get uintptr_t max.
-      uint64_t available_kib = os_get_total_mem_kib();
-      uintptr_t n = (available_kib / 2 > UINTPTR_MAX  // -V547
-                     ? UINTPTR_MAX
-                     : (uintptr_t)(available_kib /2));
-      options[opt_idx].def_val[VI_DEFAULT] = (char_u *)n;
-      opt_idx = findoption("maxmem");
-      if (opt_idx >= 0) {
-        options[opt_idx].def_val[VI_DEFAULT] = (char_u *)n;
-      }
-    }
-  }
-
-
   {
     char_u  *cdpath;
     char_u  *buf;
@@ -934,27 +913,24 @@ void set_number_default(char *name, long val)
 }
 
 #if defined(EXITFREE)
-/*
- * Free all options.
- */
+/// Free all options.
 void free_all_options(void)
 {
-  int i;
-
-  for (i = 0; options[i].fullname; i++) {
+  for (int i = 0; options[i].fullname; i++) {
     if (options[i].indir == PV_NONE) {
-      /* global option: free value and default value. */
-      if (options[i].flags & P_ALLOCED && options[i].var != NULL)
+      // global option: free value and default value.
+      if ((options[i].flags & P_ALLOCED) && options[i].var != NULL) {
         free_string_option(*(char_u **)options[i].var);
-      if (options[i].flags & P_DEF_ALLOCED)
+      }
+      if (options[i].flags & P_DEF_ALLOCED) {
         free_string_option(options[i].def_val[VI_DEFAULT]);
-    } else if (options[i].var != VAR_WIN
-               && (options[i].flags & P_STRING))
-      /* buffer-local option: free global value */
+      }
+    } else if (options[i].var != VAR_WIN && (options[i].flags & P_STRING)) {
+      // buffer-local option: free global value
       free_string_option(*(char_u **)options[i].var);
+    }
   }
 }
-
 #endif
 
 
@@ -1366,15 +1342,16 @@ do_set (
         if (opt_idx >= 0) {
           showoneopt(&options[opt_idx], opt_flags);
           if (p_verbose > 0) {
-            /* Mention where the option was last set. */
-            if (varp == options[opt_idx].var)
-              last_set_msg(options[opt_idx].scriptID);
-            else if ((int)options[opt_idx].indir & PV_WIN)
-              last_set_msg(curwin->w_p_scriptID[
-                    (int)options[opt_idx].indir & PV_MASK]);
-            else if ((int)options[opt_idx].indir & PV_BUF)
-              last_set_msg(curbuf->b_p_scriptID[
-                    (int)options[opt_idx].indir & PV_MASK]);
+            // Mention where the option was last set.
+            if (varp == options[opt_idx].var) {
+              option_last_set_msg(options[opt_idx].last_set);
+            } else if ((int)options[opt_idx].indir & PV_WIN) {
+              option_last_set_msg(curwin->w_p_scriptID[
+                  (int)options[opt_idx].indir & PV_MASK]);
+            } else if ((int)options[opt_idx].indir & PV_BUF) {
+              option_last_set_msg(curbuf->b_p_scriptID[
+                  (int)options[opt_idx].indir & PV_MASK]);
+            }
           }
         } else {
           errmsg = (char_u *)N_("E846: Key code not set");
@@ -3663,16 +3640,19 @@ static void set_option_scriptID_idx(int opt_idx, int opt_flags, int id)
 {
   int both = (opt_flags & (OPT_LOCAL | OPT_GLOBAL)) == 0;
   int indir = (int)options[opt_idx].indir;
+  const LastSet last_set = { id, current_channel_id };
 
-  /* Remember where the option was set.  For local options need to do that
-   * in the buffer or window structure. */
-  if (both || (opt_flags & OPT_GLOBAL) || (indir & (PV_BUF|PV_WIN)) == 0)
-    options[opt_idx].scriptID = id;
+  // Remember where the option was set.  For local options need to do that
+  // in the buffer or window structure.
+  if (both || (opt_flags & OPT_GLOBAL) || (indir & (PV_BUF|PV_WIN)) == 0) {
+    options[opt_idx].last_set = last_set;
+  }
   if (both || (opt_flags & OPT_LOCAL)) {
-    if (indir & PV_BUF)
-      curbuf->b_p_scriptID[indir & PV_MASK] = id;
-    else if (indir & PV_WIN)
-      curwin->w_p_scriptID[indir & PV_MASK] = id;
+    if (indir & PV_BUF) {
+      curbuf->b_p_scriptID[indir & PV_MASK] = last_set;
+    } else if (indir & PV_WIN) {
+      curwin->w_p_scriptID[indir & PV_MASK] = last_set;
+    }
   }
 }
 
@@ -6600,15 +6580,13 @@ static void paste_option_changed(void)
 /// When "fname" is not NULL, use it to set $"envname" when it wasn't set yet.
 void vimrc_found(char_u *fname, char_u *envname)
 {
-  char_u      *p;
-
-  if (fname != NULL) {
-    p = (char_u *)vim_getenv((char *)envname);
+  if (fname != NULL && envname != NULL) {
+    char *p = vim_getenv((char *)envname);
     if (p == NULL) {
-      /* Set $MYVIMRC to the first vimrc file found. */
-      p = (char_u *)FullName_save((char *)fname, FALSE);
+      // Set $MYVIMRC to the first vimrc file found.
+      p = FullName_save((char *)fname, false);
       if (p != NULL) {
-        vim_setenv((char *)envname, (char *)p);
+        vim_setenv((char *)envname, p);
         xfree(p);
       }
     } else {

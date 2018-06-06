@@ -309,6 +309,9 @@ void update_screen(int type)
         if (wp->w_winrow + wp->w_height + wp->w_status_height > valid) {
           wp->w_redr_status = true;
         }
+        if (valid == 0) {
+          redraw_tabline = true;
+        }
       }
     } else if (msg_scrolled > Rows - 5) {  // clearing is faster
       type = CLEAR;
@@ -3451,7 +3454,8 @@ win_line (
         }
 
         // Found last space before word: check for line break.
-        if (wp->w_p_lbr && c0 == c && vim_isbreak(c) && !vim_isbreak(*ptr)) {
+        if (wp->w_p_lbr && c0 == c && vim_isbreak(c)
+            && !vim_isbreak((int)(*ptr))) {
           int mb_off = has_mbyte ? (*mb_head_off)(line, ptr - 1) : 0;
           char_u *p = ptr - (mb_off + 1);
           // TODO: is passing p for start of the line OK?
@@ -4895,12 +4899,10 @@ win_redr_status_matches (
   xfree(buf);
 }
 
-/*
- * Redraw the status line of window wp.
- *
- * If inversion is possible we use it. Else '=' characters are used.
- */
-void win_redr_status(win_T *wp)
+/// Redraw the status line of window `wp`.
+///
+/// If inversion is possible we use it. Else '=' characters are used.
+static void win_redr_status(win_T *wp)
 {
   int row;
   char_u      *p;
@@ -5307,7 +5309,9 @@ void screen_getbytes(int row, int col, char_u *bytes, int *attrp)
     bytes[0] = ScreenLines[off];
     bytes[1] = NUL;
 
-    bytes[utfc_char2bytes(off, bytes)] = NUL;
+    if (ScreenLinesUC[off] != 0) {
+      bytes[utfc_char2bytes(off, bytes)] = NUL;
+    }
   }
 }
 
