@@ -14,36 +14,28 @@ use neovim_ext::BufferExt;
 
 /// The event list the main loop reacts to
 pub enum Event {
-  /// Neovim's answer after sending registering for buffer events.
-  /// `linedata` contains the buffers contents, without newlines. `more`
+  /// The update notification for a buffer change. Full lines only. Firstline
+  /// is zero-indexed (i.e. a change on the first line will have `firstline =
+  /// 0`). The range from firstline to lastline is end-exclusive. `more`
   /// indicates if we need to expect another event of this type with more
   /// lines, in case Neovim decided to split up the buffer (not yet
   /// implemented).
-  UpdatesStart {
+  LinesEvent {
     buf: Buffer,
     changedtick: u64,
+    firstline: i64,
+    lastline: i64,
     linedata: Vec<String>,
     more: bool,
   },
-  /// The update notification for a buffer change. Full lines only. Firstline
-  /// is zero-indexed (i.e. a change on the first line will have `firstline =
-  /// 0`).  If `numreplaced` is 0, the lines were added before `firstline`,
-  /// but none were deleted.
-  Update {
-    buf: Buffer,
-    changedtick: u64,
-    firstline: u64,
-    numreplaced: u64,
-    linedata: Vec<String>,
-  },
   /// Update notification for a new `changedtick` without a buffer change.
   /// Used by undo/redo.
-  ChangedTick { buf: Buffer, changedtick: u64 },
+  ChangedTickEvent { buf: Buffer, changedtick: u64 },
   /// Notification the liveupdates are ending. Possible causes:
   ///  - Closing all a buffer's windows (unless 'hidden' is enabled).
   ///  - Using |:edit| to reload the buffer
   ///  - reloading the buffer after it is changed from outside neovim.
-  UpdatesEnd { buf: Buffer },
+  DetachEvent { buf: Buffer },
   /// Recreate and resend the folds
   RefreshFolds,
   /// This plugin should quit. Currently only sent by the user directly.
@@ -73,26 +65,32 @@ impl Event {
     use self::Event::*;
 
     let curbuf = nvim.get_current_buf()?;
-    curbuf.event_sub(&mut nvim, true)?;
+    curbuf.attach(&mut nvim, true, vec![])?;
 
     let mut foldlist = FoldList::new();
     let mut lines = Lines::new(Vec::new());
 
     loop {
       match receiver.recv() {
-        Ok(UpdatesStart { linedata, .. }) => {
-          lines = Lines::new(linedata);
-          foldlist.recreate_all(&lines)?;
-          foldlist.resend_all(&mut nvim)?;
-        }
-        Ok(Update {
+        Ok(LinesEvent {
           firstline,
-          numreplaced,
+          lastline,
           linedata,
           ..
         }) => {
-          lines.update(firstline, numreplaced, linedata);
-          foldlist.recreate_all(&lines)?;
+          if lastline == -1 {
+            lines = Lines::new(linedata);
+            foldlist.recreate_all(&lines)?;
+            foldlist.resend_all(&mut nvim)?;
+          } else if lastline >= 0 && firstline >= 0 {
+            lines.update(firstline as usize, lastline as usize, linedata);
+            foldlist.recreate_all(&lines)?;
+          } else {
+            error!(
+              "LinesEvent only works with nonnegative numbers, except for
+               lastline = -1!"
+            );
+          }
         }
         Ok(RefreshFolds) => {
           foldlist.resend_all(&mut nvim)?;
@@ -118,38 +116,25 @@ impl fmt::Debug for Event {
     use self::Event::*;
 
     match *self {
-      UpdatesStart {
-        changedtick,
-        ref linedata,
-        more,
-        ..
-      } => write!(
-        f,
-        "UpdatesStart{{ changedtick: {}, #linedata: {}, \
-         more: {} }}",
-        changedtick,
-        linedata.len(),
-        more
-      ),
-      Update {
+      LinesEvent {
         changedtick,
         firstline,
-        numreplaced,
+        lastline,
         ref linedata,
         ..
       } => write!(
         f,
         "Update{{ changedtick: {}, firstline: {}, \
-         numreplaced: {}, #linedata: {} }}",
+         lastline: {}, #linedata: {} }}",
         changedtick,
         firstline,
-        numreplaced,
+        lastline,
         linedata.len()
       ),
-      ChangedTick { changedtick, .. } => {
+      ChangedTickEvent { changedtick, .. } => {
         write!(f, "ChangedTick{{ changedtick: {} }}", changedtick,)
       }
-      UpdatesEnd { .. } => write!(f, "UpdatesEnd"),
+      DetachEvent { .. } => write!(f, "UpdatesEnd"),
       RefreshFolds => write!(f, "RefreshFolds"),
       Quit => write!(f, "Quit"),
     }

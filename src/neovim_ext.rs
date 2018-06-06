@@ -11,40 +11,43 @@ use neovim_lib::Value;
 pub trait BufferExt {
   /// Subscribe to buffer events provided by neovim, see
   /// https://github.com/neovim/neovim/pull/7917
-  fn event_sub(
+  fn attach(
     &self,
     neovim: &mut Neovim,
     send_buffer: bool,
+    opts: Vec<(Value, Value)>
   ) -> Result<(), CallError>;
 
   /// Unsubscribe from buffer events
-  fn event_unsub(&self, neovim: &mut Neovim) -> Result<(), CallError>;
+  fn detach(&self, neovim: &mut Neovim) -> Result<(), CallError>;
 }
 
 impl BufferExt for Buffer {
   /// since: xxxx
-  fn event_sub(
+  fn attach(
     &self,
     neovim: &mut Neovim,
     send_buffer: bool,
+    opts: Vec<(Value, Value)>
   ) -> Result<(), CallError> {
     let mut v = Vec::new();
     v.push(self.get_value().clone());
     v.push(Value::from(send_buffer));
+    v.push(Value::from(opts));
     neovim
       .session
-      .call("nvim_buf_event_sub", v)
+      .call("nvim_buf_attach", v)
       .map(map_result)
       .map_err(map_generic_error)
   }
 
   /// since: xxxx
-  fn event_unsub(&self, neovim: &mut Neovim) -> Result<(), CallError> {
+  fn detach(&self, neovim: &mut Neovim) -> Result<(), CallError> {
     let mut v = Vec::new();
     v.push(self.get_value().clone());
     neovim
       .session
-      .call("nvim_buf_event_unsub", v)
+      .call("nvim_buf_detach", v)
       .map(map_result)
       .map_err(map_generic_error)
   }

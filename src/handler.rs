@@ -13,130 +13,96 @@ use event::Event;
 pub struct NeovimHandler(pub mpsc::Sender<Event>);
 
 impl NeovimHandler {
-  /// Parse a nvim_buf_updates_start notification into a
-  /// [UpdatesStart](../event/enum.Event.html#variant.UpdatesStart) event
-  pub fn parse_updates_start(
-    &mut self,
-    mut args: Vec<Value>,
-  ) -> Result<Event, Error> {
+  /// Parse a nvim_buf_lines_event notification into a
+  /// [LinesEvent](../event/enum.Event.html#variant.LinesEvent) event
+  pub fn parse_lines_event(&mut self, mut args: Vec<Value>) -> Result<Event, Error> {
     let more = parse_bool(&last_arg(
       &mut args,
-      "Not enough arguments in nvim_buf_updates_start!",
+      "Not enough arguments in nvim_buf_lines_event!",
     )?)?;
     let linedata = parse_vecstr(last_arg(
       &mut args,
-      "Not enough arguments in nvim_buf_updates_start!",
+      "Not enough arguments in nvim_buf_lines_event!",
+    )?)?;
+    let lastline = parse_i64(&last_arg(
+      &mut args,
+      "Not enough arguments in nvim_buf_lines_event!",
+    )?)?;
+    let firstline = parse_i64(&last_arg(
+      &mut args,
+      "Not enough arguments in nvim_buf_lines_event!",
     )?)?;
     let changedtick = parse_u64(&last_arg(
       &mut args,
-      "Not enough arguments in nvim_buf_updates_start!",
+      "Not enough arguments in nvim_buf_lines_event!",
     )?)?;
     let buf = parse_buf(last_arg(
       &mut args,
-      "Not enough arguments in nvim_buf_updates_start!",
+      "Not enough arguments in nvim_buf_lines_event!",
     )?);
 
-    Ok(Event::UpdatesStart {
+    Ok(Event::LinesEvent {
       buf,
       changedtick,
+      firstline,
+      lastline,
       linedata,
       more,
     })
   }
 
-  /// Parse a nvim_buf_update notification into a
-  /// [Update](../event/enum.Event.html#variant.Update) event
-  pub fn parse_update(&mut self, mut args: Vec<Value>) -> Result<Event, Error> {
-    let linedata = parse_vecstr(last_arg(
-      &mut args,
-      "Not enough arguments in nvim_buf_update!",
-    )?)?;
-    let numreplaced = parse_u64(&last_arg(
-      &mut args,
-      "Not enough arguments in nvim_buf_update!",
-    )?)?;
-    let firstline = parse_u64(&last_arg(
-      &mut args,
-      "Not enough arguments in nvim_buf_update!",
-    )?)?;
-    let changedtick = parse_u64(&last_arg(
-      &mut args,
-      "Not enough arguments in nvim_buf_update!",
-    )?)?;
-    let buf = parse_buf(last_arg(
-      &mut args,
-      "Not enough arguments in nvim_buf_update!",
-    )?);
-
-    Ok(Event::Update {
-      buf,
-      changedtick,
-      firstline,
-      numreplaced,
-      linedata,
-    })
-  }
-
-  /// Parse a nvim_buf_changedtick notification into a
-  /// [ChangedTick](../event/enum.Event.html#variant.ChangedTick) event
-  pub fn parse_changedtick(
+  /// Parse a nvim_buf_changedtick_event notification into a
+  /// [ChangedTickEvent](../event/enum.Event.html#variant.ChangedTickEvent) event
+  pub fn parse_changedtick_event(
     &mut self,
     mut args: Vec<Value>,
   ) -> Result<Event, Error> {
     let changedtick = parse_u64(&last_arg(
       &mut args,
-      "Not enough arguments in nvim_buf_changedtick!",
+      "Not enough arguments in nvim_buf_changedtick_event!",
     )?)?;
     let buf = parse_buf(last_arg(
       &mut args,
-      "Not enough arguments in nvim_buf_changedtick!",
+      "Not enough arguments in nvim_buf_changedtick_event!",
     )?);
-    Ok(Event::ChangedTick { buf, changedtick })
+    Ok(Event::ChangedTickEvent { buf, changedtick })
   }
 
-  /// Parse a nvim_buf_updates_end notification into a
-  /// [UpdatesEnd](../event/enum.Event.html#variant.UpdatesEnd) event
-  pub fn parse_updates_end(
+  /// Parse a nvim_buf_detach_event notification into a
+  /// [DetachEvent](../event/enum.Event.html#variant.DetachEvent) event
+  pub fn parse_detach_event(
     &mut self,
     mut args: Vec<Value>,
   ) -> Result<Event, Error> {
     let buf = parse_buf(last_arg(
       &mut args,
-      "Not enough arguments in nvim_buf_updates_end!",
+      "Not enough arguments in nvim_buf_detach_event!",
     )?);
-    Ok(Event::UpdatesEnd { buf })
+    Ok(Event::DetachEvent { buf })
   }
 }
 
 impl Handler for NeovimHandler {
   fn handle_notify(&mut self, name: &str, args: Vec<Value>) {
     match name {
-      "nvim_buf_updates_start" => {
-        if let Ok(event) = self.parse_updates_start(args) {
+      "nvim_buf_lines_event" => {
+        if let Ok(event) = self.parse_lines_event(args) {
           info!("{:?}", event);
           if let Err(reason) = self.0.send(event) {
             error!("{}", reason);
           }
         }
       }
-      "nvim_buf_update" => {
-        if let Ok(event) = self.parse_update(args) {
+      "nvim_buf_changedtick_event" => {
+        if let Ok(event) = self.parse_changedtick_event(args) {
           info!("{:?}", event);
           if let Err(reason) = self.0.send(event) {
             error!("{}", reason);
           }
         }
       }
-      "nvim_buf_changedtick" => {
-        if let Ok(event) = self.parse_changedtick(args) {
-          info!("{:?}", event);
-          if let Err(reason) = self.0.send(event) {
-            error!("{}", reason);
-          }
-        }
-      }
-      "nvim_buf_updates_end" => {
-        if let Ok(event) = self.parse_updates_end(args) {
+      "nvim_buf_detach_event" => {
+        if let Ok(event) = self.parse_detach_event(args) {
           info!("{:?}", event);
           if let Err(reason) = self.0.send(event) {
             error!("{}", reason);
@@ -144,7 +110,6 @@ impl Handler for NeovimHandler {
         }
       }
       "RefreshFolds" => {
-        info!("RefreshFolds");
         if let Err(reason) = self.0.send(Event::RefreshFolds) {
           error!("{}", reason);
         }
@@ -184,7 +149,14 @@ pub fn last_arg(
 pub fn parse_u64(value: &Value) -> Result<u64, Error> {
   value
     .as_u64()
-    .ok_or_else(|| failure::err_msg("cannot parse usize"))
+    .ok_or_else(|| failure::err_msg("cannot parse u64"))
+}
+///
+/// Parse a `neovim_lib::Value` into a i64
+pub fn parse_i64(value: &Value) -> Result<i64, Error> {
+  value
+    .as_i64()
+    .ok_or_else(|| failure::err_msg("cannot parse as i64"))
 }
 
 /// Parse a `neovim_lib::Value` into a bool

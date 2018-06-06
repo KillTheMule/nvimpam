@@ -38,14 +38,14 @@ fn bench_folds(b: &mut Bencher) {
   b.iter(|| {
     let mut foldlist = FoldList::new();
     let mut lines;
-    curbuf.event_sub(&mut nvim, true).expect("4");
+    curbuf.attach(&mut nvim, true, vec![]).expect("4");
     loop {
       match receiver.recv() {
-        Ok(UpdatesStart { linedata, .. }) => {
+        Ok(LinesEvent { linedata, .. }) => {
           lines = Lines::new(linedata);
           foldlist.recreate_all(&lines).expect("5");
           foldlist.resend_all(&mut nvim).expect("6");
-          curbuf.event_unsub(&mut nvim).expect("7");
+          curbuf.detach(&mut nvim).expect("7");
           nvim.command("call rpcnotify(1, 'quit')").unwrap();
         }
         _ => break,
