@@ -1,4 +1,8 @@
-* Work on skip_card if we can't reduce the amount of repitition 
+* Fold GROUPs
+GROUPs
+* Add level 2 folds
+
+* Work on skip_card if we can't reduce the amount of repetition 
 
 * Check out https://github.com/kernelmachine/cargo-profiler
 
@@ -6,8 +10,7 @@
   performance analysis
 
 * skip_card doesn't need to allocate a vec most of the time!
-
-* Do we need the channel between the handler and the event loop? How about just having the handler call what's neccessary?
+  * Maybe revert that? Doesn't really help a lot, though a tad indeed
 
 * Check out https://github.com/sunng87/cargo-release
 
@@ -39,4 +42,5 @@
 * Check out https://www.makeareadme.com/#usage
 
 * Unify skip functions wrt usage of curkw, curidx vs. line, lineidx
+
 * Write correct doc comments in lines.rs and folds.rs
