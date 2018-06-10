@@ -52,10 +52,10 @@ test_script:
   - powershell .\appveyor.ps1
 
 cache:
-  #- C:\Users\appveyor\.cargo
-  #- target 
-  - neovim\.deps -> neovim\third-party\**
-  - neovim\build -> neovim\src\nvim\**
+  - C:\Users\appveyor\.cargo
+  - target 
+  #- neovim\.deps -> neovim\third-party\**
+  #- neovim\build -> neovim\src\nvim\**
 
 # Building is done in the test phase, so we disable Appveyor's build phase.
 build: false
