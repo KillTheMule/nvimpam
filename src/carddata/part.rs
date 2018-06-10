@@ -422,6 +422,31 @@ mod tests {
     assert_eq!(v, foldlist.into_vec());
   }
 
+  const CARD_PARTSHELL2: [&'static str; 11] = [
+    "PART  /    10100SHELL   38103600                                                ",
+    "NAME abdcd",
+    "#   DTELIM|   TSCALF|",
+    "                    ",
+    "#    TCONT|   EPSINI| COULFRIC|",
+    "      1.75                    ",
+    "#        h|NINT|         |NTHD|",
+    "      1.75    5               ",
+    "#",
+    "",
+    "END_PART",
+  ];
+
+  #[test]
+  fn fold_partshell2() {
+    use folds::FoldList;
+
+    let v: Vec<(u64, u64, Keyword)> = vec![(0, 10, PartShell)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_PARTSHELL2);
+
+    assert_eq!(v, foldlist.into_vec());
+  }
+
   const CARD_PARTMEMBR: [&'static str; 17] = [
     "$PART Type MEMBR",
     "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",

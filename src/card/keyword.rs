@@ -135,32 +135,42 @@ impl Keyword {
           if len < 24 {
             None
           } else {
-            let p = &s[16..24];
+            let mut p = &s[16..24];
+
+            if let Some(first) = p.iter().position(|c| c != &b' ') {
+              if let Some(last) = p.iter().rposition(|c| c != &b' ') {
+                p = &p[first..last + 1]
+              } else {
+                return None;
+              }
+            } else {
+              return None;
+            }
 
             match p {
-              b"   SOLID" => Some(PartSolid),
-              b"   BSHEL" => Some(PartBshel),
-              b"   TETRA" => Some(PartTetra),
-              b"   SPHEL" => Some(PartSphel),
-              b"   COS3D" => Some(PartCos3d),
-              b"   TSHEL" => Some(PartTshel),
-              b"   SHELL" => Some(PartShell),
-              b"   MEMBR" => Some(PartMembr),
-              b"     BAR" => Some(PartBar),
-              b"    BEAM" => Some(PartBeam),
-              b"  SPRING" => Some(PartSpring),
-              b"  SPRGBM" => Some(PartSprgbm),
-              b"   MBSPR" => Some(PartMbspr),
-              b"   JOINT" => Some(PartJoint),
-              b"   KJOIN" => Some(PartKjoin),
-              b"  MTOJNT" => Some(PartMtojnt),
-              b"   MBKJN" => Some(PartMbkjn),
-              b"    TIED" => Some(PartTied),
-              b"   SLINK" => Some(PartSlink),
-              b"   ELINK" => Some(PartElink),
-              b"   LLINK" => Some(PartLlink),
-              b"   PLINK" => Some(PartPlink),
-              b"     GAP" => Some(PartGap),
+              b"SOLID" => Some(PartSolid),
+              b"BSHEL" => Some(PartBshel),
+              b"TETRA" => Some(PartTetra),
+              b"SPHEL" => Some(PartSphel),
+              b"COS3D" => Some(PartCos3d),
+              b"TSHEL" => Some(PartTshel),
+              b"SHELL" => Some(PartShell),
+              b"MEMBR" => Some(PartMembr),
+              b"BAR" => Some(PartBar),
+              b"BEAM" => Some(PartBeam),
+              b"SPRING" => Some(PartSpring),
+              b"SPRGBM" => Some(PartSprgbm),
+              b"MBSPR" => Some(PartMbspr),
+              b"JOINT" => Some(PartJoint),
+              b"KJOIN" => Some(PartKjoin),
+              b"MTOJNT" => Some(PartMtojnt),
+              b"MBKJN" => Some(PartMbkjn),
+              b"TIED" => Some(PartTied),
+              b"SLINK" => Some(PartSlink),
+              b"ELINK" => Some(PartElink),
+              b"LLINK" => Some(PartLlink),
+              b"PLINK" => Some(PartPlink),
+              b"GAP" => Some(PartGap),
               _ => None,
             }
           }
@@ -182,7 +192,7 @@ impl Keyword {
               _ => None,
             }
           }
-        },
+        }
         _ => None,
       }
     }
