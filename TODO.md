@@ -1,5 +1,14 @@
+* The new test is racy. Things to do about it
+  * Maybe issue a synchronous rpcrequest to get the current buffer?
+  * Maybe don't request the current buffer, but luaeval a function that returns
+    the buffer for that channel (how? not sure -> nvim_get_api_info)
+  * Maybe add a new event to the plugin that waits for the buffer number from
+    rpcnotify, and oonly after receiving that start the "real" event loop
+
+* Implement nvim_set_client_info
+
 * Fold GROUPs
-GROUPs
+
 * Add level 2 folds
 
 * Work on skip_card if we can't reduce the amount of repetition 
