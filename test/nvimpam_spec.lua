@@ -123,7 +123,7 @@ describe('nvimpam', function()
 
   it('basically works', function()
     command('edit ' .. alter_slashes('../files/example.pc'))
-    command('NvimPamConnect')
+    command('NvimPamAttach')
     feed("28G")
 
     screen:expect([[
@@ -147,7 +147,7 @@ describe('nvimpam', function()
 
   it('can deal with insertions', function()
     insert(input)
-    command('NvimPamConnect')
+    command('NvimPamAttach')
     feed("1G")
 
     screen:expect([[
@@ -193,7 +193,7 @@ describe('nvimpam', function()
 
   it('can deal with deletions', function()
     insert(input)
-    command('NvimPamConnect')
+    command('NvimPamAttach')
     feed("1G")
 
     command("7,9d")
@@ -219,7 +219,7 @@ describe('nvimpam', function()
 
   it('can deal with updates and undo', function()
     insert(input)
-    command('NvimPamConnect')
+    command('NvimPamAttach')
     feed("1G")
     command("set nohls")
 
