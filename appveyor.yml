@@ -58,7 +58,7 @@ test_script:
         #Install-Product node 8
         cd neovim
         git submodule init 2> $null
-        git submodule update 2> $null
+        git submodule update --remote 2> $null
         rm -r -fo src\nvim\testdir
         $ScriptPath = Split-Path $MyInvocation.InvocationName
         & '$ScriptPath\ci\build.ps1'

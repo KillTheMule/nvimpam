@@ -29,7 +29,7 @@ jobs:
     - stage: functionaltest
       # build plugin first, then run the test from neovim
       script: cargo build && cd neovim && git submodule init
-              && git submodule update
+              && git submodule update --remote
               && TEST_FILE=../test/nvimpam_spec.lua make functionaltest
       # cache it all, especially the neovim sources won't change often
       cache: 
@@ -38,7 +38,7 @@ jobs:
     #reproduce the same for osx
     - stage: functionaltest
       script: cargo build && cd neovim && git submodule init
-              && git submodule update
+              && git submodule update --remote
               && TEST_FILE=../test/nvimpam_spec.lua make functionaltest
       cache: 
         - cargo
