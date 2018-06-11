@@ -14,7 +14,7 @@ local function locate_binary()
 
   for _, path in ipairs(locations) do
     table.insert(tmp, "../"..path)
-    local path2 = path:gsub("/","\\")
+    local path2 = path:gsub("/","\\")..".exe"
     table.insert(tmp, path2)
     table.insert(tmp, "..\\"..path2)
   end

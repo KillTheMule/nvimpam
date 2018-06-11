@@ -48,32 +48,31 @@ install:
   - rustc -Vv
   - cargo -V
 
+build_script:
+  - cargo build
+
 test_script:
+  - cargo test
   - ps: |
       if ($env:FUNCTIONALTESTS -eq 'true') {
         echo "---> Functionaltests"
-        cargo build 2> $null
-        cargo test 2> $null
         $env:TEST_FILE = '..\test\nvimpam_spec.lua'
-        #Install-Product node 8
-        cd neovim
-        git submodule init 2> $null
-        git submodule update --remote --depth 50 2> $null
-        rm -r -fo src\nvim\testdir
-        $ScriptPath = Split-Path $MyInvocation.InvocationName
-        & '$ScriptPath\ci\build.ps1'
-        ci\build.ps1
-      } else {
-        echo "---> No Functionaltests"
-        cargo build 2> $null
-        cargo test 2> $null
+        }
+  - cd neovim
+  - git submodule init
+  - git submodule update --remote --depth 50
+  - ps: |
+      if ($env:FUNCTIONALTESTS -eq 'true') {
+        cp ..\target\debug\nvimpam.exe .
+        Get-Content ci\build.ps1 | Select-String -pattern "(python|gem.cmd|ruby|npm|neovim-node-host|testdir|cpack)" -notmatch | Out-File ci\build2.ps1
+        & 'ci\build2.ps1'
       }
 
 cache:
   - C:\Users\appveyor\.cargo
-  - target 
+  #- target 
   #- neovim\.deps -> neovim\third-party\**
   #- neovim\build -> neovim\src\nvim\**
 
 # Building is done in the test phase, so we disable Appveyor's build phase.
-build: false
+build: Script
