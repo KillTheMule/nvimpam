@@ -4,6 +4,7 @@ local clear, command = helpers.clear, helpers.command
 local feed, alter_slashes = helpers.feed, helpers.alter_slashes
 local insert = helpers.insert
 local meths = helpers.meths
+local eq = helpers.eq
 
 -- Override this function to ignore the last line, i.e. the command
 -- line, since it seems increasingly non-deterministic, and we don't
@@ -298,6 +299,15 @@ describe('nvimpam', function()
     ]])
 
     local chans = meths.list_chans() 
+    eq({ client = { }, id = 3, mode = 'rpc', stream = 'job' }, chans[3])
+    eq({ client = { }, id = 4, mode = 'rpc', stream = 'job' }, chans[4])
+
+    command("NvimPamDetach")
+    helpers.sleep(200)
+    chans = meths.list_chans() 
+    eq({ client = { }, id = 3, mode = 'rpc', stream = 'job' }, chans[3])
+    eq(nil, chans[4])
+
   end)
 
 end)
