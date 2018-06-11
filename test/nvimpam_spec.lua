@@ -3,6 +3,7 @@ local Screen = require('test.functional.ui.screen')
 local clear, command = helpers.clear, helpers.command
 local feed, alter_slashes = helpers.feed, helpers.alter_slashes
 local insert = helpers.insert
+local meths = helpers.meths
 
 -- Override this function to ignore the last line, i.e. the command
 -- line, since it seems increasingly non-deterministic, and we don't
@@ -85,6 +86,8 @@ describe('nvimpam', function()
     screen:set_default_attr_ids({
       [1] = {foreground = Screen.colors.DarkBlue, background = Screen.colors.LightGray},
       [2] = {bold = true, foreground = Screen.colors.Blue1},
+      [3] = {reverse = true,},
+      [4] = {bold = true, reverse = true},
     })
     command('set rtp+=' .. alter_slashes('../'))
     command('source ' .. alter_slashes('../plugin/nvimpam.vim'))
@@ -264,6 +267,37 @@ describe('nvimpam', function()
       {2:~                                                                                }|
                                                                                        |
     ]])
+  end)
+
+  it('starts a new instance for a new buffer', function()
+    command("set nowrap")
+    command('edit ' .. alter_slashes('../files/example.pc'))
+    command('NvimPamAttach')
+    helpers.sleep(200)
+    feed("28G")
+    command("vs " .. alter_slashes("../files/example2.pc"))
+    command("NvimPamAttach")
+    feed("28G")
+
+    screen:expect([[
+       ERFOUTPUT        3        0            {3:│} ERFOUTPUT        3        0            |
+      NODPLOT    DFLT                         {3:│}NODPLOT    DFLT                         |
+      SOLPLOT     ALL                         {3:│}SOLPLOT     ALL                         |
+       SHLPLOT   DFLT                         {3:│} SHLPLOT   DFLT                         |
+      END_OCTRL                               {3:│}END_OCTRL                               |
+      $                                       {3:│}$                                       |
+      ^$#         IDNOD               X        {3:│}$#         IDNOD               X        |
+      $                                       {3:│}{1:+--725 lines: NODE  /        1          }|
+      $                                       {3:│}$---------------------------------------|
+      $                                       {3:│}$     MATERIAL DEFINITIONS              |
+      {1:+--  2 lines: NODE  /        1          }{3:│}$---------------------------------------|
+      {1:+--  2 lines: SHELL /        3          }{3:│}$ boxbeam                               |
+      {1:+--721 lines: NODE  /        5          }{3:│}$#         IDMAT   MATYP             RHO|
+      {4:../files/example2.pc                     }{3:../files/example.pc                     }|
+      rust client connected to neovim                                                  |
+    ]])
+
+    local chans = meths.list_chans() 
   end)
 
 end)
