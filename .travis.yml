@@ -34,9 +34,6 @@ jobs:
       # cache it all, especially the neovim sources won't change often
       cache: 
         - cargo 
-        - directories:
-          - neovim/.deps
-          - neovim/build
       os: linux 
     #reproduce the same for osx
     - stage: functionaltest
