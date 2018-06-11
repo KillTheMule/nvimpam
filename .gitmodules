@@ -1,5 +1,0 @@
-[submodule "neovim"]
-	path = neovim
-	url = https://github.com/neovim/neovim
-  shallow = true
-  branch = master
