@@ -5,3 +5,8 @@ set rtp+=$PWD
 "else
 "  source $PWD/plugin/nvimpam.vim
 "endif
+  augroup nvimpam
+    au!
+    autocmd FileType pamcrash nnoremap <F5> :NvimPamUpdateFolds<CR>
+    autocmd FileType pamcrash call luaeval('require("nvimpam").attach()')
+  augroup END

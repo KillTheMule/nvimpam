@@ -42,8 +42,6 @@
 
 * Mention logging in the doc
 
-* Write vim doc
-
 * If performance isn't good, see 
   https://www.reddit.com/r/rust/comments/7h4q0i/can_this_function_be_improved_performancewise/dqoolbm/
 
@@ -53,5 +51,3 @@
 * Check out https://www.makeareadme.com/#usage
 
 * Unify skip functions wrt usage of curkw, curidx vs. line, lineidx
-
-* Write correct doc comments in lines.rs and folds.rs

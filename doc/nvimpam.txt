@@ -1,0 +1,79 @@
+*nvimpam.txt*                                                         *nvimpam*
+
+
+                            NVIMPAM DOCUMENTATION
+
+
+Development of nvimpam.                         		*development*
+
+Nvimpam is open source software. Everybody is encouraged to contribute.
+
+    https://github.com/KillTheMule/nvimpam
+
+You're very welcome to step by to report bugs or request features.
+
+                                      Type |gO| to see the table of contents.
+
+==============================================================================
+Overview    		       				*nvimpam-overview*
+
+Nvimpam is a neovim |rpc| plugin for editing input files for the FEM solver
+PAMCRASH. Right now, the only thing it can do is provide folding.
+
+
+Differences with vim-pamcrash-syntax          *vim-pamcrash-syntax-differences*
+
+If you're editing pamcrash input files, check out
+
+          https://www.vim.org/scripts/script.php?script_id=5283
+
+which provides additional functionality. The only thing it is missing is
+_working_ folding support. It has basic support, but performance is forbidding
+even on quite small files. That is the niche that nvimpam now fills, as it
+provides folding support with quite good performance even on large files. The
+fact that rpc plugins work asynchronously means that even on huge files you
+can start working or scrolling around while the folding data is computed.
+
+==============================================================================
+Nvimpam commands					*nvimpam-commands*
+
+Nvimpam provides the following commands:
+
+NvimPamAttach~
+
+Attaches an nvimpam process to the current buffer. It will process the
+buffer's contents, and create (and close) the folds. Depending on the size of
+the buffer you might feel a small delay (due to having to transfer the
+buffer's contents), but you will be able to use nvim before the folds have
+been computed.
+
+NvimPamDetach~
+
+Detaches an nvimpam process from the current buffer. You will only need to do
+this if you manually wish to disable nvimpam after starting it.
+
+NvimPamUpdateFolds~
+
+Ask nvimpam to recompute and apply all folds. After initially creating and
+closing the folds for you, it will not do so subsequently. It will however
+keep track of the changes to the buffer, so updating the folds will be very
+fast.
+
+==============================================================================
+Nvimpam configuration                                    *nvimpam-configuration*
+
+Nvimpam needs no configuration. You may however wish to put
+
+  filetype plugin on
+
+  augroup nvimpam
+    augroup!
+    autocmd FileType pamcrash nnoremap <F5> :NvimPamUpdateFolds
+    autocmd FileType pamcrash NvimPamAttach
+  augroup END
+
+in your init.vim. It will automatically start nvimpam when you're editing a
+PAMCRASH file, and you can update the folds by simply pressing <F5>. Remember
+to put `filetype plugin on` before this, though.
+
+ vim:tw=78:ts=8:ft=help:norl:
