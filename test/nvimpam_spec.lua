@@ -56,7 +56,7 @@ function Screen:expect(expected, attr_ids, attr_ignore, condition, any)
       end
     else
       -- `expected` must match the screen lines exactly.
-      for i = 1, self._height-1 do
+      for i = 1, self._height-2 do
         if expected_rows[i] ~= actual_rows[i] then
           local msg_expected_rows = {}
           for j = 1, #expected_rows do
