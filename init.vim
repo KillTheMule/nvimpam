@@ -9,6 +9,6 @@ filetype plugin on
   augroup nvimpam
     au!
     autocmd FileType pamcrash nnoremap <F5> :NvimPamUpdateFolds<CR>
-    autocmd FileType pamcrash :NvimPamAttach
+    "autocmd FileType pamcrash :NvimPamAttach
     "autocmd FileType pamcrash call luaeval('require("nvimpam").attach()')
   augroup END

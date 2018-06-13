@@ -91,7 +91,7 @@ describe('nvimpam', function()
       [4] = {bold = true, reverse = true},
     })
     command('set rtp+=' .. alter_slashes('../'))
-    command('source ' .. alter_slashes('../plugin/nvimpam.vim'))
+    command('source ' .. alter_slashes('../init.vim'))
   end)
 
   after_each(function()
@@ -151,6 +151,7 @@ describe('nvimpam', function()
 
   it('can deal with insertions', function()
     insert(input)
+    command('set ft=pamcrash')
     command('NvimPamAttach')
     feed("1G")
 
@@ -197,6 +198,7 @@ describe('nvimpam', function()
 
   it('can deal with deletions', function()
     insert(input)
+    command('set ft=pamcrash')
     command('NvimPamAttach')
     feed("1G")
 
@@ -223,6 +225,7 @@ describe('nvimpam', function()
 
   it('can deal with updates and undo', function()
     insert(input)
+    command('set ft=pamcrash')
     command('NvimPamAttach')
     feed("1G")
     command("set nohls")
