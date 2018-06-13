@@ -1,7 +1,23 @@
 [package]
 authors = ["KillTheMule <KillTheMule@users.noreply.github.com"]
 name = "nvimpam"
-version = "0.0.1"
+version = "0.1.0"
+exclude = [
+    "neovim/*",
+    "benches/*",
+    "init.vim",
+    "lua/*",
+    "doc/*",
+    "files/*",
+    "ftdetect/*",
+    "ftplugin/*",
+    "rustfmt.toml",
+    "test/*",
+    ]
+description = "A neovim rpc plugin providing folding for PAMCRASH files"
+license = "Apache-2.0 OR MIT"
+documentation = "https://KillTheMule.github.io/nvimpam/nvimpam"
+repository = "https://github.com/KillTheMule/nvimpam"
 
 [dependencies]
 log = "0.4.1"
