@@ -1,5 +1,6 @@
 set rtp+=$PWD
 
+filetype plugin on
 "if has("win32")
 "  source $PWD\plugin\nvimpam.vim
 "else
@@ -8,5 +9,6 @@ set rtp+=$PWD
   augroup nvimpam
     au!
     autocmd FileType pamcrash nnoremap <F5> :NvimPamUpdateFolds<CR>
-    autocmd FileType pamcrash call luaeval('require("nvimpam").attach()')
+    autocmd FileType pamcrash :NvimPamAttach
+    "autocmd FileType pamcrash call luaeval('require("nvimpam").attach()')
   augroup END
