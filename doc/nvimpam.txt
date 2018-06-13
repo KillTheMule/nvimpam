@@ -76,4 +76,12 @@ in your init.vim. It will automatically start nvimpam when you're editing a
 PAMCRASH file, and you can update the folds by simply pressing <F5>. Remember
 to put `filetype plugin on` before this, though.
 
+Logging                                                       *nvimpam-logging*
+
+If you want logging, set the following environment variables:
+
+ - `LOG_FILE` is the path to the log file (no logging if this is empty)
+ - `LOG_LEVEL` can be one of `error`, `warn`, `info`, `debug` and `trace`, in
+    ascending order of verbosity. The default is `warn`.
+
  vim:tw=78:ts=8:ft=help:norl:

@@ -1,5 +1,4 @@
-//! The nvimpam binary. Needs to be connected to neovim (currently,
-//! <https://github.com/neovim/neovim/pull/7917> is needed) by stdin/stdout like
+//! The nvimpam binary. Needs to be connected to neovim by stdin/stdout like
 //! this:
 //!
 //! ```text
@@ -11,25 +10,11 @@
 //! It will automatically notify neovim of its activity, request the whole
 //! buffer and parse it for folds. After that, it sends the folds to neovim.
 //!
-//! The source of nvimpam comes with the following files
-//!
-//! * init.vim
-//! * autoload/nvimpam.vim
-//! * plugin/nvimpam.vim
-//!
-//! Put the contents of `init.vim` into your `init.vim`, and move the other
-//! files to their corresponding subfolders in your runtime path (check `:echo
-//! $VIMRUNTIME` to find out). You will have the commands `:NvimPamConnect` and
-//! `:NvimPamStop` to start/stop the plugin,as well as `:NvimPamUpdateFolds` to
-//! recompute and update all folds.
-//!
 //! If you want logging, set the following environment variables:
 //!
 //! * `LOG_FILE` is the path to the log file (no logging if this is empty)
 //! * `LOG_LEVEL` can be one of `error`, `warn`, `info`, `debug` and `trace`, in
 //!    ascending order of verbosity. The default is `warn`.
-//!
-//! `TODO`: Implement more card types than SHELL, NODE and Comment
 //!
 #[macro_use]
 extern crate log;
