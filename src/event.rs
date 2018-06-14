@@ -47,7 +47,7 @@ impl Event {
   /// [handler](../handler/struct.NeovimHandler.html).
   ///
   /// The loop starts by enabling
-  /// [buffer events](::neovim_ext::BufferExt::event_sub).
+  /// [buffer events](::neovim_ext::BufferExt::attach).
   /// It creates [`lines`](::lines::Lines) and a
   /// [`foldlist`](::folds::FoldList)  and updates them from the
   /// events received. It calls
