@@ -90,8 +90,8 @@ describe('nvimpam', function()
       [3] = {reverse = true,},
       [4] = {bold = true, reverse = true},
     })
-    command('set rtp+=' .. alter_slashes('../'))
-    command('source ' .. alter_slashes('../init.vim'))
+    command('set rtp+=../')
+    command('source ../init.vim')
   end)
 
   after_each(function()
