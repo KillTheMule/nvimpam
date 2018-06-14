@@ -78,7 +78,7 @@ pub enum Keyword {
   Rbody2,
   Rbody3,
   // Auxiliaries
-  Group
+  Group,
 }
 
 impl Keyword {

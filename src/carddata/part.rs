@@ -392,7 +392,6 @@ mod tests {
     assert_eq!(v, foldlist.into_vec());
   }
 
-
   const CARD_PARTSHELL: [&'static str; 15] = [
     "$PART Type SHELL",
     "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",
@@ -670,7 +669,7 @@ mod tests {
 
     let v: Vec<(u64, u64, Keyword)> = vec![(2, 11, PartJoint)];
     let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTJOINT); 
+    let _ = foldlist.add_folds(&CARD_PARTJOINT);
     assert_eq!(v, foldlist.into_vec());
   }
 

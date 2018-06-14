@@ -15,7 +15,10 @@ pub struct NeovimHandler(pub mpsc::Sender<Event>);
 impl NeovimHandler {
   /// Parse a nvim_buf_lines_event notification into a
   /// [LinesEvent](../event/enum.Event.html#variant.LinesEvent) event
-  pub fn parse_lines_event(&mut self, mut args: Vec<Value>) -> Result<Event, Error> {
+  pub fn parse_lines_event(
+    &mut self,
+    mut args: Vec<Value>,
+  ) -> Result<Event, Error> {
     let more = parse_bool(&last_arg(
       &mut args,
       "Not enough arguments in nvim_buf_lines_event!",
@@ -52,7 +55,8 @@ impl NeovimHandler {
   }
 
   /// Parse a nvim_buf_changedtick_event notification into a
-  /// [ChangedTickEvent](../event/enum.Event.html#variant.ChangedTickEvent) event
+  /// [ChangedTickEvent](../event/enum.Event.html#variant.ChangedTickEvent)
+  /// event
   pub fn parse_changedtick_event(
     &mut self,
     mut args: Vec<Value>,

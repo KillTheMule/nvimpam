@@ -25,7 +25,7 @@ fn bench_folds(b: &mut Bencher) {
     Command::new("neovim/build/bin/nvim")
       .args(&["-u", "NONE", "--embed"])
       .env_clear()
-      .env("VIMRUNTIME", "neovim/runtime")
+      .env("VIMRUNTIME", "neovim/runtime"),
   ).unwrap();
 
   session.start_event_loop_handler(NeovimHandler(sender));

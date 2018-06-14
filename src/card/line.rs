@@ -1,7 +1,7 @@
 //! An enum to classify the several types of lines that can occur inside a card
 //! of a Pamcrash input file. Might not really be a line (see GES).
-use std::ops::Range;
 use std::cmp;
+use std::ops::Range;
 
 use card::cell::Cell;
 use card::ges::GesType;
@@ -31,7 +31,7 @@ pub enum Line {
   Block(&'static [Line], &'static str),
   /// A black that's entirely optional, starting with a line of a given string
   /// and ending in a line with another keywordgiven string
-  OptionalBlock(&'static str, &'static str)
+  OptionalBlock(&'static str, &'static str),
 }
 
 /// An enum to represent different conditionals on lines
@@ -96,14 +96,14 @@ impl Conditional {
         match cell {
           None => Number(None),
           Some(s) => match s.trim().parse::<usize>() {
-              Ok(x) => Number(Some(x)),
-              _ => Number(None),
-            }
-          }
+            Ok(x) => Number(Some(x)),
+            _ => Number(None),
+          },
         }
       }
     }
   }
+}
 
 #[cfg(test)]
 mod tests {

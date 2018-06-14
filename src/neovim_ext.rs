@@ -15,7 +15,7 @@ pub trait BufferExt {
     &self,
     neovim: &mut Neovim,
     send_buffer: bool,
-    opts: Vec<(Value, Value)>
+    opts: Vec<(Value, Value)>,
   ) -> Result<(), CallError>;
 
   /// Unsubscribe from buffer events
@@ -28,7 +28,7 @@ impl BufferExt for Buffer {
     &self,
     neovim: &mut Neovim,
     send_buffer: bool,
-    opts: Vec<(Value, Value)>
+    opts: Vec<(Value, Value)>,
   ) -> Result<(), CallError> {
     let mut v = Vec::new();
     v.push(self.get_value().clone());

@@ -275,7 +275,7 @@ mod tests {
     use card::keyword::Keyword::*;
     use folds::FoldList;
 
-     let v = vec![(1, 8, Otmco)];
+    let v = vec![(1, 8, Otmco)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_OTMCO2);
 
@@ -296,7 +296,7 @@ mod tests {
     use card::keyword::Keyword::*;
     use folds::FoldList;
 
-     let v = vec![(2, 5, Rbody0)];
+    let v = vec![(2, 5, Rbody0)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_RBODY0);
 
@@ -321,7 +321,7 @@ mod tests {
     use card::keyword::Keyword::*;
     use folds::FoldList;
 
-     let v = vec![(2, 9, Rbody1)];
+    let v = vec![(2, 9, Rbody1)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_RBODY1);
 
@@ -343,7 +343,7 @@ mod tests {
     use card::keyword::Keyword::*;
     use folds::FoldList;
 
-     let v = vec![(1, 6, Rbody2)];
+    let v = vec![(1, 6, Rbody2)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_RBODY2);
 
@@ -366,7 +366,7 @@ mod tests {
     use card::keyword::Keyword::*;
     use folds::FoldList;
 
-     let v = vec![(2, 7, Rbody3)];
+    let v = vec![(2, 7, Rbody3)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_RBODY3);
 
