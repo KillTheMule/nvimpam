@@ -18,6 +18,7 @@ description = "A neovim rpc plugin providing folding for PAMCRASH files"
 license = "Apache-2.0 OR MIT"
 documentation = "https://KillTheMule.github.io/nvimpam/nvimpam"
 repository = "https://github.com/KillTheMule/nvimpam"
+readme = "README.md"
 
 [dependencies]
 log = "0.4.1"
