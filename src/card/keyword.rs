@@ -70,13 +70,15 @@ pub enum Keyword {
   PartLlink,
   PartPlink,
   PartGap,
-  // Contrain
+  // Constraint
   Mtoco,
   Otmco,
   Rbody0,
   Rbody1,
   Rbody2,
   Rbody3,
+  // Auxiliaries
+  Group
 }
 
 impl Keyword {
@@ -193,6 +195,8 @@ impl Keyword {
             }
           }
         }
+        // Auxiliaries
+        b"GROUP / " => Some(Group),
         _ => None,
       }
     }

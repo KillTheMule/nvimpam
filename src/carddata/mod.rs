@@ -4,6 +4,7 @@ pub mod link;
 pub mod node;
 pub mod part;
 pub mod constraint;
+pub mod auxiliaries;
 
 /// All static declarations can be imported via
 /// ```rust, ignore
@@ -14,3 +15,4 @@ pub use self::link::*;
 pub use self::node::*;
 pub use self::part::*;
 pub use self::constraint::*;
+pub use self::auxiliaries::*;

@@ -416,6 +416,47 @@ where
             }
           }
         },
+        Line::OptionalBlock(s1, s2) => {
+          if line.as_ref().starts_with(s1) {
+            loop {
+              let tmp = self.next();
+
+              match tmp {
+                None => {
+                  return SkipResult {
+                    skip_end: Some(lineidx),
+                    ..Default::default()
+                  };
+                }
+                Some((i, l)) => {
+                  if l.as_ref().starts_with(s2) {
+                    previdx = Some(i);
+                    break;
+                  } else {
+                    continue;
+                  }
+                }
+              }
+            }
+            let tmp = self.next();
+
+            match tmp {
+              None => {
+                return SkipResult {
+                  skip_end: Some(lineidx),
+                  ..Default::default()
+                };
+              }
+              Some((i, l)) => {
+                return SkipResult {
+                  nextline: Some((i, l)),
+                  nextline_kw: Keyword::parse(l),
+                  skip_end: previdx,
+                };
+              }
+            }
+          }
+        }
       }
     }
     SkipResult {

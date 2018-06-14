@@ -29,6 +29,9 @@ pub enum Line {
   Repeat(&'static [Cell], u8),
   /// A block of lines, ended by a line starting with the given string.
   Block(&'static [Line], &'static str),
+  /// A black that's entirely optional, starting with a line of a given string
+  /// and ending in a line with another keywordgiven string
+  OptionalBlock(&'static str, &'static str)
 }
 
 /// An enum to represent different conditionals on lines
