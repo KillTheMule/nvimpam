@@ -7,8 +7,6 @@
 
 * Implement nvim_set_client_info
 
-* Fold GROUPs
-
 * Add level 2 folds
 
 * Remove failure from the lib, implement own error handling
@@ -22,8 +20,6 @@
 
 * skip_card doesn't need to allocate a vec most of the time!
   * Maybe revert that? Doesn't really help a lot, though a tad indeed
-
-* Check out https://github.com/sunng87/cargo-release
 
 * Add benchmarks
   * Maybe https://docs.rs/bencher/0.1.4/bencher/?
@@ -40,14 +36,11 @@
   * https://github.com/Geal/cargo-external-doc
   * https://github.com/vitiral/artifact
 
-* Mention logging in the doc
-
 * If performance isn't good, see 
   https://www.reddit.com/r/rust/comments/7h4q0i/can_this_function_be_improved_performancewise/dqoolbm/
 
 * Before parsing the vec, maybe sort it?
 
-* Both the Line enum variant and the trait are called ges. Bad?
 * Check out https://www.makeareadme.com/#usage
 
 * Unify skip functions wrt usage of curkw, curidx vs. line, lineidx
