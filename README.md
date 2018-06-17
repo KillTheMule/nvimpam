@@ -1,4 +1,4 @@
-# nvimpam  ![Travis status](https://travis-ci.org/KillTheMule/nvimpam.svg?branch=master) ![Appveyor status](https://ci.appveyor.com/api/projects/status/mnmy5bpq895sklwy/branch/master?svg=true)
+# nvimpam  ![(Travis status)](https://travis-ci.org/KillTheMule/nvimpam.svg?branch=master) ![(Appveyor status)](https://ci.appveyor.com/api/projects/status/mnmy5bpq895sklwy/branch/master?svg=true)
 
 The beginning of a neovim rpc plugin for pamcrash files. Right now, it does some folding, okish-ly. Future dreams include good folding, syntax highlighting and status line hints. 
 
