@@ -10,7 +10,6 @@ use neovim_lib::neovim_api::NeovimApi;
 
 use folds::FoldList;
 use lines::Lines;
-use neovim_ext::BufferExt;
 
 /// The event list the main loop reacts to
 pub enum Event {

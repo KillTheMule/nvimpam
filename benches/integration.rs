@@ -12,7 +12,6 @@ use nvimpam_lib::event::Event::*;
 use nvimpam_lib::folds::FoldList;
 use nvimpam_lib::handler::NeovimHandler;
 use nvimpam_lib::lines::Lines;
-use nvimpam_lib::neovim_ext::BufferExt;
 
 use neovim_lib::neovim::Neovim;
 use neovim_lib::neovim_api::NeovimApi;
