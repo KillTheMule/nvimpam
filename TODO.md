@@ -1,3 +1,6 @@
+* URGENT: Rework `resend_all` to work with the batch variant of the rpc-benchmarks
+  branch (link blog post in comments), and make it work in the presence of 0 folds
+
 * The new test is racy. Things to do about it
   * Maybe issue a synchronous rpcrequest to get the current buffer?
   * Maybe don't request the current buffer, but luaeval a function that returns
