@@ -10,8 +10,9 @@
 
 * See if we can get the info for send_client_info programmatically from Cargo.toml
   or the code
+  * Check out a build.rs
 
-* Add a checkhealth health checker (see language_client_neovim)
+* Add version info to healthcheck (see languageclient_neovim for how to do it properly)
 
 * Add level 2 folds
 

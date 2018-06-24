@@ -100,4 +100,5 @@ return {
   detach = detach,
   detach_all = detach_all,
   update_folds = update_folds,
+  locate_binary = locate_binary,
 }

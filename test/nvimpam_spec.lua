@@ -89,6 +89,9 @@ describe('nvimpam', function()
       [2] = {bold = true, foreground = Screen.colors.Blue1},
       [3] = {reverse = true,},
       [4] = {bold = true, reverse = true},
+      [5] = {background = Screen.colors.LightGrey, underline = true},
+      [6] = {bold = true},
+      [7] = {foreground = Screen.colors.Grey3, background = 6291200}
     })
     command('set rtp+=../')
     command('source ../init.vim')
@@ -342,6 +345,30 @@ describe('nvimpam', function()
     eq(chans[3].client.name, 'nvimpam')
     eq(nil, chans[4])
 
+  end)
+
+  -- note: this also checks that we're using the debug binary
+  it('includes a proper healthcheck', function()
+    command('checkhealth nvimpam')
+    -- needed to get rid of the indeterminism warning
+    feed("G") 
+    screen:expect([[
+      {5: [No Name] }{6: [No Name] }{3:                                                          }{5:X}|
+                                                                                       |
+      health#nvimpam#check                                                             |
+      ========================================================================         |
+        - {7:OK:} Function nvim_buf_attach exists!                                         |
+        - {7:OK:} binary found: ../target/debug/nvimpam                                    |
+      ^                                                                                 |
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+                                                                                       |
+    ]])
   end)
 
 end)
