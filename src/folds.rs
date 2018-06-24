@@ -33,7 +33,7 @@ pub struct FoldList {
   /// lexicographically on [start, end].
   folds: BTreeMap<[u64; 2], Keyword>,
   /// List of folds, keyed by [end, start], valued by Keyword, sorted
-  /// lexicographically on [end, start].  Kept synchronous to Folds by the
+  /// lexicographically on [end, start].  Kept synchronous to `folds` by the
   /// struct methods.
   folds_inv: BTreeMap<[u64; 2], Keyword>,
 }
@@ -69,10 +69,10 @@ impl FoldList {
   }
 
   /// Insert a fold (start, end) into the FoldList. If the length of the fold
-  /// is less than 2, or the card is a Comment, we silently return without
-  /// doing anything.  Otherwise, we call the internal insert function that
-  /// returns an error if the fold is already in the list. In that case, it
-  /// needs to be [removed](struct.FoldList.html#method.remove) beforehand.
+  /// is less than 2 we silently return without doing anything.  Otherwise, we
+  /// call the internal insert function that returns an error if the fold is
+  /// already in the list. In that case, it needs to be
+  /// [removed](struct.FoldList.html#method.remove) beforehand.
   pub fn checked_insert(
     &mut self,
     start: u64,
@@ -114,7 +114,7 @@ impl FoldList {
     command.push_str("normal! zE");
     nvim.command(&command)?;
     command.clear();
-    
+
     if self.folds.len() > 0 {
       for range in self.folds.keys() {
         command.push_str(&format!("|{},{}fo", range[0] + 1, range[1] + 1));

@@ -9,13 +9,17 @@
   or the code
   * Check out a build.rs
 
-* Add version info to healthcheck (see languageclient_neovim for how to do it properly)
+* Healthcheck:
+  * Add version info (see languageclient_neovim for how to do it properly?) Remember to 
+    query the binary, in case there' ambiguity
+  * List all available binaries, not only the one used 
 
 * Add level 2 folds
 
 * Remove failure from the lib, implement own error handling
 
 * Work on skip_card if we can't reduce the amount of repetition 
+
 
 * Check out https://github.com/kernelmachine/cargo-profiler
 

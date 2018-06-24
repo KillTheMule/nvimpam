@@ -125,15 +125,30 @@ fn send_client_info(nvim: &mut Neovim) -> Result<(), Error> {
   ];
 
   let methods: Vec<(Value, Value)> = vec![
-    ("quit".into(), vec![Value::from("nargs"), Value::from(0u8)].into()),
-    ("RefreshFolds".into(), vec![Value::from("nargs"), Value::from(0u8)].into()),
+    (
+      "quit".into(),
+      vec![Value::from("nargs"), Value::from(0u8)].into(),
+    ),
+    (
+      "RefreshFolds".into(),
+      vec![Value::from("nargs"), Value::from(0u8)].into(),
+    ),
   ];
 
   let attribs: Vec<(Value, Value)> = vec![
     ("license".into(), "Apache-2.0 OR MIT".into()),
-    ("documentation".into(), "https://KillTheMule.github.io/nvimpam/nvimpam".into()),
-    ("repository".into(), "https://github.com/KillTheMule/nvimpam".into()),
-    ("author".into(), "KillTheMule <KillTheMule@users.noreply.github.com".into()),
+    (
+      "documentation".into(),
+      "https://KillTheMule.github.io/nvimpam/nvimpam".into(),
+    ),
+    (
+      "repository".into(),
+      "https://github.com/KillTheMule/nvimpam".into(),
+    ),
+    (
+      "author".into(),
+      "KillTheMule <KillTheMule@users.noreply.github.com".into(),
+    ),
   ];
 
   let typ = "remote";
