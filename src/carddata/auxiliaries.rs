@@ -38,7 +38,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_GROUP);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
 }

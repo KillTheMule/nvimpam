@@ -193,7 +193,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSOLID);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTSOLID2: [&'static str; 17] = [
@@ -224,7 +224,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSOLID2);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTCOS3D: [&'static str; 13] = [
@@ -251,7 +251,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTCOS3D);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTBSHEL: [&'static str; 12] = [
@@ -277,7 +277,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTBSHEL);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTTETRA: [&'static str; 15] = [
@@ -306,7 +306,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTTETRA);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTSPHEL: [&'static str; 13] = [
@@ -333,7 +333,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSPHEL);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTSPHEL2: [&'static str; 16] = [
@@ -363,7 +363,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSPHEL2);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTTSHEL: [&'static str; 12] = [
@@ -389,7 +389,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTTSHEL);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTSHELL: [&'static str; 15] = [
@@ -418,7 +418,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSHELL);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTSHELL2: [&'static str; 11] = [
@@ -443,7 +443,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSHELL2);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTMEMBR: [&'static str; 17] = [
@@ -474,7 +474,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTMEMBR);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTBAR: [&'static str; 13] = [
@@ -501,7 +501,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTBAR);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTBEAM: [&'static str; 20] = [
@@ -535,7 +535,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTBEAM);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTBEAM2: [&'static str; 23] = [
@@ -572,7 +572,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTBEAM2);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTSPRING: [&'static str; 12] = [
@@ -598,7 +598,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSPRING);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTSPRGBM: [&'static str; 10] = [
@@ -622,7 +622,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSPRGBM);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTMBSPR: [&'static str; 9] = [
@@ -645,7 +645,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTMBSPR);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTJOINT: [&'static str; 12] = [
@@ -670,7 +670,7 @@ mod tests {
     let v: Vec<(u64, u64, Keyword)> = vec![(2, 11, PartJoint)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTJOINT);
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTKJOIN: [&'static str; 6] = [
@@ -690,7 +690,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTKJOIN);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTMTOJNT: [&'static str; 13] = [
@@ -717,7 +717,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTMTOJNT);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTMBKJN: [&'static str; 12] = [
@@ -743,7 +743,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTMBKJN);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTTIED: [&'static str; 11] = [
@@ -768,7 +768,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTTIED);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTTIED2: [&'static str; 12] = [
@@ -794,7 +794,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTTIED2);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTSLINK: [&'static str; 13] = [
@@ -821,7 +821,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSLINK);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTELINK: [&'static str; 11] = [
@@ -846,7 +846,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTELINK);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTLLINK: [&'static str; 12] = [
@@ -872,7 +872,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTLLINK);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTPLINK: [&'static str; 9] = [
@@ -895,7 +895,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTPLINK);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PARTGAP: [&'static str; 13] = [
@@ -922,7 +922,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTGAP);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
 }

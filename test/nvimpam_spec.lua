@@ -150,6 +150,44 @@ describe('nvimpam', function()
       MATER /        3     103         7.85E-6       0       0       0       0         |
       rust client connected to neovim                                                 |
     ]])
+
+    feed("809G")
+    screen:expect([[
+                                                                                       |
+                                                                                       |
+      $----------------------------------------------------------------                |
+      $     PART AND ELEMENT DEFINITIONS                                               |
+      $----------------------------------------------------------------                |
+      $#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT                         |
+      {1:^+-- 27 lines: PART  /        1   SHELL       3       0       0       0···········}|
+      $#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT                         |
+      {1:+-- 11 lines: PART  /        3   PLINK       5       0       0       0···········}|
+      $#          IDEL   IDPRT   IDNOD    MORE   NLAYR                                 |
+      {1:+-- 15 lines: PLINK /      625       3    1001       0        ···················}|
+      $                                                                                |
+      $----------------------------------------------------------------                |
+      $     RIGID BODIES                                                               |
+                                                                                       |
+    ]])
+
+    feed("zo")
+    screen:expect([[
+                                                                                       |
+                                                                                       |
+      $----------------------------------------------------------------                |
+      $     PART AND ELEMENT DEFINITIONS                                               |
+      $----------------------------------------------------------------                |
+      $#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT                         |
+      {1:^+--- 13 lines: PART  /        1   SHELL       3       0       0       0··········}|
+      $#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT                         |
+      {1:+--- 13 lines: PART  /        2   SHELL       4       0       0       0··········}|
+      $#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT                         |
+      {1:+-- 11 lines: PART  /        3   PLINK       5       0       0       0···········}|
+      $#          IDEL   IDPRT   IDNOD    MORE   NLAYR                                 |
+      {1:+-- 15 lines: PLINK /      625       3    1001       0        ···················}|
+      $                                                                                |
+                                                                                       |
+    ]])
   end)
 
   it('can deal with insertions', function()

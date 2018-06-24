@@ -97,7 +97,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_ELINK);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_LLINK: [&'static str; 23] = [
@@ -136,7 +136,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_LLINK);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_SLINK: [&'static str; 6] = [
@@ -158,7 +158,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_SLINK);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_PLINK: [&'static str; 9] = [
@@ -183,7 +183,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PLINK);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const CARD_TIED: [&'static str; 22] = [
@@ -221,7 +221,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_TIED);
 
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
 }

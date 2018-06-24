@@ -1,5 +1,9 @@
 //! This module provides the [`FoldList`](::folds::FoldList) struct to
-//! manage folds in a buffer.
+//! manage folds in a buffer. It carries both level 1 folds as well as level 2
+//! folds (i.e. folds that contain folds of level 1). All functions that
+//! insert/remove/modify folds operate on level 1 folds, the only thing to be
+//! done for the level 2 folds is regenerating them in full from the level 1
+//! folds.
 //!
 //! Example usage:
 //!
@@ -21,6 +25,9 @@ use failure::ResultExt;
 
 use neovim_lib::{Neovim, NeovimApi};
 
+extern crate itertools;
+use self::itertools::Itertools;
+
 use card::keyword::Keyword;
 use nocommentiter::CommentLess;
 
@@ -32,10 +39,9 @@ pub struct FoldList {
   /// List of folds, keyed by [start, end], valued by Keyword, sorted
   /// lexicographically on [start, end].
   folds: BTreeMap<[u64; 2], Keyword>,
-  /// List of folds, keyed by [end, start], valued by Keyword, sorted
-  /// lexicographically on [end, start].  Kept synchronous to `folds` by the
-  /// struct methods.
-  folds_inv: BTreeMap<[u64; 2], Keyword>,
+  /// List of level 2 folds (i.e. containing level 1 folds), keyed by [start,
+  /// end], valued by Keyword, sorted lexicographically on [start, end].
+  folds_level2: BTreeMap<[u64; 2], Keyword>,
 }
 
 impl FoldList {
@@ -44,66 +50,99 @@ impl FoldList {
   pub fn new() -> FoldList {
     FoldList {
       folds: BTreeMap::new(),
-      folds_inv: BTreeMap::new(),
+      folds_level2: BTreeMap::new(),
     }
   }
 
   /// Clear FoldList, by clearing the BTreeMap's individually
   pub fn clear(&mut self) {
     self.folds.clear();
-    self.folds_inv.clear();
+    self.folds_level2.clear();
   }
 
-  /// Insert a fold (start, end) into the FoldList. Returns an error if that
-  /// fold is already in the list. In that case, it needs to be
+  /// Insert a level 1 fold (start, end) into the FoldList. Returns an error if
+  /// that fold is already in the list. In that case, it needs to be
   /// [removed](struct.FoldList.html#method.remove) beforehand.
   fn insert(&mut self, start: u64, end: u64, kw: Keyword) -> Result<(), Error> {
     match self.folds.entry([start, end]) {
       Entry::Occupied(_) => Err(failure::err_msg("Fold already in foldlist!")),
       Entry::Vacant(entry) => {
         entry.insert(kw);
-        self.folds_inv.insert([end, start], kw);
         Ok(())
       }
     }
   }
 
-  /// Insert a fold (start, end) into the FoldList. If the length of the fold
-  /// is less than 2 we silently return without doing anything.  Otherwise, we
-  /// call the internal insert function that returns an error if the fold is
-  /// already in the list. In that case, it needs to be
-  /// [removed](struct.FoldList.html#method.remove) beforehand.
+  /// Insert a level 1 fold (start, end) into the FoldList. If `end < start`,
+  /// we silently return.  Otherwise, we call the internal insert function that
+  /// returns an error if the fold is already in the list. In that case, it
+  /// needs to be [removed](struct.FoldList.html#method.remove) beforehand.
   pub fn checked_insert(
     &mut self,
     start: u64,
     end: u64,
     kw: Keyword,
   ) -> Result<(), Error> {
-    if start < end {
+    if start <= end {
       self.insert(start, end, kw)?
     }
     Ok(())
   }
 
-  /// Remove a fold (start, end) from the foldlist. Only checks if the fold
-  /// is in the FoldList, and returns an error otherwise.
+  /// Remove a level 1 fold (start, end) from the foldlist. Only checks if the
+  /// fold is in the FoldList, and returns an error otherwise.
   pub fn remove(&mut self, start: u64, end: u64) -> Result<(), Error> {
     self
       .folds
       .remove(&[start, end])
       .ok_or_else(|| failure::err_msg("Could not remove fold from foldlist"))?;
-    self.folds_inv.remove(&[end, start]).ok_or_else(|| {
-      failure::err_msg("Could not remove fold from inverse foldlist!")
-    })?;
-
     Ok(())
   }
 
   /// Remove all the entries from the FoldList, and iterate over lines to
   /// populate it with new ones
-  pub fn recreate_all(&mut self, lines: &[String]) -> Result<(), Error> {
+  pub fn recreate_all<T: AsRef<str>>(
+    &mut self,
+    lines: &[T],
+  ) -> Result<(), Error> {
     self.clear();
-    self.add_folds(lines)
+    self.add_folds(lines)?;
+    self.recreate_level2()
+  }
+
+  /// Recreate the level 2 folds from the level 1 folds. If there's no or one
+  /// level 1 fold, `Ok(())` is returned.
+  fn recreate_level2(&mut self) -> Result<(), Error> {
+    self.folds_level2.clear();
+
+    if self.folds.len() < 2 {
+      return Ok(());
+    }
+
+    let grouped = self.folds.iter().group_by(|(_, &kw)| kw);
+
+    for (kw, mut group) in grouped.into_iter() {
+      let first = group.next().expect("Empty group from group_by!");
+      let last = match group.last() {
+        None => continue, // only 1 fold in group
+        Some(e) => e,
+      };
+
+      let firstline = first.0[0];
+      let lastline = last.0[1];
+
+      if firstline < lastline {
+        match self.folds_level2.entry([firstline, lastline]) {
+          Entry::Occupied(_) => {
+            return Err(failure::err_msg("Fold already in foldlist_level2!"))
+          }
+          Entry::Vacant(entry) => {
+            entry.insert(kw);
+          }
+        }
+      }
+    }
+    Ok(())
   }
 
   /// Delete all folds in nvim, and create the ones from the FoldList
@@ -117,6 +156,13 @@ impl FoldList {
 
     if self.folds.len() > 0 {
       for range in self.folds.keys() {
+        let start = range[0];
+        let end = range[1];
+        if start < end {
+          command.push_str(&format!("|{},{}fo", start + 1, end + 1));
+        }
+      }
+      for range in self.folds_level2.keys() {
         command.push_str(&format!("|{},{}fo", range[0] + 1, range[1] + 1));
       }
       nvim.command(&command).context("Fold command failed!")?;
@@ -127,12 +173,20 @@ impl FoldList {
 
   /// Turn the FoldList into a Vec, containing the tuples (start, end,
   /// Keyword)
-  pub fn into_vec(self) -> Vec<(u64, u64, Keyword)> {
+  pub fn into_vec(self, level: u8) -> Vec<(u64, u64, Keyword)> {
     let mut v = Vec::new();
-    for (s, card) in self.folds {
-      let start = s[0];
-      let end = s[1];
-      v.push((start, end, card));
+    if level == 1 {
+      for (s, card) in self.folds {
+        let start = s[0];
+        let end = s[1];
+        v.push((start, end, card));
+      }
+    } else if level == 2 {
+      for (s, card) in self.folds_level2 {
+        let start = s[0];
+        let end = s[1];
+        v.push((start, end, card));
+      }
     }
     v
   }
@@ -234,25 +288,26 @@ mod tests {
     use card::keyword::Keyword::*;
     use folds::FoldList;
 
-    let mut v = vec![(0, 3, Node), (7, 15, Shell), (18, 19, Node)];
+    let mut v =
+      vec![(0, 3, Node), (5, 5, Shell), (7, 15, Shell), (18, 19, Node)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&LINES);
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
 
-    v = vec![(3, 11, Shell), (14, 15, Node)];
+    v = vec![(1, 1, Shell), (3, 11, Shell), (14, 15, Node)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&LINES[4..]);
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
 
     v = vec![(1, 9, Shell), (12, 13, Node)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&LINES[6..]);
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
 
-    v = vec![(1, 2, Shell)];
+    v = vec![(1, 2, Shell), (5, 5, Node)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&LINES[13..19]);
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
   }
 
   const LINES2: [&'static str; 24] = [
@@ -313,6 +368,7 @@ mod tests {
 
     let v = vec![
       (0, 3, Node),
+      (5, 5, Shell),
       (6, 7, Node),
       (10, 14, Shell),
       (17, 19, Node),
@@ -320,7 +376,43 @@ mod tests {
     ];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&LINES2);
-    assert_eq!(v, foldlist.into_vec());
+    assert_eq!(v, foldlist.into_vec(1));
+  }
+
+  const RBODIES: [&'static str; 13] = [
+    "RBODY /        1               0       0                       0       0        ",
+    "NAME RBODY / ->1                                                                ",
+    "        END",
+    "RBODY /        1               0       0                       0       0        ",
+    "NAME RBODY / ->1                                                                ",
+    "        END",
+    "RBODY /        1               0       0                       0       0        ",
+    "#COMMENT",
+    "NAME RBODY / ->1                                                                ",
+    "        END",
+    "RBODY /        1               0       0                       0       0        ",
+    "NAME RBODY / ->1                                                                ",
+    "        END",
+  ];
+
+  #[test]
+  fn fold_level2_rbodies() {
+    use card::keyword::Keyword::*;
+    use folds::FoldList;
+
+    let v1 = vec![
+      (0, 2, Rbody0),
+      (3, 5, Rbody0),
+      (6, 9, Rbody0),
+      (10, 12, Rbody0),
+    ];
+    let v2 = vec![(0, 12, Rbody0)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.recreate_all(&RBODIES);
+    assert_eq!(v1, foldlist.into_vec(1));
+    foldlist = FoldList::new();
+    let _ = foldlist.recreate_all(&RBODIES);
+    assert_eq!(v2, foldlist.into_vec(2));
   }
 
 }
