@@ -17,7 +17,6 @@ use std::collections::BTreeMap;
 
 use failure;
 use failure::Error;
-use failure::Fail;
 use failure::ResultExt;
 
 use neovim_lib::{Neovim, NeovimApi};
@@ -108,21 +107,19 @@ impl FoldList {
   }
 
   /// Delete all folds in nvim, and create the ones from the FoldList
-  /// TODO: Check if we're using the best method to send
+  /// https://github.com/KillTheMule/KillTheMule.github.io/blob/master/benchmark_rpc.md
   pub fn resend_all(&self, nvim: &mut Neovim) -> Result<(), Error> {
-    nvim.command("normal! zE").context("'normal! zE' failed")?;
-
-    // TODO: use nvim_call_atomic
-    for range in self.folds.keys() {
-      nvim
-        .command(&format!("{},{}fo", range[0] + 1, range[1] + 1))
-        .with_context(|e| {
-          e.clone().context(format!(
-            "'{},{}fo' failed!",
-            range[0] + 1,
-            range[1] + 1
-          ))
-        })?;
+    // Just an estimate, not worth a lot
+    let mut command = String::with_capacity(10 + 12 * self.folds.len());
+    command.push_str("normal! zE");
+    nvim.command(&command)?;
+    command.clear();
+    
+    if self.folds.len() > 0 {
+      for range in self.folds.keys() {
+        command.push_str(&format!("|{},{}fo", range[0] + 1, range[1] + 1));
+      }
+      nvim.command(&command).context("Fold command failed!")?;
     }
 
     Ok(())
