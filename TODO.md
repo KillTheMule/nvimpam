@@ -8,7 +8,8 @@
   * Maybe add a new event to the plugin that waits for the buffer number from
     rpcnotify, and oonly after receiving that start the "real" event loop
 
-* Implement nvim_set_client_info
+* See if we can get the info for send_client_info programmatically from Cargo.toml
+  or the code
 
 * Add level 2 folds
 

@@ -301,14 +301,45 @@ describe('nvimpam', function()
       rust client connected to neovim                                                  |
     ]])
 
+    --[[
+    local clientinfo = {
+      client = {
+        [attributes] = {
+          [author] = 'KillTheMule <KillTheMule@users.noreply.github.com',
+          [documentation] = 'https://KillTheMule.github.io/nvimpam/nvimpam',
+          [license] = 'Apache-2.0 OR MIT',
+          [repository] = 'https://github.com/KillTheMule/nvimpam',
+        },
+        [methods] = {
+          [NvimPamAttach] = {},
+          [NvimPamDetach] = {},
+          [NvimPamUpdateFolds] = {}
+        },
+        [name] = 'nvimpam',
+        [type] = 'remote',
+        [version] = {
+          [major] = '0',
+          [minor] = '1',
+          [patch] = '2',
+          [prerelease] = 'alpha.0',
+        },
+      },
+      [id] = 3,
+      [mode] = 'rpc',
+      [stream] = 'job',
+    }
+    --]]
+
     local chans = meths.list_chans() 
-    eq({ client = { }, id = 3, mode = 'rpc', stream = 'job' }, chans[3])
-    eq({ client = { }, id = 4, mode = 'rpc', stream = 'job' }, chans[4])
+    local client1 = chans[3].client
+    local client2 = chans[4].client
+    eq(client1.name, 'nvimpam')
+    eq(client2.name, 'nvimpam')
 
     command("NvimPamDetach")
     helpers.sleep(500)
     chans = meths.list_chans() 
-    eq({ client = { }, id = 3, mode = 'rpc', stream = 'job' }, chans[3])
+    eq(chans[3].client.name, 'nvimpam')
     eq(nil, chans[4])
 
   end)

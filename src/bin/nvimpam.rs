@@ -34,6 +34,7 @@ use nvimpam_lib::handler::NeovimHandler;
 use neovim_lib::neovim::Neovim;
 use neovim_lib::neovim_api::NeovimApi;
 use neovim_lib::session::Session;
+use neovim_lib::Value;
 
 // use log::SetLoggerError;
 use simplelog::{Config, Level, LevelFilter, WriteLogger};
@@ -109,12 +110,45 @@ fn init_logging() -> Result<(), Error> {
   Ok(())
 }
 
+fn send_client_info(nvim: &mut Neovim) -> Result<(), Error> {
+  const VERSION_MAJOR: &'static str = env!("CARGO_PKG_VERSION_MAJOR");
+  const VERSION_MINOR: &'static str = env!("CARGO_PKG_VERSION_MINOR");
+  const VERSION_PATCH: &'static str = env!("CARGO_PKG_VERSION_PATCH");
+  const VERSION_PRE: &'static str = env!("CARGO_PKG_VERSION_PRE");
+  const NAME: &'static str = env!("CARGO_PKG_NAME");
+
+  let version: Vec<(Value, Value)> = vec![
+    ("major".into(), VERSION_MAJOR.into()),
+    ("minor".into(), VERSION_MINOR.into()),
+    ("patch".into(), VERSION_PATCH.into()),
+    ("prerelease".into(), VERSION_PRE.into()),
+  ];
+
+  let methods: Vec<(Value, Value)> = vec![
+    ("quit".into(), vec![Value::from("nargs"), Value::from(0u8)].into()),
+    ("RefreshFolds".into(), vec![Value::from("nargs"), Value::from(0u8)].into()),
+  ];
+
+  let attribs: Vec<(Value, Value)> = vec![
+    ("license".into(), "Apache-2.0 OR MIT".into()),
+    ("documentation".into(), "https://KillTheMule.github.io/nvimpam/nvimpam".into()),
+    ("repository".into(), "https://github.com/KillTheMule/nvimpam".into()),
+    ("author".into(), "KillTheMule <KillTheMule@users.noreply.github.com".into()),
+  ];
+
+  let typ = "remote";
+  nvim.set_client_info(NAME, version, typ, methods, attribs)?;
+  Ok(())
+}
+
 fn start_program() -> Result<(), Error> {
   let (sender, receiver) = mpsc::channel();
   let mut session = try!(Session::new_parent());
 
   session.start_event_loop_handler(NeovimHandler(sender));
   let mut nvim = Neovim::new(session);
+
+  send_client_info(&mut nvim)?;
 
   nvim
     .command("echom \"rust client connected to neovim\"")
