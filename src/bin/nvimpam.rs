@@ -111,11 +111,11 @@ fn init_logging() -> Result<(), Error> {
 }
 
 fn send_client_info(nvim: &mut Neovim) -> Result<(), Error> {
-  const VERSION_MAJOR: &'static str = env!("CARGO_PKG_VERSION_MAJOR");
-  const VERSION_MINOR: &'static str = env!("CARGO_PKG_VERSION_MINOR");
-  const VERSION_PATCH: &'static str = env!("CARGO_PKG_VERSION_PATCH");
-  const VERSION_PRE: &'static str = env!("CARGO_PKG_VERSION_PRE");
-  const NAME: &'static str = env!("CARGO_PKG_NAME");
+  const VERSION_MAJOR: &str = env!("CARGO_PKG_VERSION_MAJOR");
+  const VERSION_MINOR: &str = env!("CARGO_PKG_VERSION_MINOR");
+  const VERSION_PATCH: &str = env!("CARGO_PKG_VERSION_PATCH");
+  const VERSION_PRE: &str = env!("CARGO_PKG_VERSION_PRE");
+  const NAME: &str = env!("CARGO_PKG_NAME");
 
   let version: Vec<(Value, Value)> = vec![
     ("major".into(), VERSION_MAJOR.into()),
