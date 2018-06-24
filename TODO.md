@@ -11,6 +11,8 @@
 * See if we can get the info for send_client_info programmatically from Cargo.toml
   or the code
 
+* Add a checkhealth health checker (see language_client_neovim)
+
 * Add level 2 folds
 
 * Remove failure from the lib, implement own error handling
