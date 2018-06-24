@@ -390,23 +390,45 @@ describe('nvimpam', function()
     command('checkhealth nvimpam')
     -- needed to get rid of the indeterminism warning
     feed("G") 
-    screen:expect([[
-      {5: [No Name] }{6: [No Name] }{3:                                                          }{5:X}|
-                                                                                       |
-      health#nvimpam#check                                                             |
-      ========================================================================         |
-        - {7:OK:} Function nvim_buf_attach exists!                                         |
-        - {7:OK:} binary found: ../target/debug/nvimpam                                    |
-      ^                                                                                 |
-      {2:~                                                                                }|
-      {2:~                                                                                }|
-      {2:~                                                                                }|
-      {2:~                                                                                }|
-      {2:~                                                                                }|
-      {2:~                                                                                }|
-      {2:~                                                                                }|
-                                                                                       |
-    ]])
+
+    --workaround for now, will fail if run on non-appveyor windows
+    if os.getenv("APPVEYOR") then
+      screen:expect([[
+        {5: [No Name] }{6: [No Name] }{3:                                                          }{5:X}|
+                                                                                         |
+        health#nvimpam#check                                                             |
+        ========================================================================         |
+          - {7:OK:} Function nvim_buf_attach exists!                                         |
+          - {7:OK:} binary found: nvimpam                                                    |
+        ^                                                                                 |
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+                                                                                         |
+      ]])
+    else
+      screen:expect([[
+        {5: [No Name] }{6: [No Name] }{3:                                                          }{5:X}|
+                                                                                         |
+        health#nvimpam#check                                                             |
+        ========================================================================         |
+          - {7:OK:} Function nvim_buf_attach exists!                                         |
+          - {7:OK:} binary found: ../target/debug/nvimpam                                    |
+        ^                                                                                 |
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+                                                                                         |
+      ]])
+    end
   end)
 
 end)
