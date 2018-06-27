@@ -1,50 +1,53 @@
 #![feature(test)]
 extern crate nvimpam_lib;
-extern crate test;
 
-use self::test::Bencher;
+#[macro_use]
+extern crate criterion;
+use criterion::Criterion;
 
 use nvimpam_lib::card::ges::GesType;
 use nvimpam_lib::card::keyword::Keyword;
 use nvimpam_lib::folds::FoldList;
 use nvimpam_lib::nocommentiter::CommentLess;
 
-#[bench]
-fn bench_parse2folddata(b: &mut Bencher) {
-  use std::fs::File;
-  use std::io::{self, BufRead};
+fn bench_parse2folddata(c: &mut Criterion) {
+  c.bench_function("card_parse2folddata", |b| {
+    use std::fs::File;
+    use std::io::{self, BufRead};
 
-  let file = File::open("files/example.pc").unwrap();
-  let v: Vec<String> = io::BufReader::new(file)
-    .lines()
-    .map(|l| l.unwrap())
-    .collect();
-  // let v = include!("../files/example.rs");
+    let file = File::open("files/example.pc").unwrap();
+    let v: Vec<String> = io::BufReader::new(file)
+      .lines()
+      .map(|l| l.unwrap())
+      .collect();
+    // let v = include!("../files/example.rs");
 
-  let mut f = FoldList::new();
-  b.iter(|| {
-    let r = test::black_box(&v);
-    f.clear();
-    let _compacted = f.add_folds(r);
-  })
+    let mut f = FoldList::new();
+    b.iter(|| {
+      let r = &v;
+      f.clear();
+      let _compacted = f.add_folds(r);
+    });
+  });
 }
 
-#[bench]
-fn bench_parse_str(b: &mut Bencher) {
-  use std::fs::File;
-  use std::io::{self, BufRead};
+fn bench_parse_str(c: &mut Criterion) {
+  c.bench_function("card_parse_str", |b| {
+    use std::fs::File;
+    use std::io::{self, BufRead};
 
-  let file = File::open("files/example.pc").unwrap();
-  let v: Vec<String> = io::BufReader::new(file)
-    .lines()
-    .map(|l| l.unwrap())
-    .collect();
+    let file = File::open("files/example.pc").unwrap();
+    let v: Vec<String> = io::BufReader::new(file)
+      .lines()
+      .map(|l| l.unwrap())
+      .collect();
 
-  b.iter(|| {
-    let r = test::black_box(&v);
-    let _parsed: Vec<Option<Keyword>> =
-      r.iter().map(|s| Keyword::parse(s)).collect();
-  })
+    b.iter(|| {
+      let r = &v;
+      let _parsed: Vec<Option<Keyword>> =
+        r.iter().map(|s| Keyword::parse(s)).collect();
+    });
+  });
 }
 
 const GES: [&str; 9] = [
@@ -59,13 +62,17 @@ const GES: [&str; 9] = [
   "        END",
 ];
 
-#[bench]
-fn bench_skip_ges(b: &mut Bencher) {
-  let g = GesType::GesNode;
+fn bench_skip_ges(c: &mut Criterion) {
+  c.bench_function("card_skip_ges", |b| {
+    let g = GesType::GesNode;
 
-  b.iter(|| {
-    let mut li = test::black_box(GES.iter().enumerate().remove_comments());
-    let mut _a = li.skip_ges(&g);
-    _a = li.skip_ges(&g);
+    b.iter(|| {
+      let mut li = GES.iter().enumerate().remove_comments();
+      let mut _a = li.skip_ges(&g);
+      _a = li.skip_ges(&g);
+    });
   });
 }
+
+criterion_group!(card, bench_parse2folddata, bench_parse_str, bench_skip_ges);
+criterion_main!(card);

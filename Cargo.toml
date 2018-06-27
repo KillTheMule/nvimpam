@@ -27,6 +27,9 @@ neovim-lib = "0.5.3"
 failure = "0.1.1"
 itertools = "0.7.8"
 
+[dev-dependencies]
+criterion = "0.2.3"
+
 [lib]
 name = "nvimpam_lib"
 path = "src/lib.rs"
@@ -34,3 +37,11 @@ path = "src/lib.rs"
 [profile.bench]
 lto = true
 debug = true
+
+[[bench]]
+name = "card"
+harness = false
+
+[[bench]]
+name = "integration"
+harness = false
