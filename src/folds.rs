@@ -23,7 +23,7 @@ use failure;
 use failure::Error;
 use failure::ResultExt;
 
-use neovim_lib::{Neovim, NeovimApi};
+use neovim_lib::{Neovim, NeovimApi, Value};
 
 extern crate itertools;
 use self::itertools::Itertools;
@@ -42,6 +42,8 @@ pub struct FoldList {
   /// List of level 2 folds (i.e. containing level 1 folds), keyed by [start,
   /// end], valued by Keyword, sorted lexicographically on [start, end].
   folds_level2: BTreeMap<[u64; 2], Keyword>,
+  /// List of Strings to show as foldtext
+  fold_texts: BTreeMap<[u64; 2], String>,
 }
 
 impl FoldList {
@@ -51,6 +53,7 @@ impl FoldList {
     FoldList {
       folds: BTreeMap::new(),
       folds_level2: BTreeMap::new(),
+      fold_texts: BTreeMap::new(),
     }
   }
 
@@ -58,6 +61,7 @@ impl FoldList {
   pub fn clear(&mut self) {
     self.folds.clear();
     self.folds_level2.clear();
+    self.fold_texts.clear();
   }
 
   /// Insert a level 1 fold (start, end) into the FoldList. Returns an error if
@@ -65,12 +69,22 @@ impl FoldList {
   /// [removed](struct.FoldList.html#method.remove) beforehand.
   fn insert(&mut self, start: u64, end: u64, kw: Keyword) -> Result<(), Error> {
     match self.folds.entry([start, end]) {
-      Entry::Occupied(_) => Err(failure::err_msg("Fold already in foldlist!")),
+      Entry::Occupied(_) => {
+        return Err(failure::err_msg("Fold already in foldlist!"))
+      }
       Entry::Vacant(entry) => {
         entry.insert(kw);
-        Ok(())
       }
     }
+    match self.fold_texts.entry([start, end]) {
+      Entry::Occupied(_) => {
+        return Err(failure::err_msg("Foldtext already in fold_texts!"))
+      }
+      Entry::Vacant(entry) => {
+        entry.insert(format!(" {} lines: {:?} ", end - start + 1, kw));
+      }
+    }
+    Ok(())
   }
 
   /// Insert a level 1 fold (start, end) into the FoldList. If `end < start`,
@@ -123,7 +137,13 @@ impl FoldList {
 
     for (kw, mut group) in grouped.into_iter() {
       let first = group.next().expect("Empty group from group_by!");
-      let last = match group.last() {
+      let mut last = None;
+      let mut nr = 1;
+      for x in group {
+        last = Some(x);
+        nr += 1;
+      }
+      let last = match last {
         None => continue, // only 1 fold in group
         Some(e) => e,
       };
@@ -140,6 +160,14 @@ impl FoldList {
             entry.insert(kw);
           }
         }
+        match self.fold_texts.entry([firstline, lastline]) {
+          Entry::Occupied(_) => {
+            return Err(failure::err_msg("Foldtext already in fold_texts!"))
+          }
+          Entry::Vacant(entry) => {
+            entry.insert(format!(" {} {:?}s ", nr, kw));
+          }
+        }
       }
     }
     Ok(())
@@ -148,6 +176,18 @@ impl FoldList {
   /// Delete all folds in nvim, and create the ones from the FoldList
   /// https://github.com/KillTheMule/KillTheMule.github.io/blob/master/benchmark_rpc.md
   pub fn resend_all(&self, nvim: &mut Neovim) -> Result<(), Error> {
+    let luafn = "require('nvimpam').update_foldtexts(...)";
+    let mut luaargs = vec![];
+
+    for (range, text) in self.fold_texts.iter() {
+      luaargs.push(Value::from(vec![
+        Value::from(range[0] + 1),
+        Value::from(range[1] + 1),
+        Value::from(text.to_string()),
+      ]));
+    }
+    nvim.execute_lua(luafn, vec![Value::from(luaargs)])?;
+
     // Just an estimate, not worth a lot
     let mut command = String::with_capacity(10 + 12 * self.folds.len());
     command.push_str("normal! zE");

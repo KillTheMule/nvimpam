@@ -141,7 +141,7 @@ describe('nvimpam', function()
       END_OCTRL                                                                        |
       $                                                                                |
       ^$#         IDNOD               X               Y               Z                 |
-      {1:+--725 lines: NODE  /        1              0.            50.5              0.···}|
+      {1: 725 lines: Node ································································}|
       $----------------------------------------------------------------                |
       $     MATERIAL DEFINITIONS                                                       |
       $----------------------------------------------------------------                |
@@ -159,11 +159,11 @@ describe('nvimpam', function()
       $     PART AND ELEMENT DEFINITIONS                                               |
       $----------------------------------------------------------------                |
       $#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT                         |
-      {1:^+-- 27 lines: PART  /        1   SHELL       3       0       0       0···········}|
+      {1:^ 2 PartShells ···································································}|
       $#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT                         |
-      {1:+-- 11 lines: PART  /        3   PLINK       5       0       0       0···········}|
+      {1: 11 lines: PartPlink ····························································}|
       $#          IDEL   IDPRT   IDNOD    MORE   NLAYR                                 |
-      {1:+-- 15 lines: PLINK /      625       3    1001       0        ···················}|
+      {1: 15 lines: Plink ································································}|
       $                                                                                |
       $----------------------------------------------------------------                |
       $     RIGID BODIES                                                               |
@@ -178,13 +178,13 @@ describe('nvimpam', function()
       $     PART AND ELEMENT DEFINITIONS                                               |
       $----------------------------------------------------------------                |
       $#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT                         |
-      {1:^+--- 13 lines: PART  /        1   SHELL       3       0       0       0··········}|
+      {1:^ 13 lines: PartShell ····························································}|
       $#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT                         |
-      {1:+--- 13 lines: PART  /        2   SHELL       4       0       0       0··········}|
+      {1: 13 lines: PartShell ····························································}|
       $#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT                         |
-      {1:+-- 11 lines: PART  /        3   PLINK       5       0       0       0···········}|
+      {1: 11 lines: PartPlink ····························································}|
       $#          IDEL   IDPRT   IDNOD    MORE   NLAYR                                 |
-      {1:+-- 15 lines: PLINK /      625       3    1001       0        ···················}|
+      {1: 15 lines: Plink ································································}|
       $                                                                                |
                                                                                        |
     ]])
@@ -197,13 +197,13 @@ describe('nvimpam', function()
     feed("1G")
 
     screen:expect([[
-      {1:^+--  4 lines: NODE  /        1              0.             0.5              0.···}|
+      {1:^ 4 lines: Node ··································································}|
       #Comment here                                                                    |
-      {1:+-- 10 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
+      {1: 10 lines: Shell ································································}|
       $Comment                                                                         |
       #Comment                                                                         |
-      {1:+--  3 lines: NODE  /        1              0.             0.5              0.···}|
-      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
+      {1: 3 lines: Node ··································································}|
+      {1: 4 lines: Shell ·································································}|
                                                                                        |
       {2:~                                                                                }|
       {2:~                                                                                }|
@@ -219,13 +219,13 @@ describe('nvimpam', function()
     feed("yyP")
     command("NvimPamUpdateFolds")
     screen:expect([[
-      {1:^+--  5 lines: NODE  /        1              0.             0.5              0.···}|
+      {1:^ 5 lines: Node ··································································}|
       #Comment here                                                                    |
-      {1:+-- 10 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
+      {1: 10 lines: Shell ································································}|
       $Comment                                                                         |
       #Comment                                                                         |
-      {1:+--  3 lines: NODE  /        1              0.             0.5              0.···}|
-      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
+      {1: 3 lines: Node ··································································}|
+      {1: 4 lines: Shell ·································································}|
                                                                                        |
       {2:~                                                                                }|
       {2:~                                                                                }|
@@ -246,13 +246,13 @@ describe('nvimpam', function()
     command("7,9d")
     command("NvimPamUpdateFolds")
     screen:expect([[
-      {1:+--  4 lines: NODE  /        1              0.             0.5              0.···}|
+      {1: 4 lines: Node ··································································}|
       #Comment here                                                                    |
-      {1:^+--  7 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
+      {1:^ 7 lines: Shell ·································································}|
       $Comment                                                                         |
       #Comment                                                                         |
-      {1:+--  3 lines: NODE  /        1              0.             0.5              0.···}|
-      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
+      {1: 3 lines: Node ··································································}|
+      {1: 4 lines: Shell ·································································}|
                                                                                        |
       {2:~                                                                                }|
       {2:~                                                                                }|
@@ -275,17 +275,17 @@ describe('nvimpam', function()
     command(":7,9s/^SHELL/NODE ")
     command("NvimPamUpdateFolds")
     screen:expect([[
-      {1:+--  4 lines: NODE  /        1              0.             0.5              0.···}|
+      {1: 4 lines: Node ··································································}|
       #Comment here                                                                    |
       SHELL /     3129       1       1    2967    2971    2970                         |
-      {1:^+--  2 lines: NODE  /     3129       1       1    2967    2971    2970···········}|
+      {1:^ 2 lines: Node ··································································}|
       #Comment                                                                         |
       #Comment                                                                         |
-      {1:+--  5 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
+      {1: 5 lines: Shell ·································································}|
       $Comment                                                                         |
       #Comment                                                                         |
-      {1:+--  3 lines: NODE  /        1              0.             0.5              0.···}|
-      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
+      {1: 3 lines: Node ··································································}|
+      {1: 4 lines: Shell ·································································}|
                                                                                        |
       {2:~                                                                                }|
       {2:~                                                                                }|
@@ -296,13 +296,13 @@ describe('nvimpam', function()
     command("NvimPamUpdateFolds")
     command("echo") -- clear the command line
     screen:expect([[
-      {1:+--  4 lines: NODE  /        1              0.             0.5              0.···}|
+      {1: 4 lines: Node ··································································}|
       #Comment here                                                                    |
-      {1:^+-- 10 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
+      {1:^ 10 lines: Shell ································································}|
       $Comment                                                                         |
       #Comment                                                                         |
-      {1:+--  3 lines: NODE  /        1              0.             0.5              0.···}|
-      {1:+--  4 lines: SHELL /     3129       1       1    2967    2971    2970···········}|
+      {1: 3 lines: Node ··································································}|
+      {1: 4 lines: Shell ·································································}|
                                                                                        |
       {2:~                                                                                }|
       {2:~                                                                                }|
@@ -332,12 +332,12 @@ describe('nvimpam', function()
       END_OCTRL                               {3:│}END_OCTRL                               |
       $                                       {3:│}$                                       |
       ^$#         IDNOD               X        {3:│}$#         IDNOD               X        |
-      $                                       {3:│}{1:+--725 lines: NODE  /        1          }|
+      $                                       {3:│}{1: 725 lines: Node ·······················}|
       $                                       {3:│}$---------------------------------------|
       $                                       {3:│}$     MATERIAL DEFINITIONS              |
-      {1:+--  2 lines: NODE  /        1          }{3:│}$---------------------------------------|
-      {1:+--  2 lines: SHELL /        3          }{3:│}$ boxbeam                               |
-      {1:+--721 lines: NODE  /        5          }{3:│}$#         IDMAT   MATYP             RHO|
+      {1: 2 lines: Node ·························}{3:│}$---------------------------------------|
+      {1: 2 lines: Shell ························}{3:│}$ boxbeam                               |
+      {1: 721 lines: Node ·······················}{3:│}$#         IDMAT   MATYP             RHO|
       {4:../files/example2.pc                     }{3:../files/example.pc                     }|
       rust client connected to neovim                                                  |
     ]])
@@ -371,7 +371,7 @@ describe('nvimpam', function()
     }
     --]]
 
-    local chans = meths.list_chans() 
+    local chans = meths.list_chans()
     local client1 = chans[3].client
     local client2 = chans[4].client
     eq(client1.name, 'nvimpam')
@@ -379,7 +379,7 @@ describe('nvimpam', function()
 
     command("NvimPamDetach")
     helpers.sleep(500)
-    chans = meths.list_chans() 
+    chans = meths.list_chans()
     eq(chans[3].client.name, 'nvimpam')
     eq(nil, chans[4])
 
@@ -389,7 +389,7 @@ describe('nvimpam', function()
   it('includes a proper healthcheck', function()
     command('checkhealth nvimpam')
     -- needed to get rid of the indeterminism warning
-    feed("G") 
+    feed("G")
 
     --workaround for now, will fail if run on non-appveyor windows
     if os.getenv("APPVEYOR") then

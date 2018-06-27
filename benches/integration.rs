@@ -23,13 +23,13 @@ fn bench_folds(b: &mut Bencher) {
   let mut session = Session::new_child_cmd(
     Command::new("neovim/build/bin/nvim")
       .args(&["-u", "NONE", "--embed"])
-      .env_clear()
       .env("VIMRUNTIME", "neovim/runtime"),
   ).unwrap();
 
   session.start_event_loop_handler(NeovimHandler(sender));
   let mut nvim = Neovim::new(session);
 
+  nvim.command("set rtp+=$PWD").expect("1");
   nvim.command("e files/example.pc").expect("2");
 
   let curbuf = nvim.get_current_buf().expect("3");

@@ -1,9 +1,14 @@
 local command = vim.api.nvim_command
 local call = vim.api.nvim_call_function
 local curbuf = vim.api.nvim_get_current_buf
+local get_vvar = vim.api.nvim_get_vvar
+local input = vim.api.nvim_input
 
 -- Holds buffer -> jobid associations
 local jobids = {}
+
+-- Holds the foldtexts, values of the form {start, end, text}
+local foldtexts = {}
 
 -- TODO: Must this be so ugly?
 local function locate_binary()
@@ -95,10 +100,40 @@ local function update_folds(buf)
   call("rpcnotify", { jobids[buf], "RefreshFolds" })
 end
 
+local function foldtext()
+  local start = get_vvar("foldstart")
+  local ende = get_vvar("foldend")
+
+  for _, v in ipairs(foldtexts) do
+    if v[1] == start and v[2] == ende then
+      return v[3]
+    end
+  end
+
+  return ""
+end
+
+local function printfolds(which)
+  which = which or foldtexts
+  input("i")
+  for _, v in ipairs(which) do
+    input(tostring(v[1])..","..tostring(v[2])..": ".. tostring(v[3]).."\n<Escape>")
+  end
+  input("<Esc>")
+end
+
+local function update_foldtexts(texts)
+  foldtexts = texts
+end
+
 return {
   attach = attach,
   detach = detach,
   detach_all = detach_all,
   update_folds = update_folds,
   locate_binary = locate_binary,
+  update_foldtexts = update_foldtexts,
+  foldtext = foldtext,
+  foldtexts = foldtexts,
+  printfolds = printfolds
 }
