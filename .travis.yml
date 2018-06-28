@@ -31,6 +31,7 @@ jobs:
       script: cargo build && cd neovim && git submodule init
               && git submodule update --remote --depth 50
               && TEST_FILE=../test/nvimpam_spec.lua make functionaltest
+              && cd .. && cargo bench
       # cache it all, especially the neovim sources won't change often
       cache: 
         - cargo 
@@ -44,5 +45,4 @@ jobs:
         - cargo
         - directories:
           - neovim/.deps
-          - neovim/build
       os: osx

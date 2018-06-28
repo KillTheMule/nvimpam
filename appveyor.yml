@@ -67,6 +67,9 @@ test_script:
         Get-Content ci\build.ps1 | Select-String -pattern "(python|gem.cmd|ruby|npm|neovim-node-host|testdir|cpack)" -notmatch | Out-File ci\build2.ps1
         & 'ci\build2.ps1'
       }
+  - cd ..
+  - cmd: if [%FUNCTIONALTESTS%] == [true] (
+            cargo bench )
 
 cache:
   - C:\Users\appveyor\.cargo

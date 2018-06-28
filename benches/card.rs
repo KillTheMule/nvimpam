@@ -1,4 +1,3 @@
-#![feature(test)]
 extern crate nvimpam_lib;
 
 #[macro_use]
@@ -74,5 +73,24 @@ fn bench_skip_ges(c: &mut Criterion) {
   });
 }
 
-criterion_group!(card, bench_parse2folddata, bench_parse_str, bench_skip_ges);
+fn conf() -> Criterion {
+  use std::env;
+  use std::time::Duration;
+
+  if env::var_os("APPVEYOR").is_some() || env::var_os("TRAVIS").is_some() {
+    Criterion::default()
+      .sample_size(2)
+      .warm_up_time(Duration::from_nanos(1))
+      .measurement_time(Duration::from_nanos(1))
+      .nresamples(1)
+  } else {
+    Criterion::default()
+  }
+}
+
+criterion_group!(
+  name = card;
+  config = conf();
+  targets = bench_parse2folddata, bench_parse_str, bench_skip_ges
+);
 criterion_main!(card);

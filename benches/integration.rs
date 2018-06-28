@@ -1,4 +1,3 @@
-#![feature(test)]
 extern crate neovim_lib;
 extern crate nvimpam_lib;
 
@@ -8,6 +7,7 @@ use criterion::Criterion;
 
 use std::process::Command;
 use std::sync::mpsc;
+use std::path::Path;
 
 use nvimpam_lib::event::Event::*;
 use nvimpam_lib::folds::FoldList;
@@ -19,23 +19,24 @@ use neovim_lib::neovim_api::NeovimApi;
 use neovim_lib::session::Session;
 
 fn bench_folds(c: &mut Criterion) {
-  c.bench_function("integration1", |b| {
-    let (sender, receiver) = mpsc::channel();
-    let mut session = Session::new_child_cmd(
-      Command::new("neovim/build/bin/nvim")
-        .args(&["-u", "NONE", "--embed"])
-        .env("VIMRUNTIME", "neovim/runtime"),
-    ).unwrap();
+  let (sender, receiver) = mpsc::channel();
+  let nvimpath = Path::new("neovim").join("build").join("bin").join("nvim");
 
-    session.start_event_loop_handler(NeovimHandler(sender));
-    let mut nvim = Neovim::new(session);
+  let mut session = Session::new_child_cmd(
+    Command::new(nvimpath)
+      .args(&["-u", "NONE", "--embed"])
+      .env("VIMRUNTIME", "neovim/runtime"),
+  ).unwrap();
 
-    nvim.command("noswap").expect("0");
-    nvim.command("set rtp+=$PWD").expect("1");
-    nvim.command("silent e! files/example.pc").expect("2");
+  session.start_event_loop_handler(NeovimHandler(sender));
+  let mut nvim = Neovim::new(session);
 
-    let curbuf = nvim.get_current_buf().expect("3");
+  nvim.command("set noswapfile").expect("0");
+  nvim.command("set rtp+=$PWD").expect("1");
+  nvim.command("silent e! files/example.pc").expect("2");
+  let curbuf = nvim.get_current_buf().expect("3");
 
+  c.bench_function("integration1", move |b| {
     b.iter(|| {
       let mut foldlist = FoldList::new();
       let mut lines;
@@ -56,5 +57,20 @@ fn bench_folds(c: &mut Criterion) {
   });
 }
 
-criterion_group!(integration, bench_folds);
+fn conf() -> Criterion {
+  use std::env;
+  use std::time::Duration;
+
+  if env::var_os("APPVEYOR").is_some() || env::var_os("TRAVIS").is_some() {
+    Criterion::default()
+      .sample_size(2)
+      .warm_up_time(Duration::from_nanos(1))
+      .measurement_time(Duration::from_nanos(1))
+      .nresamples(1)
+  } else {
+    Criterion::default()
+  }
+}
+
+criterion_group!(name = integration; config = conf(); targets = bench_folds);
 criterion_main!(integration);

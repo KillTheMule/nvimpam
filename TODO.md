@@ -9,6 +9,8 @@
   or the code
   * Check out a build.rs
 
+* Let's only have 1 common conf function for the benchmarks
+
 * Healthcheck:
   * Add version info (see languageclient_neovim for how to do it properly?) Remember to 
     query the binary, in case there' ambiguity
