@@ -387,6 +387,7 @@ describe('nvimpam', function()
 
   -- note: this also checks that we're using the debug binary
   it('includes a proper healthcheck', function()
+    os.remove(alter_slashes("../target/release/nvimpam"))
     command('checkhealth nvimpam')
     -- needed to get rid of the indeterminism warning
     feed("G")
