@@ -34,7 +34,7 @@ fn bench_folds(c: &mut Criterion) {
   let mut nvim = Neovim::new(session);
 
   nvim.command("set noswapfile").expect("0");
-  nvim.command("set rtp+=$PWD").expect("1");
+  nvim.command("execute 'set rtp +='.getcwd()").expect("1");
   nvim.command("silent e! files/example.pc").expect("2");
   let curbuf = nvim.get_current_buf().expect("3");
 
