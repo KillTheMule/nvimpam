@@ -57,6 +57,7 @@ test_script:
       if ($env:FUNCTIONALTESTS -eq 'true') {
         echo "---> Functionaltests"
         $env:TEST_FILE = '..\test\nvimpam_spec.lua'
+        $env:RUSTFLAGS = '-C opt-level=0'
         }
   - cd neovim
   - git submodule init
