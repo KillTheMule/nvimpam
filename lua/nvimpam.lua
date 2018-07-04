@@ -10,6 +10,11 @@ local jobids = {}
 -- Holds the foldtexts, values of the form {start, end, text}
 local foldtexts = {}
 
+-- Holds nvimpam stderr output
+local stderr = {}
+-- Saves the value of NVIMPAM_STDERR
+local stderr_file
+
 -- TODO: Must this be so ugly?
 local function locate_binary()
   local locations = { "nvimpam", "target/release/nvimpam",
@@ -39,32 +44,88 @@ local function locate_binary()
   return nil
 end
 
-local function nv_err(msg)
+local function on_stderr(id, data, event)
+  if not stderr[id] then stderr[id] = {} end
+
+  for i, s in ipairs(data) do
+    if i == 1 and stderr[id][#stderr[id]] then
+      stderr[id][#stderr[id]] = stderr[id][#stderr[id]] .. s
+    elseif s ~= "" then
+      table.insert(stderr[id], s)
+    end
+  end
+end
+
+local function nvimpam_err(msg, id)
   command("echoerr '"..msg.."'")
+
+  id = id or "NONE" 
+  on_stderr(id, {{msg}})
+end
+
+local function on_exit(id, exitcode)
+  local bufname
+
+  for buffer, jobid in pairs(jobids) do
+    if jobid == id then
+      bufname = buffer
+    end
+  end
+  
+  if bufname then
+    jobids[bufname] = nil
+  end
 end
 
 local function attach()
   local buf = curbuf()
 
   if  jobids[buf] then
-    nv_err("Attach failed: Nvimpam already attached to buffer "
+    nvimpam_err("Attach failed: Nvimpam already attached to buffer "
            ..tostring(buf).."!")
     return false
   end
 
   local binary = locate_binary()
   if not binary then
-    nv_err("Attach failed: No executable found!")
+    nvimpam_err("Attach to buffer "..tostring(buf).." failed: No "
+                .."executable found!")
     return nil
   end
 
-  local jobid = call("jobstart", { binary, { rpc=true } })
+  command([[
+    function Nvimpam_onexit(id, exitcode, event) 
+       let func = "require(\"nvimpam\").on_exit(_A.i, _A.e)"
+       let args = "{'i':a:id, 'e':a:exitcode}"
+       execute "call luaeval('" . func . "'," . args . ")"
+    endfunction
+  ]])
+
+  stderr_file = os.getenv("NVIMPAM_STDERR")
+  local jobid
+
+  if stderr_file ~= nil then 
+    command([[
+      function Nvimpam_onstderr(id, data, event) 
+         let func = "require(\"nvimpam\").on_stderr(_A.i, _A.d, _A.e)"
+         let args = "{'i':a:id, 'd':a:data, 'e':a:event}"
+         execute "call luaeval('" . func . "'," . args . ")"
+      endfunction
+    ]])
+
+    jobid = call("jobstart", { binary,
+        { rpc=true, on_stderr='Nvimpam_onstderr', on_exit='Nvimpam_onexit'}
+      })
+  else
+    jobid = call("jobstart", { binary, { rpc=true, on_exit='Nvimpam_onexit'}})
+  end
 
   if jobid == 0 then
-    nv_err("Attach failed: Invalid args to jobstart on buffer "
+    nvimpam_err("Attach failed: Invalid args to jobstart on buffer "
             .. tostring(buf) .. "!")
   elseif jobid == -1 then
-    nv_err("Attach failed: Command "..binary.."not executable!")
+    nvimpam_err("Attach on buffer "..tostring(buf).." failed: Command "
+                ..binary.."not executable!")
   else
     jobids[buf] = jobid
     return true
@@ -73,19 +134,45 @@ end
 
 local function detach(buf)
   buf = buf or curbuf()
+  local jobid = jobids[buf]
 
-  if not jobids[buf] then
-    nv_err("Detach failed: No jobid entry for buffer "..tostring(buf).."!")
-    return false
+  if not jobid then
+    nvimpam_err("Detach failed: No jobid entry for buffer "..tostring(buf).."!")
+  else
+    call("rpcnotify", { jobids[buf], "quit" })
   end
-
-  call("rpcnotify", { jobids[buf], "quit" })
-  jobids[buf] = nil
 end
 
 local function detach_all()
-  for buf, _ in pairs(jobids) do
+  for buf, jobid in pairs(jobids) do
     detach(buf)
+  end
+
+  if stderr_file ~= nil then
+    -- check if stderr file is writeable
+    local f, msg = io.open(stderr_file, "w")
+
+    if f == nil then
+      nvimpam_err("Could not open $NVIMPAM_STDERR(='"..stderr_file.."') "
+                  .."for writing: "..msg)
+    else
+      local written = false
+
+      for i, t in pairs(stderr) do
+        if #t > 0 then 
+          for _, l in ipairs(t) do
+            f:write("Channel "..tostring(i)..": "..l..'\n')
+            written = true
+          end
+          io.close(f)
+        end
+      end
+
+      if not written then
+        os.remove(stderr_file)
+      end
+    end
+
   end
 end
 
@@ -93,7 +180,7 @@ local function update_folds(buf)
   buf = buf or curbuf()
 
   if not jobids[buf] then
-    nv_err("Update failed: No jobid entry for buffer "..tostring(buf).."!")
+    nvimpam_err("Update failed: No jobid entry for buffer "..tostring(buf).."!")
     return false
   end
 
@@ -126,6 +213,16 @@ local function update_foldtexts(texts)
   foldtexts = texts
 end
 
+local function printstderr()
+  input("i")
+  for i, t in pairs(stderr) do
+    input("Jobid " .. tostring(i))
+    for j, s in ipairs(t) do
+      input("String #"..tostring(j).." is '"..tostring(s).."'\n")
+    end
+  end
+end
+
 return {
   attach = attach,
   detach = detach,
@@ -135,5 +232,8 @@ return {
   update_foldtexts = update_foldtexts,
   foldtext = foldtext,
   foldtexts = foldtexts,
-  printfolds = printfolds
+  printfolds = printfolds,
+  on_stderr = on_stderr,
+  on_exit = on_exit,
+  printstderr = printstderr,
 }

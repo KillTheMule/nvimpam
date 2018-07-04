@@ -7,6 +7,7 @@ command! NvimPamAttach call luaeval('require("nvimpam").attach()')
 command! NvimPamDetach call luaeval('require("nvimpam").detach()')
 command! NvimPamUpdateFolds call luaeval('require("nvimpam").update_folds()')
 command! NvimPamPrintfolds call luaeval('require("nvimpam").printfolds()')
+command! NvimPamPrintstderr call luaeval('require("nvimpam").printstderr()')
 
 augroup nvimpam_leave
   " clear all previous autocommands
