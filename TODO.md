@@ -9,6 +9,10 @@
   or the code
   * Check out a build.rs
 
+* Maybe open preview window for the foldtexts/stderr when requested?
+
+* Make an option to set the binary path without checking for it for faster startup
+
 * Healthcheck:
   * Add version info (see languageclient_neovim for how to do it properly?) Remember to 
     query the binary, in case there' ambiguity
