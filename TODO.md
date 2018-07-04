@@ -10,6 +10,18 @@
   * Check out a build.rs
 
 * Maybe open preview window for the foldtexts/stderr when requested?
+  Try the following by @chemzqm
+    pclose
+    keepalt new +setlocal\ previewwindow|setlocal\ buftype=nofile|setlocal\ noswapfile|setlocal\ wrap [Document]
+    setl bufhidden=wipe
+    setl nobuflisted
+    setl nospell
+    setl filetype=markdown
+    let lines = split(a:info, "\n")
+    call append(0, lines)
+    exe "normal z" . len(lines) . "\<cr>"
+    exe "normal gg"
+    wincmd p
 
 * Make an option to set the binary path without checking for it for faster startup
 
@@ -26,6 +38,7 @@
 
 * Check out http://troubles.md/posts/rustfest-2018-workshop/ for using cachgegrind for
   performance analysis
+    * Also checkout Kcachegrind
 
 * skip_card doesn't need to allocate a vec most of the time!
   * Maybe revert that? Doesn't really help a lot, though a tad indeed
