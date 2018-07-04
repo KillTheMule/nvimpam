@@ -15,6 +15,9 @@ local stderr = {}
 -- Saves the value of NVIMPAM_STDERR
 local stderr_file
 
+-- Tracks if we've defined the callback functions already
+local callbacks_defined = { }
+
 -- TODO: Must this be so ugly?
 local function locate_binary()
   local locations = { "nvimpam", "target/release/nvimpam",
@@ -93,25 +96,31 @@ local function attach()
     return nil
   end
 
-  command([[
-    function Nvimpam_onexit(id, exitcode, event) 
-       let func = "require(\"nvimpam\").on_exit(_A.i, _A.e)"
-       let args = "{'i':a:id, 'e':a:exitcode}"
-       execute "call luaeval('" . func . "'," . args . ")"
-    endfunction
-  ]])
+  if not callbacks_defined["onexit"] then
+    command([[
+      function Nvimpam_onexit(id, exitcode, event) 
+         let func = "require(\"nvimpam\").on_exit(_A.i, _A.e)"
+         let args = "{'i':a:id, 'e':a:exitcode}"
+         execute "call luaeval('" . func . "'," . args . ")"
+      endfunction
+    ]])
+    callbacks_defined["onexit"] = true
+  end
 
   stderr_file = os.getenv("NVIMPAM_STDERR")
   local jobid
 
   if stderr_file ~= nil then 
-    command([[
-      function Nvimpam_onstderr(id, data, event) 
-         let func = "require(\"nvimpam\").on_stderr(_A.i, _A.d, _A.e)"
-         let args = "{'i':a:id, 'd':a:data, 'e':a:event}"
-         execute "call luaeval('" . func . "'," . args . ")"
-      endfunction
-    ]])
+    if not callbacks_defined["onstderr"] then
+      command([[
+        function Nvimpam_onstderr(id, data, event) 
+           let func = "require(\"nvimpam\").on_stderr(_A.i, _A.d, _A.e)"
+           let args = "{'i':a:id, 'd':a:data, 'e':a:event}"
+           execute "call luaeval('" . func . "'," . args . ")"
+        endfunction
+      ]])
+      callbacks_defined["onstderr"] = true
+    end
 
     jobid = call("jobstart", { binary,
         { rpc=true, on_stderr='Nvimpam_onstderr', on_exit='Nvimpam_onexit'}
