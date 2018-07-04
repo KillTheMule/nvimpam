@@ -74,16 +74,16 @@ fn init_logging() -> Result<(), Error> {
   use std::env::VarError;
   use std::fs::File;
 
-  let filepath = match env::var_os("LOG_FILE") {
+  let filepath = match env::var_os("NVIMPAM_LOG_FILE") {
     Some(s) => s,
     None => return Ok(()),
   };
 
-  let log_level = match env::var("LOG_LEVEL") {
+  let log_level = match env::var("NVIMPAM_LOG_LEVEL") {
     Ok(s) => s,
     Err(VarError::NotPresent) => "warn".to_owned(),
     e @ Err(VarError::NotUnicode(_)) => {
-      e.context("'LOG_LEVEL' not UTF-8 compatible!")?
+      e.context("'NVIMPAM_LOG_LEVEL' not UTF-8 compatible!")?
     }
   };
 
