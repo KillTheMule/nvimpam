@@ -4,6 +4,9 @@ local curbuf = vim.api.nvim_get_current_buf
 local get_vvar = vim.api.nvim_get_vvar
 local input = vim.api.nvim_input
 
+-- Holds the binary to start
+local binary = nil
+
 -- Holds buffer -> jobid associations
 local jobids = {}
 
@@ -83,17 +86,20 @@ end
 local function attach()
   local buf = curbuf()
 
-  if  jobids[buf] then
+  if jobids[buf] then
     nvimpam_err("Attach failed: Nvimpam already attached to buffer "
-           ..tostring(buf).."!")
+                ..tostring(buf).."!")
     return false
   end
 
-  local binary = locate_binary()
+  if binary == nil then
+    binary = locate_binary()
+  end
+
   if not binary then
     nvimpam_err("Attach to buffer "..tostring(buf).." failed: No "
                 .."executable found!")
-    return nil
+    return false
   end
 
   if not callbacks_defined["onexit"] then
@@ -131,10 +137,12 @@ local function attach()
 
   if jobid == 0 then
     nvimpam_err("Attach failed: Invalid args to jobstart on buffer "
-            .. tostring(buf) .. "!")
+                .. tostring(buf) .. "!")
+    return false
   elseif jobid == -1 then
     nvimpam_err("Attach on buffer "..tostring(buf).." failed: Command "
                 ..binary.."not executable!")
+    return false
   else
     jobids[buf] = jobid
     return true
@@ -147,8 +155,10 @@ local function detach(buf)
 
   if not jobid then
     nvimpam_err("Detach failed: No jobid entry for buffer "..tostring(buf).."!")
+    return false
   else
     call("rpcnotify", { jobids[buf], "quit" })
+    return true
   end
 end
 
@@ -194,6 +204,7 @@ local function update_folds(buf)
   end
 
   call("rpcnotify", { jobids[buf], "RefreshFolds" })
+  return true
 end
 
 local function foldtext()
