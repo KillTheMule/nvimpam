@@ -5,9 +5,9 @@ extern crate nvimpam_lib;
 extern crate criterion;
 use criterion::Criterion;
 
+use std::path::Path;
 use std::process::Command;
 use std::sync::mpsc;
-use std::path::Path;
 
 use nvimpam_lib::event::Event::*;
 use nvimpam_lib::folds::FoldList;
