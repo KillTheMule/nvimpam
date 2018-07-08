@@ -1,9 +1,3 @@
-* The new test is racy. Things to do about it
-  * Maybe issue a synchronous rpcrequest to get the current buffer?
-  * Maybe don't request the current buffer, but luaeval a function that returns
-    the buffer for that channel (how? not sure -> nvim_get_api_info)
-  * Maybe add a new event to the plugin that waits for the buffer number from
-    rpcnotify, and oonly after receiving that start the "real" event loop
 
 * See if we can get the info for send_client_info programmatically from Cargo.toml
   or the code
@@ -23,7 +17,6 @@
     exe "normal gg"
     wincmd p
 
-* Make an option to set the binary path without checking for it for faster startup
 
 * Healthcheck:
   * Add version info (see languageclient_neovim for how to do it properly?) Remember to 
@@ -40,26 +33,16 @@
   performance analysis
     * Also checkout Kcachegrind
 
-* skip_card doesn't need to allocate a vec most of the time!
-  * Maybe revert that? Doesn't really help a lot, though a tad indeed
-
-* Add benchmarks
-  * Maybe https://docs.rs/bencher/0.1.4/bencher/?
-  * Need integration benchmarks, so make something cust0m in viml?
-    * No, have the test setup nvim as a child
-  * Check out criterion.rs
-
 * Setup fuzzing?
   * Checkc https://users.rust-lang.org/t/announcing-afl-rs-0-2-bindings-for-american-fuzzy-lop/13981
+
+* Update criterion, the newer version allows one to run a benchmark as a test properly
 
 * Work through https://rust-lang-nursery.github.io/api-guidelines/
 
 * Check out for docs:
   * https://github.com/Geal/cargo-external-doc
   * https://github.com/vitiral/artifact
-
-* If performance isn't good, see 
-  https://www.reddit.com/r/rust/comments/7h4q0i/can_this_function_be_improved_performancewise/dqoolbm/
 
 * Before parsing the vec, maybe sort it?
 
@@ -68,3 +51,22 @@
 * Unify skip functions wrt usage of curkw, curidx vs. line, lineidx
 
 * Improve example usage in src/folds.rs
+
+
+### Performance ideas that might not be neccessary
+* If performance isn't good, see 
+  https://www.reddit.com/r/rust/comments/7h4q0i/can_this_function_be_improved_performancewise/dqoolbm/
+
+* Make an option to set the binary path without checking for it for faster startup
+
+* skip_card doesn't need to allocate a vec most of the time!
+  * Maybe revert that? Doesn't really help a lot, though a tad indeed
+
+### Old stuff, not sure about this
+* The new test is racy. Things to do about it
+  * Maybe issue a synchronous rpcrequest to get the current buffer?
+  * Maybe don't request the current buffer, but luaeval a function that returns
+    the buffer for that channel (how? not sure -> nvim_get_api_info)
+  * Maybe add a new event to the plugin that waits for the buffer number from
+    rpcnotify, and oonly after receiving that start the "real" event loop
+
