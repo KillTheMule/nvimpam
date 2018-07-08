@@ -12,8 +12,8 @@
 //!
 //! If you want logging, set the following environment variables:
 //!
-//! * `LOG_FILE` is the path to the log file (no logging if this is empty)
-//! * `LOG_LEVEL` can be one of `error`, `warn`, `info`, `debug` and `trace`, in
+//! * `NVIMPAM_LOG_FILE` is the path to the log file (no logging if this is empty)
+//! * `NVIMPAM_LOG_LEVEL` can be one of `error`, `warn`, `info`, `debug` and `trace`, in
 //!    ascending order of verbosity. The default is `warn`.
 //!
 #[macro_use]
