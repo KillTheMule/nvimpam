@@ -19,30 +19,14 @@ impl NeovimHandler {
     &mut self,
     mut args: Vec<Value>,
   ) -> Result<Event, Error> {
-    let more = parse_bool(&last_arg(
-      &mut args,
-      "Not enough arguments in nvim_buf_lines_event!",
-    )?)?;
-    let linedata = parse_vecstr(last_arg(
-      &mut args,
-      "Not enough arguments in nvim_buf_lines_event!",
-    )?)?;
-    let lastline = parse_i64(&last_arg(
-      &mut args,
-      "Not enough arguments in nvim_buf_lines_event!",
-    )?)?;
-    let firstline = parse_i64(&last_arg(
-      &mut args,
-      "Not enough arguments in nvim_buf_lines_event!",
-    )?)?;
-    let changedtick = parse_u64(&last_arg(
-      &mut args,
-      "Not enough arguments in nvim_buf_lines_event!",
-    )?)?;
-    let buf = parse_buf(last_arg(
-      &mut args,
-      "Not enough arguments in nvim_buf_lines_event!",
-    )?);
+    let nea = "Not enough arguments in nvim_buf_lines_event!";
+
+    let more = parse_bool(&last_arg(&mut args, nea)?)?;
+    let linedata = parse_vecstr(last_arg(&mut args, nea)?)?;
+    let lastline = parse_i64(&last_arg(&mut args, nea)?)?;
+    let firstline = parse_i64(&last_arg(&mut args, nea)?)?;
+    let changedtick = parse_u64(&last_arg(&mut args, nea)?)?;
+    let buf = parse_buf(last_arg(&mut args, nea)?);
 
     Ok(Event::LinesEvent {
       buf,
@@ -61,14 +45,10 @@ impl NeovimHandler {
     &mut self,
     mut args: Vec<Value>,
   ) -> Result<Event, Error> {
-    let changedtick = parse_u64(&last_arg(
-      &mut args,
-      "Not enough arguments in nvim_buf_changedtick_event!",
-    )?)?;
-    let buf = parse_buf(last_arg(
-      &mut args,
-      "Not enough arguments in nvim_buf_changedtick_event!",
-    )?);
+    let nea = "Not enough arguments in nvim_buf_changedtick_event!";
+
+    let changedtick = parse_u64(&last_arg(&mut args, nea)?)?;
+    let buf = parse_buf(last_arg(&mut args, nea)?);
     Ok(Event::ChangedTickEvent { buf, changedtick })
   }
 
@@ -78,10 +58,8 @@ impl NeovimHandler {
     &mut self,
     mut args: Vec<Value>,
   ) -> Result<Event, Error> {
-    let buf = parse_buf(last_arg(
-      &mut args,
-      "Not enough arguments in nvim_buf_detach_event!",
-    )?);
+    let nea = "Not enough arguments in nvim_buf_detach_event!";
+    let buf = parse_buf(last_arg(&mut args, nea)?);
     Ok(Event::DetachEvent { buf })
   }
 }
@@ -153,7 +131,7 @@ pub fn last_arg(
 pub fn parse_u64(value: &Value) -> Result<u64, Error> {
   value
     .as_u64()
-    .ok_or_else(|| failure::err_msg("cannot parse u64"))
+    .ok_or_else(|| failure::err_msg("cannot parse as u64"))
 }
 ///
 /// Parse a `neovim_lib::Value` into a i64
@@ -167,10 +145,10 @@ pub fn parse_i64(value: &Value) -> Result<i64, Error> {
 pub fn parse_bool(value: &Value) -> Result<bool, Error> {
   value
     .as_bool()
-    .ok_or_else(|| failure::err_msg("cannot parse bool"))
+    .ok_or_else(|| failure::err_msg("cannot parse as bool"))
 }
 
-/// Pare a `neovim_lib::Value` into a Vec<String>. Note that this method takes
+/// Parse a `neovim_lib::Value` into a Vec<String>. Note that this method takes
 /// ownership of the value so it does not need to copy out the contained strings
 pub fn parse_vecstr(value: Value) -> Result<Vec<String>, Error> {
   let mut res: Vec<String>;
@@ -188,7 +166,7 @@ pub fn parse_vecstr(value: Value) -> Result<Vec<String>, Error> {
       }
     }
   } else {
-    return Err(failure::err_msg("cannot parse array"));
+    return Err(failure::err_msg("cannot parse as array"));
   }
 
   Ok(res)
