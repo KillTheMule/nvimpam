@@ -135,7 +135,7 @@ impl FoldList {
 
     let grouped = self.folds.iter().group_by(|(_, &kw)| kw);
 
-    for (kw, mut group) in grouped.into_iter() {
+    for (kw, mut group) in &grouped {
       let first = group.next().expect("Empty group from group_by!");
       let mut last = None;
       let mut nr = 1;
@@ -179,7 +179,7 @@ impl FoldList {
     let luafn = "require('nvimpam').update_foldtexts(...)";
     let mut luaargs = vec![];
 
-    for (range, text) in self.fold_texts.iter() {
+    for (range, text) in &self.fold_texts {
       luaargs.push(Value::from(vec![
         Value::from(range[0] + 1),
         Value::from(range[1] + 1),
@@ -194,7 +194,7 @@ impl FoldList {
     nvim.command(&command)?;
     command.clear();
 
-    if self.folds.len() > 0 {
+    if !self.folds.is_empty() {
       for range in self.folds.keys() {
         let start = range[0];
         let end = range[1];
