@@ -194,9 +194,6 @@ impl FoldList {
 
     // Just an estimate, not worth a lot
     let mut command = String::with_capacity(10 + 12 * self.folds.len());
-    command.push_str("normal! zE");
-    nvim.command(&command)?;
-    command.clear();
 
     if !self.folds.is_empty() {
       for range in self.folds.keys() {
@@ -209,6 +206,7 @@ impl FoldList {
       for range in self.folds_level2.keys() {
         command.push_str(&format!("|{},{}fo", range[0] + 1, range[1] + 1));
       }
+      nvim.command("normal! zE")?;
       nvim.command(&command).context("Fold command failed!")?;
     }
 
