@@ -256,7 +256,7 @@ impl FoldList {
         Some((i, _)) => {
           match nextline.nextline_kw {
             None => {
-              // Can this really happen?
+              // This happens at the end of the file
               nextline = li.skip_to_next_keyword();
               continue;
             }
