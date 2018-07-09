@@ -11,9 +11,11 @@
 //! # use nvimpam_lib::folds::FoldList;
 //! # use nvimpam_lib::card::keyword::Keyword;
 //! let mut foldlist = FoldList::new();
-//! foldlist.checked_insert(1,2, Keyword::Node).map_err(|e| println!("{}", e));
-//! assert!(foldlist.remove(2,3).is_err());
-//! assert!(foldlist.remove(1,2).is_ok());
+//! foldlist
+//!   .checked_insert(1, 2, Keyword::Node)
+//!   .map_err(|e| println!("{}", e));
+//! assert!(foldlist.remove(2, 3).is_err());
+//! assert!(foldlist.remove(1, 2).is_ok());
 //! ```
 //!
 use std::collections::btree_map::Entry;

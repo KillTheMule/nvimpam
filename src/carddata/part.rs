@@ -24,7 +24,7 @@ macro_rules! part {
         Cells(&[Float(10), Float(10)]),
         Cells(&[Float(10), Float(10), Float(10)]),
         $( $e ),+ ,
-        Cells(&[Fixed("END_PART")]), 
+        Cells(&[Fixed("END_PART")]),
       ],
       ownfold: true,
       keyword: $k
