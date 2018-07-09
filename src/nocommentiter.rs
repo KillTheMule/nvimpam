@@ -57,12 +57,9 @@ where
   I: Iterator<Item = (usize, &'a T)>,
   T: AsRef<str>,
 {
-  /// Advance the iterator until meeting the first line with a keyword. Return
-  /// the index and a reference to that line. If no line starts with a
-  /// keyword, return `None`.
-  ///
-  /// NOTE: A Comment line counts as a keyword. Also see
-  /// `skip_to_next_real_keyword`.
+  /// Advance the iterator until meeting the first line with a keyword. If the
+  /// file ends before that, return the default
+  /// [SkipResult](::skipresult::SkipResult).
   pub fn skip_to_next_keyword<'b>(&'b mut self) -> SkipResult<'a, T> {
     let mut prevline;
     let mut nextline = None;
