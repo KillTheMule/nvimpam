@@ -110,6 +110,10 @@ impl FoldList {
       .folds
       .remove(&[start, end])
       .ok_or_else(|| failure::err_msg("Could not remove fold from foldlist"))?;
+    self
+      .fold_texts
+      .remove(&[start, end])
+      .ok_or_else(|| failure::err_msg("Could not remove fold from foldlist"))?;
     Ok(())
   }
 
