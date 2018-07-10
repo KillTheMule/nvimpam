@@ -27,7 +27,6 @@ impl Lines {
 
   /// Update Lines:
   ///   * `first` and `last` are zero-indexed (just as Lines itself)
-  ///   * If `numreplaced` is zero, the lines were added before line `first`
   pub fn update(&mut self, first: usize, last: usize, linedata: Vec<String>) {
     let range = first..last;
     let _v = self.0.splice(range, linedata);
