@@ -1,11 +1,9 @@
-//! This module provides the [Keyword](Keyword) enum to
-//! classify lines according to what card type they belong to. The term
-//! "Keyword" is from the FEM solver Pamcrash, but generally used among FEM
+//! This module provides the [Keyword](Keyword) enum to classify lines
+//! according to what card type they belong to. The terms "Keyword" and "Card"
+//! are lingo from the FEM solver Pamcrash, but generally used among FEM
 //! solvers.
 
-/// An enum to denote the several types of cards a line might belong to. For now
-/// carries only information equivalent to the keyword, not the subtypes, e.g.
-/// CNTAC types 33 and 36 will both be denoted by type Cntac
+/// An enum to denote the several types of cards a line might belong to.
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Keyword {
   // Node

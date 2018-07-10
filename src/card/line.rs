@@ -1,5 +1,6 @@
 //! An enum to classify the several types of lines that can occur inside a card
-//! of a Pamcrash input file. Might not really be a line (see GES).
+//! of a Pamcrash input file. Might not really be a line (see
+//! [GES](::card::line::Line::Ges).
 use std::cmp;
 use std::ops::Range;
 
@@ -11,7 +12,8 @@ use card::ges::GesType;
 pub enum Line {
   /// A standard line, containing several cells of a fixed width
   Cells(&'static [Cell]),
-  /// A General Entity Selection, can consist of several lines
+  /// A [General Entity Selection](::card::ges::GesType), can consist of
+  /// several lines
   Ges(GesType),
   /// A line that provides a Conditional
   Provides(&'static [Cell], Conditional),
@@ -24,12 +26,12 @@ pub enum Line {
   Optional(&'static [Cell], u8),
   /// A line that is repeated
   ///
-  /// The [number of repeats](::card::line::CondResult) is given as an index,
-  /// see the doc for [`Optional`](::card::line::Line)
+  /// The [number of repeats](::card::line::CondResult::Number) is given as an
+  /// index, see the doc for [`Optional`](::card::line::Line::Optional)
   Repeat(&'static [Cell], u8),
   /// A block of lines, ended by a line starting with the given string.
   Block(&'static [Line], &'static str),
-  /// A black that's entirely optional, starting with a line of a given string
+  /// A block that's entirely optional, starting with a line of a given string
   /// and ending in a line with another keywordgiven string
   OptionalBlock(&'static str, &'static str),
 }
@@ -39,7 +41,7 @@ pub enum Line {
 pub enum Conditional {
   /// The char at the given index (0-based!) is the given one.
   RelChar(u8, char),
-  // The integer at the cell given by the first number is the second number
+  // The integer at the cell given by the range is the second number
   Int(Range<usize>, u8),
   // Read a number from a given cell
   Number(Range<usize>),
@@ -53,7 +55,7 @@ pub enum CondResult {
 }
 
 impl Conditional {
-  /// Given a line, evaluate the condition on it
+  /// Given a line, evaluate the conditional on it
   pub fn evaluate<'a, T: 'a>(&self, line: &'a T) -> CondResult
   where
     T: AsRef<str>,

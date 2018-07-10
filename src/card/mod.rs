@@ -1,7 +1,7 @@
 //! A datastructure to represent a `Card` of the FEM-Solver Pamcrash.
 //!
 //! There is a 1-1 correspondence between a [`Card`](Card) and
-//! a [`Keyword`](Keyword), but are used differently. A
+//! a [`Keyword`](Keyword), but they are used differently. A
 //! [`Keyword`](keyword) is used as a parsing result for
 //! strings all over the place, while [`Card`](Card) is used to
 //! define global static values the represent the concrete CARD entities of

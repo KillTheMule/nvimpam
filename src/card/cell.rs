@@ -4,7 +4,7 @@
 /// file, aside from comments and header data.
 #[derive(Debug, PartialEq)]
 pub enum Cell {
-  /// A keyword, given by Card.keyword
+  /// A keyword, given by [Card.keyword](::card::Card.keyword)
   Kw,
   /// A fixed, non-keyword entry
   Fixed(&'static str),
@@ -14,11 +14,11 @@ pub enum Cell {
   Float(u8),
   /// A given number of blanks
   Blank(u8),
-  /// A conctinuation character `&`
+  /// A continuation character `&`
   Cont,
-  /// A string of a given maximum length
+  /// A string of a given length
   Str(u8),
-  /// A sequence of 0 and 1
+  /// A sequence of 0 and 1 of a given length
   Binary(u8),
   /// An alternative of 2 cells
   IntegerorBlank(u8),

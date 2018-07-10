@@ -50,6 +50,8 @@
 
 * Improve example usage in src/folds.rs
 
+* Write more tests for conditionals in src/card/line.rs
+
 ### Performance stuff tried and discarded because the benchmark(s) didn't improve
 
 * Turn off UTF8 validation in rmpv
