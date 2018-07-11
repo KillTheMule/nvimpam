@@ -14,6 +14,22 @@ use card::line::Line;
 use card::Card;
 use skipresult::SkipResult;
 
+// Used in skip_ges to get the next line. If it's None, we're at the end of
+// the file and only return what we found before.
+macro_rules! next_or_return_previdx {
+  ($self:ident, $prevline:ident) => {
+    match $self.next() {
+      None => {
+        return SkipResult {
+          skip_end: $prevline.map(|o: (usize, &'a T)| o.0),
+          ..Default::default()
+        }
+      }
+      Some(t) => t,
+    };
+  };
+}
+
 /// Designates that the comments have been removed.
 pub trait CommentLess {
   fn remove_comments(self) -> NoCommentIter<Self>
@@ -59,108 +75,53 @@ where
 {
   /// Advance the iterator until meeting the first line with a keyword. If the
   /// file ends before that, return the default
-  /// [SkipResult](::skipresult::SkipResult).
+  /// [SkipResult](::skipresult::SkipResult), with
+  /// [skipend](::skipresult::SkipResult.skipend) set to the index of the last
+  /// line of the file.
   pub fn skip_to_next_keyword<'b>(&'b mut self) -> SkipResult<'a, T> {
-    let mut prevline;
-    let mut nextline = None;
+    let mut nextline;
+    let mut prevline = None;
+
+    nextline = next_or_return_previdx!(self, prevline);
 
     loop {
-      prevline = nextline;
-      nextline = self.next();
-
-      match nextline {
-        None => return Default::default(),
-        Some(n) => {
-          let nextline_kw = Keyword::parse(n.1);
-          if nextline_kw.is_some() {
-            let skip_end = match prevline {
-              Some((i, _l)) => Some(i),
-              None => None,
-            };
-            return SkipResult {
-              nextline,
-              nextline_kw,
-              skip_end,
-            };
-          }
+      match Keyword::parse(nextline.1) {
+        None => {
+          prevline = Some(nextline);
+          nextline = next_or_return_previdx!(self, prevline);
+        },
+        Some(k) => return SkipResult {
+          nextline: Some(nextline),
+          nextline_kw: Some(k),
+          skip_end: prevline.map(|o| o.0)
         }
       }
     }
   }
 
   /// Advance the iterator until the first line after a General Entity
-  /// Selection (GES). Return the index, a reference to that line and the
-  /// index of the first line after the GES.
-  ///
-  /// Corner cases:
-  ///  * If the GES is ended by the END keyword
-  ///    - Return the next line in the first Option, and its index
-  ///      in the second (redundantly). If there's no next line (EOF), return
-  ///      `(None, None)`.
-  ///  * If the GES is ended implicitely
-  ///    - If there are no comment lines after it, return the following line
-  ///      in the first Option, and its index in the second (redundantly). If
-  ///      the file ends after the GES, return `(None, None)`.
-  ///    - If there are comment lines after it, return the first non-comment
-  ///      line in the first Option (if the file ends before that, return
-  ///      `None`), and the index of the first comment line after the GES
-  ///      in the second option.
+  /// Selection (GES).
   ///
   pub fn skip_ges<'b>(&'b mut self, ges: &GesType) -> SkipResult<'a, T> {
-    let mut previdx = None;
-    let mut idx;
-    let mut line;
-    let mut ges_contains_line;
+    let mut nextline;
+    let mut prevline = None;
 
-    let tmp = self.next();
-    match tmp {
-      None => return Default::default(),
-      Some((i, l)) => {
-        idx = i;
-        line = l;
-        ges_contains_line = ges.contains(&line);
-      }
+    nextline = next_or_return_previdx!(self, prevline);
+
+    while ges.contains(nextline.1) {
+      prevline = Some(nextline);
+      nextline = next_or_return_previdx!(self, prevline);
     }
 
-    while ges_contains_line {
-      let tmp = self.next();
-      match tmp {
-        None => {
-          return SkipResult {
-            skip_end: Some(idx),
-            ..Default::default()
-          };
-        }
-        Some((i, l)) => {
-          previdx = Some(idx);
-          ges_contains_line = ges.contains(&l);
-          idx = i;
-          line = l;
-        }
-      }
+    if ges.ended_by(&nextline.1) {
+      prevline = Some(nextline);
+      nextline = next_or_return_previdx!(self, prevline);
     }
 
-    if ges.ended_by(&line) {
-      previdx = Some(idx);
-      let nextline = self.next();
-
-      match nextline {
-        None => SkipResult {
-          skip_end: previdx,
-          ..Default::default()
-        },
-        Some((i, l)) => SkipResult {
-          nextline: Some((i, l)),
-          nextline_kw: Keyword::parse(l),
-          skip_end: previdx,
-        },
-      }
-    } else {
-      SkipResult {
-        nextline: Some((idx, line)),
-        nextline_kw: Keyword::parse(&line),
-        skip_end: previdx,
-      }
+    SkipResult {
+      nextline: Some(nextline),
+      nextline_kw: Keyword::parse(&nextline.1),
+      skip_end: prevline.map(|o| o.0),
     }
   }
 
