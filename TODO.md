@@ -1,3 +1,4 @@
+* Make GesType copy and let skip_ges take it by value
 
 * See if we can get the info for send_client_info programmatically from Cargo.toml
   or the code
