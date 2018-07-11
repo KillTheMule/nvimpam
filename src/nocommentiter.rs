@@ -36,9 +36,9 @@ where
 
   fn next(&mut self) -> Option<Self::Item> {
     while let Some((i, n)) = self.it.next() {
-      let t = n.as_ref();
+      let t = n.as_ref().as_bytes();
       let l = t.len();
-      if !(l > 0 && (t.as_bytes()[0] == b'#' || t.as_bytes()[0] == b'$')) {
+      if !(l > 0 && (t[0] == b'#' || t[0] == b'$')) {
         return Some((i, n));
       }
     }
