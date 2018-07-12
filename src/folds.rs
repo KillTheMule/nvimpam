@@ -27,8 +27,7 @@ use failure::ResultExt;
 
 use neovim_lib::{Neovim, NeovimApi, Value};
 
-extern crate itertools;
-use self::itertools::Itertools;
+use itertools::Itertools;
 
 use card::keyword::Keyword;
 use nocommentiter::CommentLess;
