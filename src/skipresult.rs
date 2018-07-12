@@ -1,5 +1,5 @@
-//! This module holds the returned datastructure for the various `skip_*`
-//! methods of the [`NoCommentIter`](::nocommentiter::NoCommentIter)
+//! This module holds datastructures for the various `skip_*` methods of the
+//! [`NoCommentIter`](::nocommentiter::NoCommentIter)
 use std::fmt;
 
 use card::keyword::Keyword;
@@ -58,4 +58,16 @@ where
       ),
     }
   }
+}
+
+/// A struct passed to several skip methods on
+/// [`NoCommentIter`](::nocommentiter::NoCommentIter). It represents the line
+/// that started the object to be skipped.
+#[derive(Debug, PartialEq)]
+pub struct SkipLine<'a, T: 'a>
+where
+  T: AsRef<str>,
+{
+  pub nextline: (usize, &'a T),
+  pub nextline_kw: Keyword,
 }

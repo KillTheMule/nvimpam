@@ -31,6 +31,7 @@ use itertools::Itertools;
 
 use card::keyword::Keyword;
 use nocommentiter::CommentLess;
+use skipresult::{SkipLine, SkipResult};
 
 /// Holds the fold data of the buffer. A fold has the following data:
 /// Linenumbers start, end (indexed from 1), and a
@@ -248,34 +249,43 @@ impl FoldList {
     let mut foldstart;
     let mut foldend;
     let mut foldkw;
+    let mut skipped;
 
-    let mut nextline = li.skip_to_next_keyword();
+    let mut nextline = match li.skip_to_next_keyword() {
+      None => return Ok(()),
+      Some(sl) => sl,
+    };
 
     loop {
-      match nextline.nextline {
-        None => return Ok(()),
-        Some((i, _)) => {
-          match nextline.nextline_kw {
-            None => {
-              // This happens at the end of the file
-              nextline = li.skip_to_next_keyword();
-              continue;
-            }
-            Some(k) => foldkw = k,
-          };
+      foldkw = nextline.nextline_kw;
+      foldstart = nextline.nextline.0;
 
-          foldstart = i;
-          nextline = li.skip_fold(&nextline);
+      skipped = li.skip_fold(&nextline);
 
-          if let Some(j) = nextline.skip_end {
-            foldend = j;
-          } else {
-            // This only happens if the file ends directly after a GES
-            foldend = lines.len() - 1;
-          }
-        }
+      if let Some(j) = skipped.skip_end {
+        foldend = j;
+      } else {
+        // This only happens if the file ends directly after a GES
+        foldend = lines.len() - 1;
       }
       self.checked_insert(foldstart as u64, foldend as u64, foldkw)?;
+
+      if let SkipResult {
+        nextline: Some(l),
+        nextline_kw: Some(k),
+        ..
+      } = skipped
+      {
+        nextline = SkipLine {
+          nextline: l,
+          nextline_kw: k,
+        }
+      } else {
+        nextline = match li.skip_to_next_keyword() {
+          None => return Ok(()),
+          Some(sl) => sl,
+        };
+      }
     }
   }
 }
