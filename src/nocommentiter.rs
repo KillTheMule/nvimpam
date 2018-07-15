@@ -9,11 +9,9 @@ use std::default::Default;
 
 use card::ges::GesType;
 use card::keyword::Keyword;
-use card::line::CondResult;
-use card::line::Line;
+use card::line::{CondResult, Line};
 use card::Card;
-use skipresult::SkipLine;
-use skipresult::SkipResult;
+use skipresult::{SkipLine, SkipResult};
 
 // Used in skip_ges to get the next line. If it's None, we're at the end of
 // the file and only return what we found before.
@@ -63,8 +61,7 @@ where
   fn next(&mut self) -> Option<Self::Item> {
     while let Some((i, n)) = self.it.next() {
       let t = n.as_ref().as_bytes();
-      let l = t.len();
-      if !(l > 0 && (t[0] == b'#' || t[0] == b'$')) {
+      if !(t.len() > 0 && (t[0] == b'#' || t[0] == b'$')) {
         return Some((i, n));
       }
     }
@@ -89,19 +86,14 @@ where
   /// [skipend](::skipresult::SkipResult.skipend) set to the index of the last
   /// line of the file.
   pub fn skip_to_next_keyword<'b>(&'b mut self) -> Option<SkipLine<'a, T>> {
-    let mut nextline: (usize, &'a T);
+    let mut line: (usize, &'a T);
 
-    nextline = next_or_return_none!(self);
+    line = next_or_return_none!(self);
 
     loop {
-      match Keyword::parse(nextline.1) {
-        None => nextline = next_or_return_none!(self),
-        Some(nextline_kw) => {
-          return Some(SkipLine {
-            nextline,
-            nextline_kw,
-          })
-        }
+      match Keyword::parse(line.1) {
+        None => line = next_or_return_none!(self),
+        Some(line_kw) => return Some(SkipLine { line, line_kw }),
       }
     }
   }
@@ -139,7 +131,7 @@ where
     &'b mut self,
     nextline: &SkipLine<'a, T>,
   ) -> SkipResult<'a, T> {
-    let card: &Card = (&nextline.nextline_kw).into();
+    let card: &Card = (&nextline.line_kw).into();
 
     if card.ownfold {
       self.skip_card(nextline)
@@ -159,7 +151,7 @@ where
     &'b mut self,
     nextline: &SkipLine<'a, T>,
   ) -> SkipResult<'a, T> {
-    let card: &Card = (&nextline.nextline_kw).into();
+    let card: &Card = (&nextline.line_kw).into();
 
     let mut cardlines = card.lines.iter();
     let mut conds: Vec<CondResult> = vec![]; // the vec to hold the conditionals
@@ -170,7 +162,7 @@ where
     };
 
     if let Line::Provides(_s, ref c) = cardline {
-      conds.push(c.evaluate(nextline.nextline.1));
+      conds.push(c.evaluate(nextline.line.1));
     }
 
     let mut line; // line of the iterator we're currently processing
@@ -437,7 +429,7 @@ where
     let mut curline;
     let mut previdx = None;
 
-    let card: &Card = (&nextline.nextline_kw).into();
+    let card: &Card = (&nextline.line_kw).into();
 
     res = self.skip_card(nextline);
 
@@ -465,8 +457,8 @@ where
       }
 
       res = self.skip_card(&SkipLine {
-        nextline: (curidx, curline),
-        nextline_kw: curkw.unwrap(),
+        line: (curidx, curline),
+        line_kw: curkw.unwrap(),
       });
     }
 
@@ -530,11 +522,11 @@ mod tests {
     let mut li = KEYWORD_LINES.iter().enumerate().remove_comments();
     {
       assert_eq!(
-        li.skip_to_next_keyword().unwrap().nextline,
+        li.skip_to_next_keyword().unwrap().line,
         (2, &KEYWORD_LINES[2])
       );
       assert_eq!(
-        li.skip_to_next_keyword().unwrap().nextline,
+        li.skip_to_next_keyword().unwrap().line,
         (4, &KEYWORD_LINES[4])
       );
       assert_eq!(li.skip_to_next_keyword(), None);
@@ -687,8 +679,8 @@ mod tests {
     let firstline = li.next().unwrap();
     let kw = Keyword::parse(&firstline.1);
     let sr = SkipLine {
-      nextline: firstline,
-      nextline_kw: kw.unwrap(),
+      line: firstline,
+      line_kw: kw.unwrap(),
     };
 
     let tmp = li.skip_card(&sr);
@@ -714,8 +706,8 @@ mod tests {
     let firstline = li.next().unwrap();
     let kw = Keyword::parse(&firstline.1);
     let sr = SkipLine {
-      nextline: firstline,
-      nextline_kw: kw.unwrap(),
+      line: firstline,
+      line_kw: kw.unwrap(),
     };
 
     let tmp = li.skip_card_gather(&sr);
@@ -745,8 +737,8 @@ mod tests {
     let firstline = li.next().unwrap();
     let kw = Keyword::parse(&firstline.1);
     let sr = SkipLine {
-      nextline: firstline,
-      nextline_kw: kw.unwrap(),
+      line: firstline,
+      line_kw: kw.unwrap(),
     };
 
     let tmp = li.skip_card(&sr);
@@ -775,8 +767,8 @@ mod tests {
     let firstline = li.next().unwrap();
     let kw = Keyword::parse(&firstline.1);
     let sr = SkipLine {
-      nextline: firstline,
-      nextline_kw: kw.unwrap(),
+      line: firstline,
+      line_kw: kw.unwrap(),
     };
 
     let tmp = li.skip_card(&sr);
@@ -833,8 +825,8 @@ mod tests {
     let firstline = li.next().unwrap();
     let kw = Keyword::parse(&firstline.1);
     let sr = SkipLine {
-      nextline: firstline,
-      nextline_kw: kw.unwrap(),
+      line: firstline,
+      line_kw: kw.unwrap(),
     };
 
     let mut tmp = li.skip_fold(&sr);
@@ -842,8 +834,8 @@ mod tests {
     assert_eq!(tmp.skip_end, Some(3));
 
     tmp = li.skip_fold(&SkipLine {
-      nextline: tmp.nextline.unwrap(),
-      nextline_kw: tmp.nextline_kw.unwrap(),
+      line: tmp.nextline.unwrap(),
+      line_kw: tmp.nextline_kw.unwrap(),
     });
     assert_eq!(tmp.nextline, Some((6, &LINES_GATHER[6])));
     assert_eq!(tmp.skip_end, Some(5));
@@ -854,8 +846,8 @@ mod tests {
     assert_eq!(tmp.skip_end, Some(15));
 
     tmp = li.skip_fold(&SkipLine {
-      nextline: tmp.nextline.unwrap(),
-      nextline_kw: tmp.nextline_kw.unwrap(),
+      line: tmp.nextline.unwrap(),
+      line_kw: tmp.nextline_kw.unwrap(),
     });
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, None);

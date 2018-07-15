@@ -257,8 +257,8 @@ impl FoldList {
     };
 
     loop {
-      foldkw = nextline.nextline_kw;
-      foldstart = nextline.nextline.0;
+      foldkw = nextline.line_kw;
+      foldstart = nextline.line.0;
 
       skipped = li.skip_fold(&nextline);
 
@@ -277,8 +277,8 @@ impl FoldList {
       } = skipped
       {
         nextline = SkipLine {
-          nextline: l,
-          nextline_kw: k,
+          line: l,
+          line_kw: k,
         }
       } else {
         nextline = match li.skip_to_next_keyword() {

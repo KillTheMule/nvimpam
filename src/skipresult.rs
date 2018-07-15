@@ -68,6 +68,6 @@ pub struct SkipLine<'a, T: 'a>
 where
   T: AsRef<str>,
 {
-  pub nextline: (usize, &'a T),
-  pub nextline_kw: Keyword,
+  pub line: (usize, &'a T),
+  pub line_kw: Keyword,
 }
