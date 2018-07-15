@@ -109,7 +109,7 @@ where
   /// Advance the iterator until the first line after a General Entity
   /// Selection (GES).
   ///
-  pub fn skip_ges<'b>(&'b mut self, ges: &GesType) -> SkipResult<'a, T> {
+  pub fn skip_ges<'b>(&'b mut self, ges: GesType) -> SkipResult<'a, T> {
     let mut nextline: (usize, &'a T);
     let mut prevline: Option<(usize, &'a T)> = None;
 
@@ -231,7 +231,7 @@ where
                 }
               }
             } else {
-              tmp = self.skip_ges(g);
+              tmp = self.skip_ges(*g);
 
               match tmp.nextline {
                 None => match tmp.skip_end {
@@ -555,7 +555,7 @@ mod tests {
     let g = GesType::GesNode;
     let mut li = GES1.iter().enumerate().remove_comments();
 
-    assert_eq!(li.skip_ges(&g).nextline, Some((4, &GES1[4])));
+    assert_eq!(li.skip_ges(g).nextline, Some((4, &GES1[4])));
     assert_eq!(li.next(), None);
   }
 
@@ -576,8 +576,8 @@ mod tests {
     let g = GesType::GesNode;
     let mut li = GES2.iter().enumerate().remove_comments();
 
-    assert_eq!(li.skip_ges(&g).nextline, Some((3, &GES2[3])));
-    assert_eq!(li.skip_ges(&g).nextline, None);
+    assert_eq!(li.skip_ges(g).nextline, Some((3, &GES2[3])));
+    assert_eq!(li.skip_ges(g).nextline, None);
     assert_eq!(li.next(), None);
   }
 
@@ -598,8 +598,8 @@ mod tests {
     let g = GesType::GesNode;
     let mut li = GES3.iter().enumerate().remove_comments();
 
-    assert_eq!(li.skip_ges(&g).nextline, Some((2, &GES3[2])));
-    assert_eq!(li.skip_ges(&g).nextline, Some((7, &GES3[7])));
+    assert_eq!(li.skip_ges(g).nextline, Some((2, &GES3[2])));
+    assert_eq!(li.skip_ges(g).nextline, Some((7, &GES3[7])));
     assert_eq!(li.next(), Some((8, &GES3[8])));
   }
 
@@ -610,7 +610,7 @@ mod tests {
     let g = GesType::GesNode;
     let mut li = GES4.iter().enumerate().remove_comments();
 
-    assert_eq!(li.skip_ges(&g).nextline, Some((0, &GES4[0])));
+    assert_eq!(li.skip_ges(g).nextline, Some((0, &GES4[0])));
     assert_eq!(li.next(), Some((1, &GES4[1])));
   }
 
@@ -629,7 +629,7 @@ mod tests {
     let g = GesType::GesNode;
     let mut li = GES6.iter().enumerate().remove_comments();
 
-    let tmp = li.skip_ges(&g);
+    let tmp = li.skip_ges(g);
     assert_eq!(tmp.nextline, Some((6, &GES6[6])));
     assert_eq!(tmp.skip_end, Some(4));
     assert_eq!(li.next(), None);
@@ -647,7 +647,7 @@ mod tests {
     let g = GesType::GesNode;
     let mut li = GES7.iter().enumerate().remove_comments();
 
-    let tmp = li.skip_ges(&g);
+    let tmp = li.skip_ges(g);
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, None);
     assert_eq!(li.next(), None);
@@ -665,7 +665,7 @@ mod tests {
     let g = GesType::GesNode;
     let mut li = GES8.iter().enumerate().remove_comments();
 
-    let tmp = li.skip_ges(&g);
+    let tmp = li.skip_ges(g);
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, Some(0));
     assert_eq!(li.next(), None);

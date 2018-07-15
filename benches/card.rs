@@ -69,8 +69,8 @@ fn bench_skip_ges(c: &mut Criterion) {
 
     b.iter(|| {
       let mut li = GES.iter().enumerate().remove_comments();
-      let mut _a = li.skip_ges(&g);
-      _a = li.skip_ges(&g);
+      let mut _a = li.skip_ges(g);
+      _a = li.skip_ges(g);
     });
   });
 }
