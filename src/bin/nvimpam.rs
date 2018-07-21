@@ -16,6 +16,8 @@
 //! * `NVIMPAM_LOG_LEVEL` can be one of `error`, `warn`, `info`, `debug` and `trace`, in
 //!    ascending order of verbosity. The default is `warn`.
 //!
+#![feature(rust_2018_preview)]
+
 #[macro_use]
 extern crate log;
 extern crate failure;

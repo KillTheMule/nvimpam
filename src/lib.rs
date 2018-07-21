@@ -1,4 +1,7 @@
 //! The companion library to the nvimpam binary.
+
+#![feature(rust_2018_preview)]
+
 extern crate failure;
 #[macro_use]
 extern crate log;

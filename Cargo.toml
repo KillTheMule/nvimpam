@@ -1,3 +1,5 @@
+cargo-features = ["edition"]
+
 [package]
 authors = ["KillTheMule <KillTheMule@users.noreply.github.com"]
 name = "nvimpam"
@@ -19,6 +21,7 @@ license = "Apache-2.0 OR MIT"
 documentation = "https://KillTheMule.github.io/nvimpam/nvimpam"
 repository = "https://github.com/KillTheMule/nvimpam"
 readme = "README.md"
+edition = '2018'
 
 [dependencies]
 log = "0.4.1"
