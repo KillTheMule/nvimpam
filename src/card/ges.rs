@@ -72,7 +72,7 @@ impl GesType {
 
 #[cfg(test)]
 mod tests {
-  use card::ges::GesType;
+  use crate::card::ges::GesType;
 
   const LINES: [&'static str; 10] = [
     "ab ll",

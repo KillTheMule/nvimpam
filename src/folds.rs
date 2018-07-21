@@ -29,9 +29,9 @@ use neovim_lib::{Neovim, NeovimApi, Value};
 
 use itertools::Itertools;
 
-use card::keyword::Keyword;
-use nocommentiter::CommentLess;
-use skipresult::{SkipLine, SkipResult};
+use crate::card::keyword::Keyword;
+use crate::nocommentiter::CommentLess;
+use crate::skipresult::{SkipLine, SkipResult};
 
 /// Holds the fold data of the buffer. A fold has the following data:
 /// Linenumbers start, end (indexed from 1), and a
@@ -292,6 +292,8 @@ impl FoldList {
 
 #[cfg(test)]
 mod tests {
+  use crate::card::keyword::Keyword::*;
+  use crate::folds::FoldList;
 
   const LINES: [&'static str; 20] = [
     /* 0 */
@@ -338,9 +340,6 @@ mod tests {
 
   #[test]
   fn fold_general() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let mut v =
       vec![(0, 3, Node), (5, 5, Shell), (7, 15, Shell), (18, 19, Node)];
     let mut foldlist = FoldList::new();
@@ -416,9 +415,6 @@ mod tests {
 
   #[test]
   fn fold_general_gather() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let v = vec![
       (0, 3, Node),
       (5, 5, Shell),
@@ -450,9 +446,6 @@ mod tests {
 
   #[test]
   fn fold_level2_rbodies() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let v1 = vec![
       (0, 2, Rbody0),
       (3, 5, Rbody0),

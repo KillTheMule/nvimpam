@@ -4,8 +4,8 @@
 use std::cmp;
 use std::ops::Range;
 
-use card::cell::Cell;
-use card::ges::GesType;
+use super::cell::Cell;
+use super::ges::GesType;
 
 /// A line inside a card in a Pamcrash input file.
 #[derive(Debug, PartialEq)]
@@ -109,8 +109,8 @@ impl Conditional {
 
 #[cfg(test)]
 mod tests {
-  use card::line::CondResult::*;
-  use card::line::Conditional;
+  use crate::card::line::CondResult::*;
+  use crate::card::line::Conditional;
 
   #[test]
   fn relchar_can_be_evaluated() {

@@ -10,7 +10,7 @@ pub use self::auxiliaries::*;
 pub use self::constraint::*;
 /// All static declarations can be imported via
 /// ```rust, ignore
-/// use carddata::*;
+/// use nvimpam_lib::carddata::*;
 /// ```
 pub use self::element::*;
 pub use self::link::*;

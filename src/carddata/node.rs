@@ -1,11 +1,11 @@
 //! This modules holds the the global static node [`Card`](::card::Card)
 //! instances.
-use card::cell::Cell::*;
-use card::ges::GesType::*;
-use card::keyword::Keyword::*;
-use card::line::Conditional::*;
-use card::line::Line::*;
-use card::Card;
+use crate::card::cell::Cell::*;
+use crate::card::ges::GesType::*;
+use crate::card::keyword::Keyword::*;
+use crate::card::line::Conditional::*;
+use crate::card::line::Line::*;
+use crate::card::Card;
 
 pub static NODE: Card = Card {
   lines: &[Cells(&[Kw, Integer(16), Float(16), Float(16), Float(16)])],
@@ -57,6 +57,9 @@ pub static NSMAS2: Card = Card {
 
 #[cfg(test)]
 mod tests {
+  use crate::card::keyword::Keyword::*;
+  use crate::folds::FoldList;
+  use crate::card::keyword::Keyword;
 
   const CARD_NSMAS: [&'static str; 7] = [
     "$ NSMAS - Nonstructural mass",
@@ -70,9 +73,6 @@ mod tests {
 
   #[test]
   fn fold_nsmas() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let mut it = CARD_NSMAS.iter().enumerate();
     let _ = it.next();
     let _ = it.next();
@@ -100,10 +100,6 @@ mod tests {
 
   #[test]
   fn fold_mass() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let v: Vec<(u64, u64, Keyword)> = vec![(2, 9, Mass)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_MASS);

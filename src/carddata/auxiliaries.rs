@@ -1,10 +1,10 @@
 //! This modules holds the the global static auxiliary [`Card`](::card::Card)
 //! instances.
-use card::cell::Cell::*;
-use card::ges::GesType::*;
-use card::keyword::Keyword::*;
-use card::line::Line::*;
-use card::Card;
+use crate::card::cell::Cell::*;
+use crate::card::ges::GesType::*;
+use crate::card::keyword::Keyword::*;
+use crate::card::line::Line::*;
+use crate::card::Card;
 
 pub static GROUP: Card = Card {
   lines: &[
@@ -31,8 +31,8 @@ mod tests {
 
   #[test]
   fn fold_group() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v = vec![(0, 6, Group)];
     let mut foldlist = FoldList::new();

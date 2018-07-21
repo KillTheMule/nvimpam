@@ -7,13 +7,13 @@
 //! [`NoCommentIter`](NoCommentIter).
 use std::default::Default;
 
-use card::ges::GesType;
-use card::keyword::Keyword;
-use card::line::CondResult;
-use card::line::Line;
-use card::Card;
-use skipresult::SkipLine;
-use skipresult::SkipResult;
+use crate::card::ges::GesType;
+use crate::card::keyword::Keyword;
+use crate::card::line::CondResult;
+use crate::card::line::Line;
+use crate::card::Card;
+use crate::skipresult::SkipLine;
+use crate::skipresult::SkipResult;
 
 // Used in skip_ges to get the next line. If it's None, we're at the end of
 // the file and only return what we found before.
@@ -480,10 +480,10 @@ where
 
 #[cfg(test)]
 mod tests {
-  use card::ges::GesType;
-  use card::keyword::Keyword;
-  use nocommentiter::CommentLess;
-  use skipresult::SkipLine;
+  use crate::card::ges::GesType;
+  use crate::card::keyword::Keyword;
+  use crate::nocommentiter::CommentLess;
+  use crate::skipresult::SkipLine;
 
   const COMMENTS: [&'static str; 8] = [
     "#This", "#is", "#an", "#example", "of", "some", "lines", ".",

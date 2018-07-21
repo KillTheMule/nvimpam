@@ -2,7 +2,7 @@
 //! to use right now, but want to keep for later.
 use std::str::Bytes;
 
-use card::keyword::Keyword;
+use crate::card::keyword::Keyword;
 
 /// parse_str seems to largely
 /// dominate the benchmark for
@@ -11,7 +11,7 @@ use card::keyword::Keyword;
 #[inline]
 #[allow(dead_code)]
 pub fn parse_str2(s: &str) -> Option<Keyword> {
-  use card::keyword::Keyword::*;
+  use crate::card::keyword::Keyword::*;
   match s.bytes().next() {
     Some(b'N') if s.starts_with("NODE") => Some(Node),
     Some(b'S') if s.starts_with("SHELL") => Some(Shell),
@@ -43,7 +43,7 @@ pub fn check_rest(
 #[inline]
 #[allow(dead_code)]
 pub fn parse_str3(s: &str) -> Option<Keyword> {
-  use card::keyword::Keyword::*;
+  use crate::card::keyword::Keyword::*;
   let mut bytes = s.bytes();
   match bytes.next() {
     Some(b'N') => match bytes.next() {
@@ -66,7 +66,7 @@ pub fn parse_str3(s: &str) -> Option<Keyword> {
 #[inline]
 #[allow(dead_code)]
 pub fn parse_str4(s: &str) -> Option<Keyword> {
-  use card::keyword::Keyword::*;
+  use crate::card::keyword::Keyword::*;
   use std::cmp;
   use std::ptr;
 

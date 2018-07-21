@@ -51,7 +51,7 @@ impl ops::Deref for Lines {
 
 #[cfg(test)]
 mod tests {
-  use lines::Lines;
+  use crate::lines::Lines;
 
   const LINES: [&'static str; 8] =
     ["This", "is", "an", "example", "of", "some", "lines", "."];

@@ -8,8 +8,8 @@ use neovim_lib::neovim::Neovim;
 use neovim_lib::neovim_api::Buffer;
 use neovim_lib::neovim_api::NeovimApi;
 
-use folds::FoldList;
-use lines::Lines;
+use crate::folds::FoldList;
+use crate::lines::Lines;
 
 /// The event list the main loop reacts to
 pub enum Event {

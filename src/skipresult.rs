@@ -2,7 +2,7 @@
 //! [`NoCommentIter`](::nocommentiter::NoCommentIter)
 use std::fmt;
 
-use card::keyword::Keyword;
+use crate::card::keyword::Keyword;
 
 /// A data structure returned by several skip methods on
 /// [`NoCommentIter`](::nocommentiter::NoCommentIter)

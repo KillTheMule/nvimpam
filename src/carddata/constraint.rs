@@ -1,11 +1,11 @@
 //! This modules holds the the global static constraint [`Card`](::card::Card)
 //! instances.
-use card::cell::Cell::*;
-use card::ges::GesType::*;
-use card::keyword::Keyword::*;
-use card::line::Conditional::*;
-use card::line::Line::*;
-use card::Card;
+use crate::card::cell::Cell::*;
+use crate::card::ges::GesType::*;
+use crate::card::keyword::Keyword::*;
+use crate::card::line::Conditional::*;
+use crate::card::line::Line::*;
+use crate::card::Card;
 
 pub static MTOCO: Card = Card {
   lines: &[
@@ -205,8 +205,8 @@ mod tests {
 
   #[test]
   fn fold_mtoco() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v = vec![(2, 5, Mtoco), (6, 10, Mtoco)];
     let mut foldlist = FoldList::new();
@@ -228,8 +228,8 @@ mod tests {
 
   #[test]
   fn fold_mtoco2() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v = vec![(2, 7, Mtoco)];
     let mut foldlist = FoldList::new();
@@ -248,8 +248,8 @@ mod tests {
 
   #[test]
   fn fold_otmco() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v = vec![(1, 4, Otmco)];
     let mut foldlist = FoldList::new();
@@ -272,8 +272,8 @@ mod tests {
 
   #[test]
   fn fold_otmco2() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v = vec![(1, 8, Otmco)];
     let mut foldlist = FoldList::new();
@@ -293,8 +293,8 @@ mod tests {
 
   #[test]
   fn fold_rbody0() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v = vec![(2, 5, Rbody0)];
     let mut foldlist = FoldList::new();
@@ -318,8 +318,8 @@ mod tests {
 
   #[test]
   fn fold_rbody1() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v = vec![(2, 9, Rbody1)];
     let mut foldlist = FoldList::new();
@@ -340,8 +340,8 @@ mod tests {
 
   #[test]
   fn fold_rbody2() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v = vec![(1, 6, Rbody2)];
     let mut foldlist = FoldList::new();
@@ -363,8 +363,8 @@ mod tests {
 
   #[test]
   fn fold_rbody3() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v = vec![(2, 7, Rbody3)];
     let mut foldlist = FoldList::new();

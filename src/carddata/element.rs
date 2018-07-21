@@ -1,9 +1,9 @@
 //! This modules holds the the global static element [`Card`](::card::Card)
 //! instances.
-use card::cell::Cell::*;
-use card::keyword::Keyword::*;
-use card::line::Line::*;
-use card::Card;
+use crate::card::cell::Cell::*;
+use crate::card::keyword::Keyword::*;
+use crate::card::line::Line::*;
+use crate::card::Card;
 
 pub static SOLID: Card = Card {
   lines: &[
@@ -383,6 +383,9 @@ pub static IMPMA: Card = Card {
 
 #[cfg(test)]
 mod tests {
+  use crate::card::keyword::Keyword;
+  use crate::card::keyword::Keyword::*;
+  use crate::folds::FoldList;
 
   const CARD_SOLID: [&'static str; 15] = [
     "$SOLID Element",
@@ -404,10 +407,6 @@ mod tests {
 
   #[test]
   fn fold_solid() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 14, Solid)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_SOLID);
@@ -438,9 +437,9 @@ mod tests {
 
   #[test]
   fn fold_hexa20() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 17, Hexa20)];
     let mut foldlist = FoldList::new();
@@ -468,9 +467,9 @@ mod tests {
 
   #[test]
   fn fold_pent15() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 13, Pent15)];
     let mut foldlist = FoldList::new();
@@ -493,9 +492,9 @@ mod tests {
 
   #[test]
   fn fold_penta6() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 8, Penta6)];
     let mut foldlist = FoldList::new();
@@ -522,9 +521,9 @@ mod tests {
 
   #[test]
   fn fold_tetr10() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 12, Tetr10)];
     let mut foldlist = FoldList::new();
@@ -544,9 +543,9 @@ mod tests {
 
   #[test]
   fn fold_tetr4() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 5, Tetr4)];
     let mut foldlist = FoldList::new();
@@ -566,9 +565,9 @@ mod tests {
 
   #[test]
   fn fold_bshel() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(0, 5, Bshel)];
     let mut foldlist = FoldList::new();
@@ -591,9 +590,9 @@ mod tests {
 
   #[test]
   fn fold_tshel() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 8, Tshel)];
     let mut foldlist = FoldList::new();
@@ -616,9 +615,9 @@ mod tests {
 
   #[test]
   fn fold_shell() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 8, Shell)];
     let mut foldlist = FoldList::new();
@@ -641,9 +640,9 @@ mod tests {
 
   #[test]
   fn fold_shel6() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 8, Shel6)];
     let mut foldlist = FoldList::new();
@@ -665,9 +664,9 @@ mod tests {
 
   #[test]
   fn fold_shel8() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 7, Shel8)];
     let mut foldlist = FoldList::new();
@@ -690,9 +689,9 @@ mod tests {
 
   #[test]
   fn fold_membr() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 8, Membr)];
     let mut foldlist = FoldList::new();
@@ -720,9 +719,9 @@ mod tests {
 
   #[test]
   fn fold_beam() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 13, Beam)];
     let mut foldlist = FoldList::new();
@@ -745,9 +744,9 @@ mod tests {
 
   #[test]
   fn fold_sprgbm() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 8, Sprgbm)];
     let mut foldlist = FoldList::new();
@@ -767,9 +766,9 @@ mod tests {
 
   #[test]
   fn fold_bar() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 5, Bar)];
     let mut foldlist = FoldList::new();
@@ -790,9 +789,9 @@ mod tests {
 
   #[test]
   fn fold_spring() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 6, Spring)];
     let mut foldlist = FoldList::new();
@@ -809,9 +808,9 @@ mod tests {
 
   #[test]
   fn fold_joint() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(0, 2, Joint)];
     let mut foldlist = FoldList::new();
@@ -833,9 +832,9 @@ mod tests {
 
   #[test]
   fn fold_kjoin() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 7, Kjoin)];
     let mut foldlist = FoldList::new();
@@ -856,9 +855,9 @@ mod tests {
 
   #[test]
   fn fold_mtojnt() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(1, 6, Mtojnt)];
     let mut foldlist = FoldList::new();
@@ -878,9 +877,9 @@ mod tests {
 
   #[test]
   fn fold_sphel() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
+    use crate::card::keyword::Keyword;
+    use crate::card::keyword::Keyword::*;
+    use crate::folds::FoldList;
 
     let v: Vec<(u64, u64, Keyword)> = vec![(0, 5, Sphel)];
     let mut foldlist = FoldList::new();
@@ -896,10 +895,6 @@ mod tests {
 
   #[test]
   fn fold_sphelo() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let v: Vec<(u64, u64, Keyword)> = vec![(0, 1, Sphelo)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_SPHELO);
@@ -918,10 +913,6 @@ mod tests {
 
   #[test]
   fn fold_gap() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let v: Vec<(u64, u64, Keyword)> = vec![(0, 5, Gap)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_GAP);
@@ -948,10 +939,6 @@ mod tests {
 
   #[test]
   fn fold_impma() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let v: Vec<(u64, u64, Keyword)> = vec![(2, 13, Impma)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_IMPMA);

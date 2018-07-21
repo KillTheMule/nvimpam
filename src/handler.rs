@@ -6,7 +6,7 @@ use failure::Error;
 use neovim_lib::neovim_api::Buffer;
 use neovim_lib::{Handler, Value};
 
-use event::Event;
+use crate::event::Event;
 
 /// The handler containing the sending end of a channel. The receiving end is
 /// the main [event loop](../event/enum.Event.html#method.event_loop).
