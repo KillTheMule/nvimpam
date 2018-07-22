@@ -210,24 +210,20 @@ impl FoldList {
     Ok(())
   }
 
-  /// Turn the FoldList into a Vec, containing the tuples (start, end,
-  /// Keyword)
-  pub fn into_vec(self, level: u8) -> Vec<(u64, u64, Keyword)> {
-    let mut v = Vec::new();
+  /// Copy the elements of a FoldList of the given level into a Vec, containing
+  /// the tuples (start, end, Keyword)
+  pub fn into_vec(&self, level: u8) -> Vec<(u64, u64, Keyword)> {
     if level == 1 {
-      for (s, card) in self.folds {
-        let start = s[0];
-        let end = s[1];
-        v.push((start, end, card));
-      }
+      self.folds.iter().map(|(r, k)| (r[0], r[1], *k)).collect()
     } else if level == 2 {
-      for (s, card) in self.folds_level2 {
-        let start = s[0];
-        let end = s[1];
-        v.push((start, end, card));
-      }
+      self
+        .folds_level2
+        .iter()
+        .map(|(r, k)| (r[0], r[1], *k))
+        .collect()
+    } else {
+      unimplemented!()
     }
-    v
   }
 
   /// Parse an array of strings into a [FoldList](struct.FoldList.html). The
@@ -339,22 +335,20 @@ mod tests {
     let mut v =
       vec![(0, 3, Node), (5, 5, Shell), (7, 15, Shell), (18, 19, Node)];
     let mut foldlist = FoldList::new();
+
     let _ = foldlist.add_folds(&LINES);
     assert_eq!(v, foldlist.into_vec(1));
 
     v = vec![(1, 1, Shell), (3, 11, Shell), (14, 15, Node)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&LINES[4..]);
+    let _ = foldlist.recreate_all(&LINES[4..]);
     assert_eq!(v, foldlist.into_vec(1));
 
     v = vec![(1, 9, Shell), (12, 13, Node)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&LINES[6..]);
+    let _ = foldlist.recreate_all(&LINES[6..]);
     assert_eq!(v, foldlist.into_vec(1));
 
     v = vec![(1, 2, Shell), (5, 5, Node)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&LINES[13..19]);
+    let _ = foldlist.recreate_all(&LINES[13..19]);
     assert_eq!(v, foldlist.into_vec(1));
   }
 
@@ -458,7 +452,6 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.recreate_all(&RBODIES);
     assert_eq!(v1, foldlist.into_vec(1));
-    foldlist = FoldList::new();
     let _ = foldlist.recreate_all(&RBODIES);
     assert_eq!(v2, foldlist.into_vec(2));
   }
