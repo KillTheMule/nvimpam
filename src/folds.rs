@@ -142,20 +142,15 @@ impl FoldList {
     let grouped = self.folds.iter().group_by(|(_, &kw)| kw);
 
     for (kw, mut group) in &grouped {
-      let first = group.next().expect("Empty group from group_by!");
-      let mut last = None;
-      let mut nr = 1;
-      for x in group {
-        last = Some(x);
-        nr += 1;
-      }
-      let last = match last {
+      let mut group = group.enumerate();
+      let firstfold = group.next().expect("Empty group from group_by!").1;
+      let (nr, lastfold) = match group.last() {
         None => continue, // only 1 fold in group
-        Some(e) => e,
+        Some((i, e)) => (i, e),
       };
 
-      let firstline = first.0[0];
-      let lastline = last.0[1];
+      let firstline = firstfold.0[0];
+      let lastline = lastfold.0[1];
 
       if firstline < lastline {
         match self.folds_level2.entry([firstline, lastline]) {
@@ -171,7 +166,7 @@ impl FoldList {
             return Err(failure::err_msg("Foldtext already in fold_texts!"))
           }
           Entry::Vacant(entry) => {
-            entry.insert(format!(" {} {:?}s ", nr, kw));
+            entry.insert(format!(" {} {:?}s ", nr + 1, kw));
           }
         }
       }
