@@ -156,8 +156,8 @@ pub static PARTGAP: Card = part!(
 
 #[cfg(test)]
 mod tests {
-  use card::keyword::Keyword;
   use card::keyword::Keyword::*;
+  use folds::FoldList;
 
   const CARD_PARTSOLID: [&'static str; 22] = [
     "$PART Type SOLID",
@@ -186,10 +186,7 @@ mod tests {
 
   #[test]
   fn fold_partsolid() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> =
-      vec![(2, 14, PartSolid), (15, 21, PartSolid)];
+    let v = vec![(2, 14, PartSolid), (15, 21, PartSolid)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSOLID);
 
@@ -218,9 +215,7 @@ mod tests {
 
   #[test]
   fn fold_partsolid2() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 14, PartSolid)];
+    let v = vec![(2, 14, PartSolid)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSOLID2);
 
@@ -245,9 +240,7 @@ mod tests {
 
   #[test]
   fn fold_partcos3d() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 12, PartCos3d)];
+    let v = vec![(2, 12, PartCos3d)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTCOS3D);
 
@@ -271,9 +264,7 @@ mod tests {
 
   #[test]
   fn fold_partbshel() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 11, PartBshel)];
+    let v = vec![(2, 11, PartBshel)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTBSHEL);
 
@@ -300,9 +291,7 @@ mod tests {
 
   #[test]
   fn fold_parttetra() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 14, PartTetra)];
+    let v = vec![(2, 14, PartTetra)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTTETRA);
 
@@ -327,9 +316,7 @@ mod tests {
 
   #[test]
   fn fold_partsphel() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 12, PartSphel)];
+    let v = vec![(2, 12, PartSphel)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSPHEL);
 
@@ -357,9 +344,7 @@ mod tests {
 
   #[test]
   fn fold_partshphel2() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 15, PartSphel)];
+    let v = vec![(2, 15, PartSphel)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSPHEL2);
 
@@ -383,9 +368,7 @@ mod tests {
 
   #[test]
   fn fold_parttshel() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(1, 11, PartTshel)];
+    let v = vec![(1, 11, PartTshel)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTTSHEL);
 
@@ -412,9 +395,7 @@ mod tests {
 
   #[test]
   fn fold_partshell() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 14, PartShell)];
+    let v = vec![(2, 14, PartShell)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSHELL);
 
@@ -437,9 +418,7 @@ mod tests {
 
   #[test]
   fn fold_partshell2() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(0, 10, PartShell)];
+    let v = vec![(0, 10, PartShell)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSHELL2);
 
@@ -468,9 +447,7 @@ mod tests {
 
   #[test]
   fn fold_partmembr() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 16, PartMembr)];
+    let v = vec![(2, 16, PartMembr)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTMEMBR);
 
@@ -495,9 +472,7 @@ mod tests {
 
   #[test]
   fn fold_partbar() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 12, PartBar)];
+    let v = vec![(2, 12, PartBar)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTBAR);
 
@@ -529,9 +504,7 @@ mod tests {
 
   #[test]
   fn fold_partbeam() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(1, 19, PartBeam)];
+    let v = vec![(1, 19, PartBeam)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTBEAM);
 
@@ -566,9 +539,7 @@ mod tests {
 
   #[test]
   fn fold_partbeam2() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(1, 22, PartBeam)];
+    let v = vec![(1, 22, PartBeam)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTBEAM2);
 
@@ -592,9 +563,7 @@ mod tests {
 
   #[test]
   fn fold_partspring() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 11, PartSpring)];
+    let v = vec![(2, 11, PartSpring)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSPRING);
 
@@ -616,9 +585,7 @@ mod tests {
 
   #[test]
   fn fold_partsprgbm() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(1, 9, PartSprgbm)];
+    let v = vec![(1, 9, PartSprgbm)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSPRGBM);
 
@@ -639,9 +606,7 @@ mod tests {
 
   #[test]
   fn fold_partmbspr() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 8, PartMbspr)];
+    let v = vec![(2, 8, PartMbspr)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTMBSPR);
 
@@ -665,11 +630,10 @@ mod tests {
 
   #[test]
   fn fold_partjoint() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 11, PartJoint)];
+    let v = vec![(2, 11, PartJoint)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTJOINT);
+
     assert_eq!(v, foldlist.into_vec(1));
   }
 
@@ -684,9 +648,7 @@ mod tests {
 
   #[test]
   fn fold_partkjoin() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(0, 5, PartKjoin)];
+    let v = vec![(0, 5, PartKjoin)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTKJOIN);
 
@@ -711,9 +673,7 @@ mod tests {
 
   #[test]
   fn fold_partmtojnt() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 12, PartMtojnt)];
+    let v = vec![(2, 12, PartMtojnt)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTMTOJNT);
 
@@ -737,9 +697,7 @@ mod tests {
 
   #[test]
   fn fold_partmbkjn() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 11, PartMbkjn)];
+    let v = vec![(2, 11, PartMbkjn)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTMBKJN);
 
@@ -762,9 +720,7 @@ mod tests {
 
   #[test]
   fn fold_parttied() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(0, 10, PartTied)];
+    let v = vec![(0, 10, PartTied)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTTIED);
 
@@ -788,9 +744,7 @@ mod tests {
 
   #[test]
   fn fold_parttied2() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(0, 11, PartTied)];
+    let v = vec![(0, 11, PartTied)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTTIED2);
 
@@ -815,9 +769,7 @@ mod tests {
 
   #[test]
   fn fold_partslink() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 12, PartSlink)];
+    let v = vec![(2, 12, PartSlink)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSLINK);
 
@@ -840,9 +792,7 @@ mod tests {
 
   #[test]
   fn fold_partelink() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 10, PartElink)];
+    let v = vec![(2, 10, PartElink)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTELINK);
 
@@ -866,9 +816,7 @@ mod tests {
 
   #[test]
   fn fold_partllink() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(1, 11, PartLlink)];
+    let v = vec![(1, 11, PartLlink)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTLLINK);
 
@@ -889,9 +837,7 @@ mod tests {
 
   #[test]
   fn fold_partplink() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 8, PartPlink)];
+    let v = vec![(2, 8, PartPlink)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTPLINK);
 
@@ -916,9 +862,7 @@ mod tests {
 
   #[test]
   fn fold_partgap() {
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 12, PartGap)];
+    let v = vec![(2, 12, PartGap)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTGAP);
 

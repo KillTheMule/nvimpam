@@ -2,8 +2,8 @@
 extern crate failure;
 #[macro_use]
 extern crate log;
-extern crate neovim_lib;
 extern crate itertools;
+extern crate neovim_lib;
 
 pub mod card;
 pub mod carddata;

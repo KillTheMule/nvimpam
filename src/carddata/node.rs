@@ -57,6 +57,8 @@ pub static NSMAS2: Card = Card {
 
 #[cfg(test)]
 mod tests {
+  use card::keyword::Keyword::*;
+  use folds::FoldList;
 
   const CARD_NSMAS: [&'static str; 7] = [
     "$ NSMAS - Nonstructural mass",
@@ -70,9 +72,6 @@ mod tests {
 
   #[test]
   fn fold_nsmas() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let mut it = CARD_NSMAS.iter().enumerate();
     let _ = it.next();
     let _ = it.next();
@@ -100,11 +99,7 @@ mod tests {
 
   #[test]
   fn fold_mass() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(2, 9, Mass)];
+    let v = vec![(2, 9, Mass)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_MASS);
 

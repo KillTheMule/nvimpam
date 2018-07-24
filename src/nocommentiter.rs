@@ -472,7 +472,7 @@ where
 
 #[cfg(test)]
 mod tests {
-  use card::ges::GesType;
+  use card::ges::GesType::GesNode;
   use card::keyword::Keyword;
   use nocommentiter::CommentLess;
   use skipresult::SkipLine;
@@ -493,10 +493,7 @@ mod tests {
     let v: Vec<String> = vec!["abc".to_owned(), "abc".to_owned()];
 
     let mut li = v.iter().enumerate().remove_comments();
-    {
-      let nextline = li.it.next();
-      assert_eq!(nextline, Some((0, &v[0])));
-    }
+    assert_eq!(li.next(), Some((0, &v[0])));
     assert_eq!(li.next(), Some((1, &v[1])));
   }
 
@@ -544,10 +541,9 @@ mod tests {
 
   #[test]
   fn ges_can_be_skipped() {
-    let g = GesType::GesNode;
     let mut li = GES1.iter().enumerate().remove_comments();
 
-    assert_eq!(li.skip_ges(g).nextline, Some((4, &GES1[4])));
+    assert_eq!(li.skip_ges(GesNode).nextline, Some((4, &GES1[4])));
     assert_eq!(li.next(), None);
   }
 
@@ -565,11 +561,10 @@ mod tests {
 
   #[test]
   fn ges_can_be_skipped_repeatedly() {
-    let g = GesType::GesNode;
     let mut li = GES2.iter().enumerate().remove_comments();
 
-    assert_eq!(li.skip_ges(g).nextline, Some((3, &GES2[3])));
-    assert_eq!(li.skip_ges(g).nextline, None);
+    assert_eq!(li.skip_ges(GesNode).nextline, Some((3, &GES2[3])));
+    assert_eq!(li.skip_ges(GesNode).nextline, None);
     assert_eq!(li.next(), None);
   }
 
@@ -587,11 +582,10 @@ mod tests {
 
   #[test]
   fn ges_ends_without_end() {
-    let g = GesType::GesNode;
     let mut li = GES3.iter().enumerate().remove_comments();
 
-    assert_eq!(li.skip_ges(g).nextline, Some((2, &GES3[2])));
-    assert_eq!(li.skip_ges(g).nextline, Some((7, &GES3[7])));
+    assert_eq!(li.skip_ges(GesNode).nextline, Some((2, &GES3[2])));
+    assert_eq!(li.skip_ges(GesNode).nextline, Some((7, &GES3[7])));
     assert_eq!(li.next(), Some((8, &GES3[8])));
   }
 
@@ -599,10 +593,9 @@ mod tests {
 
   #[test]
   fn ges_can_skip_nothing() {
-    let g = GesType::GesNode;
     let mut li = GES4.iter().enumerate().remove_comments();
 
-    assert_eq!(li.skip_ges(g).nextline, Some((0, &GES4[0])));
+    assert_eq!(li.skip_ges(GesNode).nextline, Some((0, &GES4[0])));
     assert_eq!(li.next(), Some((1, &GES4[1])));
   }
 
@@ -618,10 +611,9 @@ mod tests {
 
   #[test]
   fn ges_includes_comments_inside() {
-    let g = GesType::GesNode;
     let mut li = GES6.iter().enumerate().remove_comments();
 
-    let tmp = li.skip_ges(g);
+    let tmp = li.skip_ges(GesNode);
     assert_eq!(tmp.nextline, Some((6, &GES6[6])));
     assert_eq!(tmp.skip_end, Some(4));
     assert_eq!(li.next(), None);
@@ -636,10 +628,9 @@ mod tests {
 
   #[test]
   fn ges_works_with_only_comments() {
-    let g = GesType::GesNode;
     let mut li = GES7.iter().enumerate().remove_comments();
 
-    let tmp = li.skip_ges(g);
+    let tmp = li.skip_ges(GesNode);
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, None);
     assert_eq!(li.next(), None);
@@ -654,10 +645,9 @@ mod tests {
 
   #[test]
   fn ges_skips_over_comments_after_end() {
-    let g = GesType::GesNode;
     let mut li = GES8.iter().enumerate().remove_comments();
 
-    let tmp = li.skip_ges(g);
+    let tmp = li.skip_ges(GesNode);
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, Some(0));
     assert_eq!(li.next(), None);

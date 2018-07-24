@@ -70,6 +70,8 @@ pub static TIED: Card = Card {
 
 #[cfg(test)]
 mod tests {
+  use card::keyword::Keyword::*;
+  use folds::FoldList;
 
   const CARD_ELINK: [&'static str; 13] = [
     "$ELINK Element",
@@ -89,11 +91,7 @@ mod tests {
 
   #[test]
   fn fold_elink() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(1, 12, Elink)];
+    let v = vec![(1, 12, Elink)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_ELINK);
 
@@ -128,11 +126,7 @@ mod tests {
 
   #[test]
   fn fold_llink() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(1, 22, Llink)];
+    let v = vec![(1, 22, Llink)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_LLINK);
 
@@ -150,11 +144,7 @@ mod tests {
 
   #[test]
   fn fold_slink() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(1, 5, Slink)];
+    let v = vec![(1, 5, Slink)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_SLINK);
 
@@ -175,11 +165,7 @@ mod tests {
 
   #[test]
   fn fold_plink() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(1, 7, Plink)];
+    let v = vec![(1, 7, Plink)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PLINK);
 
@@ -213,11 +199,7 @@ mod tests {
 
   #[test]
   fn fold_tied() {
-    use card::keyword::Keyword;
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
-    let v: Vec<(u64, u64, Keyword)> = vec![(1, 21, Tied)];
+    let v = vec![(1, 21, Tied)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_TIED);
 

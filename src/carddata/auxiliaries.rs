@@ -18,6 +18,8 @@ pub static GROUP: Card = Card {
 
 #[cfg(test)]
 mod tests {
+  use card::keyword::Keyword::*;
+  use folds::FoldList;
 
   const CARD_GROUP: [&'static str; 7] = [
     "GROUP / TitleOfTheGroup",
@@ -31,9 +33,6 @@ mod tests {
 
   #[test]
   fn fold_group() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let v = vec![(0, 6, Group)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_GROUP);

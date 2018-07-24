@@ -188,6 +188,8 @@ pub static RBODY3: Card = Card {
 
 #[cfg(test)]
 mod tests {
+  use card::keyword::Keyword::*;
+  use folds::FoldList;
 
   const CARD_MTOCO: [&'static str; 11] = [
     "$Regular MTOCO",
@@ -205,9 +207,6 @@ mod tests {
 
   #[test]
   fn fold_mtoco() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let v = vec![(2, 5, Mtoco), (6, 10, Mtoco)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_MTOCO);
@@ -228,9 +227,6 @@ mod tests {
 
   #[test]
   fn fold_mtoco2() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let v = vec![(2, 7, Mtoco)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_MTOCO2);
@@ -248,9 +244,6 @@ mod tests {
 
   #[test]
   fn fold_otmco() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let v = vec![(1, 4, Otmco)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_OTMCO);
@@ -272,9 +265,6 @@ mod tests {
 
   #[test]
   fn fold_otmco2() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let v = vec![(1, 8, Otmco)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_OTMCO2);
@@ -293,9 +283,6 @@ mod tests {
 
   #[test]
   fn fold_rbody0() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let v = vec![(2, 5, Rbody0)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_RBODY0);
@@ -318,9 +305,6 @@ mod tests {
 
   #[test]
   fn fold_rbody1() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let v = vec![(2, 9, Rbody1)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_RBODY1);
@@ -340,9 +324,6 @@ mod tests {
 
   #[test]
   fn fold_rbody2() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let v = vec![(1, 6, Rbody2)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_RBODY2);
@@ -363,9 +344,6 @@ mod tests {
 
   #[test]
   fn fold_rbody3() {
-    use card::keyword::Keyword::*;
-    use folds::FoldList;
-
     let v = vec![(2, 7, Rbody3)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_RBODY3);
