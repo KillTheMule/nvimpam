@@ -158,7 +158,7 @@ fn send_client_info(nvim: &mut Neovim) -> Result<(), Error> {
 
 fn start_program() -> Result<(), Error> {
   let (sender, receiver) = mpsc::channel();
-  let mut session = try!(Session::new_parent());
+  let mut session = Session::new_parent()?;
 
   session.start_event_loop_handler(NeovimHandler(sender));
   let mut nvim = Neovim::new(session);
