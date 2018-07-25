@@ -32,7 +32,7 @@ pub enum Line {
   /// A block of lines, ended by a line starting with the given string.
   Block(&'static [Line], &'static str),
   /// A block that's entirely optional, starting with a line of a given string
-  /// and ending in a line with another keywordgiven string
+  /// and ending in a line with another given string
   OptionalBlock(&'static str, &'static str),
 }
 
@@ -79,10 +79,7 @@ impl Conditional {
 
         match cell {
           None => Bool(false),
-          Some(s) => match s.trim().parse::<u8>() {
-            Ok(x) if x == b => Bool(true),
-            _ => Bool(false),
-          },
+          Some(s) => Bool(s.trim().parse::<u8>() == Ok(b)),
         }
       }
       Conditional::Number(ref r) => {

@@ -72,7 +72,7 @@ impl GesType {
 
 #[cfg(test)]
 mod tests {
-  use card::ges::GesType;
+  use card::ges::GesType::GesNode;
 
   const LINES: [&'static str; 10] = [
     "ab ll",
@@ -89,25 +89,23 @@ mod tests {
 
   #[test]
   fn test_is_ges() {
-    let g = GesType::GesNode;
     let v = vec![
       false, false, false, true, true, false, false, true, true, true,
     ];
     assert_eq!(
       v,
-      LINES.iter().map(|l| g.contains(&l)).collect::<Vec<bool>>()
+      LINES.iter().map(|l| GesNode.contains(&l)).collect::<Vec<bool>>()
     );
   }
 
   #[test]
   fn test_ends_ges() {
-    let g = GesType::GesNode;
     let v = vec![
       false, false, false, false, false, false, true, false, false, false,
     ];
     assert_eq!(
       v,
-      LINES.iter().map(|l| g.ended_by(&l)).collect::<Vec<bool>>()
+      LINES.iter().map(|l| GesNode.ended_by(&l)).collect::<Vec<bool>>()
     );
   }
 
