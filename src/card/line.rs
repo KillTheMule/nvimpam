@@ -42,9 +42,9 @@ pub enum Conditional {
   /// The char at the given index (0-based!) is the given one.
   RelChar(u8, char),
   // The integer at the cell given by the range is the second number
-  Int(Range<usize>, u8),
+  Int(Range<u8>, u8),
   // Read a number from a given cell
-  Number(Range<usize>),
+  Number(Range<u8>),
 }
 
 // An enum to represent the different results of conditionals
@@ -68,37 +68,20 @@ impl Conditional {
         Bool(line.as_ref().get(idx..idx + 1) == Some(&c.to_string()))
       }
       Conditional::Int(ref r, b) => {
-        let lineref = line.as_ref();
-        let linelen = lineref.len();
-        let lower = r.start;
-        let upper = r.end;
-        let new_upper = cmp::min(linelen, upper);
-        let range = lower..new_upper;
-
-        let cell = lineref.get(range);
-
-        match cell {
-          None => Bool(false),
-          Some(s) => Bool(s.trim().parse::<u8>() == Ok(b)),
-        }
+        let range = r.start as usize ..cmp::min(line.as_ref().len(), r.end as usize );
+        line
+        .as_ref()
+        .get(range)
+        .map(|s| Bool(s.trim().parse::<u8>() == Ok(b)))
+        .unwrap_or(Bool(false))
       }
       Conditional::Number(ref r) => {
-        let s = line.as_ref();
-        let l = s.len();
-        let lower = r.start;
-        let upper = r.end;
-        let new_upper = cmp::min(l, upper);
-        let range = lower..new_upper;
-
-        let cell = s.get(range);
-
-        match cell {
-          None => Number(None),
-          Some(s) => match s.trim().parse::<usize>() {
-            Ok(x) => Number(Some(x)),
-            _ => Number(None),
-          },
-        }
+        let range = r.start as usize ..cmp::min(line.as_ref().len(), r.end as usize);
+        line
+          .as_ref()
+          .get(range)
+          .map(|s| Number(s.trim().parse::<usize>().ok()))
+          .unwrap_or(Number(None))
       }
     }
   }

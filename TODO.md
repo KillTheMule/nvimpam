@@ -57,6 +57,13 @@
 
 * Turn off UTF8 validation in rmpv
 * Implement the foldlist as a Vec instead of a BTreeMap
+* Changing CondResult::Number to take a u32 instead of usize was a clear
+  performance regression. Going to u16 was even worse.
+  * Similarly changing Int to usize/u32/u16 from u8
+  * Changin RelChar's char to u8 doesn't help (might need anyways later when switching
+    from AsRef<str> to AsRef<[u8]>
+  * Changing the Ranges from usize to u8 had a minor impact, but it's semantically
+    more correct anyways
 
 ### Performance ideas that might not be neccessary
 * If performance isn't good, see 
