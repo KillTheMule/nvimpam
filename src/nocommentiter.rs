@@ -86,9 +86,7 @@ where
   /// [skipend](::skipresult::SkipResult.skipend) set to the index of the last
   /// line of the file.
   pub fn skip_to_next_keyword<'b>(&'b mut self) -> Option<SkipLine<'a, T>> {
-    let mut line: (usize, &'a T);
-
-    line = next_or_return_none!(self);
+    let mut line: (usize, &'a T) = next_or_return_none!(self);
 
     loop {
       match Keyword::parse(line.1) {
@@ -102,10 +100,8 @@ where
   /// Selection (GES).
   ///
   pub fn skip_ges<'b>(&'b mut self, ges: GesType) -> SkipResult<'a, T> {
-    let mut nextline: (usize, &'a T);
     let mut prevline: Option<(usize, &'a T)> = None;
-
-    nextline = next_or_return_previdx!(self, prevline);
+    let mut nextline: (usize, &'a T) = next_or_return_previdx!(self, prevline);
 
     while ges.contains(nextline.1) {
       prevline = Some(nextline);
@@ -129,289 +125,150 @@ where
   /// value of [`Card.ownfold`](::card::Card)
   pub fn skip_fold<'b>(
     &'b mut self,
-    nextline: &SkipLine<'a, T>,
+    skipline: &SkipLine<'a, T>,
   ) -> SkipResult<'a, T> {
-    let card: &Card = (&nextline.line_kw).into();
+    let card: &Card = (&skipline.line_kw).into();
 
     if card.ownfold {
-      self.skip_card(nextline)
+      self.skip_card(skipline)
     } else {
-      self.skip_card_gather(nextline)
+      self.skip_card_gather(skipline)
     }
   }
 
   /// Let [`NoCommentIter`](NoCommentIter) skip the given
   /// [`Card`](::card::Card), but only skip this 1 card. This only really makes
   /// sense when the last line the iterator returned is the line with the
-  /// keyword starting that card.
+  /// keyword starting that card, which is passed as `skipline`.
   ///
   /// If you want to skip all cards of a given type, use
   /// [`skip_card_gather`](NoCommentIter::skip_card_gather)
   pub fn skip_card<'b>(
     &'b mut self,
-    nextline: &SkipLine<'a, T>,
+    skipline: &SkipLine<'a, T>,
   ) -> SkipResult<'a, T> {
-    let card: &Card = (&nextline.line_kw).into();
-
-    let mut cardlines = card.lines.iter();
     let mut conds: Vec<CondResult> = vec![]; // the vec to hold the conditionals
-
-    let cardline = match cardlines.next() {
-      None => unreachable!(),
-      Some(c) => c,
-    };
+    let mut cardlines = <&Card>::from(&skipline.line_kw).lines.iter();
+    let cardline = cardlines.next().unwrap_or_else(|| unreachable!());
 
     if let Line::Provides(_s, ref c) = cardline {
-      conds.push(c.evaluate(nextline.line.1));
+      conds.push(c.evaluate(skipline.line.1));
     }
 
-    let mut line; // line of the iterator we're currently processing
-    let mut lineidx; // index of the currently processed line
-    let mut linekw; // Keyword of the currently processed line
-    let mut previdx = None; // index of the last line of the card
-    let mut tmp;
+    let mut prevline: Option<(usize, &'a T)> = None;
+    let mut nextline: (usize, &'a T) = next_or_return_previdx!(self, prevline);
+    let mut nextline_kw = Keyword::parse(nextline.1);
 
-    match self.next() {
-      None => return Default::default(),
-      Some((i, l)) => {
-        line = l;
-        lineidx = i;
-        linekw = Keyword::parse(line);
-      }
-    }
-
-    // TODO: Maybe this is clearer with loop?
     for cardline in cardlines {
+      if nextline_kw.is_some() {
+        return SkipResult {
+          nextline: Some(nextline),
+          nextline_kw,
+          skip_end: prevline.map(|o| o.0),
+        };
+      }
+
       match *cardline {
         Line::Provides(_s, ref c) => {
-          conds.push(c.evaluate(&line));
-          let tmp = self.next();
-          match tmp {
-            None => {
-              return SkipResult {
-                skip_end: Some(lineidx),
-                ..Default::default()
-              };
-            }
-            Some((i, l)) => {
-              previdx = Some(lineidx);
-              line = l;
-              lineidx = i;
-              linekw = Keyword::parse(l);
-            }
-          }
+          conds.push(c.evaluate(&nextline.1));
+          prevline = Some(nextline);
+          nextline = next_or_return_previdx!(self, prevline);
+          nextline_kw = Keyword::parse(nextline.1);
         }
         Line::Ges(ref g) => {
-          let contains = g.contains(line);
-          let ended = g.ended_by(line);
+          let contains = g.contains(nextline.1);
+          let ended = g.ended_by(nextline.1);
           if contains || ended {
             if ended {
-              let tmp = self.next();
-              match tmp {
-                None => {
-                  return SkipResult {
-                    skip_end: Some(lineidx),
-                    ..Default::default()
-                  };
-                }
-                Some((i, l)) => {
-                  return SkipResult {
-                    nextline: Some((i, l)),
-                    nextline_kw: Keyword::parse(l),
-                    skip_end: Some(lineidx),
-                  }
-                }
-              }
+              prevline = Some(nextline);
+              nextline = next_or_return_previdx!(self, prevline);
+              nextline_kw = Keyword::parse(nextline.1);
             } else {
-              tmp = self.skip_ges(*g);
+              let tmp = self.skip_ges(*g);
 
               match tmp.nextline {
-                None => match tmp.skip_end {
-                  None => return Default::default(),
-                  Some(i) => {
-                    return SkipResult {
-                      skip_end: Some(i),
-                      ..Default::default()
-                    }
+                None => {
+                  return SkipResult {
+                    skip_end: tmp.skip_end,
+                    ..Default::default()
                   }
-                },
+                }
                 Some((i, l)) => {
-                  line = l;
-                  lineidx = i;
-                  linekw = tmp.nextline_kw;
-                  previdx = tmp.skip_end.or(previdx);;
+                  prevline = Some(nextline);
+                  nextline = (i, l);
+                  nextline_kw = Keyword::parse(nextline.1);
                 }
               }
             }
           }
         }
         Line::Cells(_s) => {
-          if linekw.is_some() {
-            return SkipResult {
-              nextline: Some((lineidx, line)),
-              nextline_kw: linekw,
-              skip_end: previdx,
-            };
-          } else {
-            let tmp = self.next();
-            match tmp {
-              None => {
-                return SkipResult {
-                  skip_end: Some(lineidx),
-                  ..Default::default()
-                };
-              }
-              Some((i, l)) => {
-                previdx = Some(lineidx);
-                line = l;
-                lineidx = i;
-                linekw = Keyword::parse(l);
-              }
-            }
-          }
+          prevline = Some(nextline);
+          nextline = next_or_return_previdx!(self, prevline);
+          nextline_kw = Keyword::parse(nextline.1);
         }
         Line::Optional(_s, i) => {
-          if conds.get(i as usize) != Some(&CondResult::Bool(true)) {
-            continue;
-          } else if let Some(kw) = Keyword::parse(line) {
-            return SkipResult {
-              nextline: Some((lineidx, line)),
-              nextline_kw: Some(kw),
-              skip_end: previdx,
-            };
+          if conds.get(i as usize) == Some(&CondResult::Bool(true)) {
+            prevline = Some(nextline);
+            nextline = next_or_return_previdx!(self, prevline);
+            nextline_kw = Keyword::parse(nextline.1);
           } else {
-            let tmp = self.next();
-            match tmp {
-              None => {
-                return SkipResult {
-                  skip_end: Some(lineidx),
-                  ..Default::default()
-                };
-              }
-              Some((i, l)) => {
-                previdx = Some(lineidx);
-                line = l;
-                lineidx = i;
-                linekw = Keyword::parse(l);
-              }
-            }
+            continue;
           }
         }
         Line::Repeat(_s, i) => {
           let num = match conds.get(i as usize) {
-            Some(CondResult::Number(Some(u))) => u,
+            Some(CondResult::Number(Some(u))) if *u > 0 => u,
             _ => continue,
           };
 
-          for _ in 0..*num {
-            let tmp = self.next();
-
-            match tmp {
-              None => {
-                return SkipResult {
-                  skip_end: Some(lineidx),
-                  ..Default::default()
-                };
-              }
-              Some((i, l)) => {
-                previdx = Some(lineidx);
-                line = l;
-                lineidx = i;
-                linekw = Keyword::parse(l);
-              }
-            }
+          for _ in 0..*num-1 {
+            let _ = self.next();
           }
+
+          prevline = Some(nextline);
+          nextline = next_or_return_previdx!(self, prevline);
+          nextline_kw = Keyword::parse(nextline.1);
         }
         Line::Block(_l, s) => loop {
-          let tmp = self.next();
-
-          match tmp {
-            None => {
-              return SkipResult {
-                skip_end: Some(lineidx),
-                ..Default::default()
-              };
-            }
-            Some((i, l)) => {
-              previdx = Some(lineidx);
-              line = l;
-              lineidx = i;
-              linekw = Keyword::parse(l);
-
-              match linekw {
-                Some(_) => break,
-                None => {
-                  if line.as_ref().starts_with(s) {
-                    let tmp = self.next();
-
-                    match tmp {
-                      None => {
-                        return SkipResult {
-                          skip_end: Some(lineidx),
-                          ..Default::default()
-                        };
-                      }
-                      Some((i, l)) => {
-                        return SkipResult {
-                          nextline: Some((i, l)),
-                          nextline_kw: Keyword::parse(l),
-                          skip_end: previdx,
-                        };
-                      }
-                    }
-                  }
-                }
-              }
-            }
+          if nextline_kw.is_some() {
+            break;
+          } else if nextline.1.as_ref().starts_with(s) {
+            prevline = Some(nextline);
+            nextline = next_or_return_previdx!(self, prevline);
+            nextline_kw = Keyword::parse(nextline.1);
+            break;
+          } else {
+            prevline = Some(nextline);
+            nextline = next_or_return_previdx!(self, prevline);
+            nextline_kw = Keyword::parse(nextline.1);
           }
-        },
+        }
         Line::OptionalBlock(s1, s2) => {
-          if line.as_ref().starts_with(s1) {
-            loop {
-              let tmp = self.next();
-
-              match tmp {
-                None => {
-                  return SkipResult {
-                    skip_end: Some(lineidx),
-                    ..Default::default()
-                  };
-                }
-                Some((i, l)) => {
-                  if l.as_ref().starts_with(s2) {
-                    previdx = Some(i);
-                    break;
-                  } else {
-                    continue;
-                  }
-                }
-              }
-            }
-            let tmp = self.next();
-
-            match tmp {
-              None => {
-                return SkipResult {
-                  skip_end: Some(lineidx),
-                  ..Default::default()
-                };
-              }
-              Some((i, l)) => {
-                return SkipResult {
-                  nextline: Some((i, l)),
-                  nextline_kw: Keyword::parse(l),
-                  skip_end: previdx,
-                };
-              }
+          if !nextline.1.as_ref().starts_with(s1) {
+            continue
+          }
+          loop {
+            if nextline_kw.is_some() {
+              break;
+            } else if nextline.1.as_ref().starts_with(s2) {
+              prevline = Some(nextline);
+              nextline = next_or_return_previdx!(self, prevline);
+              nextline_kw = Keyword::parse(nextline.1);
+              break;
+            } else {
+              prevline = Some(nextline);
+              nextline = next_or_return_previdx!(self, prevline);
+              nextline_kw = Keyword::parse(nextline.1);
             }
           }
         }
       }
     }
     SkipResult {
-      nextline: Some((lineidx, line)),
-      nextline_kw: linekw,
-      skip_end: previdx,
+      nextline: Some(nextline),
+      nextline_kw,
+      skip_end: prevline.map(|o| o.0),
     }
   }
 
