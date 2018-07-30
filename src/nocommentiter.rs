@@ -17,11 +17,11 @@ use skipresult::{KeywordLine, ParsedLine, SkipResult};
 // theres no next line, return a `SkipResult` containing the line number of
 // `prevline` and nothing else.
 macro_rules! next_or_return_previdx {
-  ($self:ident, $prevline:ident) => {
+  ($self:ident, $prevline:expr) => {
     match $self.next() {
       None => {
         return SkipResult {
-          skip_end: $prevline.map(|p: ParsedLine<'a, T>| p.number),
+          skip_end: $prevline.map(|p| p.number),
           ..Default::default()
         }
       }
@@ -33,11 +33,11 @@ macro_rules! next_or_return_previdx {
 // Used in skip_ges to get the next line. If it's None, we're at the end of
 // the file and only return what we found before. Also used in `advance_some!`
 macro_rules! next_or_return_some_previdx {
-  ($self:ident, $prevline:ident) => {
+  ($self:ident, $prevline:expr) => {
     match $self.next() {
       None => {
         return Some(SkipResult {
-          skip_end: $prevline.map(|p: ParsedLine<'a, T>| p.number),
+          skip_end: $prevline.map(|p| p.number),
           ..Default::default()
         })
       }
@@ -168,13 +168,7 @@ where
     } else if !ends && !contained {
       None
     } else {
-      // Need to save this in case the iterator ends in the next line
-      prevline = Some(ParsedLine {
-        number: skipline.number,
-        text: skipline.text,
-        keyword: skipline.keyword,
-      });
-      nextline = next_or_return_some_previdx!(self, prevline);
+      nextline = next_or_return_some_previdx!(self, Some(skipline));
 
       while ges.contains(nextline.text) {
         advance_some!(self, prevline, nextline);
