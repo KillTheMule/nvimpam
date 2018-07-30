@@ -195,9 +195,9 @@ where
     let card: &Card = (&skipline.keyword).into();
 
     if card.ownfold {
-      self.skip_card(skipline)
+      self.skip_card(skipline, card)
     } else {
-      self.skip_card_gather(skipline)
+      self.skip_card_gather(skipline, card)
     }
   }
 
@@ -211,9 +211,10 @@ where
   pub fn skip_card<'b>(
     &'b mut self,
     skipline: &KeywordLine<'a, T>,
+    card: &Card,
   ) -> SkipResult<'a, T> {
     let mut conds: Vec<CondResult> = vec![]; // the vec to hold the conditionals
-    let mut cardlines = <&Card>::from(&skipline.keyword).lines.iter();
+    let mut cardlines = card.lines.iter();
     let cardline = cardlines.next().unwrap_or_else(|| unreachable!());
 
     if let Line::Provides(_s, ref c) = cardline {
@@ -315,6 +316,7 @@ where
   pub fn skip_card_gather<'b>(
     &'b mut self,
     nextline: &KeywordLine<'a, T>,
+    card: &Card,
   ) -> SkipResult<'a, T> {
     let mut curkw;
     let mut res;
@@ -322,9 +324,7 @@ where
     let mut curline;
     let mut previdx = None;
 
-    let card: &Card = (&nextline.keyword).into();
-
-    res = self.skip_card(nextline);
+    res = self.skip_card(nextline, card);
 
     loop {
       match res.nextline {
@@ -349,11 +349,14 @@ where
         previdx = Some(curidx);
       }
 
-      res = self.skip_card(&KeywordLine {
-        number: curidx,
-        text: curline,
-        keyword: curkw.unwrap(),
-      });
+      res = self.skip_card(
+        &KeywordLine {
+          number: curidx,
+          text: curline,
+          keyword: curkw.unwrap(),
+        },
+        card,
+      );
     }
 
     SkipResult {
@@ -371,6 +374,7 @@ where
 mod tests {
   use card::ges::GesType::GesNode;
   use card::keyword::Keyword::*;
+  use carddata::*;
   use nocommentiter::CommentLess;
   use skipresult::{KeywordLine, ParsedLine};
 
@@ -592,7 +596,7 @@ mod tests {
     let mut li = CARD_NSMAS.iter().enumerate().remove_comments();
     let firstline = li.next().unwrap();
 
-    let tmp = li.skip_card(&firstline.try_into_keywordline().unwrap());
+    let tmp = li.skip_card(&firstline.try_into_keywordline().unwrap(), &NSMAS);
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, Some(5));
   }
@@ -614,7 +618,8 @@ mod tests {
     let mut li = CARD_NODES.iter().enumerate().remove_comments();
     let firstline = li.next().unwrap();
 
-    let tmp = li.skip_card_gather(&firstline.try_into_keywordline().unwrap());
+    let tmp =
+      li.skip_card_gather(&firstline.try_into_keywordline().unwrap(), &NODE);
     assert_eq!(
       tmp.nextline.unwrap(),
       pline!(8, &"SHELL /     ", Some(Shell))
@@ -643,7 +648,7 @@ mod tests {
       .remove_comments();
     let firstline = li.next().unwrap();
 
-    let tmp = li.skip_card(&firstline.try_into_keywordline().unwrap());
+    let tmp = li.skip_card(&firstline.try_into_keywordline().unwrap(), &MASS);
     assert_eq!(
       tmp.nextline.unwrap(),
       pline!(7, &"NODE  /      ", Some(Node))
@@ -671,7 +676,7 @@ mod tests {
     let mut li = CARD_MASS_OPT.iter().enumerate().remove_comments();
     let firstline = li.next().unwrap();
 
-    let tmp = li.skip_card(&firstline.try_into_keywordline().unwrap());
+    let tmp = li.skip_card(&firstline.try_into_keywordline().unwrap(), &MASS);
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, Some(10));
   }
