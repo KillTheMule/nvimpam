@@ -13,6 +13,9 @@ use card::line::{CondResult, Line};
 use card::Card;
 use skipresult::{KeywordLine, ParsedLine, SkipResult};
 
+// Used in skip functions. Returns the next `ParsedLine` from the iterator. If
+// theres no next line, return a `SkipResult` containing the line number of
+// `prevline` and nothing else.
 macro_rules! next_or_return_previdx {
   ($self:ident, $prevline:ident) => {
     match $self.next() {
@@ -43,6 +46,17 @@ macro_rules! next_or_return_some_previdx {
   };
 }
 
+// In the same veins as above, get the next line from the iterator, or return
+// None from the function.
+macro_rules! next_or_return_none {
+  ($self:ident) => {
+    match $self.next() {
+      None => return None,
+      Some(t) => t,
+    };
+  };
+}
+
 // A common pattern for nocommentiter: Save Some(nextline) in prevline,
 // and advance the iterator. Save in nextline, or return a SkipResult built
 // from prevline's line number
@@ -53,20 +67,12 @@ macro_rules! advance {
   };
 }
 
+// Same as advance above, just that the `SkipResult` is wrapped in `Some`. Used
+// in skip_ges.
 macro_rules! advance_some {
   ($self:ident, $prevline:ident, $nextline:ident) => {
     $prevline = Some($nextline);
     $nextline = next_or_return_some_previdx!($self, $prevline);
-  };
-}
-
-
-macro_rules! next_or_return_none {
-  ($self:ident) => {
-    match $self.next() {
-      None => return None,
-      Some(t) => t,
-    };
   };
 }
 
