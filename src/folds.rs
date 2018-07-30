@@ -31,7 +31,21 @@ use itertools::Itertools;
 
 use card::keyword::Keyword;
 use nocommentiter::CommentLess;
-//use skipresult::SkipResult;
+
+macro_rules! unwrap_or_ok {
+  ($option:expr) => {
+    match $option {
+      None => return Ok(()),
+      Some(t) => t,
+    }
+  };
+  ($option:expr, $ret:expr) => {
+    match $option {
+      None => return Ok($ret),
+      Some(t) => t,
+    }
+  };
+}
 
 /// Holds the fold data of the buffer. A fold has the following data:
 /// Linenumbers start, end (indexed from 1), and a
@@ -242,40 +256,22 @@ impl FoldList {
     let mut foldkw;
     let mut skipped;
 
-    let mut nextline = match li.skip_to_next_keyword() {
-      None => return Ok(()),
-      Some(pl) => pl,
-    };
+    let mut nextline = unwrap_or_ok!(li.skip_to_next_keyword());
 
     loop {
       foldkw = nextline.keyword;
       foldstart = nextline.number;
-
       skipped = li.skip_fold(&nextline.into());
-      if let Some(j) = skipped.skip_end {
-        foldend = j;
-      } else {
-        // This only happens if the file ends directly after a GES
-        foldend = lines.len() - 1;
-      }
+
+      // The latter only happens when a file ends after the only line of a card
+      foldend = skipped.skip_end.unwrap_or_else(|| lines.len() - 1);
+
       self.checked_insert(foldstart as u64, foldend as u64, foldkw)?;
 
-      match skipped.nextline {
-        None => {
-          nextline = match li.skip_to_next_keyword() {
-            None => return Ok(()),
-            Some(pl) => pl,
-          };
-        }
-        Some(pl) => {
-          match pl.try_into_keywordline() {
-            Some(kl) => nextline = kl,
-            None => nextline = match li.skip_to_next_keyword() {
-              None => return Ok(()),
-              Some(pl) => pl,
-            }
-          }
-        }
+      if let Some(Some(kl)) = skipped.nextline.map(|pl| pl.try_into_keywordline()) {
+        nextline = kl;
+      } else {
+        nextline = unwrap_or_ok!(li.skip_to_next_keyword());
       }
     }
   }
