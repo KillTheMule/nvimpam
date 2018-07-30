@@ -305,7 +305,7 @@ where
     }
     SkipResult {
       nextline: Some(nextline),
-      skip_end: prevline.map(|p| p.number),
+      skip_end: prevline.map(|p| p.number).or(Some(skipline.number)),
     }
   }
 
@@ -315,57 +315,20 @@ where
   /// of the given type, but that might not always be strictly neccessary.
   pub fn skip_card_gather<'b>(
     &'b mut self,
-    nextline: &KeywordLine<'a, T>,
+    skipline: &KeywordLine<'a, T>,
     card: &Card,
   ) -> SkipResult<'a, T> {
-    let mut curkw;
-    let mut res;
-    let mut curidx;
-    let mut curline;
-    let mut previdx = None;
+    let mut res = self.skip_card(skipline, card);
 
-    res = self.skip_card(nextline, card);
-
+    #[cfg_attr(rustfmt, rustfmt_skip)]
     loop {
-      match res.nextline {
-        // file ended before the next non-comment line
-        None => {
-          return SkipResult {
-            skip_end: res.skip_end,
-            ..Default::default()
-          }
-        }
-        Some(p) => {
-          curkw = p.keyword;
-          curline = p.text;
-          curidx = p.number;
-          // TODO: check this -1
-          previdx = previdx.or_else(|| Some(curidx - 1));
+      if let Some(ParsedLine{keyword: Some(k),number,text}) = res.nextline {
+        if k == card.keyword {
+          res = self.skip_card(&KeywordLine{keyword: k,number,text}, card);
+          continue;
         }
       }
-      if curkw != Some(card.keyword) {
-        break;
-      } else {
-        previdx = Some(curidx);
-      }
-
-      res = self.skip_card(
-        &KeywordLine {
-          number: curidx,
-          text: curline,
-          keyword: curkw.unwrap(),
-        },
-        card,
-      );
-    }
-
-    SkipResult {
-      nextline: Some(ParsedLine {
-        number: curidx,
-        text: curline,
-        keyword: curkw,
-      }),
-      skip_end: previdx,
+      return res;
     }
   }
 }
