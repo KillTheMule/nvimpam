@@ -81,7 +81,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_NSMAS);
 
-    assert_eq!(v, foldlist.into_vec(1));
+    assert_eq!(v, foldlist.to_vec(1));
   }
 
   const CARD_MASS: [&'static str; 10] = [
@@ -103,7 +103,7 @@ mod tests {
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_MASS);
 
-    assert_eq!(v, foldlist.into_vec(1));
+    assert_eq!(v, foldlist.to_vec(1));
   }
 
 }
