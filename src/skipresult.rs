@@ -1,7 +1,7 @@
 //! This module holds datastructures for the various `skip_*` methods of the
 //! [`NoCommentIter`](::nocommentiter::NoCommentIter)
-use std::fmt;
 use std::convert::From;
+use std::fmt;
 
 use card::keyword::Keyword;
 
@@ -16,21 +16,33 @@ where
   pub keyword: Option<Keyword>,
 }
 
-impl<'a, T> ParsedLine<'a, T> where T: AsRef<str> {
+impl<'a, T> ParsedLine<'a, T>
+where
+  T: AsRef<str>,
+{
   pub fn try_into_keywordline(self) -> Option<KeywordLine<'a, T>> {
     if let Some(kw) = self.keyword {
-      return Some(KeywordLine { number: self.number, text: self.text, keyword: kw })
+      return Some(KeywordLine {
+        number: self.number,
+        text: self.text,
+        keyword: kw,
+      });
     } else {
-      return None
+      return None;
     }
   }
 }
 
-impl<'a, T> From<KeywordLine<'a, T>> for ParsedLine<'a,T>
-where T: AsRef<str> {
+impl<'a, T> From<KeywordLine<'a, T>> for ParsedLine<'a, T>
+where
+  T: AsRef<str>,
+{
   fn from(k: KeywordLine<'a, T>) -> ParsedLine<'a, T> {
-    ParsedLine { number: k.number, text: k.text, keyword:
-      Some(k.keyword) }
+    ParsedLine {
+      number: k.number,
+      text: k.text,
+      keyword: Some(k.keyword),
+    }
   }
 }
 
@@ -84,7 +96,7 @@ where
 /// before such a line could be found, i.e. the file ended.
 ///
 /// `skip_end` is the index of the last line we skipped. It will be `None` if
-/// we could not fully skip something before the file ended7416
+/// we could not fully skip something before the file ended
 #[derive(Debug)]
 pub struct SkipResult<'a, T: 'a>
 where
