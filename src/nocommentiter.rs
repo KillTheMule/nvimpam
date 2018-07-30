@@ -161,13 +161,19 @@ where
 
     if ends {
       nextline = next_or_return_some_previdx!(self, prevline);
-      Some(SkipResult{ nextline: Some(nextline), skip_end: Some(skipline.number) }) 
-    } else if !ends && ! contained {
+      Some(SkipResult {
+        nextline: Some(nextline),
+        skip_end: Some(skipline.number),
+      })
+    } else if !ends && !contained {
       None
     } else {
       // Need to save this in case the iterator ends in the next line
-      prevline = Some(ParsedLine{ number: skipline.number, text: skipline.text,
-        keyword: skipline.keyword });
+      prevline = Some(ParsedLine {
+        number: skipline.number,
+        text: skipline.text,
+        keyword: skipline.keyword,
+      });
       nextline = next_or_return_some_previdx!(self, prevline);
 
       while ges.contains(nextline.text) {
@@ -238,17 +244,18 @@ where
 
           match tmp {
             None => continue,
-            Some(sr) => {
-              match sr.nextline {
-                None => {
-                  return SkipResult{ nextline: None, skip_end: sr.skip_end }
-                },
-                Some(pl) => {
-                  prevline = Some(nextline);
-                  nextline = pl;
+            Some(sr) => match sr.nextline {
+              None => {
+                return SkipResult {
+                  nextline: None,
+                  skip_end: sr.skip_end,
                 }
               }
-            }
+              Some(pl) => {
+                prevline = Some(nextline);
+                nextline = pl;
+              }
+            },
           }
         }
         Line::Cells(_s) => {
