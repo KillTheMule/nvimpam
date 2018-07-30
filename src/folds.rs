@@ -31,7 +31,7 @@ use itertools::Itertools;
 
 use card::keyword::Keyword;
 use nocommentiter::CommentLess;
-use skipresult::{SkipLine, SkipResult};
+//use skipresult::SkipResult;
 
 /// Holds the fold data of the buffer. A fold has the following data:
 /// Linenumbers start, end (indexed from 1), and a
@@ -244,15 +244,14 @@ impl FoldList {
 
     let mut nextline = match li.skip_to_next_keyword() {
       None => return Ok(()),
-      Some(sl) => sl,
+      Some(pl) => pl,
     };
 
     loop {
-      foldkw = nextline.line_kw;
-      foldstart = nextline.line.0;
+      foldkw = nextline.keyword;
+      foldstart = nextline.number;
 
-      skipped = li.skip_fold(&nextline);
-
+      skipped = li.skip_fold(&nextline.into());
       if let Some(j) = skipped.skip_end {
         foldend = j;
       } else {
@@ -261,21 +260,22 @@ impl FoldList {
       }
       self.checked_insert(foldstart as u64, foldend as u64, foldkw)?;
 
-      if let SkipResult {
-        nextline: Some(l),
-        nextline_kw: Some(k),
-        ..
-      } = skipped
-      {
-        nextline = SkipLine {
-          line: l,
-          line_kw: k,
+      match skipped.nextline {
+        None => {
+          nextline = match li.skip_to_next_keyword() {
+            None => return Ok(()),
+            Some(pl) => pl,
+          };
         }
-      } else {
-        nextline = match li.skip_to_next_keyword() {
-          None => return Ok(()),
-          Some(sl) => sl,
-        };
+        Some(pl) => {
+          match pl.try_into_keywordline() {
+            Some(kl) => nextline = kl,
+            None => nextline = match li.skip_to_next_keyword() {
+              None => return Ok(()),
+              Some(pl) => pl,
+            }
+          }
+        }
       }
     }
   }

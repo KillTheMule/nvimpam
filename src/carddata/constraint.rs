@@ -206,7 +206,7 @@ mod tests {
   ];
 
   #[test]
-  fn fold_mtoco() {
+  fn fold_mtoco1() {
     let v = vec![(2, 5, Mtoco), (6, 10, Mtoco)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_MTOCO);
@@ -243,7 +243,7 @@ mod tests {
   ];
 
   #[test]
-  fn fold_otmco() {
+  fn fold_otmco1() {
     let v = vec![(1, 4, Otmco)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_OTMCO);
