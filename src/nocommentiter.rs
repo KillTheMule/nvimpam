@@ -99,7 +99,7 @@ where
   fn next(&mut self) -> Option<Self::Item> {
     while let Some((i, n)) = self.it.next() {
       let t = n.as_ref().as_bytes();
-      if !(t.len() > 0 && (t[0] == b'#' || t[0] == b'$')) {
+      if t.is_empty() || !(t[0] == b'#' || t[0] == b'$') {
         return Some(ParsedLine {
           number: i,
           text: n,
@@ -305,7 +305,7 @@ where
     }
     SkipResult {
       nextline: Some(nextline),
-      skip_end: prevline.map(|p| p.number).or(Some(skipline.number)),
+      skip_end: prevline.map(|p| p.number).or_else(||Some(skipline.number)),
     }
   }
 

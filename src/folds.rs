@@ -261,7 +261,7 @@ impl FoldList {
     loop {
       foldkw = nextline.keyword;
       foldstart = nextline.number;
-      skipped = li.skip_fold(&nextline.into());
+      skipped = li.skip_fold(&nextline);
 
       // The latter only happens when a file ends after the only line of a card
       foldend = skipped.skip_end.unwrap_or_else(|| lines.len() - 1);
