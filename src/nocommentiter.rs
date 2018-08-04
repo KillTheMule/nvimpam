@@ -235,22 +235,14 @@ where
           advance!(self, prevline, nextline);
         }
         Line::Ges(ref g) => {
-          let tmp = self.skip_ges(*g, &nextline);
-
-          match tmp {
-            None => continue,
-            Some(sr) => match sr.nextline {
-              None => {
-                return SkipResult {
-                  nextline: None,
-                  skip_end: sr.skip_end,
-                }
-              }
+          if let Some(sr) = self.skip_ges(*g, &nextline) {
+             match sr.nextline {
+              None => return sr,
               Some(pl) => {
                 prevline = Some(nextline);
                 nextline = pl;
               }
-            },
+            };
           }
         }
         Line::Cells(_s) => {
