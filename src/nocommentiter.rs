@@ -91,14 +91,14 @@ pub struct NoCommentIter<I> {
 
 impl<'a, I, T: 'a> Iterator for NoCommentIter<I>
 where
-  T: AsRef<str>,
+  T: AsRef<[u8]>,
   I: Iterator<Item = (usize, &'a T)>,
 {
   type Item = ParsedLine<'a, T>;
 
   fn next(&mut self) -> Option<Self::Item> {
     while let Some((i, n)) = self.it.next() {
-      let t = n.as_ref().as_bytes();
+      let t = n.as_ref();
       if t.is_empty() || !(t[0] == b'#' || t[0] == b'$') {
         return Some(ParsedLine {
           number: i,
@@ -114,7 +114,7 @@ where
 impl<'a, I, T: 'a> CommentLess for I
 where
   I: Iterator<Item = (usize, &'a T)>,
-  T: AsRef<str>,
+  T: AsRef<[u8]>,
 {
   fn remove_comments(self) -> NoCommentIter<I> {
     NoCommentIter { it: self }
@@ -124,7 +124,7 @@ where
 impl<'a, I, T: 'a> NoCommentIter<I>
 where
   I: Iterator<Item = (usize, &'a T)>,
-  T: AsRef<str>,
+  T: AsRef<[u8]>,
 {
   /// Advance the iterator until meeting the first line with a keyword. If the
   /// file ends before that, return the default

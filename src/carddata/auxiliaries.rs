@@ -9,7 +9,7 @@ use card::Card;
 pub static GROUP: Card = Card {
   lines: &[
     Cells(&[Kw, Str(72)]),
-    OptionalBlock("META", "END_META"),
+    OptionalBlock(b"META", b"END_META"),
     Ges(GesNode),
   ],
   ownfold: true,

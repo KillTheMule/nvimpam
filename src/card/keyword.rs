@@ -82,10 +82,10 @@ pub enum Keyword {
 impl Keyword {
   /// Parse a string to determine if it starts with the keyword of a card.
   #[inline]
-  pub fn parse<T: AsRef<str>>(s: &T) -> Option<Keyword> {
+  pub fn parse<T: AsRef<[u8]>>(s: &T) -> Option<Keyword> {
     use self::Keyword::*;
 
-    let s = s.as_ref().as_bytes();
+    let s = s.as_ref();
     let len = s.len();
 
     if len == 0 || len < 8 {

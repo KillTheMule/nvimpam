@@ -4,6 +4,8 @@
 use std::cmp;
 use std::ops::Range;
 
+use atoi::atoi;
+
 use card::cell::Cell;
 use card::ges::GesType;
 
@@ -30,17 +32,18 @@ pub enum Line {
   /// index, see the doc for [`Optional`](::card::line::Line::Optional)
   Repeat(&'static [Cell], u8),
   /// A block of lines, ended by a line starting with the given string.
-  Block(&'static [Line], &'static str),
+  Block(&'static [Line], &'static [u8]),
   /// A block that's entirely optional, starting with a line of a given string
   /// and ending in a line with another given string
-  OptionalBlock(&'static str, &'static str),
+  OptionalBlock(&'static [u8], &'static [u8]),
 }
 
 /// An enum to represent different conditionals on lines
 #[derive(Debug, PartialEq)]
 pub enum Conditional {
-  /// The char at the given index (0-based!) is the given one.
-  RelChar(u8, char),
+  /// The byte (2nd arg) at the given index (1st arg) (0-based!) is the given
+  /// one.
+  RelChar(u8, u8),
   // The integer at the cell given by the range is the second number
   Int(Range<u8>, u8),
   // Read a number from a given cell
@@ -58,30 +61,54 @@ impl Conditional {
   /// Given a line, evaluate the conditional on it
   pub fn evaluate<'a, T: 'a>(&self, line: &'a T) -> CondResult
   where
-    T: AsRef<str>,
+    T: AsRef<[u8]>,
   {
     use self::CondResult::*;
 
     match *self {
       Conditional::RelChar(idx, c) => {
         let idx = idx as usize;
-        Bool(line.as_ref().get(idx..idx + 1) == Some(&c.to_string()))
+        Bool(line.as_ref().get(idx..idx + 1) == Some(&[c]))
       }
       Conditional::Int(ref r, b) => {
-        let range = r.start as usize ..cmp::min(line.as_ref().len(), r.end as usize );
-        line
-        .as_ref()
-        .get(range)
-        .map(|s| Bool(s.trim().parse::<u8>() == Ok(b)))
-        .unwrap_or(Bool(false))
+        let range =
+          r.start as usize..cmp::min(line.as_ref().len(), r.end as usize);
+
+        let cell = match line.as_ref().get(range) {
+          Some(c) => c,
+          None => return Bool(false)
+        };
+
+        let firstdigit = cell
+            .iter()
+            .position(|b| *b >= b'0' && *b <= b'9')
+            .unwrap_or(0usize);
+
+        Bool(
+          cell.get(firstdigit..)
+            .map(|s| atoi::<usize>(s) == Some(b as usize))
+            .unwrap_or(false),
+        )
       }
       Conditional::Number(ref r) => {
-        let range = r.start as usize ..cmp::min(line.as_ref().len(), r.end as usize);
-        line
-          .as_ref()
-          .get(range)
-          .map(|s| Number(s.trim().parse::<usize>().ok()))
-          .unwrap_or(Number(None))
+        let range =
+          r.start as usize..cmp::min(line.as_ref().len(), r.end as usize);
+
+        let cell = match line.as_ref().get(range) {
+          Some(c) => c,
+          None => return Bool(false)
+        };
+
+        let firstdigit = cell
+            .iter()
+            .position(|b| *b >= b'0' && *b <= b'9')
+            .unwrap_or(0usize);
+
+        Number(
+          cell.get(firstdigit..)
+            .map(|s| atoi::<usize>(s))
+            .unwrap_or(None)
+        )
       }
     }
   }
@@ -94,8 +121,8 @@ mod tests {
 
   #[test]
   fn relchar_can_be_evaluated() {
-    let cond1 = Conditional::RelChar(2, 'b');
-    let cond2 = Conditional::RelChar(3, 'b');
+    let cond1 = Conditional::RelChar(2, b'b');
+    let cond2 = Conditional::RelChar(3, b'b');
     let line = "abbxy oaslkj";
 
     assert_eq!(Bool(true), cond1.evaluate(&line));
@@ -104,7 +131,7 @@ mod tests {
 
   #[test]
   fn relchar_out_of_bounds() {
-    let cond1 = Conditional::RelChar(95, 'b');
+    let cond1 = Conditional::RelChar(95, b'b');
     let line = "abbxy oaslkj";
 
     assert_eq!(Bool(false), cond1.evaluate(&line));

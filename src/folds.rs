@@ -139,7 +139,7 @@ impl FoldList {
 
   /// Remove all the entries from the FoldList, and iterate over lines to
   /// populate it with new ones
-  pub fn recreate_all<T: AsRef<str>>(
+  pub fn recreate_all<T: AsRef<[u8]>>(
     &mut self,
     lines: &[T],
   ) -> Result<(), Error> {
@@ -237,7 +237,7 @@ impl FoldList {
   /// definition of the card in the [carddata](::carddata) module, each card
   /// will be in an own fold, or several adjacent (modulo comments) cards will
   /// be subsumed into a fold.
-  pub fn add_folds<T: AsRef<str>>(&mut self, lines: &[T]) -> Result<(), Error> {
+  pub fn add_folds<T: AsRef<[u8]>>(&mut self, lines: &[T]) -> Result<(), Error> {
     let mut li = lines.iter().enumerate().remove_comments();
 
     let mut foldstart;

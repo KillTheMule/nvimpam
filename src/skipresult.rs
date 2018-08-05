@@ -9,7 +9,7 @@ use card::keyword::Keyword;
 #[derive(PartialEq)]
 pub struct ParsedLine<'a, T: 'a>
 where
-  T: AsRef<str>,
+  T: AsRef<[u8]>,
 {
   pub number: usize,
   pub text: &'a T,
@@ -18,7 +18,7 @@ where
 
 impl<'a, T> ParsedLine<'a, T>
 where
-  T: AsRef<str>,
+  T: AsRef<[u8]>,
 {
   pub fn try_into_keywordline(self) -> Option<KeywordLine<'a, T>> {
     if let Some(kw) = self.keyword {
@@ -35,7 +35,7 @@ where
 
 impl<'a, T> From<KeywordLine<'a, T>> for ParsedLine<'a, T>
 where
-  T: AsRef<str>,
+  T: AsRef<[u8]>,
 {
   fn from(k: KeywordLine<'a, T>) -> ParsedLine<'a, T> {
     ParsedLine {
@@ -48,7 +48,7 @@ where
 
 impl<'a, T: 'a> fmt::Debug for ParsedLine<'a, T>
 where
-  T: AsRef<str>,
+  T: AsRef<[u8]>,
 {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(
@@ -67,7 +67,7 @@ where
 #[derive(PartialEq)]
 pub struct KeywordLine<'a, T: 'a>
 where
-  T: AsRef<str>,
+  T: AsRef<[u8]>,
 {
   pub number: usize,
   pub text: &'a T,
@@ -76,7 +76,7 @@ where
 
 impl<'a, T: 'a> fmt::Debug for KeywordLine<'a, T>
 where
-  T: AsRef<str>,
+  T: AsRef<[u8]>,
 {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(
@@ -100,7 +100,7 @@ where
 #[derive(Debug)]
 pub struct SkipResult<'a, T: 'a>
 where
-  T: AsRef<str>,
+  T: AsRef<[u8]>,
 {
   pub nextline: Option<ParsedLine<'a, T>>,
   pub skip_end: Option<usize>,
@@ -108,7 +108,7 @@ where
 
 impl<'a, T: 'a> Default for SkipResult<'a, T>
 where
-  T: AsRef<str>,
+  T: AsRef<[u8]>,
 {
   fn default() -> Self {
     SkipResult {

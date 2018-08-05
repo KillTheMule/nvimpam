@@ -12,8 +12,8 @@ pub enum GesType {
 impl GesType {
   /// Checks if a given line fits the basic format of a line in a GES: 8 blanks
   /// followed by one of several keywords. Checks nothing else.
-  pub fn contains<T: AsRef<str>>(self, line: &T) -> bool {
-    let b = line.as_ref().as_bytes();
+  pub fn contains<T: AsRef<[u8]>>(self, line: &T) -> bool {
+    let b = line.as_ref();
 
     let len = b.len();
 
@@ -62,8 +62,8 @@ impl GesType {
 
   /// Check if a given line ends a GES. That is, it consists of 8 blanks
   /// followed by "END"
-  pub fn ended_by<T: AsRef<str>>(self, line: &T) -> bool {
-    let b = line.as_ref().as_bytes();
+  pub fn ended_by<T: AsRef<[u8]>>(self, line: &T) -> bool {
+    let b = line.as_ref();
     let len = b.len();
 
     len == 11 && &b[0..11] == b"        END"

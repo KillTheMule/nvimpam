@@ -60,7 +60,7 @@ pub static OTMCO: Card = Card {
     Cells(&[Fixed("NAME"), Str(76)]),
     Block(
       &[Cells(&[Blank(8), Fixed("WEIGHT"), Float(58)]), Ges(GesNode)],
-      "END_OTMCO",
+      b"END_OTMCO",
     ),
   ],
 
