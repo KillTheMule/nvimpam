@@ -19,7 +19,7 @@ macro_rules! part {
           Integer(8),
           Integer(8)
           ], Int(25..33, 0)),
-        Optional(&[Str(4), Str(76)], 0),
+        Optional(&[Fixed("RMAT"), Str(76)], 0),
         Cells(&[Fixed("NAME"), Str(76)]),
         Cells(&[Float(10), Float(10)]),
         Cells(&[Float(10), Float(10), Float(10)]),
@@ -301,7 +301,7 @@ mod tests {
   const CARD_PARTSPHEL: [&'static str; 13] = [
     "$PART Type SPHEL",
     "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",
-    "PART  /        1   SPHEL       0       0       0       0",
+    "PART  /        1   SPHEL       1       0       0       0",
     "$#                                                                         TITLE",
     "NAME PART_1                                                                     ",
     "$#  DTELIM    TSCALF   DTRATIO",
@@ -315,7 +315,7 @@ mod tests {
   ];
 
   #[test]
-  fn fold_partsphel() {
+  fn fold_partsphel1() {
     let v = vec![(2, 12, PartSphel)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSPHEL);
@@ -343,7 +343,7 @@ mod tests {
   ];
 
   #[test]
-  fn fold_partshphel2() {
+  fn fold_partsphel2() {
     let v = vec![(2, 15, PartSphel)];
     let mut foldlist = FoldList::new();
     let _ = foldlist.add_folds(&CARD_PARTSPHEL2);
