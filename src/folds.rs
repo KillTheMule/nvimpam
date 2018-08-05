@@ -58,8 +58,10 @@ pub struct FoldList {
   /// List of level 2 folds (i.e. containing level 1 folds), keyed by [start,
   /// end], valued by Keyword, sorted lexicographically on [start, end].
   folds_level2: BTreeMap<[u64; 2], Keyword>,
-  /// List of Strings to show as foldtext
+  /// List of Strings to show as foldtext for level 1 folds
   fold_texts: BTreeMap<[u64; 2], String>,
+  /// List of Strings to show as foldtext for level 2 folds
+  fold_texts_level2: BTreeMap<[u64; 2], String>,
 }
 
 impl FoldList {
@@ -70,6 +72,7 @@ impl FoldList {
       folds: BTreeMap::new(),
       folds_level2: BTreeMap::new(),
       fold_texts: BTreeMap::new(),
+      fold_texts_level2: BTreeMap::new(),
     }
   }
 
@@ -78,6 +81,7 @@ impl FoldList {
     self.folds.clear();
     self.folds_level2.clear();
     self.fold_texts.clear();
+    self.fold_texts_level2.clear();
   }
 
   /// Insert a level 1 fold (start, end) into the FoldList. Returns an error if
@@ -175,7 +179,7 @@ impl FoldList {
             entry.insert(kw);
           }
         }
-        match self.fold_texts.entry([firstline, lastline]) {
+        match self.fold_texts_level2.entry([firstline, lastline]) {
           Entry::Occupied(_) => {
             return Err(failure::err_msg("Foldtext already in fold_texts!"))
           }
@@ -194,32 +198,17 @@ impl FoldList {
     let luafn = "require('nvimpam').update_foldtexts(...)";
     let mut luaargs = vec![];
 
-    for (range, text) in &self.fold_texts {
+    for (range, text) in self.fold_texts.iter().chain(&self.fold_texts_level2) {
       luaargs.push(Value::from(vec![
         Value::from(range[0] + 1),
         Value::from(range[1] + 1),
         Value::from(text.to_string()),
       ]));
     }
-    nvim.execute_lua(luafn, vec![Value::from(luaargs)])?;
 
-    // Just an estimate, not worth a lot
-    let mut command = String::with_capacity(10 + 12 * self.folds.len());
-
-    if !self.folds.is_empty() {
-      for range in self.folds.keys() {
-        let start = range[0];
-        let end = range[1];
-        if start < end {
-          command.push_str(&format!("|{},{}fo", start + 1, end + 1));
-        }
-      }
-      for range in self.folds_level2.keys() {
-        command.push_str(&format!("|{},{}fo", range[0] + 1, range[1] + 1));
-      }
-      nvim.command("normal! zE")?;
-      nvim.command(&command).context("Fold command failed!")?;
-    }
+    nvim
+      .execute_lua(luafn, vec![Value::from(luaargs)])
+      .context("Execute lua failed")?;
 
     Ok(())
   }

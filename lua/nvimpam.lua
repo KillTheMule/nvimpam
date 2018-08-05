@@ -231,6 +231,12 @@ end
 
 local function update_foldtexts(texts)
   foldtexts = texts
+
+  local cmd = 'exe "norm! zE"'
+  for _, v in ipairs(foldtexts) do
+    cmd = cmd.."|"..v[1]..","..v[2].."fo" 
+  end
+  command(cmd)
 end
 
 local function printstderr()
