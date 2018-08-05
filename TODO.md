@@ -1,5 +1,3 @@
-* Make GesType copy and let skip_ges take it by value
-
 * See if we can get the info for send_client_info programmatically from Cargo.toml
   or the code
   * Check out a build.rs
@@ -25,8 +23,6 @@
   * List all available binaries, not only the one used 
 
 * Remove failure from the lib, implement own error handling
-
-* Work on skip_card if we can't reduce the amount of repetition 
 
 * Check out https://github.com/kernelmachine/cargo-profiler
 
