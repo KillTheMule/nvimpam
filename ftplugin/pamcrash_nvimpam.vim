@@ -5,7 +5,7 @@ let g:nvimpam_loaded = 1
 
 command! NvimPamAttach call luaeval('require("nvimpam").attach()')
 command! NvimPamDetach call luaeval('require("nvimpam").detach()')
-command! NvimPamUpdateFolds call luaeval('require("nvimpam").update_folds()')
+command! NvimPamUpdateFolds call luaeval('require("nvimpam").refresh_folds()')
 command! NvimPamPrintfolds call luaeval('require("nvimpam").printfolds()')
 command! NvimPamPrintstderr call luaeval('require("nvimpam").printstderr()')
 

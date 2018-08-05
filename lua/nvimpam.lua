@@ -195,7 +195,7 @@ local function detach_all()
   end
 end
 
-local function update_folds(buf)
+local function refresh_folds(buf)
   buf = buf or curbuf()
 
   if not jobids[buf] then
@@ -229,7 +229,7 @@ local function printfolds(which)
   input("<Esc>")
 end
 
-local function update_foldtexts(texts)
+local function update_folds(texts)
   foldtexts = texts
 
   local cmd = 'exe "norm! zE"'
@@ -255,7 +255,7 @@ return {
   detach_all = detach_all,
   update_folds = update_folds,
   locate_binary = locate_binary,
-  update_foldtexts = update_foldtexts,
+  refresh_folds = refresh_folds,
   foldtext = foldtext,
   foldtexts = foldtexts,
   printfolds = printfolds,

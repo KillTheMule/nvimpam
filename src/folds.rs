@@ -195,7 +195,7 @@ impl FoldList {
   /// Delete all folds in nvim, and create the ones from the FoldList
   /// https://github.com/KillTheMule/KillTheMule.github.io/blob/master/benchmark_rpc.md
   pub fn resend_all(&self, nvim: &mut Neovim) -> Result<(), Error> {
-    let luafn = "require('nvimpam').update_foldtexts(...)";
+    let luafn = "require('nvimpam').update_folds(...)";
     let mut luaargs = vec![];
 
     for (range, text) in self.fold_texts.iter().chain(&self.fold_texts_level2) {
@@ -257,7 +257,9 @@ impl FoldList {
 
       self.checked_insert(foldstart as u64, foldend as u64, foldkw)?;
 
-      if let Some(Some(kl)) = skipped.nextline.map(|pl| pl.try_into_keywordline()) {
+      if let Some(Some(kl)) =
+        skipped.nextline.map(|pl| pl.try_into_keywordline())
+      {
         nextline = kl;
       } else {
         nextline = unwrap_or_ok!(li.skip_to_next_keyword());
