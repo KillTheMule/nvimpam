@@ -6,6 +6,13 @@ rust:
   - beta
   - nightly
 
+env:
+  global:
+    - RUST_BACKTRACE=1
+    - NVIMPAM_LOG_FILE=nvimpamlog
+    - NVIMPAM_LOG_LEVEL=debug
+    - NVIMPAM_STDERR=nvimpamstderr
+
 #build failures only when on stable
 matrix:
   allow_failures:
@@ -32,6 +39,7 @@ jobs:
               && git submodule update --remote --depth 50
               && TEST_FILE=../test/nvimpam_spec.lua make functionaltest
               && cd .. && RUSTFLAGS="-C opt-level=0" cargo bench
+              ; echo NVIMPAMSTDERR && cat nvimpamstderr
       # cache it all, especially the neovim sources won't change often
       cache: 
         - cargo 
@@ -40,10 +48,12 @@ jobs:
     - stage: functionaltest
       script: cargo build && cd neovim && git submodule init
               && git submodule update --remote --depth 50
+              && brew update && brew install ninja && brew install gettext
+              && brew reinstall -s libtool
               && TEST_FILE=../test/nvimpam_spec.lua make functionaltest
               && cd .. && RUSTFLAGS="-C opt-level=0" cargo bench
+              ; echo NVIMPAMSTDERR && cat nvimpamstderr
       cache: 
         - cargo
-        - directories:
-          - neovim/.deps
       os: osx
+      osx_image: xcode7.3
