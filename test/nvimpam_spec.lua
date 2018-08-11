@@ -6,6 +6,8 @@ local insert = helpers.insert
 local meths = helpers.meths
 local eq = helpers.eq
 
+local is_ci = os.getenv("TRAVIS") or os.getenv("APPVEYOR")
+
 -- Override this function to ignore the last line, i.e. the command
 -- line, since it seems increasingly non-deterministic, and we don't
 -- care a lot about it anyways
@@ -318,7 +320,11 @@ describe('nvimpam', function()
     command("set nowrap")
     command('edit ' .. alter_slashes('../files/example.pc'))
     command('NvimPamAttach')
-    helpers.sleep(500)
+    if is_ci then
+      helpers.sleep(1000)
+    else
+      helpers.sleep(100)
+    end
     feed("28G")
     command("vs " .. alter_slashes("../files/example2.pc"))
     command("NvimPamAttach")
@@ -378,7 +384,11 @@ describe('nvimpam', function()
     eq(client2.name, 'nvimpam')
 
     command("NvimPamDetach")
-    helpers.sleep(500)
+    if is_ci then
+      helpers.sleep(1000)
+    else
+      helpers.sleep(10)
+    end
     chans = meths.list_chans()
     eq(chans[3].client.name, 'nvimpam')
     eq(nil, chans[4])
