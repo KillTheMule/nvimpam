@@ -57,9 +57,11 @@ mod tests {
   #[test]
   fn fold_group2() {
     let v = vec![(0, 6, Group), (7, 10, Group)];
+    let w = vec![(0, 10, Group)];
     let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_GROUP2);
+    let _ = foldlist.recreate_all(&CARD_GROUP2);
 
     assert_eq!(v, foldlist.to_vec(1));
+    assert_eq!(w, foldlist.to_vec(2));
   }
 }
