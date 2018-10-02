@@ -61,6 +61,20 @@ where
   }
 }
 
+impl<'a, T: 'a> fmt::Display for ParsedLine<'a, T>
+where
+  T: AsRef<[u8]>,
+{
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(
+      f,
+      "ParsedLine {{ number: {}, text: {}, keyword: {:?} }}",
+      self.number,
+      String::from_utf8_lossy(self.text.as_ref()),
+      self.keyword
+    )
+  }
+}
 /// A struct returned by
 /// [`skip_to_next_keyword`](::nocommentiter::NoCommentIter::
 /// skip_to_next_keyword).
@@ -81,9 +95,24 @@ where
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(
       f,
-      "ParsedLine {{ number: {:?}, text: {:?}, keyword: {:?} }}",
+      "KeywordLine {{ number: {:?}, text: {:?}, keyword: {:?} }}",
       self.number,
       self.text.as_ref(),
+      self.keyword
+    )
+  }
+}
+
+impl<'a, T: 'a> fmt::Display for KeywordLine<'a, T>
+where
+  T: AsRef<[u8]>,
+{
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(
+      f,
+      "KeywordLine {{ number: {}, text: {}, keyword: {:?} }}",
+      self.number,
+      String::from_utf8_lossy(self.text.as_ref()),
       self.keyword
     )
   }
@@ -114,6 +143,27 @@ where
     SkipResult {
       nextline: None,
       skip_end: None,
+    }
+  }
+}
+
+impl<'a, T: 'a> fmt::Display for SkipResult<'a, T>
+where
+  T: AsRef<[u8]>,
+{
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    if let Some(ref pl) = self.nextline {
+      write!(
+        f,
+        "SkipResult {{ nextline: {}, skip_end: {:?} }}",
+        pl, self.skip_end
+      )
+    } else {
+      write!(
+        f,
+        "SkipResult {{ nextline: None, skip_end: {:?} }}",
+        self.skip_end
+      )
     }
   }
 }
