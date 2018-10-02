@@ -40,4 +40,26 @@ mod tests {
     assert_eq!(v, foldlist.to_vec(1));
   }
 
+  const CARD_GROUP2: [&'static str; 11] = [
+    "GROUP / TitleOfTheGroup",
+    "        ELE ",
+    "        DELNOD ",
+    "        PART 14 ",
+    "        OGRP ",
+    "        ELE ",
+    "        END",
+    "GROUP / TitleOfTheGroup2",
+    "        ELE ",
+    "        ELE ",
+    "        ELE ",
+  ];
+
+  #[test]
+  fn fold_group2() {
+    let v = vec![(0, 6, Group), (7, 10, Group)];
+    let mut foldlist = FoldList::new();
+    let _ = foldlist.add_folds(&CARD_GROUP2);
+
+    assert_eq!(v, foldlist.to_vec(1));
+  }
 }
