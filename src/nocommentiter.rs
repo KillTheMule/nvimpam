@@ -17,11 +17,11 @@ use skipresult::{KeywordLine, ParsedLine, SkipResult};
 // theres no next line, return a `SkipResult` containing the line number of
 // `prevline` and nothing else.
 macro_rules! next_or_return_previdx {
-  ($self:ident, $prevline:expr) => {
+  ($self:ident, $previdx:expr) => {
     match $self.next() {
       None => {
         return SkipResult {
-          skip_end: $prevline.map(|p| p.number),
+          skip_end: $previdx,
           ..Default::default()
         }
       }
@@ -33,11 +33,11 @@ macro_rules! next_or_return_previdx {
 // Used in skip_ges to get the next line. If it's None, we're at the end of
 // the file and only return what we found before. Also used in `advance_some!`
 macro_rules! next_or_return_some_previdx {
-  ($self:ident, $prevline:expr) => {
+  ($self:ident, $previdx:expr) => {
     match $self.next() {
       None => {
         return Some(SkipResult {
-          skip_end: $prevline.map(|p| p.number),
+          skip_end: $previdx,
           ..Default::default()
         })
       }
@@ -61,18 +61,18 @@ macro_rules! next_or_return_none {
 // and advance the iterator. Save in nextline, or return a SkipResult built
 // from prevline's line number
 macro_rules! advance {
-  ($self:ident, $prevline:ident, $nextline:ident) => {
-    $prevline = Some($nextline);
-    $nextline = next_or_return_previdx!($self, $prevline);
+  ($self:ident, $previdx:ident, $nextline:ident) => {
+    $previdx = Some($nextline.number);
+    $nextline = next_or_return_previdx!($self, $previdx);
   };
 }
 
 // Same as advance above, just that the `SkipResult` is wrapped in `Some`. Used
 // in skip_ges.
 macro_rules! advance_some {
-  ($self:ident, $prevline:ident, $nextline:ident) => {
-    $prevline = Some($nextline);
-    $nextline = next_or_return_some_previdx!($self, $prevline);
+  ($self:ident, $previdx:ident, $nextline:ident) => {
+    $previdx = Some($nextline.number);
+    $nextline = next_or_return_some_previdx!($self, $previdx);
   };
 }
 
@@ -153,14 +153,14 @@ where
     ges: GesType,
     skipline: &ParsedLine<'a, T>,
   ) -> Option<SkipResult<'a, T>> {
-    let mut prevline: Option<ParsedLine<'a, T>> = None;
+    let mut previdx: Option<usize> = None;
     let mut nextline: ParsedLine<'a, T>;
 
     let contained = ges.contains(skipline.text);
     let ends = ges.ended_by(skipline.text);
 
     if ends {
-      nextline = next_or_return_some_previdx!(self, prevline);
+      nextline = next_or_return_some_previdx!(self, previdx);
       Some(SkipResult {
         nextline: Some(nextline),
         skip_end: Some(skipline.number),
@@ -168,19 +168,19 @@ where
     } else if !ends && !contained {
       None
     } else {
-      nextline = next_or_return_some_previdx!(self, Some(skipline));
+      nextline = next_or_return_some_previdx!(self, Some(skipline.number));
 
       while ges.contains(nextline.text) {
-        advance_some!(self, prevline, nextline);
+        advance_some!(self, previdx, nextline);
       }
 
       if ges.ended_by(nextline.text) {
-        advance_some!(self, prevline, nextline);
+        advance_some!(self, previdx, nextline);
       }
 
       Some(SkipResult {
         nextline: Some(nextline),
-        skip_end: prevline.map(|p| p.number),
+        skip_end: previdx,
       })
     }
   }
@@ -221,8 +221,8 @@ where
       conds.push(c.evaluate(skipline.text));
     }
 
-    let mut prevline: Option<ParsedLine<'a, T>> = None;
-    let mut nextline = next_or_return_previdx!(self, prevline);
+    let mut previdx: Option<usize> = None;
+    let mut nextline = next_or_return_previdx!(self, previdx);
 
     for cardline in cardlines {
       if nextline.keyword.is_some() {
@@ -232,25 +232,25 @@ where
       match *cardline {
         Line::Provides(_s, ref c) => {
           conds.push(c.evaluate(&nextline.text));
-          advance!(self, prevline, nextline);
+          advance!(self, previdx, nextline);
         }
         Line::Ges(ref g) => {
           if let Some(sr) = self.skip_ges(*g, &nextline) {
              match sr.nextline {
               None => return sr,
               Some(pl) => {
-                prevline = Some(nextline);
+                previdx = Some(nextline.number);
                 nextline = pl;
               }
             };
           }
         }
         Line::Cells(_s) => {
-          advance!(self, prevline, nextline);
+          advance!(self, previdx, nextline);
         }
         Line::Optional(_s, i) => {
           if conds.get(i as usize) == Some(&CondResult::Bool(true)) {
-            advance!(self, prevline, nextline);
+            advance!(self, previdx, nextline);
           } else {
             continue;
           }
@@ -264,7 +264,7 @@ where
           // We need one more loop than *num because we need to get the next
           // line for the next outer iteration
           for _ in 0..*num {
-            advance!(self, prevline, nextline);
+            advance!(self, previdx, nextline);
 
             if nextline.keyword.is_some() {
               break;
@@ -273,20 +273,20 @@ where
         }
         Line::Block(_l, s) => loop {
           while !nextline.text.as_ref().starts_with(s) {
-            advance!(self, prevline, nextline);
+            advance!(self, previdx, nextline);
 
             if nextline.keyword.is_some() {
               break;
             }
           }
-          advance!(self, prevline, nextline);
+          advance!(self, previdx, nextline);
         },
         Line::OptionalBlock(s1, s2) => {
           if !nextline.text.as_ref().starts_with(s1) {
             continue;
           }
           while !nextline.text.as_ref().starts_with(s2) {
-            advance!(self, prevline, nextline);
+            advance!(self, previdx, nextline);
 
             if nextline.keyword.is_some() {
               break;
@@ -297,7 +297,7 @@ where
     }
     SkipResult {
       nextline: Some(nextline),
-      skip_end: prevline.map(|p| p.number).or_else(||Some(skipline.number)),
+      skip_end: previdx.or_else(||Some(skipline.number)),
     }
   }
 
