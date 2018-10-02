@@ -239,7 +239,7 @@ where
              match sr.nextline {
               None => return sr,
               Some(pl) => {
-                previdx = Some(nextline.number);
+                previdx = sr.skip_end;
                 nextline = pl;
               }
             };
