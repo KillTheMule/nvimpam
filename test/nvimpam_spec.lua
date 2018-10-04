@@ -5,34 +5,68 @@ local feed, alter_slashes = helpers.feed, helpers.alter_slashes
 local insert = helpers.insert
 local meths = helpers.meths
 local eq = helpers.eq
+local dedent = helpers.dedent
 
 local is_ci = os.getenv("TRAVIS") or os.getenv("APPVEYOR")
 
+-- canonical order of ext keys, used  to generate asserts
+local ext_keys = {
+  'popupmenu', 'cmdline', 'cmdline_block', 'wildmenu_items', 'wildmenu_pos'
+}
+local function isempty(v)
+  return type(v) == 'table' and next(v) == nil
+end
 -- Override this function to ignore the last line, i.e. the command
 -- line, since it seems increasingly non-deterministic, and we don't
 -- care a lot about it anyways
-function Screen:expect(expected, attr_ids, attr_ignore, condition, any)
+function Screen:expect(expected, attr_ids, attr_ignore)
+  local grid, condition = nil, nil
   local expected_rows = {}
-  if type(expected) ~= "string" then
-    assert(not (attr_ids or attr_ignore or condition or any))
+  if type(expected) == "table" then
+    assert(not (attr_ids ~= nil or attr_ignore ~= nil))
+    local is_key = {grid=true, attr_ids=true, attr_ignore=true, condition=true,
+                    any=true, mode=true}
+    for _, v in ipairs(ext_keys) do
+      is_key[v] = true
+    end
+    for k, _ in pairs(expected) do
+      if not is_key[k] then
+        error("Screen:expect: Unknown keyword argument '"..k.."'")
+      end
+    end
+    grid = expected.grid
+    attr_ids = expected.attr_ids
+    attr_ignore = expected.attr_ignore
+    condition = expected.condition
+    assert(not (expected.any ~= nil and grid ~= nil))
+  elseif type(expected) == "string" then
+    grid = expected
+    expected = {}
+  elseif type(expected) == "function" then
+    assert(not (attr_ids ~= nil or attr_ignore ~= nil))
     condition = expected
-    expected = nil
+    expected = {}
   else
+    assert(false)
+  end
+
+  if grid ~= nil then
     -- Remove the last line and dedent. Note that gsub returns more then one
     -- value.
-    expected = helpers.dedent(expected:gsub('\n[ ]+$', ''), 0)
-    for row in expected:gmatch('[^\n]+') do
+    grid = dedent(grid:gsub('\n[ ]+$', ''), 0)
+    for row in grid:gmatch('[^\n]+') do
       row = row:sub(1, #row - 1) -- Last char must be the screen delimiter.
       table.insert(expected_rows, row)
     end
-    if not any then
-      assert(self._height == #expected_rows,
-        "Expected screen state's row count(" .. #expected_rows
-        .. ') differs from configured height(' .. self._height .. ') of Screen.')
-    end
   end
-  local ids = attr_ids or self._default_attr_ids
-  local ignore = attr_ignore or self._default_attr_ignore
+  local attr_state = {
+      ids = attr_ids or self._default_attr_ids,
+      ignore = attr_ignore or self._default_attr_ignore,
+  }
+  if self._options.ext_hlstate then
+    attr_state.id_to_index = self:hlstate_check_attrs(attr_state.ids or {})
+  end
+  self._new_attrs = false
   self:wait(function()
     if condition ~= nil then
       local status, res = pcall(condition)
@@ -40,25 +74,35 @@ function Screen:expect(expected, attr_ids, attr_ignore, condition, any)
         return tostring(res)
       end
     end
-    local actual_rows = {}
-    for i = 1, self._height do
-      actual_rows[i] = self:_row_repr(self._rows[i], ids, ignore)
+
+    if grid ~= nil and self._height ~= #expected_rows then
+      return ("Expected screen state's row count(" .. #expected_rows
+              .. ') differs from configured height(' .. self._height .. ') of Screen.')
     end
 
-    if expected == nil then
-      return
-    elseif any then
-      -- Search for `expected` anywhere in the screen lines.
+    if self._options.ext_hlstate and self._new_attrs then
+      attr_state.id_to_index = self:hlstate_check_attrs(attr_state.ids or {})
+    end
+
+    local actual_rows = {}
+    for i = 1, self._height do
+      actual_rows[i] = self:_row_repr(self._rows[i], attr_state)
+    end
+
+    if expected.any ~= nil then
+      -- Search for `any` anywhere in the screen lines.
       local actual_screen_str = table.concat(actual_rows, '\n')
-      if nil == string.find(actual_screen_str, expected) then
+      if nil == string.find(actual_screen_str, expected.any) then
         return (
           'Failed to match any screen lines.\n'
-          .. 'Expected (anywhere): "' .. expected .. '"\n'
+          .. 'Expected (anywhere): "' .. expected.any .. '"\n'
           .. 'Actual:\n  |' .. table.concat(actual_rows, '|\n  |') .. '|\n\n')
       end
-    else
+    end
+
+    if grid ~= nil then
       -- `expected` must match the screen lines exactly.
-      for i = 1, self._height-2 do
+      for i = 1, self._height-1 do
         if expected_rows[i] ~= actual_rows[i] then
           local msg_expected_rows = {}
           for j = 1, #expected_rows do
@@ -75,6 +119,28 @@ screen:snapshot_util(). In case of non-deterministic failures, use
 screen:redraw_debug() to show all intermediate screen states.  ]])
         end
       end
+    end
+
+    -- Extension features. The default expectations should cover the case of
+    -- the ext_ feature being disabled, or the feature currently not activated
+    -- (for instance no external cmdline visible). Some extensions require
+    -- preprocessing to prepresent highlights in a reproducible way.
+    local extstate = self:_extstate_repr(attr_state)
+
+    -- convert assertion errors into invalid screen state descriptions
+    local status, res = pcall(function()
+      for _, k in ipairs(ext_keys) do
+        -- Empty states is considered the default and need not be mentioned
+        if not (expected[k] == nil and isempty(extstate[k])) then
+          eq(expected[k], extstate[k], k)
+        end
+      end
+      if expected.mode ~= nil then
+        eq(expected.mode, self.mode, "mode")
+      end
+    end)
+    if not status then
+      return tostring(res)
     end
   end)
 end
@@ -323,7 +389,7 @@ describe('nvimpam', function()
     if is_ci then
       helpers.sleep(1000)
     else
-      helpers.sleep(100)
+      helpers.sleep(1000)
     end
     feed("28G")
     command("vs " .. alter_slashes("../files/example2.pc"))
@@ -344,9 +410,18 @@ describe('nvimpam', function()
       {1: 2 lines: Node ·························}{3:│}$---------------------------------------|
       {1: 2 lines: Shell ························}{3:│}$ boxbeam                               |
       {1: 721 lines: Node ·······················}{3:│}$#         IDMAT   MATYP             RHO|
-      {4:../files/example2.pc                     }{3:../files/example.pc                     }|
+      ]]
+      ..
+      alter_slashes(
+      "{4:../files/example2.pc                     }{3:../files/example.pc                     }|"
+      )
+      ..
+      "\n"
+      ..
+      [[
       rust client connected to neovim                                                  |
-    ]])
+      ]]
+      )
 
     --[[
     local clientinfo = {
