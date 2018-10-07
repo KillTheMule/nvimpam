@@ -70,7 +70,7 @@ test_script:
       }
   - cd ..
   - cmd: if [%FUNCTIONALTESTS%] == [true] (
-            cargo bench )
+            cargo bench -- --test )
 
 cache:
   - C:\Users\appveyor\.cargo

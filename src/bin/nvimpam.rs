@@ -46,7 +46,7 @@ fn main() {
     Err(e) => {
       eprintln!("Nvimpam: Error initializing logger: {}", e);
       error!("Error initializing logger: {}", e);
-      for cause in e.causes().skip(1) {
+      for cause in e.iter_chain().skip(1) {
         error!("Caused by: {}", cause)
       }
       error!("Nvimpam exiting!");
@@ -60,7 +60,7 @@ fn main() {
     Err(e) => {
       eprintln!("Nvimpam encountered an error: {}", e);
       error!("Nvimpam encountered an error: {}", e);
-      for cause in e.causes().skip(1) {
+      for cause in e.iter_chain().skip(1) {
         error!("Caused by: {}", cause)
       }
       error!("Nvimpam exiting!");

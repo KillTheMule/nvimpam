@@ -38,7 +38,7 @@ jobs:
       script: cargo build && cargo build --release && cd neovim && git submodule init
               && git submodule update --remote --depth 50
               && TEST_FILE=../test/nvimpam_spec.lua make functionaltest
-              && cd .. && RUSTFLAGS="-C opt-level=0" cargo bench
+              && cd .. && RUSTFLAGS="-C opt-level=0" cargo bench -- --test
       after_script: echo NVIMPAMSTDERR && cat nvimpamstderr
       # cache it all, especially the neovim sources won't change often
       cache: 
@@ -51,7 +51,7 @@ jobs:
               && brew update && brew install ninja && brew install gettext
               && brew reinstall -s libtool
               && TEST_FILE=../test/nvimpam_spec.lua make functionaltest
-              && cd .. && RUSTFLAGS="-C opt-level=0" cargo bench
+              && cd .. && RUSTFLAGS="-C opt-level=0" cargo bench -- --test
       after_script: echo NVIMPAMSTDERR && cat nvimpamstderr
       cache: 
         - cargo

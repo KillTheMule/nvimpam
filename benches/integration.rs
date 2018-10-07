@@ -18,8 +18,6 @@ use neovim_lib::neovim::Neovim;
 use neovim_lib::neovim_api::NeovimApi;
 use neovim_lib::session::Session;
 
-mod common;
-
 fn bench_folds(c: &mut Criterion) {
   let (sender, receiver) = mpsc::channel();
   let nvimpath = Path::new("neovim").join("build").join("bin").join("nvim");
@@ -59,5 +57,5 @@ fn bench_folds(c: &mut Criterion) {
   });
 }
 
-criterion_group!(name = integration; config = common::conf(); targets = bench_folds);
+criterion_group!(name = integration; config = Criterion::default(); targets = bench_folds);
 criterion_main!(integration);

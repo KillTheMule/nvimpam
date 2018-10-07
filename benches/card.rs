@@ -9,8 +9,6 @@ use nvimpam_lib::card::keyword::Keyword;
 use nvimpam_lib::folds::FoldList;
 use nvimpam_lib::nocommentiter::CommentLess;
 
-mod common;
-
 fn bench_parse2folddata(c: &mut Criterion) {
   c.bench_function("card_parse2folddata", |b| {
     use std::fs::File;
@@ -79,7 +77,7 @@ fn bench_skip_ges(c: &mut Criterion) {
 
 criterion_group!(
   name = card;
-  config = common::conf();
+  config = Criterion::default();
   targets = bench_parse2folddata, bench_parse_str, bench_skip_ges
 );
 criterion_main!(card);
