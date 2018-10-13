@@ -3,7 +3,7 @@ if exists('g:nvimpam_loaded')
 endif
 let g:nvimpam_loaded = 1
 
-command! NvimPamAttach call luaeval('require("nvimpam").attach()')
+command! NvimPamAttach call luaeval('require("nvimpam").attach("'.expand('%:p').'")')
 command! NvimPamDetach call luaeval('require("nvimpam").detach()')
 command! NvimPamUpdateFolds call luaeval('require("nvimpam").refresh_folds()')
 command! NvimPamPrintfolds call luaeval('require("nvimpam").printfolds()')

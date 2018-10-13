@@ -44,7 +44,7 @@ fn bench_folds(c: &mut Criterion) {
       loop {
         match receiver.recv() {
           Ok(LinesEvent { linedata, .. }) => {
-            lines = Lines::new(linedata);
+            lines = Lines::from(linedata);
             foldlist.recreate_all(&lines).expect("5");
             foldlist.resend_all(&mut nvim).expect("6");
             curbuf.detach(&mut nvim).expect("7");

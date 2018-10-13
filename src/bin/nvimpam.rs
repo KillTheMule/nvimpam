@@ -24,6 +24,7 @@ extern crate nvimpam_lib;
 extern crate simplelog;
 
 use std::sync::mpsc;
+use std::env::args_os;
 
 use failure::Error;
 use failure::ResultExt;
@@ -173,7 +174,9 @@ fn start_program() -> Result<(), Error> {
     .subscribe("quit")
     .context("error: cannot subscribe to event: quit")?;
 
-  Event::event_loop(&receiver, nvim)?;
+  let file = args_os().skip(1).next();
+
+  Event::event_loop(&receiver, nvim, file)?;
 
   Ok(())
 }

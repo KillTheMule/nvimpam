@@ -3,6 +3,7 @@
 use failure::Error;
 use std::fmt;
 use std::sync::mpsc;
+use std::ffi::OsString;
 
 use neovim_lib::neovim::Neovim;
 use neovim_lib::neovim_api::Buffer;
@@ -60,14 +61,30 @@ impl Event {
   pub fn event_loop(
     receiver: &mpsc::Receiver<Event>,
     mut nvim: Neovim,
+    file: Option<OsString>
   ) -> Result<(), Error> {
     use self::Event::*;
 
     let curbuf = nvim.get_current_buf()?;
-    curbuf.attach(&mut nvim, true, vec![])?;
 
     let mut foldlist = FoldList::new();
-    let mut lines = Lines::new(Vec::new());
+    let origlines;
+    let mut lines = Lines::new();
+
+    let connected = match file {
+      None => curbuf.attach(&mut nvim, true, vec![])?,
+      Some(f) => {
+        origlines = Lines::read_file(f)?;
+        lines = Lines::from_slice(&origlines);
+        foldlist.recreate_all(&lines)?;
+        foldlist.resend_all(&mut nvim)?;
+        curbuf.attach(&mut nvim, false, vec![])?
+      }
+    };
+
+    if !connected {
+      return Err(failure::err_msg("Could not enable buffer updates!"));
+    }
 
     loop {
       match receiver.recv() {
@@ -78,7 +95,7 @@ impl Event {
           ..
         }) => {
           if lastline == -1 {
-            lines = Lines::new(linedata);
+            lines = Lines::from(linedata);
             foldlist.recreate_all(&lines)?;
             foldlist.resend_all(&mut nvim)?;
           } else if lastline >= 0 && firstline >= 0 {

@@ -83,7 +83,7 @@ local function on_exit(id, exitcode)
   end
 end
 
-local function attach()
+local function attach(filename)
   local buf = curbuf()
 
   if jobids[buf] then
@@ -100,6 +100,12 @@ local function attach()
     nvimpam_err("Attach to buffer "..tostring(buf).." failed: No "
                 .."executable found!")
     return false
+  end
+
+  if filename == nil then
+    args = ""
+  else
+    args = " "..filename
   end
 
   if not callbacks_defined["onexit"] then
@@ -128,11 +134,11 @@ local function attach()
       callbacks_defined["onstderr"] = true
     end
 
-    jobid = call("jobstart", { binary,
+    jobid = call("jobstart", { binary..args,
         { rpc=true, on_stderr='Nvimpam_onstderr', on_exit='Nvimpam_onexit'}
       })
   else
-    jobid = call("jobstart", { binary, { rpc=true, on_exit='Nvimpam_onexit'}})
+    jobid = call("jobstart", { binary..args, { rpc=true, on_exit='Nvimpam_onexit'}})
   end
 
   if jobid == 0 then
