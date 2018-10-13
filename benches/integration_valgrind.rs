@@ -22,7 +22,6 @@ use neovim_lib::neovim::Neovim;
 use neovim_lib::neovim_api::NeovimApi;
 use neovim_lib::session::Session;
 
-
 #[bench]
 fn bench_folds(b: &mut Bencher) {
   let (sender, receiver) = mpsc::channel();
@@ -32,7 +31,8 @@ fn bench_folds(b: &mut Bencher) {
     Command::new(nvimpath)
       .args(&["-u", "NONE", "--embed"])
       .env("VIMRUNTIME", "neovim/runtime"),
-  ).unwrap();
+  )
+  .unwrap();
 
   session.start_event_loop_handler(NeovimHandler(sender));
   let mut nvim = Neovim::new(session);

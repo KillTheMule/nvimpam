@@ -31,7 +31,7 @@ impl<'a> AsRef<[u8]> for Line<'a> {
 }
 
 /// The struct to hold the lines.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Lines<'a>(Vec<Line<'a>>);
 
 impl<'a> Lines<'a> {
@@ -52,7 +52,7 @@ impl<'a> Lines<'a> {
 
   /// Create a new `Lines` struct from a `Vec<String>`
   pub fn from(v: Vec<String>) -> Lines<'a> {
-    let w = v.into_iter().map(|l| Line::ChangedLine(l)).collect();
+    let w = v.into_iter().map(Line::ChangedLine).collect();
     Lines(w)
   }
 
@@ -86,7 +86,7 @@ impl<'a> Lines<'a> {
     let range = first..last;
     let _v = self
       .0
-      .splice(range, linedata.into_iter().map(|s| Line::ChangedLine(s)));
+      .splice(range, linedata.into_iter().map(Line::ChangedLine));
   }
 }
 
@@ -100,7 +100,7 @@ impl<'a> Deref for Lines<'a> {
 
 impl<'a> From<Vec<String>> for Lines<'a> {
   fn from(v: Vec<String>) -> Lines<'a> {
-    Lines(v.into_iter().map(|s| Line::ChangedLine(s)).collect())
+    Lines(v.into_iter().map(Line::ChangedLine).collect())
   }
 }
 

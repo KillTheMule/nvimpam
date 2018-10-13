@@ -139,7 +139,7 @@ impl Keyword {
 
             if let Some(first) = p.iter().position(|c| c != &b' ') {
               if let Some(last) = p.iter().rposition(|c| c != &b' ') {
-                p = &p[first..last + 1]
+                p = &p[first..=last]
               } else {
                 return None;
               }

@@ -174,7 +174,7 @@ fn start_program() -> Result<(), Error> {
     .subscribe("quit")
     .context("error: cannot subscribe to event: quit")?;
 
-  let file = args_os().skip(1).next();
+  let file = args_os().nth(1);
 
   Event::event_loop(&receiver, nvim, file)?;
 

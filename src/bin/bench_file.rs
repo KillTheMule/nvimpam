@@ -1,4 +1,3 @@
-
 extern crate neovim_lib;
 extern crate nvimpam_lib;
 
@@ -27,7 +26,8 @@ fn main() {
     Command::new(nvimpath)
       .args(&["-u", "NONE", "--embed"])
       .env("VIMRUNTIME", "neovim/runtime"),
-  ).unwrap();
+  )
+  .unwrap();
 
   session.start_event_loop_handler(NeovimHandler(sender));
   let mut nvim = Neovim::new(session);
@@ -41,15 +41,11 @@ fn main() {
   let origlines = Lines::read_file("files/example.pc").expect("3.1");
   let lines = Lines::from_slice(&origlines);
   curbuf.attach(&mut nvim, false, vec![]).expect("4");
-  loop {
-    match receiver.recv() {
-      Ok(ChangedTickEvent { .. }) => {
-        foldlist.recreate_all(&lines).expect("5");
-        foldlist.resend_all(&mut nvim).expect("6");
-        curbuf.detach(&mut nvim).expect("7");
-        nvim.command("call rpcnotify(1, 'quit')").unwrap();
-      }
-      _ => break,
-    }
+
+  while let Ok(ChangedTickEvent { .. }) = receiver.recv() {
+    foldlist.recreate_all(&lines).expect("5");
+    foldlist.resend_all(&mut nvim).expect("6");
+    curbuf.detach(&mut nvim).expect("7");
+    nvim.command("call rpcnotify(1, 'quit')").unwrap();
   }
 }

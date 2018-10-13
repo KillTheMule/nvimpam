@@ -71,7 +71,6 @@ fn bench_skip_ges(c: &mut Criterion) {
       tmp = li.next().unwrap();
       _a = li.skip_ges(g, &tmp);
     });
-
   });
 }
 

@@ -26,7 +26,8 @@ fn bench_folds(c: &mut Criterion) {
     Command::new(nvimpath)
       .args(&["-u", "NONE", "--embed"])
       .env("VIMRUNTIME", "neovim/runtime"),
-  ).unwrap();
+  )
+  .unwrap();
 
   session.start_event_loop_handler(NeovimHandler(sender));
   let mut nvim = Neovim::new(session);

@@ -65,12 +65,12 @@ const GES: [&str; 9] = [
 
 #[bench]
 fn bench_skip_ges(b: &mut Bencher) {
-    let g = GesType::GesNode;
-    b.iter(|| {
-      let mut li = GES.iter().enumerate().remove_comments();
-      let mut tmp = li.next().unwrap();
-      let mut _a = li.skip_ges(g, &tmp);
-      tmp = li.next().unwrap();
-      _a = li.skip_ges(g, &tmp);
-    });
+  let g = GesType::GesNode;
+  b.iter(|| {
+    let mut li = GES.iter().enumerate().remove_comments();
+    let mut tmp = li.next().unwrap();
+    let mut _a = li.skip_ges(g, &tmp);
+    tmp = li.next().unwrap();
+    _a = li.skip_ges(g, &tmp);
+  });
 }

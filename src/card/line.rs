@@ -68,7 +68,7 @@ impl Conditional {
     match *self {
       Conditional::RelChar(idx, c) => {
         let idx = idx as usize;
-        Bool(line.as_ref().get(idx..idx + 1) == Some(&[c]))
+        Bool(line.as_ref().get(idx) == Some(&c))
       }
       Conditional::Int(ref r, b) => {
         let range =
