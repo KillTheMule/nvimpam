@@ -92,8 +92,13 @@ impl Event {
           firstline,
           lastline,
           linedata,
+          changedtick,
           ..
         }) => {
+          if changedtick == 0 {
+            continue;
+          }
+
           if lastline == -1 {
             lines = Lines::from(linedata);
             foldlist.recreate_all(&lines)?;

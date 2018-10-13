@@ -1,5 +1,3 @@
-* Check for the changedtick, if it is zero we shouldn't do anything (see nvim_buf_update)
-
 * See if we can get the info for send_client_info programmatically from Cargo.toml
   or the code
   * Check out a build.rs
