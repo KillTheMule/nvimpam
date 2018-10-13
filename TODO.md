@@ -1,3 +1,5 @@
+* Check for the changedtick, if it is zero we shouldn't do anything (see nvim_buf_update)
+
 * See if we can get the info for send_client_info programmatically from Cargo.toml
   or the code
   * Check out a build.rs
@@ -32,8 +34,6 @@
 
 * Setup fuzzing?
   * Checkc https://users.rust-lang.org/t/announcing-afl-rs-0-2-bindings-for-american-fuzzy-lop/13981
-
-* Update criterion, the newer version allows one to run a benchmark as a test properly
 
 * Work through https://rust-lang-nursery.github.io/api-guidelines/
 
