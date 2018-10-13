@@ -1,9 +1,11 @@
 //! The events that nvimpam needs to accept and deal with. They're sent by the
 //! [`NeovimHandler`](::handler::NeovimHandler) to the main loop.
-use failure::Error;
 use std::fmt;
 use std::sync::mpsc;
 use std::ffi::OsString;
+
+use failure::Error;
+use failure;
 
 use neovim_lib::neovim::Neovim;
 use neovim_lib::neovim_api::Buffer;
