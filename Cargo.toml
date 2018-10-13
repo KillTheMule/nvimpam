@@ -39,6 +39,10 @@ path = "src/lib.rs"
 lto = true
 debug = true
 
+[profile.release]
+lto = true
+debug = false
+
 [[bench]]
 name = "card_valgrind"
 harness = true
@@ -55,7 +59,17 @@ harness = false
 required-features = ["no_valgrind"] 
 
 [[bench]]
+name = "integration_file"
+harness = false
+required-features = ["no_valgrind"] 
+
+[[bench]]
 name = "integration_valgrind"
+harness = true
+required-features = ["valgrind"] 
+
+[[bench]]
+name = "integration_file_valgrind"
 harness = true
 required-features = ["valgrind"] 
 
