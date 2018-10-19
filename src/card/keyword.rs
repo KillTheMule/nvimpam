@@ -4,8 +4,12 @@
 //! solvers.
 
 /// An enum to denote the several types of cards a line might belong to.
+use lines::Lines;
+use std::ops::Deref;
+
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Keyword {
+  Comment,
   // Node
   Node,
   Cnode,
@@ -82,13 +86,16 @@ pub enum Keyword {
 impl Keyword {
   /// Parse a string to determine if it starts with the keyword of a card.
   #[inline]
-  pub fn parse<T: AsRef<[u8]>>(s: &T) -> Option<Keyword> {
+  pub fn parse(s: &[u8]) -> Option<Keyword> {
     use self::Keyword::*;
 
-    let s = s.as_ref();
     let len = s.len();
 
-    if len == 0 || len < 8 {
+    if len == 0 {
+      None
+    } else if s[0] == b'#' || s[0] == b'$' {
+      Some(Comment)
+    } else if len < 8 {
       None
     } else {
       let start = &s[0..8];
@@ -198,5 +205,30 @@ impl Keyword {
         _ => None,
       }
     }
+  }
+}
+
+#[derive(Debug, Default)]
+pub struct Keywords(Vec<Option<Keyword>>);
+
+impl Keywords {
+  pub fn from_lines(lines: &Lines) -> Keywords {
+    let v: Vec<Option<Keyword>> = lines.iter().map(Keyword::parse).collect();
+    Keywords(v)
+  }
+
+  pub fn update(&mut self, first: usize, last: usize, linedata: &Vec<String>) {
+    let range = first..last;
+    let _ = self
+      .0
+      .splice(range, linedata.iter().map(|l| Keyword::parse(l.as_ref())));
+  }
+}
+
+impl Deref for Keywords {
+  type Target = [Option<Keyword>];
+
+  fn deref(&self) -> &[Option<Keyword>] {
+    &self.0
   }
 }

@@ -8,6 +8,8 @@ use nvimpam_lib::card::ges::GesType;
 use nvimpam_lib::card::keyword::Keyword;
 use nvimpam_lib::folds::FoldList;
 use nvimpam_lib::nocommentiter::CommentLess;
+use nvimpam_lib::lines::{Lines, ParsedLine};
+use nvimpam_lib::card::keyword::Keywords;
 
 fn bench_parse2folddata(c: &mut Criterion) {
   c.bench_function("card_parse2folddata", |b| {
@@ -19,13 +21,14 @@ fn bench_parse2folddata(c: &mut Criterion) {
       .lines()
       .map(|l| l.unwrap())
       .collect();
-    // let v = include!("../files/example.rs");
+    let w: Vec<&str> = v.iter().map(|l| l.as_ref()).collect();
 
     let mut f = FoldList::new();
     b.iter(|| {
-      let r = &v;
+      let lines = Lines::from_strs(&w[..]);
+      let keywords = Keywords::from_lines(&lines);
       f.clear();
-      let _compacted = f.add_folds(r);
+      let _compacted = f.add_folds(&keywords, &lines);
     });
   });
 }
@@ -44,7 +47,7 @@ fn bench_parse_str(c: &mut Criterion) {
     b.iter(|| {
       let r = &v;
       let _parsed: Vec<Option<Keyword>> =
-        r.iter().map(|s| Keyword::parse(s)).collect();
+        r.iter().map(|s| Keyword::parse(s.as_ref())).collect();
     });
   });
 }
@@ -65,7 +68,10 @@ fn bench_skip_ges(c: &mut Criterion) {
   c.bench_function("card_skip_ges", |b| {
     let g = GesType::GesNode;
     b.iter(|| {
-      let mut li = GES.iter().enumerate().remove_comments();
+      let lines = Lines::from_strs(&GES);
+      let keywords: Keywords = Keywords::from_lines(&lines);
+    let mut li =
+      keywords.iter().zip(lines.iter()).enumerate().map(ParsedLine::from).remove_comments();
       let mut tmp = li.next().unwrap();
       let mut _a = li.skip_ges(g, &tmp);
       tmp = li.next().unwrap();

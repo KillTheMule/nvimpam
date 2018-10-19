@@ -58,9 +58,24 @@ pub static NSMAS2: Card = Card {
 #[cfg(test)]
 mod tests {
   use card::keyword::Keyword::*;
-  use folds::FoldList;
 
   const CARD_NSMAS: [&'static str; 7] = [
+    "NSMAS /        1              0.                                                ",
+    "$#                                                                         TITLE",
+    "NAME NSMAS / ->1                                                                ",
+    "        ELE 123",
+    "        PART 2345",
+    "        END",
+    "#Comment",
+  ];
+  
+  cardtest!(
+    fold_nsmas,
+    CARD_NSMAS,
+    vec![(0, 5, Nsmas)]
+  );
+
+  const CARD_NSMAS2: [&'static str; 7] = [
     "$ NSMAS - Nonstructural mass",
     "$#       IDNODMS            MASS            MLEN            MARE            MVOL",
     "NSMAS /        1              0.                                                ",
@@ -70,19 +85,11 @@ mod tests {
     "        END",
   ];
 
-  #[test]
-  fn fold_nsmas() {
-    let mut it = CARD_NSMAS.iter().enumerate();
-    let _ = it.next();
-    let _ = it.next();
-    let _ = it.next();
-
-    let v = vec![(2, 6, Nsmas)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_NSMAS);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_nsmas2,
+    CARD_NSMAS2,
+    vec![(2, 6, Nsmas)]
+  );
 
   const CARD_MASS: [&'static str; 10] = [
     "$ MASS Card",
@@ -96,14 +103,50 @@ mod tests {
     "                                                                                ",
     "        END",
   ];
+  
+  cardtest!(
+    fold_mass,
+    CARD_MASS,
+    vec![(2, 9, Mass)]
+  );
 
-  #[test]
-  fn fold_mass() {
-    let v = vec![(2, 9, Mass)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_MASS);
+  const CARD_MASS_OPT: [&'static str; 12] = [
+    "MASS  /        0       0                                                        ",
+    "$#                                                                         TITLE",
+    "NAME MASS  / ->1                                                                ",
+    "$# BLANK              Mx              My              Mz",
+    "                                                        ",
+    "$# BLANK              Ix              Iy              Iz                   Blank",
+    "                                                                                &",
+    "                                                  ",
+    "        PART 1234",
+    "        GRP 'nogrp'",
+    "        END",
+    "$Comment",
+  ];
+  
+  cardtest!(
+    fold_mass_opt,
+    CARD_MASS_OPT,
+    vec![(0, 10, Mass)]
+  );
 
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  const CARD_NODES: [&'static str; 9] = [
+    "NODE  /       28     30.29999924            50.5              0.",
+    "NODE  /       28     30.29999924            50.5              0.",
+    "NODE  /       28     30.29999924            50.5              0.",
+    "#COMMENT",
+    "NODE  /       28     30.29999924            50.5              0.",
+    "$COMMENT",
+    "NODE  /       28     30.29999924            50.5              0.",
+    "NODE  /       28     30.29999924            50.5              0.",
+    "SHELL /     ",
+  ];
+  
+  cardtest!(
+    fold_nodes,
+    CARD_NODES,
+    vec![(0, 7, Node), (8, 8, Shell)]
+  );
 
 }

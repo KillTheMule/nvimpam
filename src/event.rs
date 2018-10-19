@@ -66,19 +66,22 @@ impl Event {
     file: Option<OsString>
   ) -> Result<(), Error> {
     use self::Event::*;
+    use card::keyword::Keywords;
 
     let curbuf = nvim.get_current_buf()?;
 
     let mut foldlist = FoldList::new();
     let origlines;
-    let mut lines = Lines::new();
+    let mut lines = Default::default();
+    let mut keywords: Keywords = Default::default();
 
     let connected = match file {
       None => curbuf.attach(&mut nvim, true, vec![])?,
       Some(f) => {
         origlines = Lines::read_file(f)?;
         lines = Lines::from_slice(&origlines);
-        foldlist.recreate_all(&lines)?;
+        keywords = Keywords::from_lines(&lines);
+        foldlist.recreate_all(&keywords, &lines)?;
         foldlist.resend_all(&mut nvim)?;
         curbuf.attach(&mut nvim, false, vec![])?
       }
@@ -102,12 +105,14 @@ impl Event {
           }
 
           if lastline == -1 {
-            lines = Lines::from(linedata);
-            foldlist.recreate_all(&lines)?;
+            lines = Lines::from_vec(linedata);
+            keywords = Keywords::from_lines(&lines);
+            foldlist.recreate_all(&keywords, &lines)?;
             foldlist.resend_all(&mut nvim)?;
           } else if lastline >= 0 && firstline >= 0 {
+            keywords.update(firstline as usize, lastline as usize, &linedata);
             lines.update(firstline as usize, lastline as usize, linedata);
-            foldlist.recreate_all(&lines)?;
+            foldlist.recreate_all(&keywords, &lines)?;
           } else {
             error!(
               "LinesEvent only works with nonnegative numbers, except for

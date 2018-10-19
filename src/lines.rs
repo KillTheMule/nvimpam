@@ -4,6 +4,7 @@
 //! Future ideas, if performance isn't enough: Skip list, gap buffer (adapted to
 //! lines instead of strings), rope (adapted to lines instead of strings)
 use std::convert::{AsRef, From};
+use std::fmt;
 use std::fs::File;
 use std::io::Read;
 use std::ops::Deref;
@@ -11,6 +12,8 @@ use std::path::Path;
 
 use failure::Error;
 use failure::ResultExt;
+
+use card::keyword::Keyword;
 
 /// An enum representing the line of a file, either as a byte slice (which we
 /// obtain from reading a file into a `Vec<u8>` and splitting on newlines) or an
@@ -30,16 +33,40 @@ impl<'a> AsRef<[u8]> for Line<'a> {
   }
 }
 
+impl<'a> fmt::Display for Line<'a> {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    use self::Line::*;
+    match self {
+      OriginalLine(l) => write!(f, "Line {{ {} }}", String::from_utf8_lossy(l)),
+      ChangedLine(s) => write!(f, "Line {{ {} }}", s),
+    }
+  }
+}
+
 /// The struct to hold the lines.
 #[derive(Debug, Default)]
 pub struct Lines<'a>(Vec<Line<'a>>);
 
-impl<'a> Lines<'a> {
-  /// Create a new empty `Lines` struct
-  pub fn new() -> Lines<'a> {
-    Lines(Vec::new())
+impl<'a> fmt::Display for Lines<'a> {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    let mut s = String::new();
+    s.push_str("Lines {{\n");
+    for line in self.iter() {
+      s.push_str(&format!(" {{{}}}\n", String::from_utf8_lossy(line)));
+    }
+    s.push_str("}}\n");
+    write!(f, "{}", s)
   }
+}
 
+pub struct LinesIter<'a, I>
+where
+  I: Iterator<Item = &'a Line<'a>>,
+{
+  li: I,
+}
+
+impl<'a> Lines<'a> {
   /// Returns the number of lines
   pub fn len(&self) -> usize {
     self.0.len()
@@ -51,17 +78,24 @@ impl<'a> Lines<'a> {
   }
 
   /// Create a new `Lines` struct from a `Vec<String>`
-  pub fn from(v: Vec<String>) -> Lines<'a> {
+  pub fn from_vec(v: Vec<String>) -> Lines<'a> {
     let w = v.into_iter().map(Line::ChangedLine).collect();
+    Lines(w)
+  }
+
+  /// Creates a new `Lines` struct from a slice of &'str
+  pub fn from_strs(v: &'a [&'a str]) -> Lines<'a> {
+    let w: Vec<Line<'a>> = v
+      .into_iter()
+      .map(|l| Line::OriginalLine(l.as_ref()))
+      .collect();
     Lines(w)
   }
 
   /// Create a new `Lines` struct from a byte slice by splitting on newlines.
   pub fn from_slice(v: &'a [u8]) -> Lines<'a> {
-    let w: Vec<Line> = v
-      .split(|b| *b == b'\n')
-      .map(|l| Line::OriginalLine(l))
-      .collect();
+    let w: Vec<Line> =
+      v.split(|b| *b == b'\n').map(Line::OriginalLine).collect();
     Lines(w)
   }
 
@@ -84,9 +118,116 @@ impl<'a> Lines<'a> {
   ///   * `last` is the first line that has _not_ been updated
   pub fn update(&mut self, first: usize, last: usize, linedata: Vec<String>) {
     let range = first..last;
-    let _v = self
+    let _ = self
       .0
       .splice(range, linedata.into_iter().map(Line::ChangedLine));
+  }
+
+  pub fn iter(&'a self) -> LinesIter<'a, impl Iterator<Item = &'a Line<'a>>> {
+    LinesIter { li: self.0.iter() }
+  }
+}
+
+impl<'a, I> Iterator for LinesIter<'a, I>
+where
+  I: Iterator<Item = &'a Line<'a>>,
+{
+  type Item = &'a [u8];
+
+  fn next(&mut self) -> Option<Self::Item> {
+    self.li.next().map(|o| o.as_ref())
+  }
+}
+
+impl<'a> From<Vec<String>> for Lines<'a> {
+  fn from(v: Vec<String>) -> Lines<'a> {
+    Lines(v.into_iter().map(Line::ChangedLine).collect())
+  }
+}
+
+#[derive(PartialEq, Debug)]
+pub struct ParsedLine<'a> {
+  pub number: usize,
+  pub text: &'a [u8],
+  pub keyword: Option<&'a Keyword>,
+}
+
+impl<'a> ParsedLine<'a> {
+  pub fn try_into_keywordline(&self) -> Option<KeywordLine<'a>> {
+    if let Some(kw) = self.keyword {
+      return Some(KeywordLine {
+        number: self.number,
+        text: self.text,
+        keyword: kw,
+      });
+    } else {
+      return None;
+    }
+  }
+}
+
+impl<'a> From<(usize, (&'a Option<Keyword>, &'a [u8]))> for ParsedLine<'a> {
+  fn from(
+    (u, (k, t)): (usize, (&'a Option<Keyword>, &'a [u8])),
+  ) -> ParsedLine<'a> {
+    ParsedLine {
+      number: u,
+      text: t,
+      keyword: k.as_ref(),
+    }
+  }
+}
+
+impl<'a> From<(usize, (&'a Option<Keyword>, &'a Line<'a>))> for ParsedLine<'a> {
+  fn from(
+    (u, (k, t)): (usize, (&'a Option<Keyword>, &'a Line<'a>)),
+  ) -> ParsedLine<'a> {
+    ParsedLine {
+      number: u,
+      text: t.as_ref(),
+      keyword: k.as_ref(),
+    }
+  }
+}
+
+impl<'a> From<KeywordLine<'a>> for ParsedLine<'a> {
+  fn from(kl: KeywordLine<'a>) -> ParsedLine<'a> {
+    ParsedLine {
+      number: kl.number,
+      text: kl.text,
+      keyword: Some(kl.keyword),
+    }
+  }
+}
+
+impl<'a> fmt::Display for ParsedLine<'a> {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(
+      f,
+      "ParsedLine {{{}, text: {}, keyword: {:?}}}",
+      self.number,
+      String::from_utf8_lossy(self.text),
+      self.keyword
+    )
+  }
+}
+
+#[derive(PartialEq, Debug)]
+pub struct KeywordLine<'a> {
+  pub number: usize,
+  pub text: &'a [u8],
+  pub keyword: &'a Keyword,
+}
+
+impl<'a> fmt::Display for KeywordLine<'a> {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(
+      f,
+      "KeywordLine {{{}, text: {}, keyword: {:?}}}",
+      self.number,
+      String::from_utf8_lossy(self.text),
+      self.keyword
+    )
   }
 }
 
@@ -95,12 +236,6 @@ impl<'a> Deref for Lines<'a> {
 
   fn deref(&self) -> &[Line<'a>] {
     &self.0
-  }
-}
-
-impl<'a> From<Vec<String>> for Lines<'a> {
-  fn from(v: Vec<String>) -> Lines<'a> {
-    Lines(v.into_iter().map(Line::ChangedLine).collect())
   }
 }
 

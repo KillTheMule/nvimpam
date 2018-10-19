@@ -71,7 +71,6 @@ pub static TIED: Card = Card {
 #[cfg(test)]
 mod tests {
   use card::keyword::Keyword::*;
-  use folds::FoldList;
 
   const CARD_ELINK: [&'static str; 13] = [
     "$ELINK Element",
@@ -89,14 +88,11 @@ mod tests {
     "        END",
   ];
 
-  #[test]
-  fn fold_elink() {
-    let v = vec![(1, 12, Elink)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_ELINK);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_elink,
+    CARD_ELINK,
+    vec![(1, 12, Elink)]
+  );
 
   const CARD_LLINK: [&'static str; 23] = [
     "$LLINK Element",
@@ -124,14 +120,11 @@ mod tests {
     "        END",
   ];
 
-  #[test]
-  fn fold_llink() {
-    let v = vec![(1, 22, Llink)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_LLINK);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_llink,
+    CARD_LLINK,
+    vec![(1, 22, Llink)]
+  );
 
   const CARD_SLINK: [&'static str; 6] = [
     "$SLINK Element",
@@ -142,14 +135,11 @@ mod tests {
     "        END",
   ];
 
-  #[test]
-  fn fold_slink() {
-    let v = vec![(1, 5, Slink)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_SLINK);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_slink,
+    CARD_SLINK,
+    vec![(1, 5, Slink)]
+  );
 
   const CARD_PLINK: [&'static str; 9] = [
     "$PLINK Element",
@@ -163,14 +153,11 @@ mod tests {
     "#PLINK",
   ];
 
-  #[test]
-  fn fold_plink() {
-    let v = vec![(1, 7, Plink)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PLINK);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_plink,
+    CARD_PLINK,
+    vec![(1, 7, Plink)]
+  );
 
   const CARD_TIED: [&'static str; 22] = [
     "$TIED Element",
@@ -197,13 +184,10 @@ mod tests {
     "        END",
   ];
 
-  #[test]
-  fn fold_tied() {
-    let v = vec![(1, 21, Tied)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_TIED);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_tied,
+    CARD_TIED,
+    vec![(1, 21, Tied)]
+  );
 
 }

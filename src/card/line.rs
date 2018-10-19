@@ -59,22 +59,20 @@ pub enum CondResult {
 
 impl Conditional {
   /// Given a line, evaluate the conditional on it
-  pub fn evaluate<'a, T: 'a>(&self, line: &'a T) -> CondResult
-  where
-    T: AsRef<[u8]>,
+  pub fn evaluate(&self, line: &[u8]) -> CondResult
   {
     use self::CondResult::*;
 
     match *self {
       Conditional::RelChar(idx, c) => {
         let idx = idx as usize;
-        Bool(line.as_ref().get(idx) == Some(&c))
+        Bool(line.get(idx) == Some(&c))
       }
       Conditional::Int(ref r, b) => {
         let range =
-          r.start as usize..cmp::min(line.as_ref().len(), r.end as usize);
+          r.start as usize..cmp::min(line.len(), r.end as usize);
 
-        let cell = match line.as_ref().get(range) {
+        let cell = match line.get(range) {
           Some(c) => c,
           None => return Bool(false)
         };
@@ -92,9 +90,9 @@ impl Conditional {
       }
       Conditional::Number(ref r) => {
         let range =
-          r.start as usize..cmp::min(line.as_ref().len(), r.end as usize);
+          r.start as usize..cmp::min(line.len(), r.end as usize);
 
-        let cell = match line.as_ref().get(range) {
+        let cell = match line.get(range) {
           Some(c) => c,
           None => return Bool(false)
         };
@@ -125,8 +123,8 @@ mod tests {
     let cond2 = Conditional::RelChar(3, b'b');
     let line = "abbxy oaslkj";
 
-    assert_eq!(Bool(true), cond1.evaluate(&line));
-    assert_eq!(Bool(false), cond2.evaluate(&line));
+    assert_eq!(Bool(true), cond1.evaluate(line.as_ref()));
+    assert_eq!(Bool(false), cond2.evaluate(line.as_ref()));
   }
 
   #[test]
@@ -134,7 +132,7 @@ mod tests {
     let cond1 = Conditional::RelChar(95, b'b');
     let line = "abbxy oaslkj";
 
-    assert_eq!(Bool(false), cond1.evaluate(&line));
+    assert_eq!(Bool(false), cond1.evaluate(line.as_ref()));
   }
 
 }

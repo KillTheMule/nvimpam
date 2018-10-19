@@ -17,6 +17,7 @@ use nvimpam_lib::event::Event::*;
 use nvimpam_lib::folds::FoldList;
 use nvimpam_lib::handler::NeovimHandler;
 use nvimpam_lib::lines::Lines;
+use nvimpam_lib::card::keyword::Keywords;
 
 use neovim_lib::neovim::Neovim;
 use neovim_lib::neovim_api::NeovimApi;
@@ -45,12 +46,14 @@ fn bench_folds(b: &mut Bencher) {
   b.iter(|| {
     let mut foldlist = FoldList::new();
     let mut lines;
+    let mut keywords: Keywords;
     curbuf.attach(&mut nvim, true, vec![]).expect("4");
     loop {
       match receiver.recv() {
         Ok(LinesEvent { linedata, .. }) => {
-          lines = Lines::from(linedata);
-          foldlist.recreate_all(&lines).expect("5");
+          lines = Lines::from_vec(linedata);
+          keywords = Keywords::from_lines(&lines);
+          foldlist.recreate_all(keywords.as_ref(), &lines).expect("5");
           foldlist.resend_all(&mut nvim).expect("6");
           curbuf.detach(&mut nvim).expect("7");
           nvim.command("call rpcnotify(1, 'quit')").unwrap();

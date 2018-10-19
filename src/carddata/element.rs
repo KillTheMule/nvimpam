@@ -384,7 +384,6 @@ pub static IMPMA: Card = Card {
 #[cfg(test)]
 mod tests {
   use card::keyword::Keyword::*;
-  use folds::FoldList;
 
   const CARD_SOLID: [&'static str; 15] = [
     "$SOLID Element",
@@ -404,14 +403,11 @@ mod tests {
     "                                                                                ",
   ];
 
-  #[test]
-  fn fold_solid() {
-    let v = vec![(1, 14, Solid)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_SOLID);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_solid,
+    CARD_SOLID,
+    vec![(1, 14, Solid)]
+  );
 
   const CARD_HEXA20: [&'static str; 18] = [
     "$HEXA20 Element",
@@ -434,14 +430,11 @@ mod tests {
     "                                                ",
   ];
 
-  #[test]
-  fn fold_hexa20() {
-    let v = vec![(1, 17, Hexa20)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_HEXA20);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_hexa20,
+    CARD_HEXA20,
+    vec![(1, 17, Hexa20)]
+  );
 
   const CARD_PENT15: [&'static str; 14] = [
     "$PENTA15 Element",
@@ -460,14 +453,11 @@ mod tests {
     "                                                                        ",
   ];
 
-  #[test]
-  fn fold_pent15() {
-    let v = vec![(1, 13, Pent15)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PENT15);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_pent15,
+    CARD_PENT15,
+    vec![(1, 13, Pent15)]
+  );
 
   const CARD_PENTA6: [&'static str; 9] = [
     "$PENTA6 Element ",
@@ -481,14 +471,11 @@ mod tests {
     "PENTA6/                                                                 ",
   ];
 
-  #[test]
-  fn fold_penta6() {
-    let v = vec![(1, 8, Penta6)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PENTA6);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_penta6,
+    CARD_PENTA6,
+    vec![(1, 8, Penta6)]
+  );
 
   const CARD_TETR10: [&'static str; 13] = [
     "$TETR10 Element",
@@ -506,14 +493,11 @@ mod tests {
     "                                ",
   ];
 
-  #[test]
-  fn fold_tetr10() {
-    let v = vec![(1, 12, Tetr10)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_TETR10);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_tetr10,
+    CARD_TETR10,
+    vec![(1, 12, Tetr10)]
+  );
 
   const CARD_TETR4: [&'static str; 6] = [
     "$TETR4 Element",
@@ -524,14 +508,11 @@ mod tests {
     "TETR4 /                                                 ",
   ];
 
-  #[test]
-  fn fold_tetr4() {
-    let v = vec![(1, 5, Tetr4)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_TETR4);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_tetr4,
+    CARD_TETR4,
+    vec![(1, 5, Tetr4)]
+  );
 
   const CARD_BSHEL: [&'static str; 6] = [
     "BSHEL /                 ",
@@ -542,14 +523,11 @@ mod tests {
     "                                                                                ",
   ];
 
-  #[test]
-  fn fold_bshel() {
-    let v = vec![(0, 5, Bshel)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_BSHEL);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_bshel,
+    CARD_BSHEL,
+    vec![(0, 5, Bshel)]
+  );
 
   const CARD_TSHEL: [&'static str; 9] = [
     "$TSHEL Element",
@@ -563,14 +541,11 @@ mod tests {
     "TSHEL /                                                                 ",
   ];
 
-  #[test]
-  fn fold_tshel() {
-    let v = vec![(1, 8, Tshel)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_TSHEL);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_tshel,
+    CARD_TSHEL,
+    vec![(1, 8, Tshel)]
+  );
 
   const CARD_SHELL: [&'static str; 9] = [
     "$SHELL Element",
@@ -584,14 +559,11 @@ mod tests {
     "SHELL /                                                                 ",
   ];
 
-  #[test]
-  fn fold_shell() {
-    let v = vec![(1, 8, Shell)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_SHELL);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_shell,
+    CARD_SHELL,
+    vec![(1, 8, Shell)]
+  );
 
   const CARD_SHEL6: [&'static str; 9] = [
     "$SHEL6 Element",
@@ -605,14 +577,12 @@ mod tests {
     "SHEL6 /                                                                 ",
   ];
 
-  #[test]
-  fn fold_shel6() {
-    let v = vec![(1, 8, Shel6)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_SHEL6);
+  cardtest!(
+    fold_shel6,
+    CARD_SHEL6,
+    vec![(1, 8, Shel6)]
+  );
 
-    assert_eq!(v, foldlist.to_vec(1));
-  }
 
   const CARD_SHEL8: [&'static str; 8] = [
     "$SHEL8 Element",
@@ -625,14 +595,11 @@ mod tests {
     "                                                        ",
   ];
 
-  #[test]
-  fn fold_shel8() {
-    let v = vec![(1, 7, Shel8)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_SHEL8);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_shel8,
+    CARD_SHEL8,
+    vec![(1, 7, Shel8)]
+  );
 
   const CARD_MEMBR: [&'static str; 9] = [
     "$MEMBR Element",
@@ -646,14 +613,11 @@ mod tests {
     "MEMBR /                                                                 ",
   ];
 
-  #[test]
-  fn fold_membr() {
-    let v = vec![(1, 8, Membr)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_MEMBR);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_membr,
+    CARD_MEMBR,
+    vec![(1, 8, Membr)]
+  );
 
   const CARD_BEAM: [&'static str; 14] = [
     "$BEAM Element",
@@ -672,14 +636,11 @@ mod tests {
     "                                                ",
   ];
 
-  #[test]
-  fn fold_beam() {
-    let v = vec![(1, 13, Beam)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_BEAM);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_beam,
+    CARD_BEAM,
+    vec![(1, 13, Beam)]
+  );
 
   const CARD_SPRGBM: [&'static str; 9] = [
     "$SPRGBM Element",
@@ -693,14 +654,11 @@ mod tests {
     "SPRGBM/                                                                 ",
   ];
 
-  #[test]
-  fn fold_sprgbm() {
-    let v = vec![(1, 8, Sprgbm)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_SPRGBM);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_sprgbm,
+    CARD_SPRGBM,
+    vec![(1, 8, Sprgbm)]
+  );
 
   const CARD_BAR: [&'static str; 6] = [
     "$BAR  Element",
@@ -711,14 +669,11 @@ mod tests {
     "BAR   /                                                 ",
   ];
 
-  #[test]
-  fn fold_bar() {
-    let v = vec![(1, 5, Bar)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_BAR);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_bar,
+    CARD_BAR,
+    vec![(1, 5, Bar)]
+  );
 
   const CARD_SPRING: [&'static str; 7] = [
     "$SPRING  Element",
@@ -730,14 +685,11 @@ mod tests {
     "SPRING/                                                 ",
   ];
 
-  #[test]
-  fn fold_spring() {
-    let v = vec![(1, 6, Spring)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_SPRING);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_spring,
+    CARD_SPRING,
+    vec![(1, 6, Spring)]
+  );
 
   const CARD_JOINT: [&'static str; 3] = [
     "JOINT /                                                 ",
@@ -745,14 +697,11 @@ mod tests {
     "JOINT /                                                 ",
   ];
 
-  #[test]
-  fn fold_joint() {
-    let v = vec![(0, 2, Joint)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_JOINT);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_joint,
+    CARD_JOINT,
+    vec![(0, 2, Joint)]
+  );
 
   const CARD_KJOIN: [&'static str; 8] = [
     "$KJOIN Element",
@@ -765,14 +714,11 @@ mod tests {
     "                ",
   ];
 
-  #[test]
-  fn fold_kjoin() {
-    let v = vec![(1, 7, Kjoin)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_KJOIN);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_kjoin,
+    CARD_KJOIN,
+    vec![(1, 7, Kjoin)]
+  );
 
   const CARD_MTOJNT: [&'static str; 7] = [
     "$MTOJNTElement",
@@ -784,14 +730,11 @@ mod tests {
     "                ",
   ];
 
-  #[test]
-  fn fold_mtojnt() {
-    let v = vec![(1, 6, Mtojnt)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_MTOJNT);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_mtojnt,
+    CARD_MTOJNT,
+    vec![(1, 6, Mtojnt)]
+  );
 
   const CARD_SPHEL: [&'static str; 6] = [
     "SPHEL /                                                                 ",
@@ -802,28 +745,22 @@ mod tests {
     "SPHEL /                                                                 ",
   ];
 
-  #[test]
-  fn fold_sphel() {
-    let v = vec![(0, 5, Sphel)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_SPHEL);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_sphel,
+    CARD_SPHEL,
+    vec![(0, 5, Sphel)]
+  );
 
   const CARD_SPHELO: [&'static str; 2] = [
     "SPHELO/                                                                 ",
     "SPHELO/                                                                 ",
   ];
 
-  #[test]
-  fn fold_sphelo() {
-    let v = vec![(0, 1, Sphelo)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_SPHELO);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_sphelo,
+    CARD_SPHELO,
+    vec![(0, 1, Sphelo)]
+  );
 
   const CARD_GAP: [&'static str; 6] = [
     "GAP   /                                                                 ",
@@ -834,14 +771,11 @@ mod tests {
     "GAP   /                                                                 ",
   ];
 
-  #[test]
-  fn fold_gap() {
-    let v = vec![(0, 5, Gap)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_GAP);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_gap,
+    CARD_GAP,
+    vec![(0, 5, Gap)]
+  );
 
   const CARD_IMPMA: [&'static str; 14] = [
     "$IMPMA Super Element Matrix Import",
@@ -860,12 +794,10 @@ mod tests {
     "                                                                                ",
   ];
 
-  #[test]
-  fn fold_impma() {
-    let v = vec![(2, 13, Impma)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_IMPMA);
+  cardtest!(
+    fold_impma,
+    CARD_IMPMA,
+    vec![(2, 13, Impma)]
+  );
 
-    assert_eq!(v, foldlist.to_vec(1));
-  }
 }

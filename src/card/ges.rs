@@ -12,9 +12,7 @@ pub enum GesType {
 impl GesType {
   /// Checks if a given line fits the basic format of a line in a GES: 8 blanks
   /// followed by one of several keywords. Checks nothing else.
-  pub fn contains<T: AsRef<[u8]>>(self, line: &T) -> bool {
-    let b = line.as_ref();
-
+  pub fn contains(self, b: &[u8]) -> bool {
     let len = b.len();
 
     if len < 12 || &b[0..8] != b"        " {
@@ -62,8 +60,7 @@ impl GesType {
 
   /// Check if a given line ends a GES. That is, it consists of 8 blanks
   /// followed by "END"
-  pub fn ended_by<T: AsRef<[u8]>>(self, line: &T) -> bool {
-    let b = line.as_ref();
+  pub fn ended_by(self, b: &[u8]) -> bool {
     let len = b.len();
 
     len == 11 && &b[0..11] == b"        END"
@@ -94,7 +91,7 @@ mod tests {
     ];
     assert_eq!(
       v,
-      LINES.iter().map(|l| GesNode.contains(&l)).collect::<Vec<bool>>()
+      LINES.iter().map(|l| GesNode.contains(l.as_ref())).collect::<Vec<bool>>()
     );
   }
 
@@ -105,7 +102,7 @@ mod tests {
     ];
     assert_eq!(
       v,
-      LINES.iter().map(|l| GesNode.ended_by(&l)).collect::<Vec<bool>>()
+      LINES.iter().map(|l| GesNode.ended_by(l.as_ref())).collect::<Vec<bool>>()
     );
   }
 

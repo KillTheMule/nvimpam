@@ -16,10 +16,15 @@ pub static GROUP: Card = Card {
   keyword: Group,
 };
 
+pub static COMMENT: Card = Card {
+  lines: &[Cells(&[Fixed("#")])],
+  ownfold: false,
+  keyword: Comment,
+};
+
 #[cfg(test)]
 mod tests {
   use card::keyword::Keyword::*;
-  use folds::FoldList;
 
   const CARD_GROUP: [&'static str; 7] = [
     "GROUP / TitleOfTheGroup",
@@ -31,14 +36,7 @@ mod tests {
     "        END",
   ];
 
-  #[test]
-  fn fold_group() {
-    let v = vec![(0, 6, Group)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_GROUP);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(fold_group, CARD_GROUP, vec![(0, 6, Group)]);
 
   const CARD_GROUP2: [&'static str; 11] = [
     "GROUP / TitleOfTheGroup",
@@ -54,14 +52,11 @@ mod tests {
     "        ELE ",
   ];
 
-  #[test]
-  fn fold_group2() {
-    let v = vec![(0, 6, Group), (7, 10, Group)];
-    let w = vec![(0, 10, Group)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.recreate_all(&CARD_GROUP2);
+  cardtest!(
+    fold_group2,
+    CARD_GROUP2,
+    vec![(0, 6, Group), (7, 10, Group)],
+    vec![(0, 10, Group)]
+  );
 
-    assert_eq!(v, foldlist.to_vec(1));
-    assert_eq!(w, foldlist.to_vec(2));
-  }
 }

@@ -19,6 +19,7 @@ license = "Apache-2.0 OR MIT"
 documentation = "https://KillTheMule.github.io/nvimpam/nvimpam"
 repository = "https://github.com/KillTheMule/nvimpam"
 readme = "README.md"
+autobenches = false
 
 [dependencies]
 log = "0.4.5"
@@ -62,6 +63,7 @@ required-features = ["no_valgrind"]
 name = "integration_file"
 harness = false
 required-features = ["no_valgrind"] 
+debug = true
 
 [[bench]]
 name = "integration_valgrind"

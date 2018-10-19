@@ -157,7 +157,6 @@ pub static PARTGAP: Card = part!(
 #[cfg(test)]
 mod tests {
   use card::keyword::Keyword::*;
-  use folds::FoldList;
 
   const CARD_PARTSOLID: [&'static str; 22] = [
     "$PART Type SOLID",
@@ -184,14 +183,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partsolid() {
-    let v = vec![(2, 14, PartSolid), (15, 21, PartSolid)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTSOLID);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partsolid,
+    CARD_PARTSOLID,
+    vec![(2, 14, PartSolid), (15, 21, PartSolid)]
+    );
 
   const CARD_PARTSOLID2: [&'static str; 17] = [
     "$PART Type SOLID",
@@ -213,14 +209,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partsolid2() {
-    let v = vec![(2, 14, PartSolid)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTSOLID2);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partsolid2,
+    CARD_PARTSOLID2,
+    vec![(2, 14, PartSolid)]
+  );
 
   const CARD_PARTCOS3D: [&'static str; 13] = [
     "$PART Type COS3D",
@@ -238,14 +231,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partcos3d() {
-    let v = vec![(2, 12, PartCos3d)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTCOS3D);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partcos3d,
+    CARD_PARTCOS3D,
+    vec![(2, 12, PartCos3d)]
+  );
 
   const CARD_PARTBSHEL: [&'static str; 12] = [
     "$PART Type BSHEL",
@@ -262,14 +252,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partbshel() {
-    let v = vec![(2, 11, PartBshel)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTBSHEL);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partbshel,
+    CARD_PARTBSHEL,
+    vec![(2, 11, PartBshel)]
+  );
 
   const CARD_PARTTETRA: [&'static str; 15] = [
     "$PART Type TETRA",
@@ -289,14 +276,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_parttetra() {
-    let v = vec![(2, 14, PartTetra)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTTETRA);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_parttetra,
+    CARD_PARTTETRA,
+    vec![(2,14, PartTetra)]
+  );
 
   const CARD_PARTSPHEL: [&'static str; 13] = [
     "$PART Type SPHEL",
@@ -314,14 +298,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partsphel1() {
-    let v = vec![(2, 12, PartSphel)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTSPHEL);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partsphel,
+    CARD_PARTSPHEL,
+    vec![(2, 12, PartSphel)]
+  );
 
   const CARD_PARTSPHEL2: [&'static str; 16] = [
     "$PART Type SPHEL",
@@ -342,14 +323,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partsphel2() {
-    let v = vec![(2, 15, PartSphel)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTSPHEL2);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_sphel2,
+    CARD_PARTSPHEL2,
+    vec![(2, 15, PartSphel)]
+  );
 
   const CARD_PARTTSHEL: [&'static str; 12] = [
     "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",
@@ -366,14 +344,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_parttshel() {
-    let v = vec![(1, 11, PartTshel)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTTSHEL);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_parttshel,
+    CARD_PARTTSHEL,
+    vec![(1, 11, PartTshel)]
+  );
 
   const CARD_PARTSHELL: [&'static str; 15] = [
     "$PART Type SHELL",
@@ -393,14 +368,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partshell() {
-    let v = vec![(2, 14, PartShell)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTSHELL);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partshell,
+    CARD_PARTSHELL,
+    vec![(2, 14, PartShell)]
+  );
 
   const CARD_PARTSHELL2: [&'static str; 11] = [
     "PART  /    10100SHELL   38103600                                                ",
@@ -416,14 +388,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partshell2() {
-    let v = vec![(0, 10, PartShell)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTSHELL2);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partshell2,
+    CARD_PARTSHELL2,
+    vec![(0, 10, PartShell)]
+  );
 
   const CARD_PARTMEMBR: [&'static str; 17] = [
     "$PART Type MEMBR",
@@ -445,14 +414,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partmembr() {
-    let v = vec![(2, 16, PartMembr)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTMEMBR);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partmembr,
+    CARD_PARTMEMBR,
+    vec![(2, 16, PartMembr)]
+  );
 
   const CARD_PARTBAR: [&'static str; 13] = [
     "$PART Type BAR",
@@ -470,14 +436,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partbar() {
-    let v = vec![(2, 12, PartBar)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTBAR);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partbar,
+    CARD_PARTBAR,
+    vec![(2, 12, PartBar)]
+  );
 
   const CARD_PARTBEAM: [&'static str; 20] = [
     "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",
@@ -502,14 +465,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partbeam() {
-    let v = vec![(1, 19, PartBeam)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTBEAM);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partbeam,
+    CARD_PARTBEAM,
+    vec![(1, 19, PartBeam)]
+  );
 
   const CARD_PARTBEAM2: [&'static str; 23] = [
     "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",
@@ -537,14 +497,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partbeam2() {
-    let v = vec![(1, 22, PartBeam)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTBEAM2);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partbeam2,
+    CARD_PARTBEAM2,
+    vec![(1, 22, PartBeam)]
+  );
 
   const CARD_PARTSPRING: [&'static str; 12] = [
     "$PART Type SPRING",
@@ -561,14 +518,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partspring() {
-    let v = vec![(2, 11, PartSpring)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTSPRING);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partspring,
+    CARD_PARTSPRING,
+    vec![(2, 11, PartSpring)]
+  );
 
   const CARD_PARTSPRGBM: [&'static str; 10] = [
     "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",
@@ -583,14 +537,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partsprgbm() {
-    let v = vec![(1, 9, PartSprgbm)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTSPRGBM);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partsprgbm,
+    CARD_PARTSPRGBM,
+    vec![(1, 9, PartSprgbm)]
+  );
 
   const CARD_PARTMBSPR: [&'static str; 9] = [
     "$PART Type MBSPR",
@@ -604,14 +555,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partmbspr() {
-    let v = vec![(2, 8, PartMbspr)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTMBSPR);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partmbspr,
+    CARD_PARTMBSPR,
+    vec![(2, 8, PartMbspr)]
+  );
 
   const CARD_PARTJOINT: [&'static str; 12] = [
     "$PART Type JOINT",
@@ -628,14 +576,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partjoint() {
-    let v = vec![(2, 11, PartJoint)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTJOINT);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partjoint,
+    CARD_PARTJOINT,
+    vec![(2, 11, PartJoint)]
+  );
 
   const CARD_PARTKJOIN: [&'static str; 6] = [
     "PART  /        1   KJOIN       1       0       0       0",
@@ -646,14 +591,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partkjoin() {
-    let v = vec![(0, 5, PartKjoin)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTKJOIN);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partkjoin,
+    CARD_PARTKJOIN,
+    vec![(0, 5, PartKjoin)]
+  );
 
   const CARD_PARTMTOJNT: [&'static str; 13] = [
   "$PART Type MTOJNT",
@@ -671,14 +613,11 @@ mod tests {
   "END_PART",
   ];
 
-  #[test]
-  fn fold_partmtojnt() {
-    let v = vec![(2, 12, PartMtojnt)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTMTOJNT);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partmtojnt,
+    CARD_PARTMTOJNT,
+    vec![(2, 12, PartMtojnt)]
+  );
 
   const CARD_PARTMBKJN: [&'static str; 12] = [
     "$PART Type MBKJN",
@@ -695,14 +634,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partmbkjn() {
-    let v = vec![(2, 11, PartMbkjn)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTMBKJN);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partmbkjn,
+    CARD_PARTMBKJN,
+    vec![(2, 11, PartMbkjn)]
+  );
 
   const CARD_PARTTIED: [&'static str; 11] = [
     "PART  /        1    TIED       1       0       0       0",
@@ -718,14 +654,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_parttied() {
-    let v = vec![(0, 10, PartTied)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTTIED);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_parttied,
+    CARD_PARTTIED,
+    vec![(0, 10, PartTied)]
+  );
 
   const CARD_PARTTIED2: [&'static str; 12] = [
     "PART  /        1    TIED       1       0       0       0",
@@ -742,14 +675,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_parttied2() {
-    let v = vec![(0, 11, PartTied)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTTIED2);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_parttied2,
+    CARD_PARTTIED2,
+    vec![(0, 11, PartTied)]
+  );
 
   const CARD_PARTSLINK: [&'static str; 13] = [
     "$PART Type SLINK",
@@ -767,14 +697,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partslink() {
-    let v = vec![(2, 12, PartSlink)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTSLINK);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partslink,
+    CARD_PARTSLINK,
+    vec![(2, 12, PartSlink)]
+  );
 
   const CARD_PARTELINK: [&'static str; 11] = [
     "$PART Type ELINK",
@@ -790,14 +717,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partelink() {
-    let v = vec![(2, 10, PartElink)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTELINK);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partelink,
+    CARD_PARTELINK,
+    vec![(2, 10, PartElink)]
+  );
 
   const CARD_PARTLLINK: [&'static str; 12] = [
     "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",
@@ -814,14 +738,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partllink() {
-    let v = vec![(1, 11, PartLlink)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTLLINK);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partllink,
+    CARD_PARTLLINK,
+    vec![(1, 11, PartLlink)]
+  );
 
   const CARD_PARTPLINK: [&'static str; 9] = [
     "$PART Type PLINK",
@@ -835,14 +756,11 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partplink() {
-    let v = vec![(2, 8, PartPlink)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTPLINK);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partplink,
+    CARD_PARTPLINK,
+    vec![(2, 8, PartPlink)]
+  );
 
   const CARD_PARTGAP: [&'static str; 13] = [
     "$PART Type GAP",
@@ -860,13 +778,10 @@ mod tests {
     "END_PART",
   ];
 
-  #[test]
-  fn fold_partgap() {
-    let v = vec![(2, 12, PartGap)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_PARTGAP);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_partgap,
+    CARD_PARTGAP,
+    vec![(2, 12, PartGap)]
+  );
 
 }

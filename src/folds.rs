@@ -30,6 +30,7 @@ use neovim_lib::{Neovim, NeovimApi, Value};
 use itertools::Itertools;
 
 use card::keyword::Keyword;
+use lines::{Line, ParsedLine};
 use nocommentiter::CommentLess;
 
 macro_rules! unwrap_or_ok {
@@ -139,12 +140,13 @@ impl FoldList {
 
   /// Remove all the entries from the FoldList, and iterate over lines to
   /// populate it with new ones
-  pub fn recreate_all<T: AsRef<[u8]>>(
+  pub fn recreate_all(
     &mut self,
-    lines: &[T],
+    keywords: &[Option<Keyword>],
+    lines: &[Line]
   ) -> Result<(), Error> {
     self.clear();
-    self.add_folds(lines)?;
+    self.add_folds(keywords, lines)?;
     self.recreate_level2()
   }
 
@@ -229,7 +231,7 @@ impl FoldList {
     }
   }
 
-  /// Parse an array of strings into a [FoldList](struct.FoldList.html). The
+  /// Parse an array of `Keyword`s into a [FoldList](struct.FoldList.html). The
   /// foldlist is cleared as a first step.
   ///
   /// Creates only level 1 folds. Depending on the
@@ -237,25 +239,29 @@ impl FoldList {
   /// definition of the card in the [carddata](::carddata) module, each card
   /// will be in an own fold, or several adjacent (modulo comments) cards will
   /// be subsumed into a fold.
-  pub fn add_folds<T: AsRef<[u8]>>(&mut self, lines: &[T]) -> Result<(), Error> {
-    let mut li = lines.iter().enumerate().remove_comments();
+  pub fn add_folds(&mut self, keywords: &[Option<Keyword>], lines: &[Line]) -> Result<(), Error> {
+    debug_assert!(keywords.len() == lines.len());
+    let mut li =
+      keywords.iter().zip(lines).enumerate().map(ParsedLine::from).remove_comments();
 
     let mut foldstart;
     let mut foldend;
     let mut foldkw;
     let mut skipped;
 
+    //let _ = li.next();
+
     let mut nextline = unwrap_or_ok!(li.skip_to_next_keyword());
 
     loop {
       foldkw = nextline.keyword;
       foldstart = nextline.number;
-      skipped = li.skip_fold(&nextline);
+      skipped = li.skip_fold(nextline);
 
       // The latter only happens when a file ends after the only line of a card
       foldend = skipped.skip_end.unwrap_or_else(|| lines.len() - 1);
 
-      self.checked_insert(foldstart as u64, foldend as u64, foldkw)?;
+      self.checked_insert(foldstart as u64, foldend as u64, *foldkw)?;
 
       if let Some(Some(kl)) =
         skipped.nextline.map(|pl| pl.try_into_keywordline())
@@ -271,7 +277,6 @@ impl FoldList {
 #[cfg(test)]
 mod tests {
   use card::keyword::Keyword::*;
-  use folds::FoldList;
 
   const LINES: [&'static str; 20] = [
     /* 0 */
@@ -316,27 +321,29 @@ mod tests {
     "NODE  /        1              0.             0.5              0.",
   ];
 
-  #[test]
-  fn fold_general() {
-    let mut v =
-      vec![(0, 3, Node), (5, 5, Shell), (7, 15, Shell), (18, 19, Node)];
-    let mut foldlist = FoldList::new();
+  cardtest!(
+    fold_general1,
+    LINES,
+    vec![(0, 3, Node), (5, 5, Shell), (7, 15, Shell), (18, 19, Node)]
+  );
 
-    let _ = foldlist.add_folds(&LINES);
-    assert_eq!(v, foldlist.to_vec(1));
+  cardtest!(
+    fold_general2,
+    LINES[4..],
+    vec![(1, 1, Shell), (3, 11, Shell), (14, 15, Node)]
+  );
 
-    v = vec![(1, 1, Shell), (3, 11, Shell), (14, 15, Node)];
-    let _ = foldlist.recreate_all(&LINES[4..]);
-    assert_eq!(v, foldlist.to_vec(1));
+  cardtest!(
+    fold_general3,
+    LINES[6..],
+    vec![(1, 9, Shell), (12, 13, Node)]
+  );
 
-    v = vec![(1, 9, Shell), (12, 13, Node)];
-    let _ = foldlist.recreate_all(&LINES[6..]);
-    assert_eq!(v, foldlist.to_vec(1));
-
-    v = vec![(1, 2, Shell), (5, 5, Node)];
-    let _ = foldlist.recreate_all(&LINES[13..19]);
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_general4,
+    LINES[13..19],
+    vec![(1, 2, Shell), (5, 5, Node)]
+  );
 
   const LINES2: [&'static str; 24] = [
     // 0
@@ -389,20 +396,18 @@ mod tests {
     "SHELL /     3129       1       1    2967    2971    2970",
   ];
 
-  #[test]
-  fn fold_general_gather() {
-    let v = vec![
+  cardtest!(
+    fold_general_gather,
+    LINES2,
+    vec![
       (0, 3, Node),
       (5, 5, Shell),
       (6, 7, Node),
       (10, 14, Shell),
       (17, 19, Node),
       (20, 23, Shell),
-    ];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&LINES2);
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+    ]
+  );
 
   const RBODIES: [&'static str; 13] = [
     "RBODY /        1               0       0                       0       0        ",
@@ -420,20 +425,16 @@ mod tests {
     "        END",
   ];
 
-  #[test]
-  fn fold_level2_rbodies() {
-    let v1 = vec![
+  cardtest!(
+    fold_level2_rbodies,
+    RBODIES,
+    vec![
       (0, 2, Rbody0),
       (3, 5, Rbody0),
       (6, 9, Rbody0),
       (10, 12, Rbody0),
-    ];
-    let v2 = vec![(0, 12, Rbody0)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.recreate_all(&RBODIES);
-    assert_eq!(v1, foldlist.to_vec(1));
-    let _ = foldlist.recreate_all(&RBODIES);
-    assert_eq!(v2, foldlist.to_vec(2));
-  }
+    ],
+    vec![(0, 12, Rbody0)]
+  );
 
 }

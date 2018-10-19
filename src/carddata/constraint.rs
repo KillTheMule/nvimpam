@@ -189,7 +189,6 @@ pub static RBODY3: Card = Card {
 #[cfg(test)]
 mod tests {
   use card::keyword::Keyword::*;
-  use folds::FoldList;
 
   const CARD_MTOCO: [&'static str; 11] = [
     "$Regular MTOCO",
@@ -205,14 +204,11 @@ mod tests {
     "        END",
   ];
 
-  #[test]
-  fn fold_mtoco1() {
-    let v = vec![(2, 5, Mtoco), (6, 10, Mtoco)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_MTOCO);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_mtoco,
+    CARD_MTOCO,
+    vec![(2, 5, Mtoco), (6, 10, Mtoco)]
+  );
 
   const CARD_MTOCO2: [&'static str; 8] = [
     "$MTOCO mit User Imposed Mass and Intertia",
@@ -225,14 +221,11 @@ mod tests {
     "        END",
   ];
 
-  #[test]
-  fn fold_mtoco2() {
-    let v = vec![(2, 7, Mtoco)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_MTOCO2);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_mtoco2,
+    CARD_MTOCO2,
+    vec![(2, 7, Mtoco)]
+  );
 
   const CARD_OTMCO: [&'static str; 5] = [
     "$#         IDOTM  IDNODd  XYZUVW   IMETH  RADIUS   IELIM    ITYP   ALPHA",
@@ -242,14 +235,11 @@ mod tests {
     "END_OTMCO",
   ];
 
-  #[test]
-  fn fold_otmco1() {
-    let v = vec![(1, 4, Otmco)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_OTMCO);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_otmco,
+    CARD_OTMCO,
+    vec![(1, 4, Otmco)]
+  );
 
   const CARD_OTMCO2: [&'static str; 9] = [
     "$#         IDOTM  IDNODd  XYZUVW   IMETH  RADIUS   IELIM    ITYP   ALPHA",
@@ -263,14 +253,11 @@ mod tests {
     "END_OTMCO",
   ];
 
-  #[test]
-  fn fold_otmco2() {
-    let v = vec![(1, 8, Otmco)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_OTMCO2);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_otmco2,
+    CARD_OTMCO2,
+    vec![(1, 8, Otmco)]
+  );
 
   const CARD_RBODY0: [&'static str; 6] = [
     "$RBODY Type 0",
@@ -281,14 +268,11 @@ mod tests {
     "        END",
   ];
 
-  #[test]
-  fn fold_rbody0() {
-    let v = vec![(2, 5, Rbody0)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_RBODY0);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_rbody0,
+    CARD_RBODY0,
+    vec![(2, 5, Rbody0)]
+  );
 
   const CARD_RBODY1: [&'static str; 10] = [
     "$RBODY Type 1",
@@ -303,14 +287,11 @@ mod tests {
     "        END",
   ];
 
-  #[test]
-  fn fold_rbody1() {
-    let v = vec![(2, 9, Rbody1)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_RBODY1);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_rbody1,
+    CARD_RBODY1,
+    vec![(2, 9, Rbody1)]
+  );
 
   const CARD_RBODY2: [&'static str; 7] = [
     "$#          IDRB   BLANK    ITRBIDNODcog                   ISENS    IFRA     HRB",
@@ -322,14 +303,11 @@ mod tests {
     "        END",
   ];
 
-  #[test]
-  fn fold_rbody2() {
-    let v = vec![(1, 6, Rbody2)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_RBODY2);
-
-    assert_eq!(v, foldlist.to_vec(1));
-  }
+  cardtest!(
+    fold_rbody2,
+    CARD_RBODY2,
+    vec![(1, 6, Rbody2)]
+  );
 
   const CARD_RBODY3: [&'static str; 8] = [
     "$RBODY Type 3",
@@ -342,12 +320,10 @@ mod tests {
     "        END",
   ];
 
-  #[test]
-  fn fold_rbody3() {
-    let v = vec![(2, 7, Rbody3)];
-    let mut foldlist = FoldList::new();
-    let _ = foldlist.add_folds(&CARD_RBODY3);
+  cardtest!(
+    fold_rbody3,
+    CARD_RBODY3,
+    vec![(2, 7, Rbody3)]
+  );
 
-    assert_eq!(v, foldlist.to_vec(1));
-  }
 }
