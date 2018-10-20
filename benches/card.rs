@@ -67,9 +67,10 @@ const GES: [&str; 9] = [
 fn bench_skip_ges(c: &mut Criterion) {
   c.bench_function("card_skip_ges", |b| {
     let g = GesType::GesNode;
+    let lines = Lines::from_strs(&GES);
+    let keywords: Keywords = Keywords::from_lines(&lines);
+
     b.iter(|| {
-      let lines = Lines::from_strs(&GES);
-      let keywords: Keywords = Keywords::from_lines(&lines);
     let mut li =
       keywords.iter().zip(lines.iter()).enumerate().map(ParsedLine::from).remove_comments();
       let mut tmp = li.next().unwrap();
