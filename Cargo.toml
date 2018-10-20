@@ -28,6 +28,7 @@ neovim-lib = "0.5.4"
 failure = "0.1.2"
 itertools = "0.7.8"
 atoi = "0.2.3"
+byteorder = "*"
 
 [dev-dependencies]
 criterion = "0.2.5"
@@ -42,7 +43,7 @@ debug = true
 
 [profile.release]
 lto = true
-debug = false
+debug = true
 
 [[bench]]
 name = "card_valgrind"
@@ -63,7 +64,6 @@ required-features = ["no_valgrind"]
 name = "integration_file"
 harness = false
 required-features = ["no_valgrind"] 
-debug = true
 
 [[bench]]
 name = "integration_valgrind"

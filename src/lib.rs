@@ -5,6 +5,7 @@ extern crate log;
 extern crate itertools;
 extern crate neovim_lib;
 extern crate atoi;
+extern crate byteorder;
 
 pub mod card;
 pub mod carddata;
