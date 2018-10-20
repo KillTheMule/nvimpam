@@ -1,3 +1,4 @@
 max_width = 80
 wrap_comments = true
 tab_spaces = 2
+merge_imports = true

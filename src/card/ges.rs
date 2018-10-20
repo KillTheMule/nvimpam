@@ -145,7 +145,10 @@ mod tests {
     ];
     assert_eq!(
       v,
-      LINES.iter().map(|l| GesNode.contains(l.as_ref())).collect::<Vec<bool>>()
+      LINES
+        .iter()
+        .map(|l| GesNode.contains(l.as_ref()))
+        .collect::<Vec<bool>>()
     );
   }
 

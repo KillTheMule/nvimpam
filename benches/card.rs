@@ -4,17 +4,22 @@ extern crate nvimpam_lib;
 extern crate criterion;
 use criterion::Criterion;
 
-use nvimpam_lib::card::ges::GesType;
-use nvimpam_lib::card::keyword::Keyword;
-use nvimpam_lib::folds::FoldList;
-use nvimpam_lib::nocommentiter::CommentLess;
-use nvimpam_lib::lines::{Lines, ParsedLine};
-use nvimpam_lib::card::keyword::Keywords;
+use nvimpam_lib::{
+  card::{
+    ges::GesType,
+    keyword::{Keyword, Keywords},
+  },
+  folds::FoldList,
+  lines::{Lines, ParsedLine},
+  nocommentiter::CommentLess,
+};
 
 fn bench_parse2folddata(c: &mut Criterion) {
   c.bench_function("card_parse2folddata", |b| {
-    use std::fs::File;
-    use std::io::{self, BufRead};
+    use std::{
+      fs::File,
+      io::{self, BufRead},
+    };
 
     let file = File::open("files/example.pc").unwrap();
     let v: Vec<String> = io::BufReader::new(file)
@@ -35,8 +40,10 @@ fn bench_parse2folddata(c: &mut Criterion) {
 
 fn bench_parse_str(c: &mut Criterion) {
   c.bench_function("card_parse_str", |b| {
-    use std::fs::File;
-    use std::io::{self, BufRead};
+    use std::{
+      fs::File,
+      io::{self, BufRead},
+    };
 
     let file = File::open("files/example.pc").unwrap();
     let v: Vec<String> = io::BufReader::new(file)
@@ -71,8 +78,12 @@ fn bench_skip_ges(c: &mut Criterion) {
     let keywords: Keywords = Keywords::from_lines(&lines);
 
     b.iter(|| {
-    let mut li =
-      keywords.iter().zip(lines.iter()).enumerate().map(ParsedLine::from).remove_comments();
+      let mut li = keywords
+        .iter()
+        .zip(lines.iter())
+        .enumerate()
+        .map(ParsedLine::from)
+        .remove_comments();
       let mut tmp = li.next().unwrap();
       let mut _a = li.skip_ges(g, &tmp);
       tmp = li.next().unwrap();

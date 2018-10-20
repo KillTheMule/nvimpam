@@ -8,17 +8,22 @@ use std::alloc::System;
 #[global_allocator]
 static GLOBAL: System = System;
 
-use nvimpam_lib::card::ges::GesType;
-use nvimpam_lib::card::keyword::Keyword;
-use nvimpam_lib::folds::FoldList;
-use nvimpam_lib::nocommentiter::CommentLess;
-use nvimpam_lib::lines::{Lines, ParsedLine};
-use nvimpam_lib::card::keyword::Keywords;
+use nvimpam_lib::{
+  card::{
+    ges::GesType,
+    keyword::{Keyword, Keywords},
+  },
+  folds::FoldList,
+  lines::{Lines, ParsedLine},
+  nocommentiter::CommentLess,
+};
 
 #[bench]
 fn bench_parse2folddata(b: &mut Bencher) {
-  use std::fs::File;
-  use std::io::{self, BufRead};
+  use std::{
+    fs::File,
+    io::{self, BufRead},
+  };
 
   let file = File::open("files/example.pc").unwrap();
   let v: Vec<String> = io::BufReader::new(file)
@@ -38,8 +43,10 @@ fn bench_parse2folddata(b: &mut Bencher) {
 
 #[bench]
 fn bench_parse_str(b: &mut Bencher) {
-  use std::fs::File;
-  use std::io::{self, BufRead};
+  use std::{
+    fs::File,
+    io::{self, BufRead},
+  };
 
   let file = File::open("files/example.pc").unwrap();
   let v: Vec<String> = io::BufReader::new(file)

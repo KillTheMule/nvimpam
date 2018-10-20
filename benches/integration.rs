@@ -5,19 +5,14 @@ extern crate nvimpam_lib;
 extern crate criterion;
 use criterion::Criterion;
 
-use std::path::Path;
-use std::process::Command;
-use std::sync::mpsc;
+use std::{path::Path, process::Command, sync::mpsc};
 
-use nvimpam_lib::event::Event::*;
-use nvimpam_lib::folds::FoldList;
-use nvimpam_lib::handler::NeovimHandler;
-use nvimpam_lib::lines::Lines;
-use nvimpam_lib::card::keyword::Keywords;
+use nvimpam_lib::{
+  card::keyword::Keywords, event::Event::*, folds::FoldList,
+  handler::NeovimHandler, lines::Lines,
+};
 
-use neovim_lib::neovim::Neovim;
-use neovim_lib::neovim_api::NeovimApi;
-use neovim_lib::session::Session;
+use neovim_lib::{neovim::Neovim, neovim_api::NeovimApi, session::Session};
 
 fn bench_folds(c: &mut Criterion) {
   let (sender, receiver) = mpsc::channel();
@@ -36,11 +31,7 @@ fn bench_folds(c: &mut Criterion) {
 
   nvim.command("set noswapfile").expect("0");
   nvim.command("execute 'set rtp +='.getcwd()").expect("1");
-  nvim
-    .command(
-      "silent e!  files/example.pc",
-    )
-    .expect("2");
+  nvim.command("silent e!  files/example.pc").expect("2");
   let curbuf = nvim.get_current_buf().expect("3");
 
   c.bench_function("integration1", move |b| {
