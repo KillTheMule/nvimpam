@@ -311,7 +311,7 @@ mod tests {
     let l = Lines::from_slice(&v);
     let f = OriginalLine(
       b"//! This module holds the datastructure for the Lines of the \
-             buffer. For now,",
+             buffer.",
     );
 
     assert_eq!(f, l.0[0]);
