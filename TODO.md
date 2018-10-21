@@ -2,21 +2,6 @@
   or the code
   * Check out a build.rs
 
-* Maybe open preview window for the foldtexts/stderr when requested?
-  Try the following by @chemzqm
-    pclose
-    keepalt new +setlocal\ previewwindow|setlocal\ buftype=nofile|setlocal\ noswapfile|setlocal\ wrap [Document]
-    setl bufhidden=wipe
-    setl nobuflisted
-    setl nospell
-    setl filetype=markdown
-    let lines = split(a:info, "\n")
-    call append(0, lines)
-    exe "normal z" . len(lines) . "\<cr>"
-    exe "normal gg"
-    wincmd p
-
-
 * Healthcheck:
   * Add version info (see languageclient_neovim for how to do it properly?) Remember to 
     query the binary, in case there' ambiguity
@@ -25,10 +10,6 @@
 * Remove failure from the lib, implement own error handling
 
 * Check out https://github.com/kernelmachine/cargo-profiler
-
-* Check out http://troubles.md/posts/rustfest-2018-workshop/ for using cachgegrind for
-  performance analysis
-    * Also checkout Kcachegrind
 
 * Setup fuzzing?
   * Checkc https://users.rust-lang.org/t/announcing-afl-rs-0-2-bindings-for-american-fuzzy-lop/13981
@@ -39,11 +20,14 @@
   * https://github.com/Geal/cargo-external-doc
   * https://github.com/vitiral/artifact
 
-* Check out https://www.makeareadme.com/#usage
-
 * Improve example usage in src/folds.rs
 
 * Write more tests for conditionals in src/card/line.rs
+
+### Things to keep in mind when releasing
+
+* Check out https://www.makeareadme.com/#usage
+* Update CHANGELOG.md
 
 ### Performance stuff tried and discarded because the benchmark(s) didn't improve
 
@@ -75,4 +59,16 @@
     the buffer for that channel (how? not sure -> nvim_get_api_info)
   * Maybe add a new event to the plugin that waits for the buffer number from
     rpcnotify, and oonly after receiving that start the "real" event loop
-
+* Maybe open preview window for the foldtexts/stderr when requested?
+  Try the following by @chemzqm
+    pclose
+    keepalt new +setlocal\ previewwindow|setlocal\ buftype=nofile|setlocal\ noswapfile|setlocal\ wrap [Document]
+    setl bufhidden=wipe
+    setl nobuflisted
+    setl nospell
+    setl filetype=markdown
+    let lines = split(a:info, "\n")
+    call append(0, lines)
+    exe "normal z" . len(lines) . "\<cr>"
+    exe "normal gg"
+    wincmd p
