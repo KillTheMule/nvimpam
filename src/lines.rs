@@ -1,21 +1,21 @@
-//! This module holds the datastructure for the Lines of the buffer. For now,
-//! it's simply a `Vec<String>` with an appropriate API.
+//! This module holds the datastructure for the Lines of the buffer.
 //!
 //! Future ideas, if performance isn't enough: Skip list, gap buffer (adapted to
 //! lines instead of strings), rope (adapted to lines instead of strings)
-use std::convert::{AsRef, From};
-use std::fmt;
-use std::fs::File;
-use std::io::Read;
-use std::ops::Deref;
-use std::path::Path;
+use std::{
+  convert::{AsRef, From},
+  fmt,
+  fs::File,
+  io::Read,
+  ops::Deref,
+  path::Path,
+};
 
-use failure::Error;
-use failure::ResultExt;
+use failure::{Error, ResultExt};
 
 use card::keyword::Keyword;
 
-/// An enum representing the line of a file, either as a byte slice (which we
+/// An enum representing a line of a file, either as a byte slice (which we
 /// obtain from reading a file into a `Vec<u8>` and splitting on newlines) or an
 /// owned `String` (which we get from neovim's buffer update API).
 #[derive(Debug, PartialEq)]
@@ -59,6 +59,9 @@ impl<'a> fmt::Display for Lines<'a> {
   }
 }
 
+/// A struct returned by the [`iter()`](::lines::Lines::iter) method of
+/// [`Lines`](::lines::Lines). Used to iterate over the [`Line`](::lines::Line)
+/// of a file.
 pub struct LinesIter<'a, I>
 where
   I: Iterator<Item = &'a Line<'a>>,
@@ -83,7 +86,7 @@ impl<'a> Lines<'a> {
     Lines(w)
   }
 
-  /// Creates a new `Lines` struct from a slice of &'str
+  /// Creates a new `Lines` struct from a slice of `&'str`s
   pub fn from_strs(v: &'a [&'a str]) -> Lines<'a> {
     let w: Vec<Line<'a>> = v
       .into_iter()
@@ -99,7 +102,8 @@ impl<'a> Lines<'a> {
     Lines(w)
   }
 
-  /// Read a file into a `Vec<u8>`. For usage with `::lines::Lines::from_slice`.
+  /// Read a file into a `Vec<u8>`. For usage with
+  /// [`from_slice`](::lines::Lines::from_slice).
   pub fn read_file<P: AsRef<Path>>(path: P) -> Result<Vec<u8>, Error> {
     let mut file = File::open(&path).with_context(|e| {
       format!("Error opening {}: {}", path.as_ref().display(), e)
@@ -116,6 +120,8 @@ impl<'a> Lines<'a> {
   /// Update Lines:
   ///   * `first` and `last` are zero-indexed (just as Lines itself)
   ///   * `last` is the first line that has _not_ been updated
+  /// This are the exact conditions to use the range `first..last` together with
+  /// `splice` on a `Vec`.
   pub fn update(&mut self, first: usize, last: usize, linedata: Vec<String>) {
     let range = first..last;
     let _ = self
@@ -123,6 +129,7 @@ impl<'a> Lines<'a> {
       .splice(range, linedata.into_iter().map(Line::ChangedLine));
   }
 
+  /// Return an Iterator over the lines of a file.
   pub fn iter(&'a self) -> LinesIter<'a, impl Iterator<Item = &'a Line<'a>>> {
     LinesIter { li: self.0.iter() }
   }
@@ -145,6 +152,8 @@ impl<'a> From<Vec<String>> for Lines<'a> {
   }
 }
 
+/// A struct to hold the data of a [`Line`](::lines::Line) that has been
+/// [`parse`](::card::keyword::Keyword::parse)d before.
 #[derive(PartialEq, Debug)]
 pub struct ParsedLine<'a> {
   pub number: usize,
@@ -153,6 +162,9 @@ pub struct ParsedLine<'a> {
 }
 
 impl<'a> ParsedLine<'a> {
+  /// Try to convert the [`ParsedLine`](::lines::ParsedLine) into a
+  /// [`KeywordLine`](::lines::KeywordLine). This is of course possible if and
+  /// only if the [`keyword`](::lines::ParsedLine::keyword) is `Some(kw)`.
   pub fn try_into_keywordline(&self) -> Option<KeywordLine<'a>> {
     if let Some(kw) = self.keyword {
       return Some(KeywordLine {
@@ -212,6 +224,9 @@ impl<'a> fmt::Display for ParsedLine<'a> {
   }
 }
 
+/// A struct to hold a [`Line`](::lines::Line) of a file that has been
+/// [`parse`](::card::keyword::Keyword::parse)d and starts with a
+/// [`Keyword`](::card::keyword::Keyword).
 #[derive(PartialEq, Debug)]
 pub struct KeywordLine<'a> {
   pub number: usize,
@@ -241,8 +256,7 @@ impl<'a> Deref for Lines<'a> {
 
 #[cfg(test)]
 mod tests {
-  use lines::Line::*;
-  use lines::Lines;
+  use lines::{Line::*, Lines};
 
   const LINES: &str = "This\nis \nan \nexample \nof \nsome \nlines \n.";
 

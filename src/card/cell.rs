@@ -4,7 +4,7 @@
 /// file, aside from comments and header data.
 #[derive(Debug, PartialEq)]
 pub enum Cell {
-  /// A keyword, given by [Card.keyword](::card::Card.keyword)
+  /// A [`keyword`](::card::keyword::Keyword)
   Kw,
   /// A fixed, non-keyword entry
   Fixed(&'static str),

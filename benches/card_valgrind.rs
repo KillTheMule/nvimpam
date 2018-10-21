@@ -1,9 +1,10 @@
 #![feature(test)]
 
 extern crate nvimpam_lib;
-
 extern crate test;
+
 use self::test::Bencher;
+
 use std::alloc::System;
 #[global_allocator]
 static GLOBAL: System = System;

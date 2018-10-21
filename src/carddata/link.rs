@@ -1,10 +1,8 @@
 //! This modules holds the the global static link [`Card`](::card::Card)
 //! instances.
-use card::cell::Cell::*;
-use card::ges::GesType::*;
-use card::keyword::Keyword::*;
-use card::line::Line::*;
-use card::Card;
+use card::{
+  cell::Cell::*, ges::GesType::*, keyword::Keyword::*, line::Line::*, Card,
+};
 
 pub static ELINK: Card = Card {
   lines: &[
@@ -88,11 +86,7 @@ mod tests {
     "        END",
   ];
 
-  cardtest!(
-    fold_elink,
-    CARD_ELINK,
-    vec![(1, 12, Elink)]
-  );
+  cardtest!(fold_elink, CARD_ELINK, vec![(1, 12, Elink)]);
 
   const CARD_LLINK: [&'static str; 23] = [
     "$LLINK Element",
@@ -120,11 +114,7 @@ mod tests {
     "        END",
   ];
 
-  cardtest!(
-    fold_llink,
-    CARD_LLINK,
-    vec![(1, 22, Llink)]
-  );
+  cardtest!(fold_llink, CARD_LLINK, vec![(1, 22, Llink)]);
 
   const CARD_SLINK: [&'static str; 6] = [
     "$SLINK Element",
@@ -135,11 +125,7 @@ mod tests {
     "        END",
   ];
 
-  cardtest!(
-    fold_slink,
-    CARD_SLINK,
-    vec![(1, 5, Slink)]
-  );
+  cardtest!(fold_slink, CARD_SLINK, vec![(1, 5, Slink)]);
 
   const CARD_PLINK: [&'static str; 9] = [
     "$PLINK Element",
@@ -153,11 +139,7 @@ mod tests {
     "#PLINK",
   ];
 
-  cardtest!(
-    fold_plink,
-    CARD_PLINK,
-    vec![(1, 7, Plink)]
-  );
+  cardtest!(fold_plink, CARD_PLINK, vec![(1, 7, Plink)]);
 
   const CARD_TIED: [&'static str; 22] = [
     "$TIED Element",
@@ -184,10 +166,6 @@ mod tests {
     "        END",
   ];
 
-  cardtest!(
-    fold_tied,
-    CARD_TIED,
-    vec![(1, 21, Tied)]
-  );
+  cardtest!(fold_tied, CARD_TIED, vec![(1, 21, Tied)]);
 
 }

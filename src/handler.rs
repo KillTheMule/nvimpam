@@ -1,20 +1,21 @@
-//! The handler for the rpc events sent by `neovim_lib`
+//! The handler for the rpc events sent by `neovim_lib`. Note that this is
+//! excuted in another thread, so we use a
+//! [`Sender<Event>`](std::sync::mpsc::Sender) to send the parsed event data to
+//! the main thread.
 use std::sync::mpsc;
 
-use failure;
-use failure::Error;
-use neovim_lib::neovim_api::Buffer;
-use neovim_lib::{Handler, Value};
+use failure::{self, Error};
+use neovim_lib::{neovim_api::Buffer, Handler, Value};
 
 use event::Event;
 
 /// The handler containing the sending end of a channel. The receiving end is
-/// the main [event loop](../event/enum.Event.html#method.event_loop).
+/// the main [`event loop`](::event::Event::event_loop).
 pub struct NeovimHandler(pub mpsc::Sender<Event>);
 
 impl NeovimHandler {
   /// Parse a nvim_buf_lines_event notification into a
-  /// [LinesEvent](../event/enum.Event.html#variant.LinesEvent) event
+  /// [`LinesEvent`](::event::Event::LinesEvent) event
   pub fn parse_lines_event(
     &mut self,
     mut args: Vec<Value>,
@@ -39,7 +40,7 @@ impl NeovimHandler {
   }
 
   /// Parse a nvim_buf_changedtick_event notification into a
-  /// [ChangedTickEvent](../event/enum.Event.html#variant.ChangedTickEvent)
+  /// [`ChangedTickEvent`](::event::Event::ChangedTickEvent)
   /// event
   pub fn parse_changedtick_event(
     &mut self,
@@ -53,7 +54,7 @@ impl NeovimHandler {
   }
 
   /// Parse a nvim_buf_detach_event notification into a
-  /// [DetachEvent](../event/enum.Event.html#variant.DetachEvent) event
+  /// [`DetachEvent`](::event::Event::DetachEvent) event
   pub fn parse_detach_event(
     &mut self,
     mut args: Vec<Value>,
@@ -127,29 +128,30 @@ pub fn last_arg(
   v.pop().ok_or_else(|| failure::err_msg(errmsg))
 }
 
-/// Parse a `neovim_lib::Value` into a u64
+/// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a u64
 pub fn parse_u64(value: &Value) -> Result<u64, Error> {
   value
     .as_u64()
     .ok_or_else(|| failure::err_msg("cannot parse as u64"))
 }
 ///
-/// Parse a `neovim_lib::Value` into a i64
+/// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a i64
 pub fn parse_i64(value: &Value) -> Result<i64, Error> {
   value
     .as_i64()
     .ok_or_else(|| failure::err_msg("cannot parse as i64"))
 }
 
-/// Parse a `neovim_lib::Value` into a bool
+/// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a bool
 pub fn parse_bool(value: &Value) -> Result<bool, Error> {
   value
     .as_bool()
     .ok_or_else(|| failure::err_msg("cannot parse as bool"))
 }
 
-/// Parse a `neovim_lib::Value` into a Vec<String>. Note that this method takes
-/// ownership of the value so it does not need to copy out the contained strings
+/// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a `Vec<String>`. Note
+/// that this method takes ownership of the value so it does not need to copy
+/// out the contained strings
 pub fn parse_vecstr(value: Value) -> Result<Vec<String>, Error> {
   let mut res: Vec<String>;
   if let Value::Array(v) = value {
@@ -172,7 +174,8 @@ pub fn parse_vecstr(value: Value) -> Result<Vec<String>, Error> {
   Ok(res)
 }
 
-/// Parse a `neovim_lib::Value` into a `neovim_lib::Buffer`. This cannot fail,
+/// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a
+/// [`neovim_lib::Buffer`](neovim_lib::neovim_api::Buffer). This cannot fail,
 /// but if the Value was not obtained from the rpc api, this will probably not
 /// be a valid buffer to send commands to.
 pub fn parse_buf(value: Value) -> Buffer {

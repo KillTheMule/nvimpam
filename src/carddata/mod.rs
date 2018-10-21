@@ -8,15 +8,13 @@ macro_rules! cardtest {
   ($name: ident, $c: expr, $v: expr) => {
     #[test]
     fn $name() {
-      use lines::Lines;
-      use folds::FoldList;
       use card::keyword::Keyword;
+      use folds::FoldList;
+      use lines::Lines;
 
       let lines = Lines::from_strs(&$c);
-      let keywords: Vec<_> = lines
-        .iter()
-        .map(|l| Keyword::parse(l.as_ref()))
-        .collect();
+      let keywords: Vec<_> =
+        lines.iter().map(|l| Keyword::parse(l.as_ref())).collect();
 
       let mut foldlist = FoldList::new();
       let _ = foldlist.recreate_all(&keywords, &lines);
@@ -27,15 +25,13 @@ macro_rules! cardtest {
   ($name: ident, $c: ident, $v: expr, $w: expr) => {
     #[test]
     fn $name() {
-      use lines::Lines;
-      use folds::FoldList;
       use card::keyword::Keyword;
+      use folds::FoldList;
+      use lines::Lines;
 
       let lines = Lines::from_strs(&$c);
-      let keywords: Vec<_> = lines
-        .iter()
-        .map(|l| Keyword::parse(l.as_ref()))
-        .collect();
+      let keywords: Vec<_> =
+        lines.iter().map(|l| Keyword::parse(l.as_ref())).collect();
 
       let mut foldlist = FoldList::new();
       let _ = foldlist.recreate_all(&keywords, &lines);
@@ -53,14 +49,9 @@ pub mod link;
 pub mod node;
 pub mod part;
 
-pub use self::auxiliaries::*;
-pub use self::constraint::*;
 /// All static declarations can be imported via
 /// ```rust, compile_fail
 /// use carddata::*;
 /// ```
 pub use self::element::*;
-pub use self::link::*;
-pub use self::node::*;
-pub use self::part::*;
-
+pub use self::{auxiliaries::*, constraint::*, link::*, node::*, part::*};

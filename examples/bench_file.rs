@@ -1,3 +1,9 @@
+//! Pretty minimal example of a binary utilizing nvimpam_lib. Needs to run from
+//! the project directory so neovim can find the runtime files.
+//!
+//! Uses the sytem allocator so it can be run under valgrind properly. Does not
+//! utilize the [event loop](::event::Event:: event_loop), but makes its own so
+//! it can exit after sending the first batch of folds.
 extern crate neovim_lib;
 extern crate nvimpam_lib;
 

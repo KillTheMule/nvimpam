@@ -1,14 +1,25 @@
 //! The nvimpam binary. Needs to be connected to neovim by stdin/stdout like
-//! this:
+//! this (assuming it is in your PATH):
 //!
 //! ```text
-//! let s:scriptdir = resolve(expand('<sfile>:p:h') . '/..')
-//! let s:bin = s:scriptdir . '/nvimpam'
+//! let s:bin = 'nvimpam'
 //! let s:id = jobstart([s:bin], { 'rpc': v:true }
 //! ```
 //!
 //! It will automatically notify neovim of its activity, request the whole
 //! buffer and parse it for folds. After that, it sends the folds to neovim.
+//!
+//! As a performance optimization, pass the filename as a first argument:
+//!
+//! ```text
+//! let s:bin = 'nvimpam'
+//! let s:file = expand('%:p')
+//! let s:id = jobstart([s:bin.' '.s:file], { 'rpc': v:true }
+//! ```
+//!
+//! Nvimpam will load the file from disc instead of requesting it over RPC,
+//! which is quite a bit faster (mostly probably because the file is cached by
+//! your OS since it was loaded by neovim just before).
 //!
 //! If you want logging, set the following environment variables:
 //!
@@ -37,7 +48,6 @@ use neovim_lib::neovim_api::NeovimApi;
 use neovim_lib::session::Session;
 use neovim_lib::Value;
 
-// use log::SetLoggerError;
 use simplelog::{Config, Level, LevelFilter, WriteLogger};
 
 fn main() {
@@ -166,6 +176,8 @@ fn start_program() -> Result<(), Error> {
 
   send_client_info(&mut nvim)?;
 
+  /* Leave this out for now, it's not really necessary and slows
+   * down the first folds
   nvim
     .command("echom \"rust client connected to neovim\"")
     .context("Could not 'echom' to neovim")?;
@@ -173,6 +185,7 @@ fn start_program() -> Result<(), Error> {
   nvim
     .subscribe("quit")
     .context("error: cannot subscribe to event: quit")?;
+  */
 
   let file = args_os().nth(1);
 

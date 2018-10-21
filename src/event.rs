@@ -1,15 +1,13 @@
 //! The events that nvimpam needs to accept and deal with. They're sent by the
 //! [`NeovimHandler`](::handler::NeovimHandler) to the main loop.
-use std::fmt;
-use std::sync::mpsc;
-use std::ffi::OsString;
+use std::{ffi::OsString, fmt, sync::mpsc};
 
-use failure::Error;
-use failure;
+use failure::{self, Error};
 
-use neovim_lib::neovim::Neovim;
-use neovim_lib::neovim_api::Buffer;
-use neovim_lib::neovim_api::NeovimApi;
+use neovim_lib::{
+  neovim::Neovim,
+  neovim_api::{Buffer, NeovimApi},
+};
 
 use folds::FoldList;
 use lines::Lines;
@@ -46,24 +44,24 @@ pub enum Event {
 
 impl Event {
   /// Run the event loop. The receiver receives the events from the
-  /// [handler](../handler/struct.NeovimHandler.html).
+  /// [handler](::handler::NeovimHandler).
   ///
   /// The loop starts by enabling
-  /// [buffer events](::neovim_ext::BufferExt::attach).
-  /// It creates [`lines`](::lines::Lines) and a
-  /// [`foldlist`](::folds::FoldList)  and updates them from the
-  /// events received. It calls
-  /// [`resend_all`](::folds::FoldList::resend_all) when
-  /// the [`foldlist`](::folds::FoldList) was created, or the
-  /// [`RefreshFolds`](../event/enum.Event.html#variant.RefreshFolds) event
-  /// was sent.
+  /// [buffer events](https://neovim.io/doc/user/api.html#nvim_buf_attach()).
+  /// It creates [`lines`](::lines::Lines),
+  /// [`keywords`](::card::keyword::Keywords) and a
+  /// [`foldlist`](::folds::FoldList)  and updates them from the events
+  /// received. It calls [`resend_all`](::folds::FoldList::resend_all) when the
+  /// [`foldlist`](::folds::FoldList) was created, or the
+  /// [`RefreshFolds`](../event/enum.Event.html#variant.RefreshFolds) event was
+  /// sent.
   ///
   /// Sending the [`Quit`](../event/enum.Event.html#variant.Quit) event will
   /// exit the loop and return from the function.
   pub fn event_loop(
     receiver: &mpsc::Receiver<Event>,
     mut nvim: Neovim,
-    file: Option<OsString>
+    file: Option<OsString>,
   ) -> Result<(), Error> {
     use self::Event::*;
     use card::keyword::Keywords;

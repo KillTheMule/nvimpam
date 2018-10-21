@@ -17,13 +17,9 @@
 //! assert!(foldlist.remove(2, 3).is_err());
 //! assert!(foldlist.remove(1, 2).is_ok());
 //! ```
-//!
-use std::collections::btree_map::Entry;
-use std::collections::BTreeMap;
+use std::collections::{btree_map::Entry, BTreeMap};
 
-use failure;
-use failure::Error;
-use failure::ResultExt;
+use failure::{self, Error, ResultExt};
 
 use neovim_lib::{Neovim, NeovimApi, Value};
 
@@ -49,19 +45,23 @@ macro_rules! unwrap_or_ok {
 }
 
 /// Holds the fold data of the buffer. A fold has the following data:
-/// Linenumbers start, end (indexed from 1), and a
+/// Linenumbers start, end (indexed from 0), and a
 /// [Keyword](::card::Keyword).
 #[derive(Default, Debug)]
 pub struct FoldList {
-  /// List of folds, keyed by [start, end], valued by Keyword, sorted
-  /// lexicographically on [start, end].
+  /// List of folds, keyed by [start, end], valued by
+  /// [`Keyword`](::card::keyword::Keyword), sorted
+  /// lexicographically on [start, end] (linenumbers starting at 0).
   folds: BTreeMap<[u64; 2], Keyword>,
-  /// List of level 2 folds (i.e. containing level 1 folds), keyed by [start,
-  /// end], valued by Keyword, sorted lexicographically on [start, end].
+  /// List of level 2 folds (i.e. containing level 1 folds), keyed by
+  /// [start, end], valued by [`Keyword`](::card::keyword::Keyword), sorted
+  /// lexicographically on [start, end] (linenumbers starting at 0).
   folds_level2: BTreeMap<[u64; 2], Keyword>,
-  /// List of Strings to show as foldtext for level 1 folds
+  /// List of Strings to show as foldtext for level 1 folds, keyed by
+  /// [start, end] (linenumbers starting at 0).
   fold_texts: BTreeMap<[u64; 2], String>,
-  /// List of Strings to show as foldtext for level 2 folds
+  /// List of Strings to show as foldtext for level 2 folds, keyed by
+  /// [start, end] (linenumbers starting at 0).
   fold_texts_level2: BTreeMap<[u64; 2], String>,
 }
 
@@ -85,9 +85,9 @@ impl FoldList {
     self.fold_texts_level2.clear();
   }
 
-  /// Insert a level 1 fold (start, end) into the FoldList. Returns an error if
-  /// that fold is already in the list. In that case, it needs to be
-  /// [removed](struct.FoldList.html#method.remove) beforehand.
+  /// Insert a level 1 fold `([start, end], Keyword)` into the FoldList.
+  /// Returns an error if that fold is already in the list. In that case,
+  /// it needs to be [removed](struct.FoldList.html#method.remove) beforehand.
   fn insert(&mut self, start: u64, end: u64, kw: Keyword) -> Result<(), Error> {
     match self.folds.entry([start, end]) {
       Entry::Occupied(_) => {
@@ -108,10 +108,12 @@ impl FoldList {
     Ok(())
   }
 
-  /// Insert a level 1 fold (start, end) into the FoldList. If `end < start`,
-  /// we silently return.  Otherwise, we call the internal insert function that
-  /// returns an error if the fold is already in the list. In that case, it
-  /// needs to be [removed](struct.FoldList.html#method.remove) beforehand.
+  /// Insert a level 1 fold `([start, end], Keyword)` into the FoldList. If
+  /// `end < start`, we silently return.  Otherwise, we call the internal
+  /// insert function that returns an error if the fold is already in the
+  /// list. In that case, it needs to be
+  /// [removed](struct.FoldList.html#method.remove)
+  /// beforehand.
   pub fn checked_insert(
     &mut self,
     start: u64,
@@ -124,7 +126,7 @@ impl FoldList {
     Ok(())
   }
 
-  /// Remove a level 1 fold (start, end) from the foldlist. Only checks if the
+  /// Remove a level 1 fold [start, end] from the foldlist. Only checks if the
   /// fold is in the FoldList, and returns an error otherwise.
   pub fn remove(&mut self, start: u64, end: u64) -> Result<(), Error> {
     self
@@ -139,11 +141,12 @@ impl FoldList {
   }
 
   /// Remove all the entries from the FoldList, and iterate over lines to
-  /// populate it with new ones
+  /// populate it with new ones. Then recreate the [level 2
+  /// folds](::folds::FoldList::folds_level2).
   pub fn recreate_all(
     &mut self,
     keywords: &[Option<Keyword>],
-    lines: &[Line]
+    lines: &[Line],
   ) -> Result<(), Error> {
     self.clear();
     self.add_folds(keywords, lines)?;
@@ -194,8 +197,7 @@ impl FoldList {
     Ok(())
   }
 
-  /// Delete all folds in nvim, and create the ones from the FoldList
-  /// https://github.com/KillTheMule/KillTheMule.github.io/blob/master/benchmark_rpc.md
+  /// Delete all folds in nvim, and create the ones from the FoldList.
   pub fn resend_all(&self, nvim: &mut Neovim) -> Result<(), Error> {
     let luafn = "require('nvimpam').update_folds(...)";
     let mut luaargs = vec![];
@@ -231,25 +233,31 @@ impl FoldList {
     }
   }
 
-  /// Parse an array of `Keyword`s into a [FoldList](struct.FoldList.html). The
-  /// foldlist is cleared as a first step.
+  /// Parse an array of `Option<Keyword>`s into a
+  /// [`FoldList`](::folds::FoldList). The foldlist is cleared as a first step.
   ///
   /// Creates only level 1 folds. Depending on the
-  /// [ownfold](../card/struct.Card.html#structfield.ownfold) parameter in the
+  /// [`ownfold`](::card::Card::ownfold) parameter in the
   /// definition of the card in the [carddata](::carddata) module, each card
   /// will be in an own fold, or several adjacent (modulo comments) cards will
   /// be subsumed into a fold.
-  pub fn add_folds(&mut self, keywords: &[Option<Keyword>], lines: &[Line]) -> Result<(), Error> {
+  pub fn add_folds(
+    &mut self,
+    keywords: &[Option<Keyword>],
+    lines: &[Line],
+  ) -> Result<(), Error> {
     debug_assert!(keywords.len() == lines.len());
-    let mut li =
-      keywords.iter().zip(lines).enumerate().map(ParsedLine::from).remove_comments();
+    let mut li = keywords
+      .iter()
+      .zip(lines)
+      .enumerate()
+      .map(ParsedLine::from)
+      .remove_comments();
 
     let mut foldstart;
     let mut foldend;
     let mut foldkw;
     let mut skipped;
-
-    //let _ = li.next();
 
     let mut nextline = unwrap_or_ok!(li.skip_to_next_keyword());
 

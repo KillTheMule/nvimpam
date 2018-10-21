@@ -1,15 +1,14 @@
 //! An enum to classify the several types of lines that can occur inside a card
 //! of a Pamcrash input file. Might not really be a line (see
-//! [GES](::card::line::Line::Ges).
-use std::cmp;
-use std::ops::Range;
+//! [GES](::card::line::Line::Ges), rather than zero or more lines.
+use std::{cmp, ops::Range};
 
 use atoi::atoi;
 
-use card::cell::Cell;
-use card::ges::GesType;
+use card::{cell::Cell, ges::GesType};
 
-/// A line inside a card in a Pamcrash input file.
+/// A line (actually, zero or more lines) inside a card in a Pamcrash input
+/// file.
 #[derive(Debug, PartialEq)]
 pub enum Line {
   /// A standard line, containing several cells of a fixed width
@@ -41,7 +40,7 @@ pub enum Line {
 /// An enum to represent different conditionals on lines
 #[derive(Debug, PartialEq)]
 pub enum Conditional {
-  /// The byte (2nd arg) at the given index (1st arg) (0-based!) is the given
+  /// The byte (2nd arg) at the given index (1st arg, 0-based!) is the given
   /// one.
   RelChar(u8, u8),
   // The integer at the cell given by the range is the second number
@@ -59,8 +58,7 @@ pub enum CondResult {
 
 impl Conditional {
   /// Given a line, evaluate the conditional on it
-  pub fn evaluate(&self, line: &[u8]) -> CondResult
-  {
+  pub fn evaluate(&self, line: &[u8]) -> CondResult {
     use self::CondResult::*;
 
     match *self {
@@ -69,43 +67,43 @@ impl Conditional {
         Bool(line.get(idx) == Some(&c))
       }
       Conditional::Int(ref r, b) => {
-        let range =
-          r.start as usize..cmp::min(line.len(), r.end as usize);
+        let range = r.start as usize..cmp::min(line.len(), r.end as usize);
 
         let cell = match line.get(range) {
           Some(c) => c,
-          None => return Bool(false)
+          None => return Bool(false),
         };
 
         let firstdigit = cell
-            .iter()
-            .position(|b| *b >= b'0' && *b <= b'9')
-            .unwrap_or(0usize);
+          .iter()
+          .position(|b| *b >= b'0' && *b <= b'9')
+          .unwrap_or(0usize);
 
         Bool(
-          cell.get(firstdigit..)
+          cell
+            .get(firstdigit..)
             .map(|s| atoi::<usize>(s) == Some(b as usize))
             .unwrap_or(false),
         )
       }
       Conditional::Number(ref r) => {
-        let range =
-          r.start as usize..cmp::min(line.len(), r.end as usize);
+        let range = r.start as usize..cmp::min(line.len(), r.end as usize);
 
         let cell = match line.get(range) {
           Some(c) => c,
-          None => return Bool(false)
+          None => return Bool(false),
         };
 
         let firstdigit = cell
-            .iter()
-            .position(|b| *b >= b'0' && *b <= b'9')
-            .unwrap_or(0usize);
+          .iter()
+          .position(|b| *b >= b'0' && *b <= b'9')
+          .unwrap_or(0usize);
 
         Number(
-          cell.get(firstdigit..)
+          cell
+            .get(firstdigit..)
             .map(|s| atoi::<usize>(s))
-            .unwrap_or(None)
+            .unwrap_or(None),
         )
       }
     }
@@ -114,8 +112,7 @@ impl Conditional {
 
 #[cfg(test)]
 mod tests {
-  use card::line::CondResult::*;
-  use card::line::Conditional;
+  use card::line::{CondResult::*, Conditional};
 
   #[test]
   fn relchar_can_be_evaluated() {

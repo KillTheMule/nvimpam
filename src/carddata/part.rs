@@ -1,10 +1,11 @@
 //! This modules holds the the global static part [`Card`](::card::Card)
 //! instances.
-use card::cell::Cell::*;
-use card::keyword::Keyword::*;
-use card::line::Conditional::*;
-use card::line::Line::*;
-use card::Card;
+use card::{
+  cell::Cell::*,
+  keyword::Keyword::*,
+  line::{Conditional::*, Line::*},
+  Card,
+};
 
 macro_rules! part {
   ($($e: expr),+; $k: expr) => {
@@ -187,7 +188,7 @@ mod tests {
     fold_partsolid,
     CARD_PARTSOLID,
     vec![(2, 14, PartSolid), (15, 21, PartSolid)]
-    );
+  );
 
   const CARD_PARTSOLID2: [&'static str; 17] = [
     "$PART Type SOLID",
@@ -209,11 +210,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partsolid2,
-    CARD_PARTSOLID2,
-    vec![(2, 14, PartSolid)]
-  );
+  cardtest!(fold_partsolid2, CARD_PARTSOLID2, vec![(2, 14, PartSolid)]);
 
   const CARD_PARTCOS3D: [&'static str; 13] = [
     "$PART Type COS3D",
@@ -231,11 +228,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partcos3d,
-    CARD_PARTCOS3D,
-    vec![(2, 12, PartCos3d)]
-  );
+  cardtest!(fold_partcos3d, CARD_PARTCOS3D, vec![(2, 12, PartCos3d)]);
 
   const CARD_PARTBSHEL: [&'static str; 12] = [
     "$PART Type BSHEL",
@@ -252,11 +245,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partbshel,
-    CARD_PARTBSHEL,
-    vec![(2, 11, PartBshel)]
-  );
+  cardtest!(fold_partbshel, CARD_PARTBSHEL, vec![(2, 11, PartBshel)]);
 
   const CARD_PARTTETRA: [&'static str; 15] = [
     "$PART Type TETRA",
@@ -276,11 +265,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_parttetra,
-    CARD_PARTTETRA,
-    vec![(2,14, PartTetra)]
-  );
+  cardtest!(fold_parttetra, CARD_PARTTETRA, vec![(2, 14, PartTetra)]);
 
   const CARD_PARTSPHEL: [&'static str; 13] = [
     "$PART Type SPHEL",
@@ -298,11 +283,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partsphel,
-    CARD_PARTSPHEL,
-    vec![(2, 12, PartSphel)]
-  );
+  cardtest!(fold_partsphel, CARD_PARTSPHEL, vec![(2, 12, PartSphel)]);
 
   const CARD_PARTSPHEL2: [&'static str; 16] = [
     "$PART Type SPHEL",
@@ -323,11 +304,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_sphel2,
-    CARD_PARTSPHEL2,
-    vec![(2, 15, PartSphel)]
-  );
+  cardtest!(fold_sphel2, CARD_PARTSPHEL2, vec![(2, 15, PartSphel)]);
 
   const CARD_PARTTSHEL: [&'static str; 12] = [
     "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",
@@ -344,11 +321,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_parttshel,
-    CARD_PARTTSHEL,
-    vec![(1, 11, PartTshel)]
-  );
+  cardtest!(fold_parttshel, CARD_PARTTSHEL, vec![(1, 11, PartTshel)]);
 
   const CARD_PARTSHELL: [&'static str; 15] = [
     "$PART Type SHELL",
@@ -368,11 +341,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partshell,
-    CARD_PARTSHELL,
-    vec![(2, 14, PartShell)]
-  );
+  cardtest!(fold_partshell, CARD_PARTSHELL, vec![(2, 14, PartShell)]);
 
   const CARD_PARTSHELL2: [&'static str; 11] = [
     "PART  /    10100SHELL   38103600                                                ",
@@ -388,11 +357,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partshell2,
-    CARD_PARTSHELL2,
-    vec![(0, 10, PartShell)]
-  );
+  cardtest!(fold_partshell2, CARD_PARTSHELL2, vec![(0, 10, PartShell)]);
 
   const CARD_PARTMEMBR: [&'static str; 17] = [
     "$PART Type MEMBR",
@@ -414,11 +379,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partmembr,
-    CARD_PARTMEMBR,
-    vec![(2, 16, PartMembr)]
-  );
+  cardtest!(fold_partmembr, CARD_PARTMEMBR, vec![(2, 16, PartMembr)]);
 
   const CARD_PARTBAR: [&'static str; 13] = [
     "$PART Type BAR",
@@ -436,11 +397,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partbar,
-    CARD_PARTBAR,
-    vec![(2, 12, PartBar)]
-  );
+  cardtest!(fold_partbar, CARD_PARTBAR, vec![(2, 12, PartBar)]);
 
   const CARD_PARTBEAM: [&'static str; 20] = [
     "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",
@@ -465,11 +422,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partbeam,
-    CARD_PARTBEAM,
-    vec![(1, 19, PartBeam)]
-  );
+  cardtest!(fold_partbeam, CARD_PARTBEAM, vec![(1, 19, PartBeam)]);
 
   const CARD_PARTBEAM2: [&'static str; 23] = [
     "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",
@@ -497,11 +450,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partbeam2,
-    CARD_PARTBEAM2,
-    vec![(1, 22, PartBeam)]
-  );
+  cardtest!(fold_partbeam2, CARD_PARTBEAM2, vec![(1, 22, PartBeam)]);
 
   const CARD_PARTSPRING: [&'static str; 12] = [
     "$PART Type SPRING",
@@ -518,11 +467,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partspring,
-    CARD_PARTSPRING,
-    vec![(2, 11, PartSpring)]
-  );
+  cardtest!(fold_partspring, CARD_PARTSPRING, vec![(2, 11, PartSpring)]);
 
   const CARD_PARTSPRGBM: [&'static str; 10] = [
     "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",
@@ -537,11 +482,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partsprgbm,
-    CARD_PARTSPRGBM,
-    vec![(1, 9, PartSprgbm)]
-  );
+  cardtest!(fold_partsprgbm, CARD_PARTSPRGBM, vec![(1, 9, PartSprgbm)]);
 
   const CARD_PARTMBSPR: [&'static str; 9] = [
     "$PART Type MBSPR",
@@ -555,11 +496,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partmbspr,
-    CARD_PARTMBSPR,
-    vec![(2, 8, PartMbspr)]
-  );
+  cardtest!(fold_partmbspr, CARD_PARTMBSPR, vec![(2, 8, PartMbspr)]);
 
   const CARD_PARTJOINT: [&'static str; 12] = [
     "$PART Type JOINT",
@@ -576,11 +513,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partjoint,
-    CARD_PARTJOINT,
-    vec![(2, 11, PartJoint)]
-  );
+  cardtest!(fold_partjoint, CARD_PARTJOINT, vec![(2, 11, PartJoint)]);
 
   const CARD_PARTKJOIN: [&'static str; 6] = [
     "PART  /        1   KJOIN       1       0       0       0",
@@ -591,11 +524,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partkjoin,
-    CARD_PARTKJOIN,
-    vec![(0, 5, PartKjoin)]
-  );
+  cardtest!(fold_partkjoin, CARD_PARTKJOIN, vec![(0, 5, PartKjoin)]);
 
   const CARD_PARTMTOJNT: [&'static str; 13] = [
   "$PART Type MTOJNT",
@@ -613,11 +542,7 @@ mod tests {
   "END_PART",
   ];
 
-  cardtest!(
-    fold_partmtojnt,
-    CARD_PARTMTOJNT,
-    vec![(2, 12, PartMtojnt)]
-  );
+  cardtest!(fold_partmtojnt, CARD_PARTMTOJNT, vec![(2, 12, PartMtojnt)]);
 
   const CARD_PARTMBKJN: [&'static str; 12] = [
     "$PART Type MBKJN",
@@ -634,11 +559,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partmbkjn,
-    CARD_PARTMBKJN,
-    vec![(2, 11, PartMbkjn)]
-  );
+  cardtest!(fold_partmbkjn, CARD_PARTMBKJN, vec![(2, 11, PartMbkjn)]);
 
   const CARD_PARTTIED: [&'static str; 11] = [
     "PART  /        1    TIED       1       0       0       0",
@@ -654,11 +575,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_parttied,
-    CARD_PARTTIED,
-    vec![(0, 10, PartTied)]
-  );
+  cardtest!(fold_parttied, CARD_PARTTIED, vec![(0, 10, PartTied)]);
 
   const CARD_PARTTIED2: [&'static str; 12] = [
     "PART  /        1    TIED       1       0       0       0",
@@ -675,11 +592,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_parttied2,
-    CARD_PARTTIED2,
-    vec![(0, 11, PartTied)]
-  );
+  cardtest!(fold_parttied2, CARD_PARTTIED2, vec![(0, 11, PartTied)]);
 
   const CARD_PARTSLINK: [&'static str; 13] = [
     "$PART Type SLINK",
@@ -697,11 +610,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partslink,
-    CARD_PARTSLINK,
-    vec![(2, 12, PartSlink)]
-  );
+  cardtest!(fold_partslink, CARD_PARTSLINK, vec![(2, 12, PartSlink)]);
 
   const CARD_PARTELINK: [&'static str; 11] = [
     "$PART Type ELINK",
@@ -717,11 +626,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partelink,
-    CARD_PARTELINK,
-    vec![(2, 10, PartElink)]
-  );
+  cardtest!(fold_partelink, CARD_PARTELINK, vec![(2, 10, PartElink)]);
 
   const CARD_PARTLLINK: [&'static str; 12] = [
     "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",
@@ -738,11 +643,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partllink,
-    CARD_PARTLLINK,
-    vec![(1, 11, PartLlink)]
-  );
+  cardtest!(fold_partllink, CARD_PARTLLINK, vec![(1, 11, PartLlink)]);
 
   const CARD_PARTPLINK: [&'static str; 9] = [
     "$PART Type PLINK",
@@ -756,11 +657,7 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partplink,
-    CARD_PARTPLINK,
-    vec![(2, 8, PartPlink)]
-  );
+  cardtest!(fold_partplink, CARD_PARTPLINK, vec![(2, 8, PartPlink)]);
 
   const CARD_PARTGAP: [&'static str; 13] = [
     "$PART Type GAP",
@@ -778,10 +675,6 @@ mod tests {
     "END_PART",
   ];
 
-  cardtest!(
-    fold_partgap,
-    CARD_PARTGAP,
-    vec![(2, 12, PartGap)]
-  );
+  cardtest!(fold_partgap, CARD_PARTGAP, vec![(2, 12, PartGap)]);
 
 }

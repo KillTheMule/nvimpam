@@ -1,10 +1,8 @@
 //! This modules holds the the global static auxiliary [`Card`](::card::Card)
 //! instances.
-use card::cell::Cell::*;
-use card::ges::GesType::*;
-use card::keyword::Keyword::*;
-use card::line::Line::*;
-use card::Card;
+use card::{
+  cell::Cell::*, ges::GesType::*, keyword::Keyword::*, line::Line::*, Card,
+};
 
 pub static GROUP: Card = Card {
   lines: &[

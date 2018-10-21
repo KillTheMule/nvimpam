@@ -4,11 +4,8 @@ use std::fmt;
 
 use lines::ParsedLine;
 
-
 /// A struct returned by
-/// [`skip_to_next_keyword`](::nocommentiter::NoCommentIter::
-/// skip_to_next_keyword).
-
+/// [`skip_to_next_keyword`](::nocommentiter::NoCommentIter::skip_to_next_keyword).
 
 /// A data structure returned by several skip methods on
 /// [`NoCommentIter`](::nocommentiter::NoCommentIter)
@@ -19,14 +16,12 @@ use lines::ParsedLine;
 /// `skip_end` is the index of the last line we skipped. It will be `None` if
 /// we could not fully skip something before the file ended
 #[derive(Debug)]
-pub struct SkipResult<'a>
-{
+pub struct SkipResult<'a> {
   pub nextline: Option<ParsedLine<'a>>,
   pub skip_end: Option<usize>,
 }
 
-impl<'a> Default for SkipResult<'a>
-{
+impl<'a> Default for SkipResult<'a> {
   fn default() -> Self {
     SkipResult {
       nextline: None,
@@ -35,8 +30,7 @@ impl<'a> Default for SkipResult<'a>
   }
 }
 
-impl<'a> fmt::Display for SkipResult<'a>
-{
+impl<'a> fmt::Display for SkipResult<'a> {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     if let Some(ref pl) = self.nextline {
       write!(

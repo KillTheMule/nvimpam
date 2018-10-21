@@ -1,17 +1,18 @@
-//! This module holds [`NoCommentIter`](NoCommentIter), the central
-//! datastructure for the folding functionality of nvimpam.
+//! This module holds [`NoCommentIter`](::nocommentiter::NoCommentIter), the
+//! central datastructure for the folding functionality of nvimpam.
 //!
 //! It returns enumerated Lines, but skips Comments (lines starting with `$` or
 //! `#`). All skip functions, used by
 //! [`add_folds`](::folds::FoldList::add_folds), work on a
-//! [`NoCommentIter`](NoCommentIter).
+//! [`NoCommentIter`](::nocommentiter::NoCommentIter).
 use std::default::Default;
 
-use card::ges::GesType;
-use card::keyword::Keyword;
-use card::line::CondResult;
-use card::line::Line as CardLine;
-use card::Card;
+use card::{
+  ges::GesType,
+  keyword::Keyword,
+  line::{CondResult, Line as CardLine},
+  Card,
+};
 use lines::{KeywordLine, ParsedLine};
 use skipresult::SkipResult;
 
@@ -121,10 +122,7 @@ where
   I: Iterator<Item = ParsedLine<'a>>,
 {
   /// Advance the iterator until meeting the first line with a keyword. If the
-  /// file ends before that, return the default
-  /// [SkipResult](::skipresult::SkipResult), with
-  /// [skipend](::skipresult::SkipResult.skipend) set to the index of the last
-  /// line of the file.
+  /// file ends before that, return `None`.
   pub fn skip_to_next_keyword<'b>(&'b mut self) -> Option<KeywordLine<'a>> {
     let mut line = None;
 
@@ -181,7 +179,7 @@ where
 
   /// A wrapper around [`skip_card`](NoCommentIter::skip_card) and
   /// [`skip_card_gather`](NoCommentIter::skip_card_gather), dispatching by
-  /// value of [`Card.ownfold`](::card::Card)
+  /// value of [`Card.ownfold`](::card::Card::ownfold)
   pub fn skip_fold<'b>(
     &'b mut self,
     skipline: KeywordLine<'a>,
@@ -298,7 +296,7 @@ where
   /// Let [`NoCommentIter`](NoCommentIter) skip all given
   /// [`Card`](::card::Card)s, until the next card starts. The basic assumption
   /// is that the last line the iterator returned is a the first line of a card
-  /// of the given type, but that might not always be strictly neccessary.
+  /// of the given type, which is passed as `skipline`.
   pub fn skip_card_gather<'b>(
     &'b mut self,
     skipline: KeywordLine<'a>,
@@ -321,9 +319,10 @@ where
 
 #[cfg(test)]
 mod tests {
-  use card::ges::GesType::GesNode;
-  use card::keyword::Keyword;
-  use card::keyword::Keyword::*;
+  use card::{
+    ges::GesType::GesNode,
+    keyword::Keyword::{self, *},
+  };
   use carddata::*;
   use lines::{KeywordLine, Lines, ParsedLine};
   use nocommentiter::{CommentLess, NoCommentIter};

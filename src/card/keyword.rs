@@ -1,12 +1,15 @@
-//! This module provides the [Keyword](Keyword) enum to classify lines
-//! according to what card type they belong to. The terms "Keyword" and "Card"
-//! are lingo from the FEM solver Pamcrash, but generally used among FEM
-//! solvers.
-
-/// An enum to denote the several types of cards a line might belong to.
+//! This module provides the [`Keyword`](::card::keyword::Keyword) enum to
+//! classify lines according to what card type they belong to. The terms
+//! "Keyword" and "Card" are lingo from the FEM solver Pamcrash, but generally
+//! used among FEM solvers.
+//!
+//! Also provides the [`Keywords`](::card::keyword::Keywords) struct to hold the
+//! keywords of a [`Lines`](::lines::Lines) struct. Supposed to be kept in sync
+//! via [`Keywords::update`](::card::keyword::Keywords::update).
 use lines::Lines;
 use std::ops::Deref;
 
+/// An enum to denote the several types of cards a line might belong to.
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Keyword {
   Comment,
@@ -322,11 +325,15 @@ impl Keyword {
 pub struct Keywords(Vec<Option<Keyword>>);
 
 impl Keywords {
+  /// Create a [`Keywords`](::card::keyword::Keywords) struct by parsing a
+  /// [`Lines`](::lines::Lines) struct.
   pub fn from_lines(lines: &Lines) -> Keywords {
     let v: Vec<Option<Keyword>> = lines.iter().map(Keyword::parse).collect();
     Keywords(v)
   }
 
+  /// Update a [`Keywords`](::card::keyword::Keywords) struct by parsing a
+  /// `Vec<String>` and splicing in the result on the interval `first..last`.
   pub fn update(&mut self, first: usize, last: usize, linedata: &Vec<String>) {
     let range = first..last;
     let _ = self

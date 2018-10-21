@@ -1,11 +1,12 @@
 //! This modules holds the the global static node [`Card`](::card::Card)
 //! instances.
-use card::cell::Cell::*;
-use card::ges::GesType::*;
-use card::keyword::Keyword::*;
-use card::line::Conditional::*;
-use card::line::Line::*;
-use card::Card;
+use card::{
+  cell::Cell::*,
+  ges::GesType::*,
+  keyword::Keyword::*,
+  line::{Conditional::*, Line::*},
+  Card,
+};
 
 pub static NODE: Card = Card {
   lines: &[Cells(&[Kw, Integer(16), Float(16), Float(16), Float(16)])],
@@ -68,12 +69,8 @@ mod tests {
     "        END",
     "#Comment",
   ];
-  
-  cardtest!(
-    fold_nsmas,
-    CARD_NSMAS,
-    vec![(0, 5, Nsmas)]
-  );
+
+  cardtest!(fold_nsmas, CARD_NSMAS, vec![(0, 5, Nsmas)]);
 
   const CARD_NSMAS2: [&'static str; 7] = [
     "$ NSMAS - Nonstructural mass",
@@ -85,11 +82,7 @@ mod tests {
     "        END",
   ];
 
-  cardtest!(
-    fold_nsmas2,
-    CARD_NSMAS2,
-    vec![(2, 6, Nsmas)]
-  );
+  cardtest!(fold_nsmas2, CARD_NSMAS2, vec![(2, 6, Nsmas)]);
 
   const CARD_MASS: [&'static str; 10] = [
     "$ MASS Card",
@@ -103,12 +96,8 @@ mod tests {
     "                                                                                ",
     "        END",
   ];
-  
-  cardtest!(
-    fold_mass,
-    CARD_MASS,
-    vec![(2, 9, Mass)]
-  );
+
+  cardtest!(fold_mass, CARD_MASS, vec![(2, 9, Mass)]);
 
   const CARD_MASS_OPT: [&'static str; 12] = [
     "MASS  /        0       0                                                        ",
@@ -124,12 +113,8 @@ mod tests {
     "        END",
     "$Comment",
   ];
-  
-  cardtest!(
-    fold_mass_opt,
-    CARD_MASS_OPT,
-    vec![(0, 10, Mass)]
-  );
+
+  cardtest!(fold_mass_opt, CARD_MASS_OPT, vec![(0, 10, Mass)]);
 
   const CARD_NODES: [&'static str; 9] = [
     "NODE  /       28     30.29999924            50.5              0.",
@@ -142,11 +127,7 @@ mod tests {
     "NODE  /       28     30.29999924            50.5              0.",
     "SHELL /     ",
   ];
-  
-  cardtest!(
-    fold_nodes,
-    CARD_NODES,
-    vec![(0, 7, Node), (8, 8, Shell)]
-  );
+
+  cardtest!(fold_nodes, CARD_NODES, vec![(0, 7, Node), (8, 8, Shell)]);
 
 }

@@ -9,7 +9,6 @@ extern crate byteorder;
 
 pub mod card;
 pub mod carddata;
-pub mod codeyard;
 pub mod event;
 pub mod folds;
 pub mod handler;

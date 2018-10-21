@@ -11,7 +11,8 @@ pub enum GesType {
 
 impl GesType {
   /// Checks if a given line fits the basic format of a line in a GES: 8 blanks
-  /// followed by one of several keywords. Checks nothing else.
+  /// followed by one of several keywords, followed by a Blank. Checks nothing
+  /// else.
   pub fn contains(self, b: &[u8]) -> bool {
     use byteorder::{BigEndian, ReadBytesExt};
 
@@ -113,7 +114,7 @@ impl GesType {
   }
 
   /// Check if a given line ends a GES. That is, it consists of 8 blanks
-  /// followed by "END"
+  /// followed by "END". Anything more or less makes the check return `false`.
   pub fn ended_by(self, b: &[u8]) -> bool {
     let len = b.len();
 
@@ -143,6 +144,7 @@ mod tests {
     let v = vec![
       false, false, false, true, true, false, false, true, true, true,
     ];
+
     assert_eq!(
       v,
       LINES
@@ -157,6 +159,7 @@ mod tests {
     let v = vec![
       false, false, false, false, false, false, true, false, false, false,
     ];
+
     assert_eq!(
       v,
       LINES
@@ -171,8 +174,7 @@ mod tests {
   #[test]
   fn byteslice_to_u64() {
     use byteorder::{BigEndian, ReadBytesExt};
-
-    /*
+  
     let s1 = String::from("3");
     let mut v = Vec::new();
     
@@ -209,26 +211,20 @@ mod tests {
     let _ = s.pop();
     s.push_str("=> Some(");
     eprintln!("{}", s);
-    */
-
-    /*
-    let s = b"        ";
-    let mut c = &s[..];
-    let num = c.read_u64::<BigEndian>().unwrap();
+  let s = b"        ";
+  let mut c = &s[..];
+  let num = c.read_u64::<BigEndian>().unwrap();
+  eprintln!("{}", num);
+  let b = [b"MOD"];
+  
+  for str in b.iter() {
+    let mut c = &str[..];
+    let num = c.read_u24::<BigEndian>().unwrap();
     eprintln!("{}", num);
-    */
-
-    /*
-    let b = [b"MOD"];
-
-    for str in b.iter() {
-      let mut c = &str[..];
-      let num = c.read_u24::<BigEndian>().unwrap();
-      eprintln!("{}", num);
-    }
-    assert!(false);
-    */
   }
+  assert!(false);
+  }
+  false
   */
 
 }
