@@ -1,4 +1,8 @@
-# nvimpam  ![(Travis status)](https://travis-ci.org/KillTheMule/nvimpam.svg?branch=master) ![(Appveyor status)](https://ci.appveyor.com/api/projects/status/mnmy5bpq895sklwy/branch/master?svg=true) ![(Docs.rs)](https://docs.rs/nvimpam/badge.svg) [![(Crates.io status)](https://meritbadge.herokuapp.com/nvimpam)](https://crates.io/crates/nvimpam)
+# nvimpam  
+[![(Travis status)](https://travis-ci.org/KillTheMule/nvimpam.svg?branch=master)](https://travis-ci.org/KillTheMule/nvimpam)
+[![(Appveyor status)](https://ci.appveyor.com/api/projects/status/mnmy5bpq895sklwy/branch/master?svg=true)](https://ci.appveyor.com/project/KillTheMule/nvimpam)
+[![(Docs.rs)](https://docs.rs/nvimpam/badge.svg)](https://docs.rs/nvimpam/)
+[![(Crates.io status)](https://meritbadge.herokuapp.com/nvimpam)](https://crates.io/crates/nvimpam)
 
 The beginning of a neovim rpc plugin for pamcrash files. Right now, it does folding. Future dreams include syntax highlighting and status line hints. 
 
