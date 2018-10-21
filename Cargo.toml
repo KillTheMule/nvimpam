@@ -28,7 +28,7 @@ neovim-lib = "0.5.4"
 failure = "0.1.2"
 itertools = "0.7.8"
 atoi = "0.2.3"
-byteorder = "*"
+byteorder = "1.2.6"
 
 [dev-dependencies]
 criterion = "0.2.5"
