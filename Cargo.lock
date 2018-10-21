@@ -312,7 +312,7 @@ dependencies = [
 
 [[package]]
 name = "nvimpam"
-version = "0.2.1-alpha.0"
+version = "0.2.1"
 dependencies = [
  "atoi 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 1.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
