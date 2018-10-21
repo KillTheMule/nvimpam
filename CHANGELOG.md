@@ -6,6 +6,10 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 
 ## [Unreleased]
 
+## 0.2.1 - 2018-10-21
+- Fix a test real quick
+- Update README.md
+
 ## 0.2.0 - 2018-10-21
 - Level 2 folds
 - `:checkhealth nvimpam`
