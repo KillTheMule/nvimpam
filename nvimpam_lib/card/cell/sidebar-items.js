@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Cell","All the basic elements that can occur on a valid line in a Pamcrash input file, aside from comments and header data."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ClientConnection",""]],"struct":[["Session","An active Neovim session."]]});

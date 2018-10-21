@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["NoCommentIter","The struct simply holds a type instance. Skipping comments is done in the Iterator implementation."]],"trait":[["CommentLess","Designates that the comments have been removed."]]});

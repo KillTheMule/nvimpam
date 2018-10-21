@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["CondResult",""],["Conditional","An enum to represent different conditionals on lines"],["Line","A line (actually, zero or more lines) inside a card in a Pamcrash input file."]]});

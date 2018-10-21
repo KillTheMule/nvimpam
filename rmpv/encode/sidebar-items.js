@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Error","An error that can occur when attempting to write multi-byte MessagePack value."]],"fn":[["write_value","Encodes and attempts to write the most efficient representation of the given Value."],["write_value_ref","Encodes and attempts to write the given non-owning ValueRef into the Write."]]});

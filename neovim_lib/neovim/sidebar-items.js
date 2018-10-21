@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["CallError",""],["UiOption",""]],"struct":[["Neovim",""],["UiAttachOptions",""]]});

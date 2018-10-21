@@ -1,0 +1,221 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/card/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<span id="2">  2</span>
+<span id="3">  3</span>
+<span id="4">  4</span>
+<span id="5">  5</span>
+<span id="6">  6</span>
+<span id="7">  7</span>
+<span id="8">  8</span>
+<span id="9">  9</span>
+<span id="10"> 10</span>
+<span id="11"> 11</span>
+<span id="12"> 12</span>
+<span id="13"> 13</span>
+<span id="14"> 14</span>
+<span id="15"> 15</span>
+<span id="16"> 16</span>
+<span id="17"> 17</span>
+<span id="18"> 18</span>
+<span id="19"> 19</span>
+<span id="20"> 20</span>
+<span id="21"> 21</span>
+<span id="22"> 22</span>
+<span id="23"> 23</span>
+<span id="24"> 24</span>
+<span id="25"> 25</span>
+<span id="26"> 26</span>
+<span id="27"> 27</span>
+<span id="28"> 28</span>
+<span id="29"> 29</span>
+<span id="30"> 30</span>
+<span id="31"> 31</span>
+<span id="32"> 32</span>
+<span id="33"> 33</span>
+<span id="34"> 34</span>
+<span id="35"> 35</span>
+<span id="36"> 36</span>
+<span id="37"> 37</span>
+<span id="38"> 38</span>
+<span id="39"> 39</span>
+<span id="40"> 40</span>
+<span id="41"> 41</span>
+<span id="42"> 42</span>
+<span id="43"> 43</span>
+<span id="44"> 44</span>
+<span id="45"> 45</span>
+<span id="46"> 46</span>
+<span id="47"> 47</span>
+<span id="48"> 48</span>
+<span id="49"> 49</span>
+<span id="50"> 50</span>
+<span id="51"> 51</span>
+<span id="52"> 52</span>
+<span id="53"> 53</span>
+<span id="54"> 54</span>
+<span id="55"> 55</span>
+<span id="56"> 56</span>
+<span id="57"> 57</span>
+<span id="58"> 58</span>
+<span id="59"> 59</span>
+<span id="60"> 60</span>
+<span id="61"> 61</span>
+<span id="62"> 62</span>
+<span id="63"> 63</span>
+<span id="64"> 64</span>
+<span id="65"> 65</span>
+<span id="66"> 66</span>
+<span id="67"> 67</span>
+<span id="68"> 68</span>
+<span id="69"> 69</span>
+<span id="70"> 70</span>
+<span id="71"> 71</span>
+<span id="72"> 72</span>
+<span id="73"> 73</span>
+<span id="74"> 74</span>
+<span id="75"> 75</span>
+<span id="76"> 76</span>
+<span id="77"> 77</span>
+<span id="78"> 78</span>
+<span id="79"> 79</span>
+<span id="80"> 80</span>
+<span id="81"> 81</span>
+<span id="82"> 82</span>
+<span id="83"> 83</span>
+<span id="84"> 84</span>
+<span id="85"> 85</span>
+<span id="86"> 86</span>
+<span id="87"> 87</span>
+<span id="88"> 88</span>
+<span id="89"> 89</span>
+<span id="90"> 90</span>
+<span id="91"> 91</span>
+<span id="92"> 92</span>
+<span id="93"> 93</span>
+<span id="94"> 94</span>
+<span id="95"> 95</span>
+<span id="96"> 96</span>
+<span id="97"> 97</span>
+<span id="98"> 98</span>
+<span id="99"> 99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+</pre><pre class="rust ">
+<span class="doccomment">//! A datastructure to represent a `Card` of the FEM-Solver Pamcrash.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! There is a 1-1 correspondence between a [`Card`](::card::Card) and</span>
+<span class="doccomment">//! a [`Keyword`](::card::keyword::Keyword), but they are used differently. A</span>
+<span class="doccomment">//! [`Keyword`](::card::keyword::Keyword) is used as a parsing result for</span>
+<span class="doccomment">//! strings all over the place, while [`Card`](::card::Card) is used to</span>
+<span class="doccomment">//! define global static values the represent the concrete CARD entities of</span>
+<span class="doccomment">//! Pamcrash.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The definitions of the global static values can be found in the</span>
+<span class="doccomment">//! [`carddata`](::carddata) module.</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">cell</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ges</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">keyword</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">line</span>;
+
+<span class="kw">use</span> <span class="self">self</span>::<span class="ident">keyword</span>::<span class="ident">Keyword</span>;
+<span class="kw">use</span> <span class="self">self</span>::<span class="ident">line</span>::<span class="ident">Line</span>;
+<span class="kw">use</span> <span class="ident">carddata</span>::<span class="kw-2">*</span>;
+
+<span class="doccomment">/// A card consists of severals [`Line`](::card::line::Line)s, and starts with a</span>
+<span class="doccomment">/// given [`Keyword`](::card::keyword::Keyword). If `ownfold` is true, than each</span>
+<span class="doccomment">/// card of this type will get an own fold. Otherwise, all adjacent cards of</span>
+<span class="doccomment">/// that type are gathered into one fold.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Card</span> {
+  <span class="kw">pub</span> <span class="ident">lines</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">Line</span>],
+  <span class="kw">pub</span> <span class="ident">ownfold</span>: <span class="ident">bool</span>,
+  <span class="kw">pub</span> <span class="ident">keyword</span>: <span class="ident">Keyword</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Keyword</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Card</span> {
+  <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">kw</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Keyword</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Card</span> {
+    <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">kw</span> {
+      <span class="comment">// Node</span>
+      <span class="ident">Keyword</span>::<span class="ident">Node</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">NODE</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Cnode</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">CNODE</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Mass</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">MASS</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Nsmas</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">NSMAS</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Nsmas2</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">NSMAS2</span>,
+      <span class="comment">// Element</span>
+      <span class="ident">Keyword</span>::<span class="ident">Solid</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">SOLID</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Hexa20</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">HEXA20</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Pent15</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PENT15</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Penta6</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PENTA6</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Tetr10</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">TETR10</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Tetr4</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">TETR4</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Bshel</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">BSHEL</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Tshel</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">TSHEL</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Shell</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">SHELL</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Shel6</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">SHEL6</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Shel8</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">SHEL8</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Membr</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">MEMBR</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Beam</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">BEAM</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Sprgbm</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">SPRGBM</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Bar</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">BAR</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Spring</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">SPRING</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Joint</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">JOINT</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Kjoin</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">KJOIN</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Mtojnt</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">MTOJNT</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Sphel</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">SPHEL</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Sphelo</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">SPHELO</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Gap</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">GAP</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Impma</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">IMPMA</span>,
+      <span class="comment">// Link</span>
+      <span class="ident">Keyword</span>::<span class="ident">Elink</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ELINK</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Llink</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">LLINK</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Slink</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">SLINK</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Plink</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PLINK</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Tied</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">TIED</span>,
+      <span class="comment">// Part 3D</span>
+      <span class="ident">Keyword</span>::<span class="ident">PartSolid</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTSOLID</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartBshel</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTBSHEL</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartTetra</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTTETRA</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartSphel</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTSPHEL</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartCos3d</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTCOS3D</span>,
+      <span class="comment">// Part 2D</span>
+      <span class="ident">Keyword</span>::<span class="ident">PartTshel</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTTSHEL</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartShell</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTSHELL</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartMembr</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTMEMBR</span>,
+      <span class="comment">// Part 1D</span>
+      <span class="ident">Keyword</span>::<span class="ident">PartBar</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTBAR</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartBeam</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTBEAM</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartSpring</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTSPRING</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartSprgbm</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTSPRGBM</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartMbspr</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTMBSPR</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartJoint</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTJOINT</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartKjoin</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTKJOIN</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartMbkjn</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTMBKJN</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartMtojnt</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTMTOJNT</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartTied</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTTIED</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartSlink</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTSLINK</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartElink</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTELINK</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartLlink</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTLLINK</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartPlink</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTPLINK</span>,
+      <span class="ident">Keyword</span>::<span class="ident">PartGap</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PARTGAP</span>,
+      <span class="comment">// Constraint</span>
+      <span class="ident">Keyword</span>::<span class="ident">Mtoco</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">MTOCO</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Otmco</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">OTMCO</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Rbody0</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">RBODY0</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Rbody1</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">RBODY1</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Rbody2</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">RBODY2</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Rbody3</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">RBODY3</span>,
+      <span class="comment">// Auxiliaries</span>
+      <span class="ident">Keyword</span>::<span class="ident">Group</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">GROUP</span>,
+      <span class="ident">Keyword</span>::<span class="ident">Comment</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span><span class="ident">COMMENT</span>,
+    }
+  }
+}
+</pre>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g. <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g. <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g. <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../../";window.currentCrate = "nvimpam_lib";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script defer src="../../../search-index.js"></script></body></html>

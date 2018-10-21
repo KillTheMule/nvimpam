@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["SkipResult","A struct returned by `skip_to_next_keyword`. A data structure returned by several skip methods on `NoCommentIter`"]]});

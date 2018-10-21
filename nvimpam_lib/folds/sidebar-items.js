@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["FoldList","Holds the fold data of the buffer. A fold has the following data: Linenumbers start, end (indexed from 0), and a Keyword."]]});

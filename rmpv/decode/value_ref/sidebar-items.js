@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["read_value_ref","Attempts to read the data from the given reader until either a complete MessagePack value decoded or an error detected."]],"trait":[["BorrowRead","A BorrowRead is a type of Reader which has an internal buffer."]]});

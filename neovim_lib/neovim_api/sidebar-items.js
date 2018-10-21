@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Buffer",""],["Tabpage",""],["Window",""]],"trait":[["NeovimApi",""]]});

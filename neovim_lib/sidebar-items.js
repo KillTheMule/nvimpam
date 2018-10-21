@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Value","Represents any valid MessagePack value."]],"mod":[["async",""],["neovim",""],["neovim_api",""],["neovim_api_async",""],["session",""]],"struct":[["Integer","Represents a MessagePack integer, whether signed or unsigned."],["Utf8String","Represents an UTF-8 MessagePack string type."]],"trait":[["Handler",""]]});
