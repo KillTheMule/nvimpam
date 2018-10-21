@@ -41,8 +41,6 @@
 
 * Check out https://www.makeareadme.com/#usage
 
-* Unify skip functions wrt usage of curkw, curidx vs. line, lineidx
-
 * Improve example usage in src/folds.rs
 
 * Write more tests for conditionals in src/card/line.rs
