@@ -1,6 +1,6 @@
-# nvimpam  ![(Travis status)](https://travis-ci.org/KillTheMule/nvimpam.svg?branch=master) ![(Appveyor status)](https://ci.appveyor.com/api/projects/status/mnmy5bpq895sklwy/branch/master?svg=true)
+# nvimpam  ![(Travis status)](https://travis-ci.org/KillTheMule/nvimpam.svg?branch=master) ![(Appveyor status)](https://ci.appveyor.com/api/projects/status/mnmy5bpq895sklwy/branch/master?svg=true)![(Docs.rs)](https://docs.rs/nvimpam/badge.svg)
 
-The beginning of a neovim rpc plugin for pamcrash files. Right now, it does some folding, okish-ly. Future dreams include good folding, syntax highlighting and status line hints. 
+The beginning of a neovim rpc plugin for pamcrash files. Right now, it does folding. Future dreams include syntax highlighting and status line hints. 
 
 Based on [neovim-scorched-earth](https://github.com/boxofrox/neovim-scorched-earth). Uses [daa84/neovim-lib](https://github.com/daa84/neovim-lib). 
 
