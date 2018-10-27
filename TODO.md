@@ -9,6 +9,8 @@
 
 * Remove failure from the lib, implement own error handling
 
+* Try out crossbeam's channel rather than the one from std
+
 * Check out https://github.com/kernelmachine/cargo-profiler
 
 * Setup fuzzing?
