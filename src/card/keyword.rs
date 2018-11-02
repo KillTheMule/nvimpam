@@ -87,6 +87,12 @@ pub enum Keyword {
 }
 
 impl Keyword {
+  /// Return the length of the keyword in the pamcrash input file
+  /// Should be 8 for all right now...
+  #[inline]
+  pub fn len(&self) -> u8 {
+    8
+  }
   /// Parse a string to determine if it starts with the keyword of a card.
   #[inline]
   pub fn parse(s: &[u8]) -> Option<Keyword> {
@@ -340,6 +346,26 @@ impl Keywords {
       .0
       .splice(range, linedata.iter().map(|l| Keyword::parse(l.as_ref())));
   }
+
+  // TODO: Efficient? Correct?
+  pub fn first_before(&self, line: u64) -> u64 {
+    self[..=line as usize]
+      .iter()
+      .enumerate()
+      .rfind(|(_i, k)| k.is_some() && **k != Some(Keyword::Comment))
+      .unwrap_or((0, &None))
+      .0 as u64
+  }
+
+  // TODO: Efficient? Correct?
+  pub fn first_after(&self, line: u64) -> u64 {
+    self[line as usize..]
+      .iter()
+      .enumerate()
+      .find(|(_i, k)| k.is_some() && **k != Some(Keyword::Comment))
+      .unwrap_or((self.len() - line as usize - 1, &None))
+      .0 as u64 + line
+  }
 }
 
 impl Deref for Keywords {
@@ -348,4 +374,28 @@ impl Deref for Keywords {
   fn deref(&self) -> &[Option<Keyword>] {
     &self.0
   }
+}
+
+#[cfg(test)]
+mod tests {
+  use card::keyword::Keyword::*;
+  use card::keyword::Keywords;
+
+  #[test]
+  fn first() {
+    let kw = Keywords(vec![None, None, Some(Node), None, None,
+    Some(Comment), Some(Node), Some(Comment), None]);
+
+    assert_eq!(2, kw.first_before(2));
+    assert_eq!(2, kw.first_after(2));
+
+    assert_eq!(2, kw.first_before(4));
+    assert_eq!(6, kw.first_after(4));
+
+    assert_eq!(0, kw.first_before(1));
+    assert_eq!(8, kw.first_after(7));
+  }
+
+
+
 }

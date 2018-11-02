@@ -15,6 +15,7 @@ use card::{
 };
 use lines::{KeywordLine, ParsedLine};
 use skipresult::SkipResult;
+use folds::FoldList;
 
 // Used in skip functions. Returns the next `ParsedLine` from the iterator. If
 // theres no next line, return a `SkipResult` containing the line number of
@@ -183,13 +184,14 @@ where
   pub fn skip_fold<'b>(
     &'b mut self,
     skipline: KeywordLine<'a>,
+    folds: &mut FoldList,
   ) -> SkipResult<'a> {
     let card: &Card = skipline.keyword.into();
 
     if card.ownfold {
-      self.skip_card(skipline, card)
+      self.skip_card(skipline, card, folds)
     } else {
-      self.skip_card_gather(skipline, card)
+      self.skip_card_gather(skipline, card, folds)
     }
   }
 
@@ -204,6 +206,7 @@ where
     &'b mut self,
     skipline: KeywordLine<'a>,
     card: &Card,
+    folds: &mut FoldList,
   ) -> SkipResult<'a> {
     let mut conds: Vec<CondResult> = vec![]; // the vec to hold the conditionals
     let mut cardlines = card.lines.iter();
@@ -212,6 +215,7 @@ where
     if let CardLine::Provides(_s, ref c) = cardline {
       conds.push(c.evaluate(skipline.text));
     }
+    skipline.create_highlights(cardline, folds);
 
     let mut previdx: Option<usize> = None;
     let mut nextline = next_or_return_previdx!(self, previdx);
@@ -301,14 +305,15 @@ where
     &'b mut self,
     skipline: KeywordLine<'a>,
     card: &Card,
+    folds: &mut FoldList,
   ) -> SkipResult<'a> {
-    let mut res = self.skip_card(skipline, card);
+    let mut res = self.skip_card(skipline, card, folds);
 
     #[cfg_attr(rustfmt, rustfmt_skip)]
     loop {
       if let Some(ParsedLine{keyword: Some(k),number,text}) = res.nextline {
         if *k == card.keyword {
-          res = self.skip_card(KeywordLine{keyword: k,number: number, text}, card);
+          res = self.skip_card(KeywordLine{keyword: k,number: number, text}, card, folds);
           continue;
         }
       }
@@ -326,6 +331,7 @@ mod tests {
   use carddata::*;
   use lines::{KeywordLine, Lines, ParsedLine};
   use nocommentiter::{CommentLess, NoCommentIter};
+  use folds::FoldList;
 
   macro_rules! pline {
     ($number:expr, $text:expr, $keyword:expr) => {
@@ -578,8 +584,13 @@ mod tests {
     skip_incomplete_cards,
     CARD_MASS_INCOMPLETE,
     {|l: &mut NoCommentIter<_>| {
+        let mut folds = FoldList::new();
         let firstline = l.next().unwrap();
-        let tmp = l.skip_card(firstline.try_into_keywordline().unwrap(), &MASS);
+        let tmp = l.skip_card(
+          firstline.try_into_keywordline().unwrap(),
+          &MASS,
+          &mut folds
+        );
         assert_eq!(
           tmp.nextline.unwrap(),
           pline!(7, &"NODE  /      ", Some(&Node))
@@ -634,6 +645,7 @@ mod tests {
 
   #[test]
   fn skips_gather_cards() {
+    let mut folds = FoldList::new();
     let keywords: Vec<_> = LINES_GATHER
       .iter()
       .map(|l| Keyword::parse(l.as_ref()))
@@ -650,23 +662,24 @@ mod tests {
       .remove_comments();
     let firstline = li.next().unwrap();
 
-    let mut tmp = li.skip_fold(firstline.try_into_keywordline().unwrap());
+    let mut tmp = li.skip_fold(firstline.try_into_keywordline().unwrap(), &mut
+                               folds);
     let mut tmp_nextline = tmp.nextline.unwrap();
     assert_eq!(tmp_nextline, pline!(5, &LINES_GATHER[5], Some(&Shell)));
     assert_eq!(tmp.skip_end, Some(3));
 
-    tmp = li.skip_fold(tmp_nextline.try_into_keywordline().unwrap());
+    tmp = li.skip_fold(tmp_nextline.try_into_keywordline().unwrap(), &mut folds);
     tmp_nextline = tmp.nextline.unwrap();
     assert_eq!(tmp_nextline, pline!(6, &LINES_GATHER[6], None));
     assert_eq!(tmp.skip_end, Some(5));
 
     let skipped = li.skip_to_next_keyword().unwrap();
-    tmp = li.skip_fold(skipped.into());
+    tmp = li.skip_fold(skipped.into(), &mut folds);
     tmp_nextline = tmp.nextline.unwrap();
     assert_eq!(tmp_nextline, pline!(18, &LINES_GATHER[18], Some(&Node)));
     assert_eq!(tmp.skip_end, Some(15));
 
-    tmp = li.skip_fold(tmp_nextline.try_into_keywordline().unwrap());
+    tmp = li.skip_fold(tmp_nextline.try_into_keywordline().unwrap(), &mut folds);
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, None);
   }

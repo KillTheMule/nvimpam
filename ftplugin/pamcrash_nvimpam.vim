@@ -8,6 +8,7 @@ command! NvimPamDetach call luaeval('require("nvimpam").detach()')
 command! NvimPamUpdateFolds call luaeval('require("nvimpam").refresh_folds()')
 command! NvimPamPrintfolds call luaeval('require("nvimpam").printfolds()')
 command! NvimPamPrintstderr call luaeval('require("nvimpam").printstderr()')
+command! NvimPamHighlightScreen call luaeval('require("nvimpam").highlight_region('.(line('w0')-1).', '.(line('w$')-1).')')
 
 augroup nvimpam_leave
   " clear all previous autocommands

@@ -245,6 +245,19 @@ local function update_folds(texts)
   command(cmd)
 end
 
+local function highlight_region(firstline, lastline)
+  buf = buf or curbuf()
+
+  if not jobids[buf] then
+    nvimpam_err("highlight_region failed: No jobid entry for buffer "
+                ..tostring(buf).."!")
+    return false
+  end
+
+  call("rpcnotify", { jobids[buf], "HighlightRegion", firstline, lastline })
+  return true
+end
+
 local function printstderr()
   input("i")
   for i, t in pairs(stderr) do
@@ -268,4 +281,5 @@ return {
   on_stderr = on_stderr,
   on_exit = on_exit,
   printstderr = printstderr,
+  highlight_region = highlight_region,
 }

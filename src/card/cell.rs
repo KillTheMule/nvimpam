@@ -23,3 +23,27 @@ pub enum Cell {
   /// An alternative of 2 cells
   IntegerorBlank(u8),
 }
+
+impl Cell {
+  #[inline]
+  pub fn len(&self) -> u8 {
+    use card::cell::Cell::*;
+    match *self {
+      // TODO: Use something real here, we have Keyword::len
+      Kw => 8,
+      Fixed(s) => {
+        debug_assert!(s.len() < 81);
+        s.len() as u8
+      }
+      Cont => 1,
+      Integer(u) | Float(u) | Blank(u) | Str(u) | Binary(u)
+      | IntegerorBlank(u) => u,
+    }
+  }
+
+  #[inline]
+  pub fn verify(&self, _s: Option<&[u8]>) -> bool {
+    //debug_assert!(self.len() == s.len() as u8);
+    true
+  }
+}

@@ -13,7 +13,8 @@ use std::{
 
 use failure::{Error, ResultExt};
 
-use card::keyword::Keyword;
+use card::{keyword::Keyword, line::Line as CardLine};
+use folds::FoldList;
 
 /// An enum representing a line of a file, either as a byte slice (which we
 /// obtain from reading a file into a `Vec<u8>` and splitting on newlines) or an
@@ -232,6 +233,36 @@ pub struct KeywordLine<'a> {
   pub number: usize,
   pub text: &'a [u8],
   pub keyword: &'a Keyword,
+}
+
+impl<'a> KeywordLine<'a> {
+  pub fn create_highlights(
+    &'a self,
+    cardline: &CardLine,
+    folds: &mut FoldList,
+  ) {
+    match *cardline {
+      CardLine::Cells(s) | CardLine::Provides(s, _) => {
+        let mut until: u8 = 0;
+        let mut odd: u8 = 0;
+        for cell in s.iter() {
+          let len = cell.len();
+          let slice = self.text.get(until as usize..(until + len) as usize);
+          if cell.verify(slice) {
+            if odd == 0 {
+              folds.add_highlight(self.number as u64, until, until + len, odd);
+              odd = 1
+            } else {
+              odd = 0
+            }
+          } else {
+          }
+          until += len;
+        }
+      }
+      _ => {}
+    }
+  }
 }
 
 impl<'a> fmt::Display for KeywordLine<'a> {

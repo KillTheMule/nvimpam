@@ -17,7 +17,9 @@
 //! assert!(foldlist.remove(2, 3).is_err());
 //! assert!(foldlist.remove(1, 2).is_ok());
 //! ```
-use std::collections::{btree_map::Entry, BTreeMap};
+use std::collections::{
+  btree_map::Entry, hash_map::Entry as HmEntry, BTreeMap, HashMap,
+};
 
 use failure::{self, Error, ResultExt};
 
@@ -63,6 +65,10 @@ pub struct FoldList {
   /// List of Strings to show as foldtext for level 2 folds, keyed by
   /// [start, end] (linenumbers starting at 0).
   fold_texts_level2: BTreeMap<[u64; 2], String>,
+  /// Highlights
+  // TODO: Do we need both?
+  highlights: HashMap<[u8; 3], Vec<u64>>,
+  highlights_by_line: BTreeMap<(u64, u8, u8), u8>,
 }
 
 impl FoldList {
@@ -74,6 +80,8 @@ impl FoldList {
       folds_level2: BTreeMap::new(),
       fold_texts: BTreeMap::new(),
       fold_texts_level2: BTreeMap::new(),
+      highlights: HashMap::new(),
+      highlights_by_line: BTreeMap::new(),
     }
   }
 
@@ -83,6 +91,8 @@ impl FoldList {
     self.folds_level2.clear();
     self.fold_texts.clear();
     self.fold_texts_level2.clear();
+    self.highlights.clear();
+    self.highlights_by_line.clear();
   }
 
   /// Insert a level 1 fold `([start, end], Keyword)` into the FoldList.
@@ -106,6 +116,23 @@ impl FoldList {
       }
     }
     Ok(())
+  }
+
+  pub fn add_highlight(&mut self, line: u64, start: u8, end: u8, typ: u8) {
+    match self.highlights.entry([start, end, typ]) {
+      HmEntry::Vacant(entry) => {
+        entry.insert(vec![line]);
+      }
+      HmEntry::Occupied(mut entry) => entry.get_mut().push(line),
+    }
+    match self.highlights_by_line.entry((line, start, end)) {
+      Entry::Vacant(entry) => {
+        entry.insert(typ);
+      }
+      Entry::Occupied(mut entry) => {
+        *entry.get_mut() = typ;
+      }
+    }
   }
 
   /// Insert a level 1 fold `([start, end], Keyword)` into the FoldList. If
@@ -213,7 +240,64 @@ impl FoldList {
     nvim
       .execute_lua(luafn, vec![Value::from(luaargs)])
       .context("Execute lua failed")?;
+    /*
+    
+    luaargs = vec![];
+    luafn = "require('nvimpam').update_highlights(...)";
+    
+    for hl in self.highlights.iter() {
+      let start = hl.0[0];
+      let end = hl.0[1];
+      let typ = hl.0[2];
+      let lines = hl.1;
+    
+      let v1 = Value::from(vec![
+                           Value::from(start),
+                           Value::from(end),
+                           Value::from(typ),
+      ]);
+    
+      let v2: Vec<Value> = lines.iter().map(|n|Value::from(*n)).collect();
+      luaargs.push(Value::from(vec![v1, Value::from(v2)]));
+    }
+    
+    nvim
+      .execute_lua(luafn, vec![Value::from(luaargs)])
+      .context("Execute lua failed")?;
+      */
 
+    Ok(())
+  }
+
+  /// Highlight all the lines in the given region
+  // TODO: efficient? correct?
+  pub fn highlight_region(
+    &self,
+    nvim: &mut Neovim,
+    firstline: u64,
+    lastline: u64,
+  ) -> Result<(), Error> {
+    let curbuf = nvim.get_current_buf()?;
+
+    for ((l, s, e), t) in self.highlights_by_line.iter() {
+      if firstline <= *l && *l <= lastline {
+        match t {
+          0 => curbuf.add_highlight(
+            nvim,
+            5,
+            "CursorColumn",
+            *l,
+            *s as u64,
+            *e as u64,
+          )?,
+          _ => {
+            curbuf.add_highlight(nvim, 5, "Normal", *l, *s as u64, *e as u64)?
+          }
+        };
+      } else if *l > lastline {
+        break;
+      }
+    }
     Ok(())
   }
 
@@ -264,7 +348,7 @@ impl FoldList {
     loop {
       foldkw = nextline.keyword;
       foldstart = nextline.number;
-      skipped = li.skip_fold(nextline);
+      skipped = li.skip_fold(nextline, self);
 
       // The latter only happens when a file ends after the only line of a card
       foldend = skipped.skip_end.unwrap_or_else(|| lines.len() - 1);

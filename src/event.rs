@@ -38,6 +38,12 @@ pub enum Event {
   DetachEvent { buf: Buffer },
   /// Recreate and resend the folds
   RefreshFolds,
+  /// Highlight lines in the buffer containing at least the given line range
+  // TODO: maybe accept buffer as an argument?
+  HighlightRegion {
+    firstline: u64,
+    lastline: u64,
+  },
   /// This plugin should quit. Currently only sent by the user directly.
   Quit,
 }
@@ -121,6 +127,11 @@ impl Event {
         Ok(RefreshFolds) => {
           foldlist.resend_all(&mut nvim)?;
         }
+        Ok(HighlightRegion { firstline, lastline }) => {
+          let fl = keywords.first_before(firstline); 
+          let ll  = keywords.first_after(lastline); 
+          foldlist.highlight_region(&mut nvim, fl, ll)?;
+        }
         Ok(Quit) => {
           break;
         }
@@ -159,6 +170,9 @@ impl fmt::Debug for Event {
       ),
       ChangedTickEvent { changedtick, .. } => {
         write!(f, "ChangedTick{{ changedtick: {} }}", changedtick,)
+      }
+      HighlightRegion { firstline, lastline } => {
+        write!(f, "Hl_Line{{ firstline: {}, lastline: {} }}", firstline, lastline)
       }
       DetachEvent { .. } => write!(f, "UpdatesEnd"),
       RefreshFolds => write!(f, "RefreshFolds"),

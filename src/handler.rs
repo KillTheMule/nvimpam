@@ -53,6 +53,17 @@ impl NeovimHandler {
     Ok(Event::ChangedTickEvent { buf, changedtick })
   }
 
+  pub fn parse_highlight_region(
+    &mut self,
+    mut args: Vec<Value>,
+  ) -> Result<Event, Error> {
+    let nea = "Not enough arguments in hl_line_event!";
+
+    let lastline = parse_u64(&last_arg(&mut args, nea)?)?;
+    let firstline = parse_u64(&last_arg(&mut args, nea)?)?;
+    Ok(Event::HighlightRegion { firstline, lastline })
+  }
+
   /// Parse a nvim_buf_detach_event notification into a
   /// [`DetachEvent`](::event::Event::DetachEvent) event
   pub fn parse_detach_event(
@@ -95,6 +106,14 @@ impl Handler for NeovimHandler {
       "RefreshFolds" => {
         if let Err(reason) = self.0.send(Event::RefreshFolds) {
           error!("{}", reason);
+        }
+      }
+      "HighlightRegion" => {
+        if let Ok(event) = self.parse_highlight_region(args) {
+          info!("{:?}", event);
+          if let Err(reason) = self.0.send(event) {
+            error!("{}", reason);
+          }
         }
       }
       "quit" => {
