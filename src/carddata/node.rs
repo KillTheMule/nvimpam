@@ -9,13 +9,13 @@ use card::{
 };
 
 pub static NODE: Card = Card {
-  lines: &[Cells(&[Kw, Integer(16), Float(16), Float(16), Float(16)])],
+  lines: &[Cells(&[Kw, Integer(8), Float(16), Float(16), Float(16)])],
   ownfold: false,
   keyword: Node,
 };
 
 pub static CNODE: Card = Card {
-  lines: &[Cells(&[Kw, Integer(16), Float(16), Float(16), Float(16)])],
+  lines: &[Cells(&[Kw, Integer(8), Float(16), Float(16), Float(16)])],
   ownfold: false,
   keyword: Cnode,
 };
