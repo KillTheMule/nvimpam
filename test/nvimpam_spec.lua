@@ -25,7 +25,8 @@ function Screen:expect(expected, attr_ids, attr_ignore)
   if type(expected) == "table" then
     assert(not (attr_ids ~= nil or attr_ignore ~= nil))
     local is_key = {grid=true, attr_ids=true, attr_ignore=true, condition=true,
-                    any=true, mode=true}
+                    any=true, mode=true, unchanged=true, intermediate=true,
+                    reset=true, timeout=true}
     for _, v in ipairs(ext_keys) do
       is_key[v] = true
     end
@@ -67,7 +68,7 @@ function Screen:expect(expected, attr_ids, attr_ignore)
     attr_state.id_to_index = self:hlstate_check_attrs(attr_state.ids or {})
   end
   self._new_attrs = false
-  self:wait(function()
+  self:_wait(function()
     if condition ~= nil then
       local status, res = pcall(condition)
       if not status then
@@ -102,7 +103,7 @@ function Screen:expect(expected, attr_ids, attr_ignore)
 
     if grid ~= nil then
       -- `expected` must match the screen lines exactly.
-      for i = 1, self._height-1 do
+      for i = 1, self._height - 1 do
         if expected_rows[i] ~= actual_rows[i] then
           local msg_expected_rows = {}
           for j = 1, #expected_rows do
@@ -124,7 +125,7 @@ screen:redraw_debug() to show all intermediate screen states.  ]])
     -- Extension features. The default expectations should cover the case of
     -- the ext_ feature being disabled, or the feature currently not activated
     -- (for instance no external cmdline visible). Some extensions require
-    -- preprocessing to prepresent highlights in a reproducible way.
+    -- preprocessing to represent highlights in a reproducible way.
     local extstate = self:_extstate_repr(attr_state)
 
     -- convert assertion errors into invalid screen state descriptions
@@ -142,7 +143,7 @@ screen:redraw_debug() to show all intermediate screen states.  ]])
     if not status then
       return tostring(res)
     end
-  end)
+  end, expected)
 end
 
 describe('nvimpam', function()
@@ -462,7 +463,7 @@ describe('nvimpam', function()
     if is_ci then
       helpers.sleep(1000)
     else
-      helpers.sleep(10)
+      helpers.sleep(100)
     end
     chans = meths.list_chans()
     eq(chans[3].client.name, 'nvimpam')
