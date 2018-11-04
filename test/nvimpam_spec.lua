@@ -504,7 +504,7 @@ describe('nvimpam', function()
         health#nvimpam#check                                                             |
         ========================================================================         |
           - {7:OK:} Function nvim_buf_attach exists!                                         |
-          - {7:OK:} binary found: ../target/debug/nvimpam                                    |
+          - {7:OK:} binary found: .././target/debug/nvimpam                                  |
         ^                                                                                 |
         {2:~                                                                                }|
         {2:~                                                                                }|
