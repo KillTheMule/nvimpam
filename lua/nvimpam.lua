@@ -102,10 +102,11 @@ local function attach(filename)
     return false
   end
 
-  if filename == nil then
-    args = ""
+  local binlist
+  if filename == nil or filename == "" then
+    binlist = { binary }
   else
-    args = filename
+    binlist = { binary, filename }
   end
 
   if not callbacks_defined["onexit"] then
@@ -135,12 +136,12 @@ local function attach(filename)
     end
 
     jobid = call("jobstart", {
-      { binary, args },
+      binlist,
       { rpc=true, on_stderr='Nvimpam_onstderr', on_exit='Nvimpam_onexit'}
     })
   else
     jobid = call("jobstart", {
-      { binary, args },
+      binlist,
       { rpc=true, on_exit='Nvimpam_onexit'}
     })
   end
