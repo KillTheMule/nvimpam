@@ -23,8 +23,8 @@ local callbacks_defined = { }
 
 -- TODO: Must this be so ugly?
 local function locate_binary()
-  local locations = { "nvimpam", "target/release/nvimpam",
-                      "target/debug/nvimpam" }
+  local locations = { "nvimpam", "./target/release/nvimpam",
+                      "./target/debug/nvimpam" }
 
   local tmp = {}
 
@@ -105,7 +105,7 @@ local function attach(filename)
   if filename == nil then
     args = ""
   else
-    args = " "..filename
+    args = filename
   end
 
   if not callbacks_defined["onexit"] then
@@ -134,11 +134,15 @@ local function attach(filename)
       callbacks_defined["onstderr"] = true
     end
 
-    jobid = call("jobstart", { binary..args,
-        { rpc=true, on_stderr='Nvimpam_onstderr', on_exit='Nvimpam_onexit'}
-      })
+    jobid = call("jobstart", {
+      { binary, args },
+      { rpc=true, on_stderr='Nvimpam_onstderr', on_exit='Nvimpam_onexit'}
+    })
   else
-    jobid = call("jobstart", { binary..args, { rpc=true, on_exit='Nvimpam_onexit'}})
+    jobid = call("jobstart", {
+      { binary, args },
+      { rpc=true, on_exit='Nvimpam_onexit'}
+    })
   end
 
   if jobid == 0 then
@@ -146,8 +150,8 @@ local function attach(filename)
                 .. tostring(buf) .. "!")
     return false
   elseif jobid == -1 then
-    nvimpam_err("Attach on buffer "..tostring(buf).." failed: Command "
-                ..binary.."not executable!")
+    nvimpam_err("Attach on buffer "..tostring(buf).." failed: Command \""
+                ..binary.."\" not executable!")
     return false
   else
     jobids[buf] = jobid
