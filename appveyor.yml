@@ -65,7 +65,7 @@ test_script:
   - ps: |
       if ($env:FUNCTIONALTESTS -eq 'true') {
         cp ..\target\debug\nvimpam.exe .
-        Get-Content ci\build.ps1 | Select-String -pattern "(python|gem.cmd|ruby|npm|neovim-node-host|testdir|cpack)" -notmatch | Out-File ci\build2.ps1
+        Get-Content ci\build.ps1 | Select-String -pattern "(python|gem.cmd|ruby|npm|neovim-node-host|testdir|cpack|ErrorActionPreference)" -notmatch | Out-File ci\build2.ps1
         & 'ci\build2.ps1'
       }
   - cd ..
