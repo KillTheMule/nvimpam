@@ -5,6 +5,7 @@
 use std::{
   convert::{AsRef, From},
   fmt,
+  cmp,
   fs::File,
   io::Read,
   ops::Deref,
@@ -241,26 +242,25 @@ impl<'a> KeywordLine<'a> {
     cardline: &CardLine,
     folds: &mut FoldList,
   ) {
-    match *cardline {
-      CardLine::Cells(s) | CardLine::Provides(s, _) => {
-        let mut until: u8 = 0;
-        let mut odd: u8 = 0;
-        for cell in s.iter() {
-          let len = cell.len();
-          let slice = self.text.get(until as usize..(until + len) as usize);
-          if cell.verify(slice) {
-            if odd == 0 {
-              folds.add_highlight(self.number as u64, until, until + len, odd);
-              odd = 1
-            } else {
-              odd = 0
-            }
-          } else {
-          }
-          until += len;
+    debug_assert!(cardline.keyword().is_some());
+    let linelen = self.text.len();
+    let mut until: u8 = 0;
+    let mut odd: u8 = 0;
+
+    for cell in cardline.cells().unwrap_or(&[]).iter() {
+      let celllen = cell.len();
+      let range = until as usize..cmp::min(linelen, (until + celllen) as usize);
+
+      if self.text.get(range.clone()).map(|s| cell.verify(s)).is_some() {
+        if odd == 0 {
+          folds.add_highlight(self.number as u64, range.start as u8, range.end as u8, odd);
+          odd = 1
+        } else {
+          odd = 0
         }
+      } else {
       }
-      _ => {}
+      until += celllen;
     }
   }
 }
