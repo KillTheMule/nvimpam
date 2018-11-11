@@ -36,7 +36,7 @@ local function nvimpam_err(msg, id)
   command("echoerr '"..msg.."'")
 
   id = id or "NONE" 
-  on_stderr(id, {{msg}})
+  on_stderr(id, {msg})
 end
 
 local function on_exit(id, exitcode)
