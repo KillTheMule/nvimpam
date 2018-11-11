@@ -11,7 +11,7 @@ pub static MTOCO: Card = Card {
   lines: &[
     Provides(
       &[
-        Kw,
+        Kw(Mtoco),
         Integer(8),
         Integer(8),
         Binary(6),
@@ -41,13 +41,12 @@ pub static MTOCO: Card = Card {
     Ges(GesNode),
   ],
   ownfold: true,
-  keyword: Mtoco,
 };
 
 pub static OTMCO: Card = Card {
   lines: &[
     Cells(&[
-      Kw,
+      Kw(Otmco),
       Integer(8),
       Integer(8),
       Binary(6),
@@ -65,13 +64,12 @@ pub static OTMCO: Card = Card {
   ],
 
   ownfold: true,
-  keyword: Otmco,
 };
 
 pub static RBODY0: Card = Card {
   lines: &[
     Cells(&[
-      Kw,
+      Kw(Rbody0),
       Integer(8),
       Blank(8),
       Integer(8),
@@ -87,13 +85,12 @@ pub static RBODY0: Card = Card {
   ],
 
   ownfold: true,
-  keyword: Rbody0,
 };
 
 pub static RBODY1: Card = Card {
   lines: &[
     Cells(&[
-      Kw,
+      Kw(Rbody1),
       Integer(8),
       Blank(8),
       Integer(8),
@@ -120,13 +117,12 @@ pub static RBODY1: Card = Card {
   ],
 
   ownfold: true,
-  keyword: Rbody1,
 };
 
 pub static RBODY2: Card = Card {
   lines: &[
     Cells(&[
-      Kw,
+      Kw(Rbody2),
       Integer(8),
       Blank(8),
       Integer(8),
@@ -151,13 +147,12 @@ pub static RBODY2: Card = Card {
   ],
 
   ownfold: true,
-  keyword: Rbody2,
 };
 
 pub static RBODY3: Card = Card {
   lines: &[
     Cells(&[
-      Kw,
+      Kw(Rbody3),
       Integer(8),
       Blank(8),
       Integer(8),
@@ -183,7 +178,6 @@ pub static RBODY3: Card = Card {
   ],
 
   ownfold: true,
-  keyword: Rbody3,
 };
 
 #[cfg(test)]

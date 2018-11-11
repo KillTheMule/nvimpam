@@ -6,26 +6,24 @@ use card::{
 
 pub static ELINK: Card = Card {
   lines: &[
-    Cells(&[Kw, Integer(8), Integer(8), Integer(8), Integer(8)]),
+    Cells(&[Kw(Elink), Integer(8), Integer(8), Integer(8), Integer(8)]),
     Ges(GesFace),
   ],
   ownfold: false,
-  keyword: Elink,
 };
 
 pub static LLINK: Card = Card {
   lines: &[
-    Cells(&[Kw, Integer(8), Integer(8), Integer(8), Integer(8)]),
+    Cells(&[Kw(Llink), Integer(8), Integer(8), Integer(8), Integer(8)]),
     Ges(GesFace),
   ],
   ownfold: false,
-  keyword: Llink,
 };
 
 pub static SLINK: Card = Card {
   lines: &[
     Cells(&[
-      Kw,
+      Kw(Slink),
       Integer(8),
       Integer(8),
       Integer(8),
@@ -36,13 +34,12 @@ pub static SLINK: Card = Card {
     Ges(GesFace),
   ],
   ownfold: false,
-  keyword: Slink,
 };
 
 pub static PLINK: Card = Card {
   lines: &[
     Cells(&[
-      Kw,
+      Kw(Plink),
       Integer(8),
       Integer(8),
       Integer(8),
@@ -52,18 +49,16 @@ pub static PLINK: Card = Card {
     Ges(GesFace),
   ],
   ownfold: false,
-  keyword: Plink,
 };
 
 pub static TIED: Card = Card {
   lines: &[
-    Cells(&[Kw, Integer(8), Integer(8), Integer(8)]),
+    Cells(&[Kw(Tied), Integer(8), Integer(8), Integer(8)]),
     Cells(&[Fixed("NAME"), Str(76)]),
     Ges(GesNode),
     Ges(GesFace),
   ],
   ownfold: false,
-  keyword: Tied,
 };
 
 #[cfg(test)]

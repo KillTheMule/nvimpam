@@ -312,7 +312,7 @@ where
     #[cfg_attr(rustfmt, rustfmt_skip)]
     loop {
       if let Some(ParsedLine{keyword: Some(k),number,text}) = res.nextline {
-        if *k == card.keyword {
+        if Some(*k) == card.keyword() {
           res = self.skip_card(KeywordLine{keyword: k,number: number, text}, card, folds);
           continue;
         }

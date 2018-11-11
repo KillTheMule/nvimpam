@@ -5,7 +5,7 @@ use std::{cmp, ops::Range};
 
 use atoi::atoi;
 
-use card::{cell::Cell, ges::GesType};
+use card::{cell::Cell, ges::GesType, keyword::Keyword};
 
 /// A line (actually, zero or more lines) inside a card in a Pamcrash input
 /// file.
@@ -35,6 +35,31 @@ pub enum Line {
   /// A block that's entirely optional, starting with a line of a given string
   /// and ending in a line with another given string
   OptionalBlock(&'static [u8], &'static [u8]),
+}
+
+impl Line {
+  #[inline]
+  pub fn keyword(&self) -> Option<Keyword> {
+    use self::Line::*;
+
+    match *self {
+      Cells(s) | Provides(s, _) => {
+        s[0].keyword()
+      },
+      _ => None
+    }
+  }
+
+  #[inline]
+  pub fn cells(&self) -> Option<&'static [Cell]> {
+    use self::Line::*;
+
+    match *self {
+      Cells(s) | Provides(s, _) | Optional(s, _) | Repeat(s, _) => Some(s),
+      Ges(_) | Block(_, _) | OptionalBlock(_, _) => None
+    }
+  }
+
 }
 
 /// An enum to represent different conditionals on lines

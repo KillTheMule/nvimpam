@@ -12,7 +12,7 @@ macro_rules! part {
     Card {
       lines: &[
         Provides(&[
-          Kw,
+          Kw($k),
           Integer(8),
           Str(8),
           Integer(8),
@@ -28,7 +28,6 @@ macro_rules! part {
         Cells(&[Fixed("END_PART")]),
       ],
       ownfold: true,
-      keyword: $k
     };
   };
 }

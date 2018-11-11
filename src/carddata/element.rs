@@ -4,7 +4,7 @@ use card::{cell::Cell::*, keyword::Keyword::*, line::Line::*, Card};
 
 pub static SOLID: Card = Card {
   lines: &[
-    Cells(&[Kw, Integer(8), Integer(8)]),
+    Cells(&[Kw(Solid), Integer(8), Integer(8)]),
     Cells(&[
       Blank(16),
       Integer(8),
@@ -18,12 +18,11 @@ pub static SOLID: Card = Card {
     ]),
   ],
   ownfold: false,
-  keyword: Solid,
 };
 
 pub static HEXA20: Card = Card {
   lines: &[
-    Cells(&[Kw, Integer(8), Integer(8)]),
+    Cells(&[Kw(Hexa20), Integer(8), Integer(8)]),
     Cells(&[
       Blank(16),
       Integer(8),
@@ -49,12 +48,11 @@ pub static HEXA20: Card = Card {
     Cells(&[Blank(16), Integer(8), Integer(8), Integer(8), Integer(8)]),
   ],
   ownfold: false,
-  keyword: Hexa20,
 };
 
 pub static PENT15: Card = Card {
   lines: &[
-    Cells(&[Kw, Integer(8), Integer(8)]),
+    Cells(&[Kw(Pent15), Integer(8), Integer(8)]),
     Cells(&[
       Blank(16),
       Integer(8),
@@ -78,12 +76,11 @@ pub static PENT15: Card = Card {
     ]),
   ],
   ownfold: false,
-  keyword: Pent15,
 };
 
 pub static PENTA6: Card = Card {
   lines: &[Cells(&[
-    Kw,
+    Kw(Penta6),
     Integer(8),
     Integer(8),
     Integer(8),
@@ -94,12 +91,11 @@ pub static PENTA6: Card = Card {
     Integer(8),
   ])],
   ownfold: false,
-  keyword: Penta6,
 };
 
 pub static TETR10: Card = Card {
   lines: &[
-    Cells(&[Kw, Integer(8), Integer(8)]),
+    Cells(&[Kw(Tetr10), Integer(8), Integer(8)]),
     Cells(&[
       Blank(16),
       Integer(8),
@@ -114,18 +110,16 @@ pub static TETR10: Card = Card {
     Cells(&[Blank(16), Integer(8), Integer(8)]),
   ],
   ownfold: false,
-  keyword: Tetr10,
 };
 
 pub static BAR: Card = Card {
-  lines: &[Cells(&[Kw, Integer(8), Integer(8), Integer(8), Integer(8)])],
+  lines: &[Cells(&[Kw(Bar), Integer(8), Integer(8), Integer(8), Integer(8)])],
   ownfold: false,
-  keyword: Bar,
 };
 
 pub static BSHEL: Card = Card {
   lines: &[
-    Cells(&[Kw, Integer(8), Integer(8)]),
+    Cells(&[Kw(Bshel), Integer(8), Integer(8)]),
     Cells(&[
       Blank(16),
       Integer(8),
@@ -139,12 +133,11 @@ pub static BSHEL: Card = Card {
     ]),
   ],
   ownfold: false,
-  keyword: Bshel,
 };
 
 pub static TSHEL: Card = Card {
   lines: &[Cells(&[
-    Kw,
+    Kw(Tshel),
     Integer(8),
     Integer(8),
     Integer(8),
@@ -155,12 +148,11 @@ pub static TSHEL: Card = Card {
     Float(8),
   ])],
   ownfold: false,
-  keyword: Tshel,
 };
 
 pub static SHELL: Card = Card {
   lines: &[Cells(&[
-    Kw,
+    Kw(Shell),
     Integer(8),
     Integer(8),
     Integer(8),
@@ -171,12 +163,11 @@ pub static SHELL: Card = Card {
     Float(8),
   ])],
   ownfold: false,
-  keyword: Shell,
 };
 
 pub static SHEL6: Card = Card {
   lines: &[Cells(&[
-    Kw,
+    Kw(Shel6),
     Integer(8),
     Integer(8),
     Integer(8),
@@ -187,13 +178,12 @@ pub static SHEL6: Card = Card {
     Integer(8),
   ])],
   ownfold: false,
-  keyword: Shel6,
 };
 
 pub static SHEL8: Card = Card {
   lines: &[
     Cells(&[
-      Kw,
+      Kw(Shel8),
       Integer(8),
       Integer(8),
       Integer(8),
@@ -204,12 +194,11 @@ pub static SHEL8: Card = Card {
     Cells(&[Blank(24), Integer(8), Integer(8), Integer(8), Integer(8)]),
   ],
   ownfold: false,
-  keyword: Shel8,
 };
 
 pub static MEMBR: Card = Card {
   lines: &[Cells(&[
-    Kw,
+    Kw(Membr),
     Integer(8),
     Integer(8),
     Integer(8),
@@ -221,13 +210,12 @@ pub static MEMBR: Card = Card {
     Float(8),
   ])],
   ownfold: false,
-  keyword: Membr,
 };
 
 pub static BEAM: Card = Card {
   lines: &[
     Cells(&[
-      Kw,
+      Kw(Beam),
       Integer(8),
       Integer(8),
       Integer(8),
@@ -243,12 +231,11 @@ pub static BEAM: Card = Card {
     Cells(&[Blank(8), Float(8), Float(8), Float(8), Float(8), Float(8)]),
   ],
   ownfold: false,
-  keyword: Beam,
 };
 
 pub static SPRGBM: Card = Card {
   lines: &[Cells(&[
-    Kw,
+    Kw(Sprgbm),
     Integer(8),
     Integer(8),
     Integer(8),
@@ -257,12 +244,11 @@ pub static SPRGBM: Card = Card {
     Integer(8),
   ])],
   ownfold: false,
-  keyword: Sprgbm,
 };
 
 pub static TETR4: Card = Card {
   lines: &[Cells(&[
-    Kw,
+    Kw(Tetr4),
     Integer(8),
     Integer(8),
     Integer(8),
@@ -271,12 +257,11 @@ pub static TETR4: Card = Card {
     Integer(8),
   ])],
   ownfold: false,
-  keyword: Tetr4,
 };
 
 pub static SPRING: Card = Card {
   lines: &[Cells(&[
-    Kw,
+    Kw(Spring),
     Integer(8),
     Integer(8),
     Integer(8),
@@ -286,12 +271,11 @@ pub static SPRING: Card = Card {
     IntegerorBlank(8),
   ])],
   ownfold: false,
-  keyword: Spring,
 };
 
 pub static JOINT: Card = Card {
   lines: &[Cells(&[
-    Kw,
+    Kw(Joint),
     Integer(8),
     Integer(8),
     Integer(8),
@@ -303,13 +287,12 @@ pub static JOINT: Card = Card {
     Integer(8),
   ])],
   ownfold: false,
-  keyword: Joint,
 };
 
 pub static KJOIN: Card = Card {
   lines: &[
     Cells(&[
-      Kw,
+      Kw(Kjoin),
       Integer(8),
       Integer(8),
       Str(8),
@@ -322,13 +305,12 @@ pub static KJOIN: Card = Card {
     Cells(&[Blank(10), Binary(6)]),
   ],
   ownfold: false,
-  keyword: Kjoin,
 };
 
 pub static MTOJNT: Card = Card {
   lines: &[
     Cells(&[
-      Kw,
+      Kw(Mtojnt),
       Integer(8),
       Integer(8),
       Str(8),
@@ -340,24 +322,21 @@ pub static MTOJNT: Card = Card {
     Cells(&[Blank(10), Binary(6)]),
   ],
   ownfold: false,
-  keyword: Mtojnt,
 };
 
 pub static SPHEL: Card = Card {
-  lines: &[Cells(&[Kw, Integer(8), Integer(8), Integer(8), Float(8)])],
+  lines: &[Cells(&[Kw(Sphel), Integer(8), Integer(8), Integer(8), Float(8)])],
   ownfold: false,
-  keyword: Sphel,
 };
 
 pub static SPHELO: Card = Card {
-  lines: &[Cells(&[Kw, Integer(8), Integer(8), Integer(8), Float(8)])],
+  lines: &[Cells(&[Kw(Sphelo), Integer(8), Integer(8), Integer(8), Float(8)])],
   ownfold: false,
-  keyword: Sphelo,
 };
 
 pub static GAP: Card = Card {
   lines: &[Cells(&[
-    Kw,
+    Kw(Gap),
     Integer(8),
     Integer(8),
     Integer(8),
@@ -365,17 +344,15 @@ pub static GAP: Card = Card {
     Integer(8),
   ])],
   ownfold: false,
-  keyword: Gap,
 };
 
 pub static IMPMA: Card = Card {
   lines: &[
-    Cells(&[Kw, Integer(8), Str(8), Str(8), Str(8), Integer(8)]),
+    Cells(&[Kw(Impma), Integer(8), Str(8), Str(8), Str(8), Integer(8)]),
     Cells(&[Fixed("NAME"), Str(76)]),
     Cells(&[Blank(8), Str(76)]),
   ],
   ownfold: false,
-  keyword: Impma,
 };
 
 #[cfg(test)]

@@ -6,18 +6,16 @@ use card::{
 
 pub static GROUP: Card = Card {
   lines: &[
-    Cells(&[Kw, Str(72)]),
+    Cells(&[Kw(Group), Str(72)]),
     OptionalBlock(b"META", b"END_META"),
     Ges(GesNode),
   ],
   ownfold: true,
-  keyword: Group,
 };
 
 pub static COMMENT: Card = Card {
   lines: &[Cells(&[Fixed("#")])],
   ownfold: false,
-  keyword: Comment,
 };
 
 #[cfg(test)]

@@ -2,10 +2,12 @@
 
 /// All the basic elements that can occur on a valid line in a Pamcrash input
 /// file, aside from comments and header data.
+use card::keyword::Keyword;
+
 #[derive(Debug, PartialEq)]
 pub enum Cell {
   /// A [`keyword`](::card::keyword::Keyword)
-  Kw,
+  Kw(Keyword),
   /// A fixed, non-keyword entry
   Fixed(&'static str),
   /// An integer with a given maximum string-length
@@ -26,11 +28,18 @@ pub enum Cell {
 
 impl Cell {
   #[inline]
+  pub fn keyword(&self) -> Option<Keyword> {
+    match *self {
+      Cell::Kw(k) => Some(k),
+      _ => None,
+    }
+  }
+
+  #[inline]
   pub fn len(&self) -> u8 {
     use card::cell::Cell::*;
     match *self {
-      // TODO: Use something real here, we have Keyword::len
-      Kw => 8,
+      Kw(k) => k.len(),
       Fixed(s) => {
         debug_assert!(s.len() < 81);
         s.len() as u8
@@ -42,8 +51,8 @@ impl Cell {
   }
 
   #[inline]
-  pub fn verify(&self, _s: Option<&[u8]>) -> bool {
-    //debug_assert!(self.len() == s.len() as u8);
+  pub fn verify(&self, s: &[u8]) -> bool {
+   // debug_assert!(self.len() == s.len() as u8);
     true
   }
 }

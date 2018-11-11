@@ -26,7 +26,13 @@ use carddata::*;
 pub struct Card {
   pub lines: &'static [Line],
   pub ownfold: bool,
-  pub keyword: Keyword,
+}
+
+impl Card {
+  #[inline]
+  pub fn keyword(&self) -> Option<Keyword> {
+    self.lines[0].keyword()
+  }
 }
 
 impl<'a> From<&'a Keyword> for &'static Card {
