@@ -11,6 +11,7 @@ pub mod card;
 pub mod carddata;
 pub mod event;
 pub mod folds;
+pub mod highlights;
 pub mod handler;
 pub mod lines;
 pub mod nocommentiter;

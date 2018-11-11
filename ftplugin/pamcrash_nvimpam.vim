@@ -27,3 +27,17 @@ function! Nvimpam_foldtext()
 endfunction
 
 set foldtext=Nvimpam_foldtext()
+
+if &background == "dark"
+  highlight default PamCellEven ctermbg=229 guibg=#ffffcf
+  highlight default PamCellOdd ctermbg=254 guibg=#e4e4e4
+  highlight default PamErrorCellEven ctermfg=15 ctermbg=124 guifg=#ffffff guibg=#af0000
+  highlight default PamErrorCellOdd ctermfg=15 ctermbg=9 guifg=#ffffff guibg=#ff0000
+  highlight default PamKeyword cterm=bold ctermfg=94 gui=bold guifg=#875f00
+else
+  highlight default PamCellEven ctermbg=229 guibg=#ffffcf
+  highlight default PamCellOdd ctermbg=254 guibg=#e4e4e4
+  highlight default PamErrorCellEven ctermfg=15 ctermbg=124 guifg=#ffffff guibg=#af0000
+  highlight default PamErrorCellOdd ctermfg=15 ctermbg=9 guifg=#ffffff guibg=#ff0000
+  highlight default PamKeyword cterm=bold ctermfg=94 gui=bold guifg=#875f00
+endif

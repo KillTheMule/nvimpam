@@ -30,6 +30,7 @@ use itertools::Itertools;
 use card::keyword::Keyword;
 use lines::{Line, ParsedLine};
 use nocommentiter::CommentLess;
+use highlights::HighlightGroup as Hl;
 
 macro_rules! unwrap_or_ok {
   ($option:expr) => {
@@ -67,8 +68,8 @@ pub struct FoldList {
   fold_texts_level2: BTreeMap<[u64; 2], String>,
   /// Highlights
   // TODO: Do we need both?
-  highlights: HashMap<[u8; 3], Vec<u64>>,
-  highlights_by_line: BTreeMap<(u64, u8, u8), u8>,
+  highlights: HashMap<([u8; 2], Hl), Vec<u64>>,
+  highlights_by_line: BTreeMap<(u64, u8, u8), Hl>,
 }
 
 impl FoldList {
@@ -118,8 +119,8 @@ impl FoldList {
     Ok(())
   }
 
-  pub fn add_highlight(&mut self, line: u64, start: u8, end: u8, typ: u8) {
-    match self.highlights.entry([start, end, typ]) {
+  pub fn add_highlight(&mut self, line: u64, start: u8, end: u8, typ: Hl) {
+    match self.highlights.entry(([start, end], typ)) {
       HmEntry::Vacant(entry) => {
         entry.insert(vec![line]);
       }
@@ -281,19 +282,7 @@ impl FoldList {
 
     for ((l, s, e), t) in self.highlights_by_line.iter() {
       if firstline <= *l && *l <= lastline {
-        match t {
-          0 => curbuf.add_highlight(
-            nvim,
-            5,
-            "CursorColumn",
-            *l,
-            *s as u64,
-            *e as u64,
-          )?,
-          _ => {
-            curbuf.add_highlight(nvim, 5, "Normal", *l, *s as u64, *e as u64)?
-          }
-        };
+        curbuf.add_highlight(nvim, 5, (*t).into(), *l, *s as u64, *e as u64)?;
       } else if *l > lastline {
         break;
       }

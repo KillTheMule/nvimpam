@@ -51,7 +51,7 @@ impl Cell {
   }
 
   #[inline]
-  pub fn verify(&self, s: &[u8]) -> bool {
+  pub fn verify(&self, _s: &[u8]) -> bool {
    // debug_assert!(self.len() == s.len() as u8);
     true
   }
