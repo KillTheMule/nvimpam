@@ -28,9 +28,9 @@ use neovim_lib::{Neovim, NeovimApi, Value};
 use itertools::Itertools;
 
 use card::keyword::Keyword;
+use highlights::HighlightGroup as Hl;
 use lines::{Line, ParsedLine};
 use nocommentiter::CommentLess;
-use highlights::HighlightGroup as Hl;
 
 macro_rules! unwrap_or_ok {
   ($option:expr) => {
@@ -136,6 +136,13 @@ impl FoldList {
         *entry.get_mut() = typ;
       }
     }
+  }
+
+  pub fn extend_highlights<T>(&mut self, it: T)
+  where
+    T: IntoIterator<Item = ((u64, u8, u8), Hl)>,
+  {
+    self.highlights_by_line.extend(it)
   }
 
   /// Insert a level 1 fold `([start, end], Keyword)` into the FoldList. If
