@@ -6,6 +6,8 @@ use std::{cmp, ops::Range};
 use atoi::atoi;
 
 use card::{cell::Cell, ges::GesType, keyword::Keyword};
+use highlights::HighlightGroup as Hl;
+use folds::FoldList;
 
 /// A line (actually, zero or more lines) inside a card in a Pamcrash input
 /// file.
@@ -60,6 +62,49 @@ impl Line {
     }
   }
 
+  pub fn create_highlights(&self, folds: &mut FoldList, num: usize, text: &[u8]) {
+    let linelen = text.len();
+    let mut until: u8 = 0;
+    let mut odd: bool = false;
+
+    for cell in self.cells().unwrap_or(&[]).iter() {
+      let celllen = cell.len();
+      let range = until as usize..cmp::min(linelen, (until + celllen) as usize);
+
+      if let Cell::Kw(_) = cell {
+          folds.add_highlight(
+            num as u64,
+            range.start as u8,
+            range.end as u8,
+            Hl::Keyword,
+          );
+      } else if text
+        .get(range.clone())
+        .map(|s| cell.verify(s))
+        .is_some()
+      {
+        if odd {
+          folds.add_highlight(
+            num as u64,
+            range.start as u8,
+            range.end as u8,
+            Hl::CellEven,
+          );
+        } else {
+          folds.add_highlight(
+            num as u64,
+            range.start as u8,
+            range.end as u8,
+            Hl::CellOdd,
+          );
+        }
+      } else {
+      }
+      odd = !odd;
+      until += celllen;
+    }
+
+  }
 }
 
 /// An enum to represent different conditionals on lines

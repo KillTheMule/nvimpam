@@ -3,7 +3,6 @@
 //! Future ideas, if performance isn't enough: Skip list, gap buffer (adapted to
 //! lines instead of strings), rope (adapted to lines instead of strings)
 use std::{
-  cmp,
   convert::{AsRef, From},
   fmt,
   fs::File,
@@ -14,9 +13,7 @@ use std::{
 
 use failure::{Error, ResultExt};
 
-use card::{keyword::Keyword, line::Line as CardLine, cell::Cell};
-use folds::FoldList;
-use highlights::HighlightGroup as Hl;
+use card::keyword::Keyword;
 
 /// An enum representing a line of a file, either as a byte slice (which we
 /// obtain from reading a file into a `Vec<u8>` and splitting on newlines) or an
@@ -235,57 +232,6 @@ pub struct KeywordLine<'a> {
   pub number: usize,
   pub text: &'a [u8],
   pub keyword: &'a Keyword,
-}
-
-impl<'a> KeywordLine<'a> {
-  pub fn create_highlights(
-    &'a self,
-    cardline: &CardLine,
-    folds: &mut FoldList,
-  ) {
-    debug_assert!(cardline.keyword().is_some());
-    let linelen = self.text.len();
-    let mut until: u8 = 0;
-    let mut odd: bool = false;
-
-    for cell in cardline.cells().unwrap_or(&[]).iter() {
-      let celllen = cell.len();
-      let range = until as usize..cmp::min(linelen, (until + celllen) as usize);
-
-      if let Cell::Kw(_) = cell {
-          folds.add_highlight(
-            self.number as u64,
-            range.start as u8,
-            range.end as u8,
-            Hl::Keyword,
-          );
-      } else if self
-        .text
-        .get(range.clone())
-        .map(|s| cell.verify(s))
-        .is_some()
-      {
-        if odd {
-          folds.add_highlight(
-            self.number as u64,
-            range.start as u8,
-            range.end as u8,
-            Hl::CellEven,
-          );
-        } else {
-          folds.add_highlight(
-            self.number as u64,
-            range.start as u8,
-            range.end as u8,
-            Hl::CellOdd,
-          );
-        }
-      } else {
-      }
-      odd = !odd;
-      until += celllen;
-    }
-  }
 }
 
 impl<'a> fmt::Display for KeywordLine<'a> {

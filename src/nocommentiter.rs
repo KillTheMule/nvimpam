@@ -215,7 +215,7 @@ where
     if let CardLine::Provides(_s, ref c) = cardline {
       conds.push(c.evaluate(skipline.text));
     }
-    skipline.create_highlights(cardline, folds);
+    cardline.create_highlights(folds, skipline.number, skipline.text);
 
     let mut previdx: Option<usize> = None;
     let mut nextline = next_or_return_previdx!(self, previdx);
