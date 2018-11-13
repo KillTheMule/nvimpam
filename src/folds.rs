@@ -17,9 +17,7 @@
 //! assert!(foldlist.remove(2, 3).is_err());
 //! assert!(foldlist.remove(1, 2).is_ok());
 //! ```
-use std::collections::{
-  btree_map::Entry, BTreeMap,
-};
+use std::collections::{btree_map::Entry, BTreeMap};
 
 use failure::{self, Error, ResultExt};
 
@@ -291,7 +289,7 @@ impl FoldList {
 
     for ((l, s, e), t) in self.highlights_by_line.iter() {
       if firstline <= *l && *l <= lastline {
-        curbuf.add_highlight(nvim, 5, (*t).into(), *l, *s as u64, *e as u64)?;
+        curbuf.add_highlight(nvim, 5, (*t).into(), *l, u64::from(*s), u64::from(*e))?;
       } else if *l > lastline {
         break;
       }
@@ -346,7 +344,7 @@ impl FoldList {
     loop {
       foldkw = nextline.keyword;
       foldstart = nextline.number;
-      skipped = li.skip_fold(nextline, self);
+      skipped = li.skip_fold(&nextline, self);
 
       // The latter only happens when a file ends after the only line of a card
       foldend = skipped.skip_end.unwrap_or_else(|| lines.len() - 1);

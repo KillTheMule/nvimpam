@@ -10,7 +10,7 @@ pub enum HighlightGroup {
   CellOdd,
   ErrorCellEven,
   ErrorCellOdd,
-  Keyword
+  Keyword,
 }
 
 impl From<HighlightGroup> for &'static str {

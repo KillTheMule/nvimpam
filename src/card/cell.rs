@@ -51,6 +51,16 @@ impl Cell {
   }
 
   #[inline]
+  pub fn is_empty(&self) -> bool {
+    use card::cell::Cell::*;
+    match *self {
+      Integer(u) | Float(u) | Blank(u) | Str(u) | Binary(u)
+      | IntegerorBlank(u) => u == 0,
+      _ => false
+    }
+  }
+
+  #[inline]
   pub fn verify(&self, _s: &[u8]) -> bool {
    // debug_assert!(self.len() == s.len() as u8);
     true

@@ -183,15 +183,15 @@ where
   /// value of [`Card.ownfold`](::card::Card::ownfold)
   pub fn skip_fold<'b>(
     &'b mut self,
-    skipline: KeywordLine<'a>,
+    skipline: &KeywordLine<'a>,
     folds: &mut FoldList,
   ) -> SkipResult<'a> {
     let card: &Card = skipline.keyword.into();
 
     if card.ownfold {
-      self.skip_card(skipline, card, folds)
+      self.skip_card(&skipline, card, folds)
     } else {
-      self.skip_card_gather(skipline, card, folds)
+      self.skip_card_gather(&skipline, card, folds)
     }
   }
 
@@ -204,7 +204,7 @@ where
   /// [`skip_card_gather`](NoCommentIter::skip_card_gather)
   pub fn skip_card<'b>(
     &'b mut self,
-    skipline: KeywordLine<'a>,
+    skipline: &KeywordLine<'a>,
     card: &Card,
     folds: &mut FoldList,
   ) -> SkipResult<'a> {
@@ -269,7 +269,7 @@ where
           }
         }
         CardLine::Block(_l, s) => loop {
-          while !nextline.text.as_ref().starts_with(s) {
+          while !nextline.text.starts_with(s) {
             advance!(self, previdx, nextline);
 
             if nextline.keyword.is_some() {
@@ -279,10 +279,10 @@ where
           advance!(self, previdx, nextline);
         },
         CardLine::OptionalBlock(s1, s2) => {
-          if !nextline.text.as_ref().starts_with(s1) {
+          if !nextline.text.starts_with(s1) {
             continue;
           }
-          while !nextline.text.as_ref().starts_with(s2) {
+          while !nextline.text.starts_with(s2) {
             advance!(self, previdx, nextline);
 
             if nextline.keyword.is_some() {
@@ -304,17 +304,17 @@ where
   /// of the given type, which is passed as `skipline`.
   pub fn skip_card_gather<'b>(
     &'b mut self,
-    skipline: KeywordLine<'a>,
+    skipline: &KeywordLine<'a>,
     card: &Card,
     folds: &mut FoldList,
   ) -> SkipResult<'a> {
-    let mut res = self.skip_card(skipline, card, folds);
+    let mut res = self.skip_card(&skipline, card, folds);
 
     #[cfg_attr(rustfmt, rustfmt_skip)]
     loop {
       if let Some(ParsedLine{keyword: Some(k),number,text}) = res.nextline {
         if Some(*k) == card.keyword() {
-          res = self.skip_card(KeywordLine{keyword: k,number: number, text}, card, folds);
+          res = self.skip_card(&KeywordLine{keyword: k, number, text}, card, folds);
           continue;
         }
       }
@@ -588,7 +588,7 @@ mod tests {
         let mut folds = FoldList::new();
         let firstline = l.next().unwrap();
         let tmp = l.skip_card(
-          firstline.try_into_keywordline().unwrap(),
+          &firstline.try_into_keywordline().unwrap(),
           &MASS,
           &mut folds
         );
@@ -663,24 +663,24 @@ mod tests {
       .remove_comments();
     let firstline = li.next().unwrap();
 
-    let mut tmp = li.skip_fold(firstline.try_into_keywordline().unwrap(), &mut
+    let mut tmp = li.skip_fold(&(firstline.try_into_keywordline()).unwrap(), &mut
                                folds);
     let mut tmp_nextline = tmp.nextline.unwrap();
     assert_eq!(tmp_nextline, pline!(5, &LINES_GATHER[5], Some(&Shell)));
     assert_eq!(tmp.skip_end, Some(3));
 
-    tmp = li.skip_fold(tmp_nextline.try_into_keywordline().unwrap(), &mut folds);
+    tmp = li.skip_fold(&tmp_nextline.try_into_keywordline().unwrap(), &mut folds);
     tmp_nextline = tmp.nextline.unwrap();
     assert_eq!(tmp_nextline, pline!(6, &LINES_GATHER[6], None));
     assert_eq!(tmp.skip_end, Some(5));
 
     let skipped = li.skip_to_next_keyword().unwrap();
-    tmp = li.skip_fold(skipped.into(), &mut folds);
+    tmp = li.skip_fold(&skipped.into(), &mut folds);
     tmp_nextline = tmp.nextline.unwrap();
     assert_eq!(tmp_nextline, pline!(18, &LINES_GATHER[18], Some(&Node)));
     assert_eq!(tmp.skip_end, Some(15));
 
-    tmp = li.skip_fold(tmp_nextline.try_into_keywordline().unwrap(), &mut folds);
+    tmp = li.skip_fold(&tmp_nextline.try_into_keywordline().unwrap(), &mut folds);
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, None);
   }

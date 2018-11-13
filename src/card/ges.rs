@@ -1,3 +1,4 @@
+#![cfg_attr(feature = "cargo-clippy", allow(clippy::unreadable_literal))]
 //! The General Entity Selection scheme of Pamcrash.
 
 /// An enum to denote the type of a GES. Not yet used.
@@ -33,7 +34,7 @@ impl GesType {
         // b"ELE " | b"GRP " | b"NOD " | b"SEG " | b"EDG " | b"MOD "
         1162626336 | 1196576800 | 1313817632 | 1162102560 | 1297040416 => true,
         // b"OGRP"
-        1330074192 => len >= 13 && &b[12] == &b' ',
+        1330074192 => len >= 13 && b[12] == b' ',
         // b"DELN"
         1145392206 => {
           len >= 15
@@ -102,9 +103,9 @@ impl GesType {
         }
         // b"PART"
         1346458196 => {
-          len >= 13 && &b[12] == &b' '
+          len >= 13 && b[12] == b' '
             || len >= 17
-              && &b[16] == &b' '
+              && b[16] == b' '
               // b">NOD" as u32 in BigEndian is 1045319492
               && (&b[12..16]).read_u32::<BigEndian>().ok() == Some(1045319492)
         }

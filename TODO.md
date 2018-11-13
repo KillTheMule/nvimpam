@@ -2,6 +2,8 @@
 
 * Document and test the menu
 
+* Write a size hint (exact!) for the HlIter
+
 * Employ OptionSet aucmds to set the colors (can we maybe do it by using the color schemes colors?)
 
 * See if we can get the info for send_client_info programmatically from Cargo.toml

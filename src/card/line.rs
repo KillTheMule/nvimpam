@@ -6,7 +6,7 @@ use std::{cmp, ops::Range};
 use atoi::atoi;
 
 use card::{cell::Cell, ges::GesType, keyword::Keyword};
-use highlights::{HlLine, HlIter};
+use highlights::{HlIter, HlLine};
 
 /// A line (actually, zero or more lines) inside a card in a Pamcrash input
 /// file.
@@ -44,10 +44,8 @@ impl Line {
     use self::Line::*;
 
     match *self {
-      Cells(s) | Provides(s, _) => {
-        s[0].keyword()
-      },
-      _ => None
+      Cells(s) | Provides(s, _) => s[0].keyword(),
+      _ => None,
     }
   }
 
@@ -61,12 +59,17 @@ impl Line {
     }
   }
 
-  pub fn highlights<'a, 'b>(
+  pub fn highlights<'a>(
     &'a self,
     num: usize,
     text: &'a [u8],
   ) -> HlIter<'a> {
-    HlLine { cardline: &self, num, text }.into_iter()
+    HlLine {
+      cardline: &self,
+      num,
+      text,
+    }
+    .into_iter()
   }
 }
 

@@ -1,3 +1,4 @@
+#![cfg_attr(feature = "cargo-clippy", allow(clippy::unreadable_literal))]
 //! This module provides the [`Keyword`](::card::keyword::Keyword) enum to
 //! classify lines according to what card type they belong to. The terms
 //! "Keyword" and "Card" are lingo from the FEM solver Pamcrash, but generally
@@ -90,9 +91,15 @@ impl Keyword {
   /// Return the length of the keyword in the pamcrash input file
   /// Should be 8 for all right now...
   #[inline]
-  pub fn len(&self) -> u8 {
+  pub fn len(self) -> u8 {
     8
   }
+
+  #[inline]
+  pub fn is_empty(self) -> bool {
+    false
+  }
+
   /// Parse a string to determine if it starts with the keyword of a card.
   #[inline]
   pub fn parse(s: &[u8]) -> Option<Keyword> {
@@ -340,7 +347,7 @@ impl Keywords {
 
   /// Update a [`Keywords`](::card::keyword::Keywords) struct by parsing a
   /// `Vec<String>` and splicing in the result on the interval `first..last`.
-  pub fn update(&mut self, first: usize, last: usize, linedata: &Vec<String>) {
+  pub fn update(&mut self, first: usize, last: usize, linedata: &[String]) {
     let range = first..last;
     let _ = self
       .0
