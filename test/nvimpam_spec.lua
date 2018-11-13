@@ -388,7 +388,7 @@ describe('nvimpam', function()
     command('edit ' .. alter_slashes('../files/example.pc'))
     command('NvimPamAttach')
     if is_ci then
-      helpers.sleep(1000)
+      helpers.sleep(2000)
     else
       helpers.sleep(1000)
     end
