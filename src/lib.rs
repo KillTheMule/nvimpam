@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+#![cfg_attr(feature="cargo-clippy", feature(tool_lints))]
 //! The companion library to the nvimpam binary.
 extern crate failure;
 #[macro_use]

@@ -1,5 +1,5 @@
 //! The highlight module
-use std::{cmp, convert::From};
+use std::{self, cmp, convert::From};
 
 use card::{cell::Cell, line::Line as CardLine};
 use highlights::HighlightGroup as Hl;

@@ -243,6 +243,7 @@ where
           }
         }
         CardLine::Cells(_s) => {
+          folds.extend_highlights(cardline.highlights(nextline.number, nextline.text));
           advance!(self, previdx, nextline);
         }
         CardLine::Optional(_s, i) => {
