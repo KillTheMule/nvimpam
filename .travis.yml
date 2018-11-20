@@ -49,7 +49,7 @@ jobs:
       script: cargo build && cargo build --release && cd neovim && git submodule init
               && git submodule update --remote --depth 50
               && brew update && brew install ninja && brew install gettext
-              && brew reinstall -s libtool
+              && brew reinstall libtool
               && TEST_FILE=../test/nvimpam_spec.lua make functionaltest
               && cd .. && RUSTFLAGS="-C opt-level=0" cargo bench -- --test
       after_script: echo NVIMPAMSTDERR && cat nvimpamstderr
