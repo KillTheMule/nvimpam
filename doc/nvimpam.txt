@@ -18,7 +18,8 @@ You're very welcome to step by to report bugs or request features.
 Overview    		       				*nvimpam-overview*
 
 Nvimpam is a neovim |rpc| plugin for editing input files for the FEM solver
-PAMCRASH. Right now, the only thing it can do is provide folding.
+PAMCRASH. It provides folding, and a menu to insert new cards into the buffer
+(this feature depends on `Vigemus/impromptu.nvim` being installed).
 
 
 Differences with vim-pamcrash-syntax          *vim-pamcrash-syntax-differences*
@@ -58,6 +59,11 @@ Ask nvimpam to recompute and apply all folds. After initially creating and
 closing the folds for you, it will not do so subsequently. It will however
 keep track of the changes to the buffer, so updating the folds will be very
 fast.
+
+NvimPamMenu~
+
+Opens a menu to let you choose a pamcrash card to insert in to the buffer.
+Selection is key-based. Depends on `Vigemus/impromptu.nvim` being installed.
 
 ==============================================================================
 Nvimpam configuration                                    *nvimpam-configuration*
