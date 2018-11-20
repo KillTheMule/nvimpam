@@ -3,6 +3,8 @@ local curpos = vim.api.nvim_win_get_cursor
 local curwin = vim.api.nvim_get_current_win
 local set_lines = vim.api.nvim_buf_set_lines
 local command = vim.api.nvim_command
+local eval = vim.api.nvim_eval
+local call = vim.api.nvim_call_function
 
 local lines_from_file = require('nvimpam.utils').lines_from_file
 local cardpath
@@ -17,13 +19,7 @@ local function cardmenu()
   end
 
   if not cardpath then
-    local rtp = vim.api.nvim_eval("&rtp")
-
-    for str in string.gmatch(rtp, "([^,]+)") do
-      if not cardpath or cardpath == "" then
-        cardpath = vim.api.nvim_call_function('finddir', {'pam_cards', str.."/**" })
-      end
-    end
+    cardpath = call('finddir', {'lua/nvimpam/pam_cards', eval("&rtp")})
   end
 
   local curbuf = curbuf()
