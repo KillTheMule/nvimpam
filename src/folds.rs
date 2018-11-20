@@ -18,7 +18,7 @@
 //! assert!(foldlist.remove(1, 2).is_ok());
 //! ```
 use std::collections::{
-  btree_map::Entry, BTreeMap, HashMap,
+  btree_map::Entry, BTreeMap,
 };
 
 use failure::{self, Error, ResultExt};
