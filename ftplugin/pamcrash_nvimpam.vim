@@ -15,6 +15,7 @@ command! NvimPamHighlightScreen call luaeval(
       \ 'require("nvimpam").highlight_region(_A.b, _A.f, _A.l)',
       \ { 'b': bufnr('%'), 'f': line('w0')-1, 'l': line('w$')-1 }
       \ )
+command! NvimPamMenu call luaeval('require("nvimpam.cardmenu").cardmenu()')
 
 augroup nvimpam_leave
   " clear all previous autocommands

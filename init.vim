@@ -1,4 +1,5 @@
 set rtp+=$PWD
+set rtp+=../impromptu.nvim/
 
 filetype plugin on
 "if has("win32")

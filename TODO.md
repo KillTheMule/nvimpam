@@ -1,5 +1,7 @@
 * Improve logging: Lua code should write to NVIMPAM_LOG_FILE (maybe even respect log llevel?), only the binaries stderr should really go to NVIMPAM_STDERR
 
+* Document and test the menu
+
 * Employ OptionSet aucmds to set the colors (can we maybe do it by using the color schemes colors?)
 
 * See if we can get the info for send_client_info programmatically from Cargo.toml
