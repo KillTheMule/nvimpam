@@ -482,37 +482,37 @@ describe('nvimpam', function()
     if os.getenv("APPVEYOR") then
       screen:expect([[
         {5: [No Name] }{6: [No Name] }{3:                                                          }{5:X}|
-                                                                                         |
-        health#nvimpam#check                                                             |
         ========================================================================         |
+        ## Buffer updates                                                                |
           - {7:OK:} Function nvim_buf_attach exists!                                         |
+                                                                                         |
+        ## Nvimpam binary                                                                |
           - {7:OK:} binary found: nvimpam                                                    |
+                                                                                         |
+        ## Menu availability                                                             |
+          - ERROR: `Vigemus/impromptu.nvim` is not installed                             |
+            - ADVICE:                                                                    |
+              - Visit `https://github.com/Vigemus/impromptu.nvim`.                       |
+          - {7:OK:} Directory `pam_cards` found                                              |
         ^                                                                                 |
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
                                                                                          |
       ]])
     else
       screen:expect([[
         {5: [No Name] }{6: [No Name] }{3:                                                          }{5:X}|
-                                                                                         |
-        health#nvimpam#check                                                             |
         ========================================================================         |
+        ## Buffer updates                                                                |
           - {7:OK:} Function nvim_buf_attach exists!                                         |
+                                                                                         |
+        ## Nvimpam binary                                                                |
           - {7:OK:} binary found: .././target/debug/nvimpam                                  |
+                                                                                         |
+        ## Menu availability                                                             |
+          - ERROR: `Vigemus/impromptu.nvim` is not installed                             |
+            - ADVICE:                                                                    |
+              - Visit `https://github.com/Vigemus/impromptu.nvim`.                       |
+          - {7:OK:} Directory `pam_cards` found                                              |
         ^                                                                                 |
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
                                                                                          |
       ]])
     end
