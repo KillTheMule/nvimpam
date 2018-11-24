@@ -117,6 +117,11 @@ impl Event {
             keywords.update(firstline as usize, lastline as usize, &linedata);
             lines.update(firstline as usize, lastline as usize, linedata);
             foldlist.recreate_all(&keywords, &lines)?;
+            foldlist.highlight_region(
+              &mut nvim,
+              firstline as u64,
+              lastline as u64,
+            )?;
           } else {
             error!(
               "LinesEvent only works with nonnegative numbers, except for
