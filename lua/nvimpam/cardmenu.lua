@@ -8,24 +8,19 @@ local call = vim.api.nvim_call_function
 
 local lines_from_file = require('nvimpam.utils').lines_from_file
 local displen = require('impromptu.utils').displaywidth
+
+
 local cardpath
 local rtp
 
 local function cols(obj, opts, width)
-  -- "Close this prompt" will be added
-  local maxlen = 17
-  for _, l in pairs(opts) do
-    local len = displen(l.description, 0)
-    if len > maxlen then
-      maxlen = len
-    end
-  end
+  return 1
+end
 
-  -- account for '[k] ' at the beginning, '  ' at the end
-  maxlen = maxlen + 4
+local function padnum(d) return ("%03d%s"):format(#d, d) end
 
-  return math.floor(width/maxlen)
-
+local function sort(a, b)
+  return a.description:gsub("%d+",padnum) < b.description:gsub("%d+",padnum)
 end
 
 local function cardmenu()
@@ -449,6 +444,7 @@ local function cardmenu()
   impromptu.ask{
     options = opts,
     columns = cols,
+    sort = sort,
     handler = function(b, opt)
       file = cardpath.."/"..b.breadcrumbs[1].."/"..opt
       set_lines(curbuf, curpos[1], curpos[1], false, lines_from_file(file))
