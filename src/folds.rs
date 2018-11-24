@@ -288,7 +288,7 @@ impl FoldList {
     let curbuf = nvim.get_current_buf()?;
 
     for ((l, s, e), t) in self.highlights_by_line.iter() {
-      if firstline <= *l && *l <= lastline {
+      if firstline <= *l && *l < lastline {
         curbuf.add_highlight(nvim, 5, (*t).into(), *l, u64::from(*s), u64::from(*e))?;
       } else if *l > lastline {
         break;
