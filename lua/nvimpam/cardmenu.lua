@@ -428,7 +428,7 @@ local function cardmenu()
     },
   }
 
-  impromptu.core.ask{
+  impromptu.ask{
     options = opts,
     handler = function(b, opt)
       file = cardpath.."/"..b.breadcrumbs[1].."/"..opt
