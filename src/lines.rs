@@ -97,8 +97,15 @@ impl<'a> Lines<'a> {
 
   /// Create a new `Lines` struct from a byte slice by splitting on newlines.
   pub fn from_slice(v: &'a [u8]) -> Lines<'a> {
-    let w: Vec<Line> =
+    let mut w: Vec<Line> =
       v.split(|b| *b == b'\n').map(Line::OriginalLine).collect();
+
+    // If the file contains a final newline, we need to remove the empty slice
+    // at the end
+    if v.last() == Some(&b'\n') {
+      w.pop();
+    }
+
     Lines(w)
   }
 
