@@ -67,7 +67,7 @@ pub static PARTTSHEL: Card = part!(
 
 pub static PARTSHELL: Card = part!(
   Cells(&[Float(10), Integer(5), Float(10), Integer(5)]),
-  Cells(&[Integer(5), Float(10), Float(10), Float(10), Float(10)])
+  Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10), Float(10)])
   ;PartShell);
 
 pub static PARTMEMBR: Card = part!(
