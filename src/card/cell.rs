@@ -1,7 +1,9 @@
 //! Elements of an input line
 
-/// All the basic elements that can occur on a valid line in a Pamcrash input
-/// file, aside from comments and header data.
+/// All the basic elements that can occur on a valid line in a Pamcrash
+/// input file, aside from comments and header data.
+use std::str;
+
 use card::keyword::Keyword;
 
 #[derive(Debug, PartialEq)]
@@ -56,13 +58,22 @@ impl Cell {
     match *self {
       Integer(u) | Float(u) | Blank(u) | Str(u) | Binary(u)
       | IntegerorBlank(u) => u == 0,
-      _ => false
+      _ => false,
     }
   }
 
   #[inline]
-  pub fn verify(&self, _s: &[u8]) -> bool {
-   // debug_assert!(self.len() == s.len() as u8);
-    true
+  pub fn verify(&self, s: &[u8]) -> bool {
+    use self::Cell::*;
+
+    match *self {
+      Float(_) => {
+        s.iter().all(|x| *x == b' ')
+          || str::from_utf8(s)
+            .map(|l| l.trim_matches(' ').parse::<f64>().is_ok())
+            == Ok(true)
+      }
+      _ => true,
+    }
   }
 }
