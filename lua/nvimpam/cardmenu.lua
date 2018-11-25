@@ -13,14 +13,84 @@ local displen = require('impromptu.utils').displaywidth
 local cardpath
 local rtp
 
-local function cols(obj, opts, width)
-  return 1
+local function cols(obj, opts, window_ops)
+  local width = window_ops.width
+  local height = window_ops.height
+
+  -- "Close this prompt" will be added
+  local maxlen = 17
+  for _, l in pairs(opts) do
+    local len = displen(l.description, 0)
+    if len > maxlen then
+      maxlen = len
+    end
+  end
+  -- " [k] " is added to each description
+  maxlen = maxlen + 5
+
+  local rows = height - 2 --leave a line of space at the top & bottom
+  local cols_needed = math.ceil(#opts/rows)
+  local cols_per_screen = math.max(math.floor(width/maxlen), 1)
+
+  if cols_needed <= cols_per_screen then
+    return cols_needed
+  else
+    return cols_per_screen
+  end
 end
 
 local function padnum(d) return ("%03d%s"):format(#d, d) end
 
 local function sort(a, b)
   return a.description:gsub("%d+",padnum) < b.description:gsub("%d+",padnum)
+end
+
+local function line(opts, columns, window_ops)
+  local opt_to_line = function(line)
+    return  " [" .. line.key .. "] " .. line.description
+  end
+
+  local lines = {}
+  local column_width = {}
+
+  for j = 1, columns do
+    column_width[j] = 0
+
+    for ix = 0, #opts + (#opts - 1) % columns, columns do
+      local k = opts[ix + j]
+
+      if k ~= nil then
+        if opts[ix + j + 1] == nil then
+          column_width[j] = math.max(17, column_width[j])
+        end
+
+        local line = opt_to_line(k)
+        column_width[j] = math.max(column_width[j], displen(line, 0))
+      end
+    end
+  end
+
+  for ix = 0, #opts + (#opts - 1) % columns, columns do
+    local ln = {}
+
+    for j = 1, columns do
+      local k = opts[ix + j]
+
+      if k ~= nil then
+        local line = opt_to_line(k)
+        local padding = column_width[j] - displen(line, 0)
+
+        if j == columns or opts[ix + j + 1] == nil then
+          table.insert(ln, line)
+        else
+          table.insert(ln, line .. string.rep(" ", padding))
+        end
+      end
+    end
+    table.insert(lines, table.concat(ln, ""))
+  end
+
+  return lines
 end
 
 local function cardmenu()
@@ -445,6 +515,7 @@ local function cardmenu()
     options = opts,
     columns = cols,
     sort = sort,
+    line = line,
     handler = function(b, opt)
       file = cardpath.."/"..b.breadcrumbs[1].."/"..opt
       set_lines(curbuf, curpos[1], curpos[1], false, lines_from_file(file))
