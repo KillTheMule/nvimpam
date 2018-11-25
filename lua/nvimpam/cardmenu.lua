@@ -51,39 +51,40 @@ local function line(opts, columns, window_ops)
   end
 
   local lines = {}
+  local nr_lines = math.ceil(#opts/columns)
   local column_width = {}
 
-  for j = 1, columns do
-    column_width[j] = 0
+  for column = 1, columns do
+    column_width[column] = 0
 
-    for ix = 0, #opts + (#opts - 1) % columns, columns do
-      local k = opts[ix + j]
+    for line = 1, nr_lines do
+      local k = opts[(column-1)*nr_lines + line]
 
       if k ~= nil then
-        if opts[ix + j + 1] == nil then
-          column_width[j] = math.max(17, column_width[j])
+        if opts[(column-1)*nr_lines + line + 1] == nil then
+          column_width[column] = math.max(17, column_width[column])
         end
 
-        local line = opt_to_line(k)
-        column_width[j] = math.max(column_width[j], displen(line, 0))
+        local text = opt_to_line(k)
+        column_width[column] = math.max(column_width[column], displen(text, 0))
       end
     end
   end
 
-  for ix = 0, #opts + (#opts - 1) % columns, columns do
+  for line = 1, nr_lines do
     local ln = {}
 
-    for j = 1, columns do
-      local k = opts[ix + j]
+    for column = 1, columns do
+      local k = opts[(column-1)*nr_lines + line]
 
       if k ~= nil then
-        local line = opt_to_line(k)
-        local padding = column_width[j] - displen(line, 0)
+        local text = opt_to_line(k)
+        local padding = column_width[column] - displen(text, 0)
 
-        if j == columns or opts[ix + j + 1] == nil then
-          table.insert(ln, line)
+        if column == columns or opts[(column-1)*nr_lines + line + 1] == nil then
+          table.insert(ln, text)
         else
-          table.insert(ln, line .. string.rep(" ", padding))
+          table.insert(ln, text .. string.rep(" ", padding))
         end
       end
     end
@@ -116,56 +117,81 @@ local function cardmenu()
         ["cd.inc"] = { description = "CDATA Card" },
         ["de.inc"] = { description = "DELEM - Deleted Element Card" },
         ["fc.inc"] = { description = "FUNCT Function Card" },
-        ["fm0.inc"] = { description = "FRAME IAXIS=0 U-based, 2 Vectors" },
-        ["fm1.inc"] = { description = "FRAME IAXIS=1 U-based, 3 Nodes" },
-        ["fm2.inc"] = { description = "FRAME IAXIS=2 T-based, 2 Vectors" },
-        ["fm3.inc"] = { description = "FRAME IAXIS=3 T-based, 3 Nodes" },
-        ["fm4.inc"] = { description = "FRAME IAXIS=4 Cylindrical" },
-        ["fm5.inc"] = { description = "FRAME IAXIS=5 Spherical" },
-        ["fr1.inc"] = { description = "FRICT Friction Model Type 1" },
-        ["fr10.inc"] = { description = "FRICT Friction Model Type 10" },
-        ["fr11.inc"] = { description = "FRICT Friction Model Type 11" },
-        ["fr12.inc"] = { description = "FRICT Friction Model Type 12" },
-        ["fr13.inc"] = { description = "FRICT Friction Model Type 13" },
-        ["fr2.inc"] = { description = "FRICT Friction Model Type 2" },
-        ["fr3.inc"] = { description = "FRICT Friction Model Type 3" },
-        ["fr4.inc"] = { description = "FRICT Friction Model Type 4" },
-        ["fr5.inc"] = { description = "FRICT Friction Model Type 5" },
-        ["fr6.inc"] = { description = "FRICT Friction Model Type 5" },
         ["fw.inc"] = { description = "FUNCSW Function Switch" },
         ["gr.inc"] = { description = "GROUP Group Definition" },
         ["lo.inc"] = { description = "LOOKU Lookup Table" },
         ["nl.inc"] = { description = "NLAVE Non Local Averadge Definition" },
-        ["pa0.inc"] = { description = "PLANE Type 0" },
-        ["pa1.inc"] = { description = "PLANE Type 1" },
-        ["pa2.inc"] = { description = "PLANE Type 2" },
         ["pf.inc"] = { description = "PYFUNC Python Function" },
-        ["ru0.inc"] = { description = "RUPMO Type 0" },
-        ["ru1.inc"] = { description = "RUPMO Type 1" },
-        ["ru2.inc"] = { description = "RUPMO Type 2" },
-        ["ru3.inc"] = { description = "RUPMO Type 3" },
-        ["ru5.inc"] = { description = "RUPMO Type 5" },
-        ["ru6.inc"] = { description = "RUPMO Type 6" },
-        ["ru7.inc"] = { description = "RUPMO Type 7" },
-        ["se1.inc"] = { description = "SENSOR Type 1" },
-        ["se10.inc"] = { description = "SENSOR Type 10" },
-        ["se11.inc"] = { description = "SENSOR Type 11" },
-        ["se12.inc"] = { description = "SENSOR Type 12" },
-        ["se13.inc"] = { description = "SENSOR Type 13" },
-        ["se14.inc"] = { description = "SENSOR Type 14" },
-        ["se2.inc"] = { description = "SENSOR Type 2" },
-        ["se3.inc"] = { description = "SENSOR Type 3" },
-        ["se4.inc"] = { description = "SENSOR Type 4" },
-        ["se5.inc"] = { description = "SENSOR Type 5" },
-        ["se6.inc"] = { description = "SENSOR Type 6" },
-        ["se7.inc"] = { description = "SENSOR Type 7" },
-        ["se8.inc"] = { description = "SENSOR Type 8" },
-        ["se9.inc"] = { description = "SENSOR Type 9" },
         ["sr.inc"] = { description = "SURFA Surface Definition" },
         ["ud.inc"] = { description = "UDATA User Data" },
         ["ve0.inc"] = { description = "VECTOR Type 0" },
         ["ve1.inc"] = { description = "VECTOR Type 1" },
-      }
+        ["PLANE"] = {
+          description = "PLANEs",
+          children = {
+            ["pa0.inc"] = { description = "PLANE Type 0" },
+            ["pa1.inc"] = { description = "PLANE Type 1" },
+            ["pa2.inc"] = { description = "PLANE Type 2" },
+          },
+        },
+        ["FRAME"] = {
+          description = "FRAMEs",
+          children = {
+            ["fm0.inc"] = { description = "FRAME IAXIS=0 U-based, 2 Vectors" },
+            ["fm1.inc"] = { description = "FRAME IAXIS=1 U-based, 3 Nodes" },
+            ["fm2.inc"] = { description = "FRAME IAXIS=2 T-based, 2 Vectors" },
+            ["fm3.inc"] = { description = "FRAME IAXIS=3 T-based, 3 Nodes" },
+            ["fm4.inc"] = { description = "FRAME IAXIS=4 Cylindrical" },
+            ["fm5.inc"] = { description = "FRAME IAXIS=5 Spherical" },
+          },
+        },
+        ["FRICT"] = {
+          description = "FRICTion Models",
+          childen = {
+            ["fr1.inc"] = { description = "FRICT Friction Model Type 1" },
+            ["fr10.inc"] = { description = "FRICT Friction Model Type 10" },
+            ["fr11.inc"] = { description = "FRICT Friction Model Type 11" },
+            ["fr12.inc"] = { description = "FRICT Friction Model Type 12" },
+            ["fr13.inc"] = { description = "FRICT Friction Model Type 13" },
+            ["fr2.inc"] = { description = "FRICT Friction Model Type 2" },
+            ["fr3.inc"] = { description = "FRICT Friction Model Type 3" },
+            ["fr4.inc"] = { description = "FRICT Friction Model Type 4" },
+            ["fr5.inc"] = { description = "FRICT Friction Model Type 5" },
+            ["fr6.inc"] = { description = "FRICT Friction Model Type 5" },
+          },
+        },
+        ["RUPMO"] = {
+          description = "RUPMOs",
+          childen = {
+            ["ru0.inc"] = { description = "RUPMO Type 0" },
+            ["ru1.inc"] = { description = "RUPMO Type 1" },
+            ["ru2.inc"] = { description = "RUPMO Type 2" },
+            ["ru3.inc"] = { description = "RUPMO Type 3" },
+            ["ru5.inc"] = { description = "RUPMO Type 5" },
+            ["ru6.inc"] = { description = "RUPMO Type 6" },
+            ["ru7.inc"] = { description = "RUPMO Type 7" },
+          },
+        },
+        ["SENSOR"] = {
+          description = "SENSORs",
+          children = {
+            ["se1.inc"] = { description = "SENSOR Type 1" },
+            ["se10.inc"] = { description = "SENSOR Type 10" },
+            ["se11.inc"] = { description = "SENSOR Type 11" },
+            ["se12.inc"] = { description = "SENSOR Type 12" },
+            ["se13.inc"] = { description = "SENSOR Type 13" },
+            ["se14.inc"] = { description = "SENSOR Type 14" },
+            ["se2.inc"] = { description = "SENSOR Type 2" },
+            ["se3.inc"] = { description = "SENSOR Type 3" },
+            ["se4.inc"] = { description = "SENSOR Type 4" },
+            ["se5.inc"] = { description = "SENSOR Type 5" },
+            ["se6.inc"] = { description = "SENSOR Type 6" },
+            ["se7.inc"] = { description = "SENSOR Type 7" },
+            ["se8.inc"] = { description = "SENSOR Type 8" },
+            ["se9.inc"] = { description = "SENSOR Type 9" },
+          },
+        },
+      },
     },
     Constraint = {
       description = "Constraint",
