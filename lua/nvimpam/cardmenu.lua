@@ -6,6 +6,7 @@ local command = vim.api.nvim_command
 local eval = vim.api.nvim_eval
 local call = vim.api.nvim_call_function
 
+
 local lines_from_file = require('nvimpam.utils').lines_from_file
 local displen = require('impromptu.utils').displaywidth
 
@@ -93,6 +94,8 @@ local function line(opts, columns, window_ops)
 
   return lines
 end
+
+require("impromptu.internals.ask").line = line
 
 local function cardmenu()
   local status, impromptu = pcall(require, "impromptu")
@@ -541,7 +544,6 @@ local function cardmenu()
     options = opts,
     columns = cols,
     sort = sort,
-    line = line,
     handler = function(b, opt)
       file = cardpath.."/"..b.breadcrumbs[1].."/"..opt
       set_lines(curbuf, curpos[1], curpos[1], false, lines_from_file(file))
