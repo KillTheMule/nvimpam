@@ -6,9 +6,96 @@ local command = vim.api.nvim_command
 local eval = vim.api.nvim_eval
 local call = vim.api.nvim_call_function
 
+
 local lines_from_file = require('nvimpam.utils').lines_from_file
+local displen = require('impromptu.utils').displaywidth
+
+
 local cardpath
 local rtp
+
+local function cols(obj, opts, window_ops)
+  local width = window_ops.width
+  local height = window_ops.height
+
+  -- "Close this prompt" will be added
+  local maxlen = 17
+  for _, l in pairs(opts) do
+    local len = displen(l.description, 0)
+    if len > maxlen then
+      maxlen = len
+    end
+  end
+  -- " [k] " is added to each description
+  maxlen = maxlen + 5
+
+  local rows = height - 2 --leave a line of space at the top & bottom
+  local cols_needed = math.ceil(#opts/rows)
+  local cols_per_screen = math.max(math.floor(width/maxlen), 1)
+
+  if cols_needed <= cols_per_screen then
+    return cols_needed
+  else
+    return cols_per_screen
+  end
+end
+
+local function padnum(d) return ("%03d%s"):format(#d, d) end
+
+local function sort(a, b)
+  return a.description:gsub("%d+",padnum) < b.description:gsub("%d+",padnum)
+end
+
+local function line(opts, columns, window_ops)
+  local opt_to_line = function(line)
+    return  " [" .. line.key .. "] " .. line.description
+  end
+
+  local lines = {}
+  local nr_lines = math.ceil(#opts/columns)
+  local column_width = {}
+
+  for column = 1, columns do
+    column_width[column] = 0
+
+    for line = 1, nr_lines do
+      local k = opts[(column-1)*nr_lines + line]
+
+      if k ~= nil then
+        if opts[(column-1)*nr_lines + line + 1] == nil then
+          column_width[column] = math.max(17, column_width[column])
+        end
+
+        local text = opt_to_line(k)
+        column_width[column] = math.max(column_width[column], displen(text, 0))
+      end
+    end
+  end
+
+  for line = 1, nr_lines do
+    local ln = {}
+
+    for column = 1, columns do
+      local k = opts[(column-1)*nr_lines + line]
+
+      if k ~= nil then
+        local text = opt_to_line(k)
+        local padding = column_width[column] - displen(text, 0)
+
+        if column == columns or opts[(column-1)*nr_lines + line + 1] == nil then
+          table.insert(ln, text)
+        else
+          table.insert(ln, text .. string.rep(" ", padding))
+        end
+      end
+    end
+    table.insert(lines, table.concat(ln, ""))
+  end
+
+  return lines
+end
+
+require("impromptu.internals.ask").line = line
 
 local function cardmenu()
   local status, impromptu = pcall(require, "impromptu")
@@ -33,56 +120,81 @@ local function cardmenu()
         ["cd.inc"] = { description = "CDATA Card" },
         ["de.inc"] = { description = "DELEM - Deleted Element Card" },
         ["fc.inc"] = { description = "FUNCT Function Card" },
-        ["fm0.inc"] = { description = "FRAME IAXIS=0 U-based, 2 Vectors" },
-        ["fm1.inc"] = { description = "FRAME IAXIS=1 U-based, 3 Nodes" },
-        ["fm2.inc"] = { description = "FRAME IAXIS=2 T-based, 2 Vectors" },
-        ["fm3.inc"] = { description = "FRAME IAXIS=3 T-based, 3 Nodes" },
-        ["fm4.inc"] = { description = "FRAME IAXIS=4 Cylindrical" },
-        ["fm5.inc"] = { description = "FRAME IAXIS=5 Spherical" },
-        ["fr1.inc"] = { description = "FRICT Friction Model Type 1" },
-        ["fr10.inc"] = { description = "FRICT Friction Model Type 10" },
-        ["fr11.inc"] = { description = "FRICT Friction Model Type 11" },
-        ["fr12.inc"] = { description = "FRICT Friction Model Type 12" },
-        ["fr13.inc"] = { description = "FRICT Friction Model Type 13" },
-        ["fr2.inc"] = { description = "FRICT Friction Model Type 2" },
-        ["fr3.inc"] = { description = "FRICT Friction Model Type 3" },
-        ["fr4.inc"] = { description = "FRICT Friction Model Type 4" },
-        ["fr5.inc"] = { description = "FRICT Friction Model Type 5" },
-        ["fr6.inc"] = { description = "FRICT Friction Model Type 5" },
         ["fw.inc"] = { description = "FUNCSW Function Switch" },
         ["gr.inc"] = { description = "GROUP Group Definition" },
         ["lo.inc"] = { description = "LOOKU Lookup Table" },
         ["nl.inc"] = { description = "NLAVE Non Local Averadge Definition" },
-        ["pa0.inc"] = { description = "PLANE Type 0" },
-        ["pa1.inc"] = { description = "PLANE Type 1" },
-        ["pa2.inc"] = { description = "PLANE Type 2" },
         ["pf.inc"] = { description = "PYFUNC Python Function" },
-        ["ru0.inc"] = { description = "RUPMO Type 0" },
-        ["ru1.inc"] = { description = "RUPMO Type 1" },
-        ["ru2.inc"] = { description = "RUPMO Type 2" },
-        ["ru3.inc"] = { description = "RUPMO Type 3" },
-        ["ru5.inc"] = { description = "RUPMO Type 5" },
-        ["ru6.inc"] = { description = "RUPMO Type 6" },
-        ["ru7.inc"] = { description = "RUPMO Type 7" },
-        ["se1.inc"] = { description = "SENSOR Type 1" },
-        ["se10.inc"] = { description = "SENSOR Type 10" },
-        ["se11.inc"] = { description = "SENSOR Type 11" },
-        ["se12.inc"] = { description = "SENSOR Type 12" },
-        ["se13.inc"] = { description = "SENSOR Type 13" },
-        ["se14.inc"] = { description = "SENSOR Type 14" },
-        ["se2.inc"] = { description = "SENSOR Type 2" },
-        ["se3.inc"] = { description = "SENSOR Type 3" },
-        ["se4.inc"] = { description = "SENSOR Type 4" },
-        ["se5.inc"] = { description = "SENSOR Type 5" },
-        ["se6.inc"] = { description = "SENSOR Type 6" },
-        ["se7.inc"] = { description = "SENSOR Type 7" },
-        ["se8.inc"] = { description = "SENSOR Type 8" },
-        ["se9.inc"] = { description = "SENSOR Type 9" },
         ["sr.inc"] = { description = "SURFA Surface Definition" },
         ["ud.inc"] = { description = "UDATA User Data" },
         ["ve0.inc"] = { description = "VECTOR Type 0" },
         ["ve1.inc"] = { description = "VECTOR Type 1" },
-      }
+        ["PLANE"] = {
+          description = "PLANEs",
+          children = {
+            ["pa0.inc"] = { description = "PLANE Type 0" },
+            ["pa1.inc"] = { description = "PLANE Type 1" },
+            ["pa2.inc"] = { description = "PLANE Type 2" },
+          },
+        },
+        ["FRAME"] = {
+          description = "FRAMEs",
+          children = {
+            ["fm0.inc"] = { description = "FRAME IAXIS=0 U-based, 2 Vectors" },
+            ["fm1.inc"] = { description = "FRAME IAXIS=1 U-based, 3 Nodes" },
+            ["fm2.inc"] = { description = "FRAME IAXIS=2 T-based, 2 Vectors" },
+            ["fm3.inc"] = { description = "FRAME IAXIS=3 T-based, 3 Nodes" },
+            ["fm4.inc"] = { description = "FRAME IAXIS=4 Cylindrical" },
+            ["fm5.inc"] = { description = "FRAME IAXIS=5 Spherical" },
+          },
+        },
+        ["FRICT"] = {
+          description = "FRICTion Models",
+          childen = {
+            ["fr1.inc"] = { description = "FRICT Friction Model Type 1" },
+            ["fr10.inc"] = { description = "FRICT Friction Model Type 10" },
+            ["fr11.inc"] = { description = "FRICT Friction Model Type 11" },
+            ["fr12.inc"] = { description = "FRICT Friction Model Type 12" },
+            ["fr13.inc"] = { description = "FRICT Friction Model Type 13" },
+            ["fr2.inc"] = { description = "FRICT Friction Model Type 2" },
+            ["fr3.inc"] = { description = "FRICT Friction Model Type 3" },
+            ["fr4.inc"] = { description = "FRICT Friction Model Type 4" },
+            ["fr5.inc"] = { description = "FRICT Friction Model Type 5" },
+            ["fr6.inc"] = { description = "FRICT Friction Model Type 5" },
+          },
+        },
+        ["RUPMO"] = {
+          description = "RUPMOs",
+          childen = {
+            ["ru0.inc"] = { description = "RUPMO Type 0" },
+            ["ru1.inc"] = { description = "RUPMO Type 1" },
+            ["ru2.inc"] = { description = "RUPMO Type 2" },
+            ["ru3.inc"] = { description = "RUPMO Type 3" },
+            ["ru5.inc"] = { description = "RUPMO Type 5" },
+            ["ru6.inc"] = { description = "RUPMO Type 6" },
+            ["ru7.inc"] = { description = "RUPMO Type 7" },
+          },
+        },
+        ["SENSOR"] = {
+          description = "SENSORs",
+          children = {
+            ["se1.inc"] = { description = "SENSOR Type 1" },
+            ["se10.inc"] = { description = "SENSOR Type 10" },
+            ["se11.inc"] = { description = "SENSOR Type 11" },
+            ["se12.inc"] = { description = "SENSOR Type 12" },
+            ["se13.inc"] = { description = "SENSOR Type 13" },
+            ["se14.inc"] = { description = "SENSOR Type 14" },
+            ["se2.inc"] = { description = "SENSOR Type 2" },
+            ["se3.inc"] = { description = "SENSOR Type 3" },
+            ["se4.inc"] = { description = "SENSOR Type 4" },
+            ["se5.inc"] = { description = "SENSOR Type 5" },
+            ["se6.inc"] = { description = "SENSOR Type 6" },
+            ["se7.inc"] = { description = "SENSOR Type 7" },
+            ["se8.inc"] = { description = "SENSOR Type 8" },
+            ["se9.inc"] = { description = "SENSOR Type 9" },
+          },
+        },
+      },
     },
     Constraint = {
       description = "Constraint",
@@ -430,6 +542,8 @@ local function cardmenu()
 
   impromptu.ask{
     options = opts,
+    columns = cols,
+    sort = sort,
     handler = function(b, opt)
       file = cardpath.."/"..b.breadcrumbs[1].."/"..opt
       set_lines(curbuf, curpos[1], curpos[1], false, lines_from_file(file))
