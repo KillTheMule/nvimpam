@@ -518,4 +518,82 @@ describe('nvimpam', function()
     end
   end)
 
+  it('provides a cardmenu', function()
+    command("set rtp+=../../impromptu.nvim")
+    command("set nowrap")
+    command('edit ' .. alter_slashes('../files/example.pc'))
+
+
+    command('NvimPamMenu')
+    screen:expect([[
+      INPUTVERSION 2011                                                                |
+      ]]
+      ..
+      alter_slashes(
+      "{3:../files/example.pc                                                              }|"
+      )
+      ..
+      "\n"
+      ..
+      [[
+      ^                                                                                 |
+       [r] Auxiliaries [i] Material                                                    |
+       [n] Constraint  [N] Node                                                        |
+       [t] Contact     [h] Others                                                      |
+       [l] Control     [O] Output                                                      |
+       [e] Element     [a] Part                                                        |
+       [d] Load        [f] Safety                                                      |
+       [M] MMC         [q] Close this prompt                                           |
+                                                                                       |
+                                                                                       |
+                                                                                       |
+      {4:[Scratch] [RO]                                                                   }|
+                                                                                       |
+    ]])
+    feed("r")
+    screen:expect([[
+      INPUTVERSION 2011                                                                |
+      ]]
+      ..
+      alter_slashes(
+      "{3:../files/example.pc                                                              }|"
+      )
+      ..
+      "\n"
+      ..
+      [[
+      ^                                                                                 |
+       [h] Move up one level                   [L] PLANEs                              |
+       [r] CDATA Card                          [y] PYFUNC Python Function              |
+       [d] DELEM - Deleted Element Card        [R] RUPMOs                              |
+       [s] FRAMEs                              [S] SENSORs                             |
+       [i] FRICTion Models                     [e] SURFA Surface Definition            |
+       [n] FUNCSW Function Switch              [a] UDATA User Data                     |
+       [c] FUNCT Function Card                 [0] VECTOR Type 0                       |
+       [f] GROUP Group Definition              [1] VECTOR Type 1                       |
+       [b] LOOKU Lookup Table                  [q] Close this prompt                   |
+       [v] NLAVE Non Local Averadge Definition                                         |
+      {4:[Scratch] [RO]                                                                   }|
+                                                                                       |
+    ]])
+    feed("r")
+    screen:expect([[
+      ^INPUTVERSION 2011                                                                |
+      $CDATA Card                                                                      |
+      CDATA /         1                                                                |
+      NAME CDATA Card                                                                  |
+      END_CDATA                                                                        |
+      ANALYSIS EXPLICIT                                                                |
+      SOLVER    CRASH                                                                  |
+      $                                                                                |
+      $----------------------------------------------------------------                |
+      $     PAM-SOLID SOLVER CONTROLS                                                  |
+      $----------------------------------------------------------------                |
+      UNIT       MM       KG       MS   KELVIN                                         |
+      SIGNAL      YES                                                                  |
+      $                                                                                |
+                                                                                       |
+    ]])
+
+  end)
 end)
