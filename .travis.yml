@@ -35,7 +35,10 @@ jobs:
   include:
     - stage: functionaltest
       # build plugin first, then run the test from neovim
-      script: cargo build && cargo build --release && cd neovim && git submodule init
+      script: git clone https://github.com/Vigemus/impromptu.nvim 
+              && mv impromptu.nvim ..
+              && cargo build && cargo build --release
+              && cd neovim && git submodule init
               && git submodule update --remote --depth 50
               && TEST_FILE=../test/nvimpam_spec.lua make functionaltest
               && cd .. && RUSTFLAGS="-C opt-level=0" cargo bench -- --test
@@ -46,7 +49,10 @@ jobs:
       os: linux 
     #reproduce the same for osx
     - stage: functionaltest
-      script: cargo build && cargo build --release && cd neovim && git submodule init
+      script: git clone https://github.com/Vigemus/impromptu.nvim
+              && mv impromptu.nvim ..
+              && cargo build && cargo build --release
+              && cd neovim && git submodule init
               && git submodule update --remote --depth 50
               && brew update && brew install ninja && brew install gettext
               && brew reinstall libtool

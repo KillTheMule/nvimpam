@@ -61,6 +61,8 @@ test_script:
         }
   - ps: |
       if ($env:FUNCTIONALTESTS -eq 'true') {
+        git clone https://github.com/Vigemus/impromptu.nvim
+        mv impromptu.nvim ..
         cargo build --release
         cd neovim
         git submodule init
