@@ -6,9 +6,14 @@ local command = vim.api.nvim_command
 local eval = vim.api.nvim_eval
 local call = vim.api.nvim_call_function
 
-
 local lines_from_file = require('nvimpam.utils').lines_from_file
-local displen = require('impromptu.utils').displaywidth
+
+local imp_status, impromptu = pcall(require, "impromptu")
+
+local displen
+if imp_status then
+  displen = require('impromptu.utils').displaywidth
+end
 
 
 local cardpath
@@ -33,11 +38,7 @@ local function cols(obj, opts, window_ops)
   local cols_needed = math.ceil(#opts/rows)
   local cols_per_screen = math.max(math.floor(width/maxlen), 1)
 
-  if cols_needed <= cols_per_screen then
-    return cols_needed
-  else
-    return cols_per_screen
-  end
+  return math.min(cols_needed, cols_per_screen)
 end
 
 local function padnum(d) return ("%03d%s"):format(#d, d) end
@@ -95,12 +96,12 @@ local function line(opts, columns, window_ops)
   return lines
 end
 
-require("impromptu.internals.ask").line = line
+if imp_status then
+  require("impromptu.internals.ask").line = line
+end
 
 local function cardmenu()
-  local status, impromptu = pcall(require, "impromptu")
-
-  if not status then
+  if not imp_status then
     command("echoerr 'Impromptu not installed, can not show menu!'")
     return nil
   end
