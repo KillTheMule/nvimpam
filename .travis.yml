@@ -39,7 +39,7 @@ jobs:
               && git submodule update --remote --depth 50
               && TEST_FILE=../test/nvimpam_spec.lua make functionaltest
               && cd .. && RUSTFLAGS="-C opt-level=0" cargo bench -- --test
-      after_script: echo NVIMPAMSTDERR && cat nvimpamstderr
+      after_script: echo $NVIMPAM_STDERR && cat nvimpamstderr
       # cache it all, especially the neovim sources won't change often
       cache: 
         - cargo 
@@ -52,7 +52,7 @@ jobs:
               && brew reinstall libtool
               && TEST_FILE=../test/nvimpam_spec.lua make functionaltest
               && cd .. && RUSTFLAGS="-C opt-level=0" cargo bench -- --test
-      after_script: echo NVIMPAMSTDERR && cat nvimpamstderr
+      after_script: echo $NVIMPAM_STDERR && cat nvimpamstderr
       cache: 
         - cargo
       os: osx
