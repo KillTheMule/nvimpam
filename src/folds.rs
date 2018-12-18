@@ -286,15 +286,45 @@ impl FoldList {
     lastline: u64,
   ) -> Result<(), Error> {
     let curbuf = nvim.get_current_buf()?;
-    curbuf.clear_highlight(nvim, 5, firstline, lastline)?;
+    let mut calls: Vec<Value> = vec![];
+
+    calls.push(
+      vec![
+        Value::from("nvim_buf_clear_highlight".to_string()),
+        vec![
+          curbuf.get_value().clone(),
+          Value::from(5),
+          Value::from(firstline),
+          Value::from(lastline),
+        ]
+        .into(),
+      ]
+      .into(),
+    );
 
     for ((l, s, e), t) in self.highlights_by_line.iter() {
       if firstline <= *l && *l < lastline {
-        curbuf.add_highlight(nvim, 5, (*t).into(), *l, u64::from(*s), u64::from(*e))?;
+        let st: &'static str = (*t).into();
+        calls.push(
+          vec![
+            Value::from("nvim_buf_add_highlight".to_string()),
+            vec![
+              curbuf.get_value().clone(),
+              Value::from(5),
+              Value::from(st.to_string()),
+              Value::from(*l),
+              Value::from(u64::from(*s)),
+              Value::from(u64::from(*e)),
+            ]
+            .into(),
+          ]
+          .into(),
+        );
       } else if *l > lastline {
         break;
       }
     }
+    nvim.call_atomic(calls).context("call_atomic failed")?;
     Ok(())
   }
 
