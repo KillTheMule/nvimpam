@@ -15,9 +15,7 @@ if imp_status then
   displen = require('impromptu.utils').displaywidth
 end
 
-
 local cardpath
-local rtp
 
 local function cols(obj, opts, window_ops)
   local width = window_ops.width
@@ -26,13 +24,11 @@ local function cols(obj, opts, window_ops)
   -- "Close this prompt" will be added
   local maxlen = 17
   for _, l in pairs(opts) do
-    local len = displen(l.description, 0)
+    local len = displen(l, 1)
     if len > maxlen then
       maxlen = len
     end
   end
-  -- " [k] " is added to each description
-  maxlen = maxlen + 5
 
   local rows = height - 2 --leave a line of space at the top & bottom
   local cols_needed = math.ceil(#opts/rows)
@@ -47,57 +43,33 @@ local function sort(a, b)
   return a.description:gsub("%d+",padnum) < b.description:gsub("%d+",padnum)
 end
 
-local function line(opts, columns, window_ops)
-  local opt_to_line = function(line)
-    return  " [" .. line.key .. "] " .. line.description
-  end
-
-  local lines = {}
+local function lines_to_grid(opts, window_ops)
+  local columns = cols(nil, opts, window_ops)
   local nr_lines = math.ceil(#opts/columns)
-  local column_width = {}
+  local grid = {}
 
   for column = 1, columns do
-    column_width[column] = 0
-
+    local col = {}
     for line = 1, nr_lines do
+
       local k = opts[(column-1)*nr_lines + line]
-
       if k ~= nil then
-        if opts[(column-1)*nr_lines + line + 1] == nil then
-          column_width[column] = math.max(17, column_width[column])
-        end
+        local sub1 = string.sub(k, 0, window_ops.width - 1)
+        table.insert(col, " "..sub1)
+        k = string.sub(k, window_ops.width)
 
-        local text = opt_to_line(k)
-        column_width[column] = math.max(column_width[column], displen(text, 0))
-      end
-    end
-  end
-
-  for line = 1, nr_lines do
-    local ln = {}
-
-    for column = 1, columns do
-      local k = opts[(column-1)*nr_lines + line]
-
-      if k ~= nil then
-        local text = opt_to_line(k)
-        local padding = column_width[column] - displen(text, 0)
-
-        if column == columns or opts[(column-1)*nr_lines + line + 1] == nil then
-          table.insert(ln, text)
-        else
-          table.insert(ln, text .. string.rep(" ", padding))
+        while k ~= ""
+        do
+          table.insert(col, "     "..string.sub(k, 0, window_ops.width - 5))
+          k = string.sub(k, window_ops.width - 4)
         end
       end
+
     end
-    table.insert(lines, table.concat(ln, ""))
+    table.insert(grid, col)
   end
 
-  return lines
-end
-
-if imp_status then
-  require("impromptu.internals.ask").line = line
+  return grid
 end
 
 local function cardmenu()
@@ -543,7 +515,8 @@ local function cardmenu()
 
   impromptu.ask{
     options = opts,
-    columns = cols,
+    compact_columns = true,
+    lines_to_grid = lines_to_grid,
     sort = sort,
     handler = function(b, opt)
       file = cardpath.."/"..b.breadcrumbs[1].."/"..opt
