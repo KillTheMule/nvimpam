@@ -117,6 +117,178 @@ impl FoldList {
     Ok(())
   }
 
+  // TODO: Pass newfolds by value
+  pub fn splice(
+    &mut self,
+    newfolds: &mut FoldList,
+    firstline: usize,
+    lastline: usize,
+    added: i64,
+  ) {
+    // Deal with highlights
+
+    let first_to_delete = self
+      .highlights_by_line
+      .range((firstline as u64, 0, 0)..)
+      .next()
+      .map(|f| *(f.0));
+
+    let mut to_change = match first_to_delete {
+      Some(ftd) => self.highlights_by_line.split_off(&ftd),
+      None => BTreeMap::new(),
+    };
+
+    let first_to_move = to_change
+      .range((lastline as u64, 0, 0)..)
+      .next()
+      .map(|f| *(f.0));
+
+    let to_move = match first_to_move {
+      Some(ftm) => to_change.split_off(&ftm),
+      None => BTreeMap::new(),
+    };
+
+    for (k, v) in newfolds.highlights_by_line.iter() {
+      self.add_highlight(k.0 + firstline as u64, k.1, k.2, *v);
+    }
+
+    for (k, v) in to_move.iter() {
+      self.add_highlight((k.0 as i64 + added) as u64, k.1, k.2, *v);
+    }
+
+    // Deal with folds
+
+    let mut to_delete = vec![];
+    let mut to_split = vec![];
+    let mut last_before = None;
+    let mut first_after = None;
+    for (k, v) in self.folds.iter() {
+      if (k[0] as usize) < firstline {
+        last_before = Some((*k, *v));
+      }
+      if lastline <= k[1] as usize && first_after.is_none() {
+        first_after = Some((*k, *v));
+      }
+
+      if firstline <= k[0] as usize && (k[0] as usize) < lastline {
+        if (k[1] as usize) < lastline {
+          to_delete.push(*k);
+        } else {
+          to_split.push((*k, *v));
+        }
+      } else if ((firstline as usize) <= k[1] as usize)
+        && ((k[1] as usize) < lastline)
+      {
+        // from the if above, we can assume k[0] < firstline
+        to_split.push((*k, *v));
+      } else if (k[0] as usize) < firstline && lastline <= k[1] as usize {
+        to_split.push((*k, *v))
+      }
+
+      if lastline <= k[0] as usize {
+        break;
+      }
+    }
+    
+    for k in to_delete {
+      self.folds.remove(&k);
+      self.fold_texts.remove(&k);
+    }
+
+    for (k, v) in to_split.into_iter() {
+      self.folds.remove(&k);
+      self.fold_texts.remove(&k);
+
+      if k[0] < firstline as u64 {
+        let _ = self.insert(k[0], firstline as u64 - 1, v);
+        last_before = Some(([k[0], firstline as u64 - 1], v)) 
+      }
+
+      if (lastline as u64) <= k[1] {
+        let _ = self.insert(lastline as u64, k[1], v);
+        first_after = Some(([lastline as u64, k[1]], v));
+      }
+    }
+
+    let first_new = match newfolds.folds.iter().next() {
+      Some((k, v)) => Some((*k, *v)),
+      None => None,
+    };
+    let mut merge_to_first = None;
+    let _ = last_before.map(|(k1, v1)| {
+      first_new.map(|(_, v2)| {
+        if v1 == v2 {
+          self.folds.remove(&k1);
+          self.fold_texts.remove(&k1);
+          merge_to_first = last_before;
+        }
+      })
+    });
+
+    let last_new = match newfolds.folds.range([0, 0]..).next_back() {
+      Some((k, v)) => Some((*k, *v)),
+      None => None,
+    };
+    let mut merge_to_last = None;
+    let _ = first_after.map(|(k1, v1)| {
+      last_new.map(|(_, v2)| {
+        if v1 == v2 {
+          self.folds.remove(&k1);
+          self.fold_texts.remove(&k1);
+          merge_to_last = first_after;
+        }
+      })
+    });
+
+
+
+    let first_fold_to_move =
+      match self.folds.range([lastline as u64, 0]..).next() {
+        Some((i, k)) => Some((*i, *k)),
+        None => None,
+      };
+
+    if let Some((f, _)) = first_fold_to_move {
+      let to_move = self.folds.split_off(&f);
+      let _ = self.fold_texts.split_off(&f);
+
+      for (k, v) in to_move.iter() {
+        let _ = self.insert(
+          (k[0] as i64 + added) as u64,
+          (k[1] as i64 + added) as u64,
+          *v,
+        );
+      }
+    }
+
+    let mut last_added = None;
+    for (k, v) in newfolds.folds.iter() {
+      if let Some((k1, _)) = merge_to_first {
+        let _ = self.insert(k1[0], k[1] + firstline as u64, *v);
+        last_added = Some([k1[0], k[1] + firstline as u64]);
+        merge_to_first = None;
+      } else {
+        let _ =
+          self.insert(k[0] + firstline as u64, k[1] + firstline as u64, *v);
+        last_added = Some([k[0] + firstline as u64, k[1] + firstline as u64]);
+      }
+    }
+
+    eprintln!("Last added: {:?}", last_added);
+
+    if let Some(i) = last_added {
+      if let Some((k2, v2)) = merge_to_last {
+        self.folds.remove(&i);
+        self.fold_texts.remove(&i);
+        let _ = self.insert(i[0], (k2[1] as i64 + added) as u64, v2);
+      }
+    }
+
+    // TODO: Should not need to call clear myself here
+    self.fold_texts_level2.clear();
+    let _ = self.recreate_level2();
+  }
+
   pub fn add_highlight(&mut self, line: u64, start: u8, end: u8, typ: Hl) {
     /*
     match self.highlights.entry(([start, end], typ)) {
@@ -394,6 +566,29 @@ impl FoldList {
 }
 
 #[cfg(test)]
+macro_rules! splicetest {
+  ($fn: ident; existing: $([$($e: expr),+]),+; new: $([$($f: expr),+]),+;
+  $first: expr, $last: expr, $added: expr; expected: $([$($g: expr),+]),+ ) => {
+    #[test]
+    fn $fn() {
+      use folds::FoldList;
+      use card::keyword::Keyword::*;
+
+      let mut oldfolds = FoldList::new();
+      $(let _ = oldfolds.insert($($e),+);)+
+
+      let mut newfolds = FoldList::new();
+      $(let _ = newfolds.insert($($f),+);)+
+
+      oldfolds.splice(&mut newfolds, $first, $last, $added);
+      let v = vec![$( ($($g),+ ),)+];
+
+      assert_eq!(v, oldfolds.to_vec(1));
+    }
+  };
+}
+
+#[cfg(test)]
 mod tests {
   use card::keyword::Keyword::*;
 
@@ -554,6 +749,55 @@ mod tests {
       (10, 12, Rbody0),
     ],
     vec![(0, 12, Rbody0)]
+  );
+
+  splicetest!(splice_folds_trivial;
+    existing: [0, 4, Node], [10, 14, PartSolid];
+    new: [0, 6, Shell];
+    7, 9, 5;
+    expected: [0, 4, Node],[7, 13, Shell],[15, 19, PartSolid]
+  );
+
+  splicetest!(splice_folds_add_below;
+    existing: [0, 4, Node], [7, 9, Shell], [15, 19, PartSolid];
+    new: [0, 1, Node];
+    5, 6, 1;
+    expected: [0, 6, Node], [8, 10, Shell], [16, 20, PartSolid]
+  );
+
+  splicetest!(splice_folds_add_after;
+    existing: [0, 6, Node], [8, 10, Shell], [16, 20, PartSolid];
+    new: [0, 1, Shell];
+    8, 8, 2;
+    expected: [0, 6, Node], [8, 12, Shell], [18, 22, PartSolid]
+  );
+
+  splicetest!(splice_folds_inbetween;
+    existing: [0, 6, Node], [8, 10, Shell];
+    new: [0, 3, Node];
+    2, 2, 4;
+    expected: [0, 10, Node], [12, 14, Shell]
+  );
+
+  splicetest!(splice_folds_cut_upper;
+    existing: [0, 6, Node];
+    new: [0, 1, Shell];
+    3, 7, -2;
+    expected: [0, 2, Node], [3, 4, Shell]
+  );
+
+  splicetest!(splice_folds_cut_lower;
+    existing: [0, 6, Node];
+    new: [0, 1, Shell];
+    0, 4, -2;
+    expected: [0, 1, Shell], [2, 4, Node]
+  );
+
+  splicetest!(splice_folds_divide;
+    existing: [0, 10, Node];
+    new: [0,2, Shell];
+    3, 3, 3;
+    expected: [0, 2, Node], [3, 5, Shell], [6, 13, Node]
   );
 
 }
