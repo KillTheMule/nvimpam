@@ -160,7 +160,12 @@ describe('nvimpam', function()
       [4] = {bold = true, reverse = true},
       [5] = {background = Screen.colors.LightGrey, underline = true},
       [6] = {bold = true},
-      [7] = {foreground = Screen.colors.Grey3, background = 6291200}
+      [7] = {foreground = Screen.colors.Grey3, background = 6291200},
+      [8] = {bold = true, foreground = 8871680},
+      [9] = {background = 16777167},
+      [10] = {background = 15000804},
+      [11] = {foreground = Screen.colors.Grey100, background = Screen.colors.Red},
+      [12] = {foreground = Screen.colors.Grey100, background = 11468800},
     })
     command('set rtp+=../')
     command('source ../init.vim')
@@ -257,6 +262,26 @@ describe('nvimpam', function()
       $                                                                                |
                                                                                        |
     ]])
+
+    feed("zE")
+    command("NvimPamHighlightScreen")
+    screen:expect([[
+                                                                                       |
+                                                                                       |
+      $----------------------------------------------------------------                |
+      $     PART AND ELEMENT DEFINITIONS                                               |
+      $----------------------------------------------------------------                |
+      $#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT                         |
+      {8:^PART  / }{9:       1}{10:   SHELL}{9:       3}{10:       0}{9:       0}{10:       0}                         |
+      $#                                                                         TITLE |
+      {10:NAME}{9: Box section                                                                } |
+      $#  DTELIM    TSCALF                                                             |
+      {10:        0.}{9:          }                                                             |
+      $#   TCONT    EPSINI  COULFRIC                                                   |
+      {10:          }{9:          }{10:          }                                                   |
+      $#       H NINT    OFFSETNINTh                                                   |
+                                                                                       |
+    ]])
   end)
 
   it('can deal with insertions', function()
@@ -304,6 +329,26 @@ describe('nvimpam', function()
       {2:~                                                                                }|
                                                                                        |
     ]])
+
+    feed("zE")
+    command("NvimPamHighlightScreen")
+    screen:expect([[
+      {8:^NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      NODE  /        1              0.             0.5              0.                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      #Comment here                                                                    |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      #Comment                                                                         |
+      #Comment                                                                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      $Comment                                                                         |
+                                                                                       |
+    ]])
   end)
 
   it('can deal with deletions', function()
@@ -330,6 +375,26 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       {2:~                                                                                }|
       rust client connected to neovim                                                  |
+    ]])
+
+    feed("zE")
+    command("NvimPamHighlightScreen")
+    screen:expect([[
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      #Comment here                                                                    |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      ^#Comment                                                                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      $Comment                                                                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      $Comment                                                                         |
+      #Comment                                                                         |
+      3 fewer lines                                                                    |
     ]])
   end)
 
@@ -380,6 +445,28 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       {2:~                                                                                }|
                                                                                        |
+    ]])
+
+    -- trigger the subsitution again to get the error highlighting colors
+    feed("<C-r>")
+    feed("zR")
+    command("NvimPamHighlightScreen")
+    screen:expect([[
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      #Comment here                                                                    |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:^NODE  / }{9:    3129}{11:       1       1}{12:    2967    2971}{10:    2970}                         |
+      {8:NODE  / }{9:    3129}{11:       1       1}{12:    2967    2971}{10:    2970}                         |
+      #Comment                                                                         |
+      #Comment                                                                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      $Comment                                                                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      2 changes; after #2  0 seconds ago                                               |
     ]])
   end)
 
