@@ -65,8 +65,6 @@ pub struct FoldList {
   /// [start, end] (linenumbers starting at 0).
   fold_texts_level2: BTreeMap<[u64; 2], String>,
   /// Highlights
-  // TODO: Do we need both?
-  //highlights: HashMap<([u8; 2], Hl), Vec<u64>>,
   highlights_by_line: BTreeMap<(u64, u8, u8), Hl>,
 }
 
@@ -90,7 +88,6 @@ impl FoldList {
     self.folds_level2.clear();
     self.fold_texts.clear();
     self.fold_texts_level2.clear();
-    //self.highlights.clear();
     self.highlights_by_line.clear();
   }
 
@@ -189,7 +186,7 @@ impl FoldList {
         break;
       }
     }
-    
+
     for k in to_delete {
       self.folds.remove(&k);
       self.fold_texts.remove(&k);
@@ -201,7 +198,7 @@ impl FoldList {
 
       if k[0] < firstline as u64 {
         let _ = self.insert(k[0], firstline as u64 - 1, v);
-        last_before = Some(([k[0], firstline as u64 - 1], v)) 
+        last_before = Some(([k[0], firstline as u64 - 1], v))
       }
 
       if (lastline as u64) <= k[1] {
@@ -240,8 +237,6 @@ impl FoldList {
       })
     });
 
-
-
     let first_fold_to_move =
       match self.folds.range([lastline as u64, 0]..).next() {
         Some((i, k)) => Some((*i, *k)),
@@ -274,8 +269,6 @@ impl FoldList {
       }
     }
 
-    eprintln!("Last added: {:?}", last_added);
-
     if let Some(i) = last_added {
       if let Some((k2, v2)) = merge_to_last {
         self.folds.remove(&i);
@@ -290,14 +283,6 @@ impl FoldList {
   }
 
   pub fn add_highlight(&mut self, line: u64, start: u8, end: u8, typ: Hl) {
-    /*
-    match self.highlights.entry(([start, end], typ)) {
-      HmEntry::Vacant(entry) => {
-        entry.insert(vec![line]);
-      }
-      HmEntry::Occupied(mut entry) => entry.get_mut().push(line),
-    }
-    */
     match self.highlights_by_line.entry((line, start, end)) {
       Entry::Vacant(entry) => {
         entry.insert(typ);
@@ -420,31 +405,6 @@ impl FoldList {
     nvim
       .execute_lua(luafn, vec![Value::from(luaargs)])
       .context("Execute lua failed")?;
-    /*
-    
-    luaargs = vec![];
-    luafn = "require('nvimpam').update_highlights(...)";
-    
-    for hl in self.highlights.iter() {
-      let start = hl.0[0];
-      let end = hl.0[1];
-      let typ = hl.0[2];
-      let lines = hl.1;
-    
-      let v1 = Value::from(vec![
-                           Value::from(start),
-                           Value::from(end),
-                           Value::from(typ),
-      ]);
-    
-      let v2: Vec<Value> = lines.iter().map(|n|Value::from(*n)).collect();
-      luaargs.push(Value::from(vec![v1, Value::from(v2)]));
-    }
-    
-    nvim
-      .execute_lua(luafn, vec![Value::from(luaargs)])
-      .context("Execute lua failed")?;
-      */
 
     Ok(())
   }
