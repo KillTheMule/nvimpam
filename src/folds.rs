@@ -51,19 +51,15 @@ macro_rules! unwrap_or_ok {
 #[derive(Default, Debug)]
 pub struct FoldList {
   /// List of folds, keyed by [start, end], valued by
-  /// [`Keyword`](::card::keyword::Keyword), sorted
-  /// lexicographically on [start, end] (linenumbers starting at 0).
-  folds: BTreeMap<[u64; 2], Keyword>,
-  /// List of level 2 folds (i.e. containing level 1 folds), keyed by
-  /// [start, end], valued by [`Keyword`](::card::keyword::Keyword), sorted
-  /// lexicographically on [start, end] (linenumbers starting at 0).
-  folds_level2: BTreeMap<[u64; 2], Keyword>,
-  /// List of Strings to show as foldtext for level 1 folds, keyed by
-  /// [start, end] (linenumbers starting at 0).
-  fold_texts: BTreeMap<[u64; 2], String>,
-  /// List of Strings to show as foldtext for level 2 folds, keyed by
-  /// [start, end] (linenumbers starting at 0).
-  fold_texts_level2: BTreeMap<[u64; 2], String>,
+  /// `([Keyword](::card::keyword::Keyword), String)`, where the `String` is
+  /// the fold's text. Sorted lexicographically on [start, end] (linenumbers
+  /// starting at 0).
+  folds: BTreeMap<[u64; 2], (Keyword, String)>,
+  /// List of level 2 folds (i.e. containing level 1 folds), keyed by [start,
+  /// end], valued by `([Keyword](::card::keyword::Keyword), String)`, where
+  /// the `String` is the fold's text. Sorted lexicographically on [start,
+  /// end] (linenumbers starting at 0).
+  folds_level2: BTreeMap<[u64; 2], (Keyword, String)>,
   /// Highlights
   highlights_by_line: BTreeMap<(u64, u8, u8), Hl>,
 }
@@ -75,9 +71,6 @@ impl FoldList {
     FoldList {
       folds: BTreeMap::new(),
       folds_level2: BTreeMap::new(),
-      fold_texts: BTreeMap::new(),
-      fold_texts_level2: BTreeMap::new(),
-      //highlights: HashMap::new(),
       highlights_by_line: BTreeMap::new(),
     }
   }
@@ -86,8 +79,6 @@ impl FoldList {
   pub fn clear(&mut self) {
     self.folds.clear();
     self.folds_level2.clear();
-    self.fold_texts.clear();
-    self.fold_texts_level2.clear();
     self.highlights_by_line.clear();
   }
 
@@ -100,15 +91,9 @@ impl FoldList {
         return Err(failure::err_msg("Fold already in foldlist!"))
       }
       Entry::Vacant(entry) => {
-        entry.insert(kw);
-      }
-    }
-    match self.fold_texts.entry([start, end]) {
-      Entry::Occupied(_) => {
-        return Err(failure::err_msg("Foldtext already in fold_texts!"))
-      }
-      Entry::Vacant(entry) => {
-        entry.insert(format!(" {} lines: {:?} ", end - start + 1, kw));
+        // TODO: Maybe use a &'static str without #lines for cards with ownfold
+        // = true?
+        entry.insert((kw, format!(" {} lines: {:?} ", end - start + 1, kw)));
       }
     }
     Ok(())
@@ -161,25 +146,25 @@ impl FoldList {
     let mut first_after = None;
     for (k, v) in self.folds.iter() {
       if (k[0] as usize) < firstline {
-        last_before = Some((*k, *v));
+        last_before = Some((*k, v.0));
       }
       if lastline <= k[1] as usize && first_after.is_none() {
-        first_after = Some((*k, *v));
+        first_after = Some((*k, v.0));
       }
 
       if firstline <= k[0] as usize && (k[0] as usize) < lastline {
         if (k[1] as usize) < lastline {
           to_delete.push(*k);
         } else {
-          to_split.push((*k, *v));
+          to_split.push((*k, v.0));
         }
       } else if ((firstline as usize) <= k[1] as usize)
         && ((k[1] as usize) < lastline)
       {
         // from the if above, we can assume k[0] < firstline
-        to_split.push((*k, *v));
+        to_split.push((*k, v.0));
       } else if (k[0] as usize) < firstline && lastline <= k[1] as usize {
-        to_split.push((*k, *v))
+        to_split.push((*k, v.0))
       }
 
       if lastline <= k[0] as usize {
@@ -189,26 +174,24 @@ impl FoldList {
 
     for k in to_delete {
       self.folds.remove(&k);
-      self.fold_texts.remove(&k);
     }
 
     for (k, v) in to_split.into_iter() {
       self.folds.remove(&k);
-      self.fold_texts.remove(&k);
 
       if k[0] < firstline as u64 {
-        let _ = self.insert(k[0], firstline as u64 - 1, v);
+        let _ = self.checked_insert(k[0], firstline as u64 - 1, v);
         last_before = Some(([k[0], firstline as u64 - 1], v))
       }
 
       if (lastline as u64) <= k[1] {
-        let _ = self.insert(lastline as u64, k[1], v);
+        let _ = self.checked_insert(lastline as u64, k[1], v);
         first_after = Some(([lastline as u64, k[1]], v));
       }
     }
 
     let first_new = match newfolds.folds.iter().next() {
-      Some((k, v)) => Some((*k, *v)),
+      Some((k, v)) => Some((*k, v.0)),
       None => None,
     };
     let mut merge_to_first = None;
@@ -216,14 +199,13 @@ impl FoldList {
       first_new.map(|(_, v2)| {
         if v1 == v2 {
           self.folds.remove(&k1);
-          self.fold_texts.remove(&k1);
           merge_to_first = last_before;
         }
       })
     });
 
     let last_new = match newfolds.folds.range([0, 0]..).next_back() {
-      Some((k, v)) => Some((*k, *v)),
+      Some((k, v)) => Some((*k, v.0)),
       None => None,
     };
     let mut merge_to_last = None;
@@ -231,7 +213,6 @@ impl FoldList {
       last_new.map(|(_, v2)| {
         if v1 == v2 {
           self.folds.remove(&k1);
-          self.fold_texts.remove(&k1);
           merge_to_last = first_after;
         }
       })
@@ -239,19 +220,18 @@ impl FoldList {
 
     let first_fold_to_move =
       match self.folds.range([lastline as u64, 0]..).next() {
-        Some((i, k)) => Some((*i, *k)),
+        Some((i, k)) => Some((*i, k.0)),
         None => None,
       };
 
     if let Some((f, _)) = first_fold_to_move {
       let to_move = self.folds.split_off(&f);
-      let _ = self.fold_texts.split_off(&f);
 
       for (k, v) in to_move.iter() {
         let _ = self.insert(
           (k[0] as i64 + added) as u64,
           (k[1] as i64 + added) as u64,
-          *v,
+          v.0,
         );
       }
     }
@@ -259,12 +239,12 @@ impl FoldList {
     let mut last_added = None;
     for (k, v) in newfolds.folds.iter() {
       if let Some((k1, _)) = merge_to_first {
-        let _ = self.insert(k1[0], k[1] + firstline as u64, *v);
+        let _ = self.insert(k1[0], k[1] + firstline as u64, v.0);
         last_added = Some([k1[0], k[1] + firstline as u64]);
         merge_to_first = None;
       } else {
         let _ =
-          self.insert(k[0] + firstline as u64, k[1] + firstline as u64, *v);
+          self.insert(k[0] + firstline as u64, k[1] + firstline as u64, v.0);
         last_added = Some([k[0] + firstline as u64, k[1] + firstline as u64]);
       }
     }
@@ -272,13 +252,11 @@ impl FoldList {
     if let Some(i) = last_added {
       if let Some((k2, v2)) = merge_to_last {
         self.folds.remove(&i);
-        self.fold_texts.remove(&i);
         let _ = self.insert(i[0], (k2[1] as i64 + added) as u64, v2);
       }
     }
 
     // TODO: Should not need to call clear myself here
-    self.fold_texts_level2.clear();
     let _ = self.recreate_level2();
   }
 
@@ -325,10 +303,6 @@ impl FoldList {
       .folds
       .remove(&[start, end])
       .ok_or_else(|| failure::err_msg("Could not remove fold from foldlist"))?;
-    self
-      .fold_texts
-      .remove(&[start, end])
-      .ok_or_else(|| failure::err_msg("Could not remove fold from foldlist"))?;
     Ok(())
   }
 
@@ -354,7 +328,7 @@ impl FoldList {
       return Ok(());
     }
 
-    let grouped = self.folds.iter().group_by(|(_, &kw)| kw);
+    let grouped = self.folds.iter().group_by(|(_, &(kw, _))| kw);
 
     for (kw, mut group) in &grouped {
       let mut group = group.enumerate();
@@ -373,15 +347,7 @@ impl FoldList {
             return Err(failure::err_msg("Fold already in foldlist_level2!"))
           }
           Entry::Vacant(entry) => {
-            entry.insert(kw);
-          }
-        }
-        match self.fold_texts_level2.entry([firstline, lastline]) {
-          Entry::Occupied(_) => {
-            return Err(failure::err_msg("Foldtext already in fold_texts!"))
-          }
-          Entry::Vacant(entry) => {
-            entry.insert(format!(" {} {:?}s ", nr + 1, kw));
+            entry.insert((kw, format!(" {} {:?}s ", nr + 1, kw)));
           }
         }
       }
@@ -394,7 +360,7 @@ impl FoldList {
     let luafn = "require('nvimpam').update_folds(...)";
     let mut luaargs = vec![];
 
-    for (range, text) in self.fold_texts.iter().chain(&self.fold_texts_level2) {
+    for (range, (_, text)) in self.folds.iter().chain(&self.folds_level2) {
       luaargs.push(Value::from(vec![
         Value::from(range[0] + 1),
         Value::from(range[1] + 1),
@@ -464,12 +430,12 @@ impl FoldList {
   /// the tuples (start, end, Keyword)
   pub fn to_vec(&self, level: u8) -> Vec<(u64, u64, Keyword)> {
     if level == 1 {
-      self.folds.iter().map(|(r, k)| (r[0], r[1], *k)).collect()
+      self.folds.iter().map(|(r, (k, _))| (r[0], r[1], *k)).collect()
     } else if level == 2 {
       self
         .folds_level2
         .iter()
-        .map(|(r, k)| (r[0], r[1], *k))
+        .map(|(r, (k, _))| (r[0], r[1], *k))
         .collect()
     } else {
       unimplemented!()
