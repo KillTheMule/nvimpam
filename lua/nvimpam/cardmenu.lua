@@ -50,6 +50,7 @@ local function lines_to_grid(opts, window_ops)
 
   for column = 1, columns do
     local col = {}
+    table.insert(col, "")
     for line = 1, nr_lines do
 
       local k = opts[(column-1)*nr_lines + line]
