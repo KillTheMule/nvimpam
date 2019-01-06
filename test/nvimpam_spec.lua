@@ -161,6 +161,7 @@ describe('nvimpam', function()
       [10] = {background = 15000804},
       [11] = {foreground = Screen.colors.Grey100, background = Screen.colors.Red},
       [12] = {foreground = Screen.colors.Grey100, background = 11468800},
+      [13] = {foreground = Screen.colors.Red},
     })
     command('set rtp+=../')
     command('source ../init.vim')
@@ -674,6 +675,71 @@ describe('nvimpam', function()
       UNIT       MM       KG       MS   KELVIN                                         |
       SIGNAL      YES                                                                  |
       $                                                                                |
+                                                                                       |
+    ]])
+
+  end)
+
+  it('provides a filter-based cardmenu', function()
+    command("set rtp+=../../impromptu.nvim")
+    command("set nowrap")
+    command('edit ' .. alter_slashes('../files/example.pc'))
+
+
+    command('NvimPamFilter')
+    screen:expect([[
+      INPUTVERSION 2011                                                                |
+      {3:../files/example.pc                                                              }|
+      Select a card                                                                    |
+      ─────────────────────────────────────────────────────────────────────────────────|
+      {13: →} 3D Boundary Condition                                                         |
+         ACFLD Acceleration Field                                                      |
+         ACTUA - Joint Actuator Definition                                             |
+         Acoustic Plane Wave                                                           |
+         BAGIN Definition                                                              |
+         BAR Element                                                                   |
+         BDFOR Body Forces                                                             |
+      •••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••|
+      ^                                                                                 |
+      {4:[Scratch]                                                                        }|
+                                                                                       |
+    ]])
+
+    feed("i3d")
+    screen:expect([[
+      INPUTVERSION 2011                                                                |
+      {3:../files/example.pc                                                              }|
+      Select a card                                                                    |
+      ─────────────────────────────────────────────────────────────────────────────────|
+      {13: →} 3D Boundary Condition                                                         |
+         FBC3D Prescribed Motion onto Fluid Media                                      |
+         PART Type COS3D                                                               |
+                                                                                       |
+                                                                                       |
+                                                                                       |
+                                                                                       |
+      •••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••|
+      3d^                                                                               |
+      {4:[Scratch]                                                                        }|
+      {6:-- INSERT --}                                                                     |
+    ]])
+
+    feed("<C-j><Enter>")
+    screen:expect([[
+      ^INPUTVERSION 2011                                                                |
+      #FBC3D - Prescribed Motion onto Fluid Media                                      |
+      $#         IDNOQUALIFIER   IFUN1   IFUN2   IFUN3   SFAC1   SFAC2   SFAC3    IFAND|
+      FBC3D /        0ACCE           0       0       0      1.      1.      1.       0 |
+      $#                                                                         TITLE |
+      NAME FBC3D / ->1                                                                 |
+              END                                                                      |
+      ANALYSIS EXPLICIT                                                                |
+      SOLVER    CRASH                                                                  |
+      $                                                                                |
+      $----------------------------------------------------------------                |
+      $     PAM-SOLID SOLVER CONTROLS                                                  |
+      $----------------------------------------------------------------                |
+      UNIT       MM       KG       MS   KELVIN                                         |
                                                                                        |
     ]])
 
