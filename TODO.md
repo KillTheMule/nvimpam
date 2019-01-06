@@ -1,5 +1,7 @@
 * Improve logging: Lua code should write to NVIMPAM_LOG_FILE (maybe even respect log llevel?), only the binaries stderr should really go to NVIMPAM_STDERR
 
+* Check vimways.org for various plugin improvements
+
 * Add pyvars to cell verification
 
 * Write a size hint (exact!) for the HlIter
