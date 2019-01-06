@@ -56,7 +56,6 @@ function Screen:expect(expected, attr_ids, attr_ignore)
     -- value.
     grid = dedent(grid:gsub('\n[ ]+$', ''), 0)
     for row in grid:gmatch('[^\n]+') do
-      row = row:sub(1, #row - 1) -- Last char must be the screen delimiter.
       table.insert(expected_rows, row)
     end
   end
@@ -76,19 +75,11 @@ function Screen:expect(expected, attr_ids, attr_ignore)
       end
     end
 
-    if grid ~= nil and self._height ~= #expected_rows then
-      return ("Expected screen state's row count(" .. #expected_rows
-              .. ') differs from configured height(' .. self._height .. ') of Screen.')
-    end
-
     if self._options.ext_hlstate and self._new_attrs then
       attr_state.id_to_index = self:hlstate_check_attrs(attr_state.ids or {})
     end
 
-    local actual_rows = {}
-    for i = 1, self._height do
-      actual_rows[i] = self:_row_repr(self._rows[i], attr_state)
-    end
+    local actual_rows = self:render(not expected.any, attr_state)
 
     if expected.any ~= nil then
       -- Search for `any` anywhere in the screen lines.
@@ -97,13 +88,17 @@ function Screen:expect(expected, attr_ids, attr_ignore)
         return (
           'Failed to match any screen lines.\n'
           .. 'Expected (anywhere): "' .. expected.any .. '"\n'
-          .. 'Actual:\n  |' .. table.concat(actual_rows, '|\n  |') .. '|\n\n')
+          .. 'Actual:\n  |' .. table.concat(actual_rows, '\n  |') .. '\n\n')
       end
     end
 
     if grid ~= nil then
       -- `expected` must match the screen lines exactly.
-      for i = 1, self._height - 1 do
+      if #actual_rows ~= #expected_rows then
+        return "Expected screen state's row count(" .. #expected_rows
+        .. ') differs from configured height(' .. #actual_rows .. ') of Screen.'
+      end
+      for i = 1, #actual_rows - 1 do
         if expected_rows[i] ~= actual_rows[i] then
           local msg_expected_rows = {}
           for j = 1, #expected_rows do
@@ -113,8 +108,8 @@ function Screen:expect(expected, attr_ids, attr_ignore)
           actual_rows[i] = '*' .. actual_rows[i]
           return (
             'Row ' .. tostring(i) .. ' did not match.\n'
-            ..'Expected:\n  |'..table.concat(msg_expected_rows, '|\n  |')..'|\n'
-            ..'Actual:\n  |'..table.concat(actual_rows, '|\n  |')..'|\n\n'..[[
+            ..'Expected:\n  |'..table.concat(msg_expected_rows, '\n  |')..'\n'
+            ..'Actual:\n  |'..table.concat(actual_rows, '\n  |')..'\n\n'..[[
 To print the expect() call that would assert the current screen state, use
 screen:snapshot_util(). In case of non-deterministic failures, use
 screen:redraw_debug() to show all intermediate screen states.  ]])
