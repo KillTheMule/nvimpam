@@ -366,7 +366,7 @@ local function filter_cards()
   table.sort(opts, sort)
 
   impromptu.filter{
-    title = "HEADER",
+    title = "Select a card",
     options =  opts,
     handler = function(b, opt)
       set_lines(curbuf, curpos[1], curpos[1], false, lines_from_file(cardpath.."/"..opt.path))
