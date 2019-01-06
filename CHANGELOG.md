@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
 ## [Unreleased]
-- Added `:NvimpamMenu` to get a menu to insert new cards
+- Added `:NvimPamMenu` to get a menu to insert new cards
+- Added `:NvimPamFilter` for a filter-based menu to insert new cards
+- Add syntax highlighting
 
 ## 0.2.1 - 2018-10-21
 - Fix a test real quick
