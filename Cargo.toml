@@ -31,7 +31,7 @@ atoi = "0.2.3"
 byteorder = "1.2.6"
 
 [dev-dependencies]
-criterion = "0.2.5"
+criterion = "0.2.7"
 
 [lib]
 name = "nvimpam_lib"
