@@ -602,6 +602,10 @@ describe('nvimpam', function()
   end)
 
   it('provides a cardmenu', function()
+    -- impromptu uses this HL group, but the runtime isn't loaded on the
+    -- neovim test runner
+    command("hi def Comment cterm=NONE")
+
     command("set rtp+=../../impromptu.nvim")
     command("set nowrap")
     command('edit ' .. alter_slashes('../files/example.pc'))
@@ -681,6 +685,10 @@ describe('nvimpam', function()
   end)
 
   it('provides a filter-based cardmenu', function()
+    -- impromptu uses this HL group, but the runtime isn't loaded on the
+    -- neovim test runner
+    command("hi def Keyword cterm=NONE")
+
     command("set rtp+=../../impromptu.nvim")
     command("set nowrap")
     command('edit ' .. alter_slashes('../files/example.pc'))
@@ -699,7 +707,7 @@ describe('nvimpam', function()
          BAGIN Definition                                                              |
          BAR Element                                                                   |
          BDFOR Body Forces                                                             |
-      •••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••|
+      ─────────────────────────────────────────────────────────────────────────────────|
       ^                                                                                 |
       {4:[Scratch]                                                                        }|
                                                                                        |
@@ -718,7 +726,7 @@ describe('nvimpam', function()
                                                                                        |
                                                                                        |
                                                                                        |
-      •••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••|
+      ─────────────────────────────────────────────────────────────────────────────────|
       3d^                                                                               |
       {4:[Scratch]                                                                        }|
       {6:-- INSERT --}                                                                     |

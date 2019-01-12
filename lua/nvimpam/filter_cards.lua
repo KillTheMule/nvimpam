@@ -372,7 +372,7 @@ local function filter_cards()
       set_lines(curbuf, curpos[1], curpos[1], false, lines_from_file(cardpath.."/"..opt.path))
       return true
     end,
-    filter_fn = filter_fn,
+    --filter_fn = filter_fn,
   }     
 end
 
