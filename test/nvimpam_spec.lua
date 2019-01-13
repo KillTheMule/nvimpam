@@ -728,7 +728,6 @@ describe('nvimpam', function()
       ..
       alter_slashes(
       "{3:../files/example.pc                                                              }|"
-      ..
       )
       ..
       "\n"
@@ -775,10 +774,19 @@ describe('nvimpam', function()
     command('set ft=pamcrash')
     command('NvimPamAttach')
     command("NvimPamHighlightScreen")
+    if is_ci then
+      helpers.sleep(100)
+    else
+      helpers.sleep(10)
+    end
 
     feed("1G")
     feed("f0rx")
-    if is_ci then helpers.sleep(10) end
+    if is_ci then
+      helpers.sleep(100)
+    else
+      helpers.sleep(10)
+    end
     screen:expect([[
       {8:NODE  / }{9:       1}{11:              ^x.}{9:             0.5}{10:              0.}                 |
       {2:~                                                                                }|
@@ -798,7 +806,11 @@ describe('nvimpam', function()
     ]])
 
     feed("u")
-    if is_ci then helpers.sleep(10) end
+    if is_ci then
+      helpers.sleep(100)
+    else
+      helpers.sleep(10)
+    end
     screen:expect([[
       {8:NODE  / }{9:       1}{10:              ^0.}{9:             0.5}{10:              0.}                 |
       {2:~                                                                                }|
