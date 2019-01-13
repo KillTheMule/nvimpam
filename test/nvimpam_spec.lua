@@ -697,7 +697,15 @@ describe('nvimpam', function()
     command('NvimPamFilter')
     screen:expect([[
       INPUTVERSION 2011                                                                |
-      {3:../files/example.pc                                                              }|
+      ]]
+      ..
+      alter_slashes(
+      "{3:../files/example.pc                                                              }|"
+      )
+      ..
+      "\n"
+      ..
+      [[
       Select a card                                                                    |
       ─────────────────────────────────────────────────────────────────────────────────|
       {13: →} 3D Boundary Condition                                                         |
@@ -716,7 +724,16 @@ describe('nvimpam', function()
     feed("i3d")
     screen:expect([[
       INPUTVERSION 2011                                                                |
-      {3:../files/example.pc                                                              }|
+      ]]
+      ..
+      alter_slashes(
+      "{3:../files/example.pc                                                              }|"
+      ..
+      )
+      ..
+      "\n"
+      ..
+      [[
       Select a card                                                                    |
       ─────────────────────────────────────────────────────────────────────────────────|
       {13: →} 3D Boundary Condition                                                         |
