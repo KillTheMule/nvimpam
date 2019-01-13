@@ -752,4 +752,52 @@ describe('nvimpam', function()
     ]])
 
   end)
+
+  it('updates error highlighting', function()
+    insert("NODE  /        1              0.             0.5              0.")
+    command('set ft=pamcrash')
+    command('NvimPamAttach')
+    command("NvimPamHighlightScreen")
+    helpers.sleep(10)
+
+    feed("1G")
+    feed("f0rx")
+    screen:expect([[
+      {8:NODE  / }{9:       1}{11:              ^x.}{9:             0.5}{10:              0.}                 |
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+                                                                                       |
+    ]])
+
+    feed("u")
+    screen:expect([[
+      {8:NODE  / }{9:       1}{10:              ^0.}{9:             0.5}{10:              0.}                 |
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      1 change; before #2  0 seconds ago                                               |
+    ]])
+  end)
+
 end)
