@@ -356,7 +356,7 @@ impl Keywords {
 
   // TODO: Efficient? Correct?
   pub fn first_before(&self, line: u64) -> u64 {
-    self[..=line as usize]
+    self.get(..=line as usize).unwrap_or(&[])
       .iter()
       .enumerate()
       .rfind(|(_i, k)| k.is_some() && **k != Some(Keyword::Comment))
@@ -366,12 +366,13 @@ impl Keywords {
 
   // TODO: Efficient? Correct?
   pub fn first_after(&self, line: u64) -> u64 {
-    self[line as usize..]
+    self
       .iter()
       .enumerate()
+      .skip(line as usize)
       .find(|(_i, k)| k.is_some() && **k != Some(Keyword::Comment))
-      .unwrap_or((self.len() - line as usize - 1, &None))
-      .0 as u64 + line
+      .unwrap_or((self.len(), &None))
+      .0 as u64
   }
 }
 
@@ -385,13 +386,21 @@ impl Deref for Keywords {
 
 #[cfg(test)]
 mod tests {
-  use card::keyword::Keyword::*;
-  use card::keyword::Keywords;
+  use card::keyword::{Keyword::*, Keywords};
 
   #[test]
   fn first() {
-    let kw = Keywords(vec![None, None, Some(Node), None, None,
-    Some(Comment), Some(Node), Some(Comment), None]);
+    let kw = Keywords(vec![
+      None,
+      None,
+      Some(Node),
+      None,
+      None,
+      Some(Comment),
+      Some(Node),
+      Some(Comment),
+      None,
+    ]);
 
     assert_eq!(2, kw.first_before(2));
     assert_eq!(2, kw.first_after(2));
@@ -400,9 +409,20 @@ mod tests {
     assert_eq!(6, kw.first_after(4));
 
     assert_eq!(0, kw.first_before(1));
-    assert_eq!(8, kw.first_after(7));
+    assert_eq!(9, kw.first_after(7));
   }
 
+  #[test]
+  fn first_oneline() {
+    let mut kw = Keywords(vec![Some(Node)]);
+    assert_eq!(0, kw.first_before(0));
+    assert_eq!(0, kw.first_after(0));
 
+    kw = Keywords(vec![Some(Comment)]);
+    assert_eq!(0, kw.first_before(0));
+    assert_eq!(1, kw.first_after(0));
+    assert_eq!(0, kw.first_before(1));
+    assert_eq!(1, kw.first_after(1));
+  }
 
 }
