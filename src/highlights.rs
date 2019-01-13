@@ -86,42 +86,36 @@ impl<'a> Iterator for HlIter<'a> {
         (self.line.num as u64, range.start as u8, range.end as u8),
         Hl::Keyword,
       ))
-    } else if self
-      .line
-      .text
-      .get(range.clone())
-      .map(|s| cell.verify(s)) == Some(true)
-    {
-      if odd {
-        Some((
-          (self.line.num as u64, range.start as u8, range.end as u8),
-          Hl::CellEven,
-        ))
-      } else {
-        Some((
-          (self.line.num as u64, range.start as u8, range.end as u8),
-          Hl::CellOdd,
-        ))
-      }
-    } else if self
-      .line
-      .text
-      .get(range.clone())
-      .map(|s| cell.verify(s)) == Some(false)
-    {
-      if odd {
-        Some((
-          (self.line.num as u64, range.start as u8, range.end as u8),
-          Hl::ErrorCellEven,
-        ))
-      } else {
-        Some((
-          (self.line.num as u64, range.start as u8, range.end as u8),
-          Hl::ErrorCellOdd,
-        ))
-      }
     } else {
-      None
+      match self.line.text.get(range.clone()).map(|s| cell.verify(s)) {
+        Some(true) => {
+          if odd {
+            Some((
+              (self.line.num as u64, range.start as u8, range.end as u8),
+              Hl::CellEven,
+            ))
+          } else {
+            Some((
+              (self.line.num as u64, range.start as u8, range.end as u8),
+              Hl::CellOdd,
+            ))
+          }
+        }
+        Some(false) => {
+          if odd {
+            Some((
+              (self.line.num as u64, range.start as u8, range.end as u8),
+              Hl::ErrorCellEven,
+            ))
+          } else {
+            Some((
+              (self.line.num as u64, range.start as u8, range.end as u8),
+              Hl::ErrorCellOdd,
+            ))
+          }
+        }
+        None => None,
+      }
     }
   }
 }
