@@ -46,36 +46,13 @@ lto = true
 debug = true
 
 [[bench]]
-name = "card_valgrind"
-harness = true
-required-features = ["valgrind"] 
-
-[[bench]]
 name = "card"
 harness = false
-required-features = ["no_valgrind"] 
 
 [[bench]]
 name = "integration"
 harness = false
-required-features = ["no_valgrind"] 
 
 [[bench]]
 name = "integration_file"
 harness = false
-required-features = ["no_valgrind"] 
-
-[[bench]]
-name = "integration_valgrind"
-harness = true
-required-features = ["valgrind"] 
-
-[[bench]]
-name = "integration_file_valgrind"
-harness = true
-required-features = ["valgrind"] 
-
-[features]
-valgrind = []
-no_valgrind = []
-default = ["no_valgrind"]
