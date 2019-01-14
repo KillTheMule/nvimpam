@@ -1,6 +1,8 @@
 * Improve logging: Lua code should write to NVIMPAM_LOG_FILE (maybe even respect log llevel?), only the binaries stderr should really go to NVIMPAM_STDERR
 
-* Document and test the menu
+* Check out using lookup tables for performance improvements. Ref https://github.com/lynaghk/question-rust-inlining also see https://github.com/sfackler/rust-phf
+
+* Replace `fs::read_to_end` by `fs::read`
 
 * Write a size hint (exact!) for the HlIter
 
