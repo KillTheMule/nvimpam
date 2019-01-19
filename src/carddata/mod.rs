@@ -9,7 +9,7 @@ macro_rules! cardtest {
     #[test]
     fn $name() {
       use crate::card::keyword::Keyword;
-      use crate::folds::FoldList;
+      use crate::bufdata::folds::FoldList;
       use crate::lines::Lines;
 
       let lines = Lines::from_strs(&$c);
@@ -26,7 +26,7 @@ macro_rules! cardtest {
     #[test]
     fn $name() {
       use crate::card::keyword::Keyword;
-      use crate::folds::FoldList;
+      use crate::bufdata::folds::FoldList;
       use crate::lines::Lines;
 
       let lines = Lines::from_strs(&$c);

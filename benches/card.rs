@@ -9,7 +9,7 @@ use nvimpam_lib::{
     ges::GesType,
     keyword::{Keyword, Keywords},
   },
-  folds::FoldList,
+  bufdata::folds::FoldList,
   lines::{Lines, ParsedLine},
   nocommentiter::CommentLess,
 };

@@ -9,7 +9,7 @@ use neovim_lib::{
   neovim_api::{Buffer, NeovimApi},
 };
 
-use crate::folds::FoldList;
+use crate::bufdata::folds::FoldList;
 use crate::lines::Lines;
 
 /// The event list the main loop reacts to
@@ -128,7 +128,7 @@ impl Event {
               last as usize,
               added,
             );
-            foldlist.highlight_region(
+            foldlist.highlights_by_line.highlight_region(
               &mut nvim,
               first as u64,
               last as u64,
@@ -156,7 +156,7 @@ impl Event {
             ll += 1;
           }
 
-          foldlist.highlight_region(&mut nvim, fl, ll)?;
+          foldlist.highlights_by_line.highlight_region(&mut nvim, fl, ll)?;
         }
         Ok(Quit) => {
           break;

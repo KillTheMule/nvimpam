@@ -15,7 +15,7 @@ use crate::card::{
 };
 use crate::lines::{KeywordLine, ParsedLine};
 use crate::skipresult::SkipResult;
-use crate::folds::FoldList;
+use crate::bufdata::folds::FoldList;
 
 // Used in skip functions. Returns the next `ParsedLine` from the iterator. If
 // theres no next line, return a `SkipResult` containing the line number of
@@ -216,7 +216,7 @@ where
       conds.push(c.evaluate(skipline.text));
     }
 
-    folds.extend_highlights(cardline.highlights(skipline.number, skipline.text));
+    folds.highlights_by_line.extend(cardline.highlights(skipline.number, skipline.text));
 
     let mut previdx: Option<usize> = None;
     let mut nextline = next_or_return_previdx!(self, previdx);
@@ -243,7 +243,7 @@ where
           }
         }
         CardLine::Cells(_s) => {
-          folds.extend_highlights(cardline.highlights(nextline.number, nextline.text));
+          folds.highlights_by_line.extend(cardline.highlights(nextline.number, nextline.text));
           advance!(self, previdx, nextline);
         }
         CardLine::Optional(_s, i) => {
@@ -333,7 +333,7 @@ mod tests {
   use crate::carddata::*;
   use crate::lines::{KeywordLine, Lines, ParsedLine};
   use crate::nocommentiter::{CommentLess, NoCommentIter};
-  use crate::folds::FoldList;
+  use crate::bufdata::folds::FoldList;
 
   macro_rules! pline {
     ($number:expr, $text:expr, $keyword:expr) => {

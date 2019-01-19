@@ -8,7 +8,7 @@ use criterion::Criterion;
 use std::{path::Path, process::Command, sync::mpsc};
 
 use nvimpam_lib::{
-  card::keyword::Keywords, event::Event::*, folds::FoldList,
+  card::keyword::Keywords, event::Event::*, bufdata::folds::FoldList,
   handler::NeovimHandler, lines::Lines,
 };
 

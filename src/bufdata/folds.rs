@@ -8,7 +8,7 @@
 //! Example usage:
 //!
 //! ```
-//! # use nvimpam_lib::folds::FoldList;
+//! # use nvimpam_lib::bufdata::folds::FoldList;
 //! # use nvimpam_lib::card::keyword::Keyword;
 //! let mut foldlist = FoldList::new();
 //! foldlist
@@ -26,7 +26,7 @@ use neovim_lib::{Neovim, NeovimApi, Value};
 use itertools::Itertools;
 
 use crate::card::keyword::Keyword;
-use crate::highlights::HighlightGroup as Hl;
+use crate::bufdata::highlights::Highlights;
 use crate::lines::{Line, ParsedLine};
 use crate::nocommentiter::CommentLess;
 
@@ -61,7 +61,7 @@ pub struct FoldList {
   /// end] (linenumbers starting at 0).
   folds_level2: BTreeMap<[u64; 2], (Keyword, String)>,
   /// Highlights
-  highlights_by_line: BTreeMap<(u64, u8, u8), Hl>,
+  pub highlights_by_line: Highlights,
 }
 
 impl FoldList {
@@ -71,7 +71,7 @@ impl FoldList {
     FoldList {
       folds: BTreeMap::new(),
       folds_level2: BTreeMap::new(),
-      highlights_by_line: BTreeMap::new(),
+      highlights_by_line: Highlights::new(),
     }
   }
 
@@ -80,23 +80,6 @@ impl FoldList {
     self.folds.clear();
     self.folds_level2.clear();
     self.highlights_by_line.clear();
-  }
-
-  /// Insert a level 1 fold `([start, end], Keyword)` into the FoldList.
-  /// Returns an error if that fold is already in the list. In that case,
-  /// it needs to be [removed](struct.FoldList.html#method.remove) beforehand.
-  fn insert(&mut self, start: u64, end: u64, kw: Keyword) -> Result<(), Error> {
-    match self.folds.entry([start, end]) {
-      Entry::Occupied(_) => {
-        return Err(failure::err_msg("Fold already in foldlist!"))
-      }
-      Entry::Vacant(entry) => {
-        // TODO: Maybe use a &'static str without #lines for cards with ownfold
-        // = true?
-        entry.insert((kw, format!(" {} lines: {:?} ", end - start + 1, kw)));
-      }
-    }
-    Ok(())
   }
 
   // TODO: Pass newfolds by value
@@ -108,35 +91,8 @@ impl FoldList {
     added: i64,
   ) {
     // Deal with highlights
-
-    let first_to_delete = self
-      .highlights_by_line
-      .range((firstline as u64, 0, 0)..)
-      .next()
-      .map(|f| *(f.0));
-
-    let mut to_change = match first_to_delete {
-      Some(ftd) => self.highlights_by_line.split_off(&ftd),
-      None => BTreeMap::new(),
-    };
-
-    let first_to_move = to_change
-      .range((lastline as u64, 0, 0)..)
-      .next()
-      .map(|f| *(f.0));
-
-    let to_move = match first_to_move {
-      Some(ftm) => to_change.split_off(&ftm),
-      None => BTreeMap::new(),
-    };
-
-    for (k, v) in newfolds.highlights_by_line.iter() {
-      self.add_highlight(k.0 + firstline as u64, k.1, k.2, *v);
-    }
-
-    for (k, v) in to_move.iter() {
-      self.add_highlight((k.0 as i64 + added) as u64, k.1, k.2, *v);
-    }
+    self.highlights_by_line.splice(&mut newfolds.highlights_by_line, firstline,
+                                   lastline, added);
 
     // Deal with folds
 
@@ -260,22 +216,21 @@ impl FoldList {
     let _ = self.recreate_level2();
   }
 
-  pub fn add_highlight(&mut self, line: u64, start: u8, end: u8, typ: Hl) {
-    match self.highlights_by_line.entry((line, start, end)) {
-      Entry::Vacant(entry) => {
-        entry.insert(typ);
+  /// Insert a level 1 fold `([start, end], Keyword)` into the FoldList.
+  /// Returns an error if that fold is already in the list. In that case,
+  /// it needs to be [removed](struct.FoldList.html#method.remove) beforehand.
+  fn insert(&mut self, start: u64, end: u64, kw: Keyword) -> Result<(), Error> {
+    match self.folds.entry([start, end]) {
+      Entry::Occupied(_) => {
+        return Err(failure::err_msg("Fold already in foldlist!"))
       }
-      Entry::Occupied(mut entry) => {
-        *entry.get_mut() = typ;
+      Entry::Vacant(entry) => {
+        // TODO: Maybe use a &'static str without #lines for cards with ownfold
+        // = true?
+        entry.insert((kw, format!(" {} lines: {:?} ", end - start + 1, kw)));
       }
     }
-  }
-
-  pub fn extend_highlights<T>(&mut self, it: T)
-  where
-    T: IntoIterator<Item = ((u64, u8, u8), Hl)>,
-  {
-    self.highlights_by_line.extend(it)
+    Ok(())
   }
 
   /// Insert a level 1 fold `([start, end], Keyword)` into the FoldList. If
@@ -375,57 +330,6 @@ impl FoldList {
     Ok(())
   }
 
-  /// Highlight all the lines in the given region
-  // TODO: efficient? correct?
-  pub fn highlight_region(
-    &self,
-    nvim: &mut Neovim,
-    firstline: u64,
-    lastline: u64,
-  ) -> Result<(), Error> {
-    let curbuf = nvim.get_current_buf()?;
-    let mut calls: Vec<Value> = vec![];
-
-    calls.push(
-      vec![
-        Value::from("nvim_buf_clear_highlight".to_string()),
-        vec![
-          curbuf.get_value().clone(),
-          Value::from(5),
-          Value::from(firstline),
-          Value::from(lastline),
-        ]
-        .into(),
-      ]
-      .into(),
-    );
-
-    for ((l, s, e), t) in self.highlights_by_line.iter() {
-      if firstline <= *l && *l < lastline {
-        let st: &'static str = (*t).into();
-        calls.push(
-          vec![
-            Value::from("nvim_buf_add_highlight".to_string()),
-            vec![
-              curbuf.get_value().clone(),
-              Value::from(5),
-              Value::from(st.to_string()),
-              Value::from(*l),
-              Value::from(u64::from(*s)),
-              Value::from(u64::from(*e)),
-            ]
-            .into(),
-          ]
-          .into(),
-        );
-      } else if *l > lastline {
-        break;
-      }
-    }
-    nvim.call_atomic(calls).context("call_atomic failed")?;
-    Ok(())
-  }
-
   /// Copy the elements of a FoldList of the given level into a Vec, containing
   /// the tuples (start, end, Keyword)
   pub fn to_vec(&self, level: u8) -> Vec<(u64, u64, Keyword)> {
@@ -497,7 +401,7 @@ macro_rules! splicetest {
   $first: expr, $last: expr, $added: expr; expected: $([$($g: expr),+]),+ ) => {
     #[test]
     fn $fn() {
-      use crate::folds::FoldList;
+      use crate::bufdata::folds::FoldList;
       use crate::card::keyword::Keyword::*;
 
       let mut oldfolds = FoldList::new();
