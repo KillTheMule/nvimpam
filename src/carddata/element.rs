@@ -1,6 +1,6 @@
 //! This modules holds the the global static element [`Card`](::card::Card)
 //! instances.
-use card::{cell::Cell::*, keyword::Keyword::*, line::Line::*, Card};
+use crate::card::{cell::Cell::*, keyword::Keyword::*, line::Line::*, Card};
 
 pub static SOLID: Card = Card {
   lines: &[
@@ -357,7 +357,7 @@ pub static IMPMA: Card = Card {
 
 #[cfg(test)]
 mod tests {
-  use card::keyword::Keyword::*;
+  use crate::card::keyword::Keyword::*;
 
   const CARD_SOLID: [&'static str; 15] = [
     "$SOLID Element",

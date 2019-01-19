@@ -1,6 +1,6 @@
 //! This modules holds the the global static node [`Card`](::card::Card)
 //! instances.
-use card::{
+use crate::card::{
   cell::Cell::*,
   ges::GesType::*,
   keyword::Keyword::*,
@@ -53,7 +53,7 @@ pub static NSMAS2: Card = Card {
 
 #[cfg(test)]
 mod tests {
-  use card::keyword::Keyword::*;
+  use crate::card::keyword::Keyword::*;
 
   const CARD_NSMAS: [&'static str; 7] = [
     "NSMAS /        1              0.                                                ",

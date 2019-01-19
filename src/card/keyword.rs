@@ -7,7 +7,7 @@
 //! Also provides the [`Keywords`](::card::keyword::Keywords) struct to hold the
 //! keywords of a [`Lines`](::lines::Lines) struct. Supposed to be kept in sync
 //! via [`Keywords::update`](::card::keyword::Keywords::update).
-use lines::Lines;
+use crate::lines::Lines;
 use std::ops::Deref;
 
 /// An enum to denote the several types of cards a line might belong to.
@@ -386,7 +386,7 @@ impl Deref for Keywords {
 
 #[cfg(test)]
 mod tests {
-  use card::keyword::{Keyword::*, Keywords};
+  use crate::card::keyword::{Keyword::*, Keywords};
 
   #[test]
   fn first() {

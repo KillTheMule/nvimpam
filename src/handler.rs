@@ -7,7 +7,7 @@ use std::sync::mpsc;
 use failure::{self, Error};
 use neovim_lib::{neovim_api::Buffer, Handler, Value};
 
-use event::Event;
+use crate::event::Event;
 
 /// The handler containing the sending end of a channel. The receiving end is
 /// the main [`event loop`](::event::Event::event_loop).

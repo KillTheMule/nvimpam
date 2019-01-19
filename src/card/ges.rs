@@ -125,7 +125,7 @@ impl GesType {
 
 #[cfg(test)]
 mod tests {
-  use card::ges::GesType::GesNode;
+  use crate::card::ges::GesType::GesNode;
 
   const LINES: [&'static str; 10] = [
     "ab ll",

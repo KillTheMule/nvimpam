@@ -1,6 +1,6 @@
 //! This modules holds the the global static link [`Card`](::card::Card)
 //! instances.
-use card::{
+use crate::card::{
   cell::Cell::*, ges::GesType::*, keyword::Keyword::*, line::Line::*, Card,
 };
 
@@ -63,7 +63,7 @@ pub static TIED: Card = Card {
 
 #[cfg(test)]
 mod tests {
-  use card::keyword::Keyword::*;
+  use crate::card::keyword::Keyword::*;
 
   const CARD_ELINK: [&'static str; 13] = [
     "$ELINK Element",

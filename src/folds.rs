@@ -25,10 +25,10 @@ use neovim_lib::{Neovim, NeovimApi, Value};
 
 use itertools::Itertools;
 
-use card::keyword::Keyword;
-use highlights::HighlightGroup as Hl;
-use lines::{Line, ParsedLine};
-use nocommentiter::CommentLess;
+use crate::card::keyword::Keyword;
+use crate::highlights::HighlightGroup as Hl;
+use crate::lines::{Line, ParsedLine};
+use crate::nocommentiter::CommentLess;
 
 macro_rules! unwrap_or_ok {
   ($option:expr) => {
@@ -497,8 +497,8 @@ macro_rules! splicetest {
   $first: expr, $last: expr, $added: expr; expected: $([$($g: expr),+]),+ ) => {
     #[test]
     fn $fn() {
-      use folds::FoldList;
-      use card::keyword::Keyword::*;
+      use crate::folds::FoldList;
+      use crate::card::keyword::Keyword::*;
 
       let mut oldfolds = FoldList::new();
       $(let _ = oldfolds.insert($($e),+);)+
@@ -516,7 +516,7 @@ macro_rules! splicetest {
 
 #[cfg(test)]
 mod tests {
-  use card::keyword::Keyword::*;
+  use crate::card::keyword::Keyword::*;
 
   const LINES: [&'static str; 20] = [
     /* 0 */

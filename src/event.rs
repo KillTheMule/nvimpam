@@ -9,8 +9,8 @@ use neovim_lib::{
   neovim_api::{Buffer, NeovimApi},
 };
 
-use folds::FoldList;
-use lines::Lines;
+use crate::folds::FoldList;
+use crate::lines::Lines;
 
 /// The event list the main loop reacts to
 pub enum Event {
@@ -67,7 +67,7 @@ impl Event {
     file: Option<OsString>,
   ) -> Result<(), Error> {
     use self::Event::*;
-    use card::keyword::Keywords;
+    use crate::card::keyword::Keywords;
 
     let curbuf = nvim.get_current_buf()?;
 

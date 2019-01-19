@@ -7,15 +7,15 @@
 //! [`NoCommentIter`](::nocommentiter::NoCommentIter).
 use std::default::Default;
 
-use card::{
+use crate::card::{
   ges::GesType,
   keyword::Keyword,
   line::{CondResult, Line as CardLine},
   Card,
 };
-use lines::{KeywordLine, ParsedLine};
-use skipresult::SkipResult;
-use folds::FoldList;
+use crate::lines::{KeywordLine, ParsedLine};
+use crate::skipresult::SkipResult;
+use crate::folds::FoldList;
 
 // Used in skip functions. Returns the next `ParsedLine` from the iterator. If
 // theres no next line, return a `SkipResult` containing the line number of
@@ -326,14 +326,14 @@ where
 
 #[cfg(test)]
 mod tests {
-  use card::{
+  use crate::card::{
     ges::GesType::GesNode,
     keyword::Keyword::{self, *},
   };
-  use carddata::*;
-  use lines::{KeywordLine, Lines, ParsedLine};
-  use nocommentiter::{CommentLess, NoCommentIter};
-  use folds::FoldList;
+  use crate::carddata::*;
+  use crate::lines::{KeywordLine, Lines, ParsedLine};
+  use crate::nocommentiter::{CommentLess, NoCommentIter};
+  use crate::folds::FoldList;
 
   macro_rules! pline {
     ($number:expr, $text:expr, $keyword:expr) => {

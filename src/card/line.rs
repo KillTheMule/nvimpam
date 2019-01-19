@@ -5,8 +5,8 @@ use std::{cmp, ops::Range};
 
 use atoi::atoi;
 
-use card::{cell::Cell, ges::GesType, keyword::Keyword};
-use highlights::{HlIter, HlLine};
+use crate::card::{cell::Cell, ges::GesType, keyword::Keyword};
+use crate::highlights::{HlIter, HlLine};
 
 /// A line (actually, zero or more lines) inside a card in a Pamcrash input
 /// file.
@@ -148,7 +148,7 @@ impl Conditional {
 
 #[cfg(test)]
 mod tests {
-  use card::line::{CondResult::*, Conditional};
+  use crate::card::line::{CondResult::*, Conditional};
 
   #[test]
   fn relchar_can_be_evaluated() {

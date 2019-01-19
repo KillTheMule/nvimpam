@@ -2,7 +2,7 @@
 //! [`NoCommentIter`](::nocommentiter::NoCommentIter)
 use std::fmt;
 
-use lines::ParsedLine;
+use crate::lines::ParsedLine;
 
 /// A struct returned by
 /// [`skip_to_next_keyword`](::nocommentiter::NoCommentIter::skip_to_next_keyword).

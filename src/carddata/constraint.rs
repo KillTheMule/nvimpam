@@ -1,11 +1,11 @@
 //! This modules holds the the global static constraint [`Card`](::card::Card)
 //! instances.
-use card::cell::Cell::*;
-use card::ges::GesType::*;
-use card::keyword::Keyword::*;
-use card::line::Conditional::*;
-use card::line::Line::*;
-use card::Card;
+use crate::card::cell::Cell::*;
+use crate::card::ges::GesType::*;
+use crate::card::keyword::Keyword::*;
+use crate::card::line::Conditional::*;
+use crate::card::line::Line::*;
+use crate::card::Card;
 
 pub static MTOCO: Card = Card {
   lines: &[
@@ -182,7 +182,7 @@ pub static RBODY3: Card = Card {
 
 #[cfg(test)]
 mod tests {
-  use card::keyword::Keyword::*;
+  use crate::card::keyword::Keyword::*;
 
   const CARD_MTOCO: [&'static str; 11] = [
     "$Regular MTOCO",

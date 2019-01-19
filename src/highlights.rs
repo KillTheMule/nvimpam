@@ -1,8 +1,8 @@
 //! The highlight module
 use std::{self, cmp, convert::From};
 
-use card::{cell::Cell, line::Line as CardLine};
-use highlights::HighlightGroup as Hl;
+use crate::card::{cell::Cell, line::Line as CardLine};
+use crate::highlights::HighlightGroup as Hl;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum HighlightGroup {

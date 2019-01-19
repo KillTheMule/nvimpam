@@ -13,7 +13,7 @@ use std::{
 
 use failure::{Error, ResultExt};
 
-use card::keyword::Keyword;
+use crate::card::keyword::Keyword;
 
 /// An enum representing a line of a file, either as a byte slice (which we
 /// obtain from reading a file into a `Vec<u8>` and splitting on newlines) or an
@@ -263,7 +263,7 @@ impl<'a> Deref for Lines<'a> {
 
 #[cfg(test)]
 mod tests {
-  use lines::{Line::*, Lines};
+  use crate::lines::{Line::*, Lines};
 
   const LINES: &str = "This\nis \nan \nexample \nof \nsome \nlines \n.";
 

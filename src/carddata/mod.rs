@@ -8,9 +8,9 @@ macro_rules! cardtest {
   ($name: ident, $c: expr, $v: expr) => {
     #[test]
     fn $name() {
-      use card::keyword::Keyword;
-      use folds::FoldList;
-      use lines::Lines;
+      use crate::card::keyword::Keyword;
+      use crate::folds::FoldList;
+      use crate::lines::Lines;
 
       let lines = Lines::from_strs(&$c);
       let keywords: Vec<_> =
@@ -25,9 +25,9 @@ macro_rules! cardtest {
   ($name: ident, $c: ident, $v: expr, $w: expr) => {
     #[test]
     fn $name() {
-      use card::keyword::Keyword;
-      use folds::FoldList;
-      use lines::Lines;
+      use crate::card::keyword::Keyword;
+      use crate::folds::FoldList;
+      use crate::lines::Lines;
 
       let lines = Lines::from_strs(&$c);
       let keywords: Vec<_> =
