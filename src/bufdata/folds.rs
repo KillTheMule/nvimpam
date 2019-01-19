@@ -1,226 +1,36 @@
-//! This module provides the [`FoldList`](::folds::FoldList) struct to
-//! manage folds in a buffer. It carries both level 1 folds as well as level 2
-//! folds (i.e. folds that contain folds of level 1). All functions that
-//! insert/remove/modify folds operate on level 1 folds, the only thing to be
-//! done for the level 2 folds is regenerating them in full from the level 1
-//! folds.
-//!
-//! Example usage:
-//!
-//! ```
-//! # use nvimpam_lib::bufdata::folds::FoldList;
-//! # use nvimpam_lib::card::keyword::Keyword;
-//! let mut foldlist = FoldList::new();
-//! foldlist
-//!   .checked_insert(1, 2, Keyword::Node)
-//!   .map_err(|e| println!("{}", e));
-//! assert!(foldlist.remove(2, 3).is_err());
-//! assert!(foldlist.remove(1, 2).is_ok());
-//! ```
+//! Holds the `Folds` datastructure for the fold data associated with a buffer
 use std::collections::{btree_map::Entry, BTreeMap};
 
-use failure::{self, Error, ResultExt};
-
-use neovim_lib::{Neovim, NeovimApi, Value};
-
+use failure::Error;
 use itertools::Itertools;
 
 use crate::card::keyword::Keyword;
-use crate::bufdata::highlights::Highlights;
-use crate::lines::{Line, ParsedLine};
-use crate::nocommentiter::CommentLess;
 
-macro_rules! unwrap_or_ok {
-  ($option:expr) => {
-    match $option {
-      None => return Ok(()),
-      Some(t) => t,
-    }
-  };
-  ($option:expr, $ret:expr) => {
-    match $option {
-      None => return Ok($ret),
-      Some(t) => t,
-    }
-  };
-}
-
-/// Holds the fold data of the buffer. A fold has the following data:
-/// Linenumbers start, end (indexed from 0), and a
-/// [Keyword](::card::Keyword).
 #[derive(Default, Debug)]
-pub struct FoldList {
-  /// List of folds, keyed by [start, end], valued by
-  /// `([Keyword](::card::keyword::Keyword), String)`, where the `String` is
-  /// the fold's text. Sorted lexicographically on [start, end] (linenumbers
-  /// starting at 0).
-  folds: BTreeMap<[u64; 2], (Keyword, String)>,
-  /// List of level 2 folds (i.e. containing level 1 folds), keyed by [start,
-  /// end], valued by `([Keyword](::card::keyword::Keyword), String)`, where
-  /// the `String` is the fold's text. Sorted lexicographically on [start,
-  /// end] (linenumbers starting at 0).
-  folds_level2: BTreeMap<[u64; 2], (Keyword, String)>,
-  /// Highlights
-  pub highlights_by_line: Highlights,
-}
+pub struct Folds(BTreeMap<[u64;2], (Keyword, String)>);
 
-impl FoldList {
-  /// Create a new FoldList. There does not seem to
-  /// be a way to create one with a predetermined capacity.
-  pub fn new() -> FoldList {
-    FoldList {
-      folds: BTreeMap::new(),
-      folds_level2: BTreeMap::new(),
-      highlights_by_line: Highlights::new(),
-    }
+impl Folds {
+  pub fn new() -> Self {
+    Folds(BTreeMap::new())
   }
 
-  /// Clear FoldList, by clearing the BTreeMap's individually
   pub fn clear(&mut self) {
-    self.folds.clear();
-    self.folds_level2.clear();
-    self.highlights_by_line.clear();
+    self.0.clear()
   }
 
-  // TODO: Pass newfolds by value
-  pub fn splice(
-    &mut self,
-    newfolds: &mut FoldList,
-    firstline: usize,
-    lastline: usize,
-    added: i64,
-  ) {
-    // Deal with highlights
-    self.highlights_by_line.splice(&mut newfolds.highlights_by_line, firstline,
-                                   lastline, added);
+  pub fn iter(&self) -> impl Iterator<Item = (&[u64;2], &(Keyword, String))> {
+    self.0.iter()
+  }
 
-    // Deal with folds
-
-    let mut to_delete = vec![];
-    let mut to_split = vec![];
-    let mut last_before = None;
-    let mut first_after = None;
-    for (k, v) in self.folds.iter() {
-      if (k[0] as usize) < firstline {
-        last_before = Some((*k, v.0));
-      }
-      if lastline <= k[1] as usize && first_after.is_none() {
-        first_after = Some((*k, v.0));
-      }
-
-      if firstline <= k[0] as usize && (k[0] as usize) < lastline {
-        if (k[1] as usize) < lastline {
-          to_delete.push(*k);
-        } else {
-          to_split.push((*k, v.0));
-        }
-      } else if ((firstline as usize) <= k[1] as usize)
-        && ((k[1] as usize) < lastline)
-      {
-        // from the if above, we can assume k[0] < firstline
-        to_split.push((*k, v.0));
-      } else if (k[0] as usize) < firstline && lastline <= k[1] as usize {
-        to_split.push((*k, v.0))
-      }
-
-      if lastline <= k[0] as usize {
-        break;
-      }
-    }
-
-    for k in to_delete {
-      self.folds.remove(&k);
-    }
-
-    for (k, v) in to_split.into_iter() {
-      self.folds.remove(&k);
-
-      if k[0] < firstline as u64 {
-        let _ = self.checked_insert(k[0], firstline as u64 - 1, v);
-        last_before = Some(([k[0], firstline as u64 - 1], v))
-      }
-
-      if (lastline as u64) <= k[1] {
-        let _ = self.checked_insert(lastline as u64, k[1], v);
-        first_after = Some(([lastline as u64, k[1]], v));
-      }
-    }
-
-    let first_new = match newfolds.folds.iter().next() {
-      Some((k, v)) => Some((*k, v.0)),
-      None => None,
-    };
-    let mut merge_to_first = None;
-    let _ = last_before.map(|(k1, v1)| {
-      first_new.map(|(_, v2)| {
-        if v1 == v2 {
-          self.folds.remove(&k1);
-          merge_to_first = last_before;
-        }
-      })
-    });
-
-    let last_new = match newfolds.folds.range([0, 0]..).next_back() {
-      Some((k, v)) => Some((*k, v.0)),
-      None => None,
-    };
-    let mut merge_to_last = None;
-    let _ = first_after.map(|(k1, v1)| {
-      last_new.map(|(_, v2)| {
-        if v1 == v2 {
-          self.folds.remove(&k1);
-          merge_to_last = first_after;
-        }
-      })
-    });
-
-    let first_fold_to_move =
-      match self.folds.range([lastline as u64, 0]..).next() {
-        Some((i, k)) => Some((*i, k.0)),
-        None => None,
-      };
-
-    if let Some((f, _)) = first_fold_to_move {
-      let to_move = self.folds.split_off(&f);
-
-      for (k, v) in to_move.iter() {
-        let _ = self.insert(
-          (k[0] as i64 + added) as u64,
-          (k[1] as i64 + added) as u64,
-          v.0,
-        );
-      }
-    }
-
-    let mut last_added = None;
-    for (k, v) in newfolds.folds.iter() {
-      if let Some((k1, _)) = merge_to_first {
-        let _ = self.insert(k1[0], k[1] + firstline as u64, v.0);
-        last_added = Some([k1[0], k[1] + firstline as u64]);
-        merge_to_first = None;
-      } else {
-        let _ =
-          self.insert(k[0] + firstline as u64, k[1] + firstline as u64, v.0);
-        last_added = Some([k[0] + firstline as u64, k[1] + firstline as u64]);
-      }
-    }
-
-    if let Some(i) = last_added {
-      if let Some((k2, v2)) = merge_to_last {
-        self.folds.remove(&i);
-        let _ = self.insert(i[0], (k2[1] as i64 + added) as u64, v2);
-      }
-    }
-
-    // TODO: Should not need to call clear myself here
-    let _ = self.recreate_level2();
+  pub fn len(&self) -> usize {
+    self.0.len()
   }
 
   /// Insert a level 1 fold `([start, end], Keyword)` into the FoldList.
   /// Returns an error if that fold is already in the list. In that case,
   /// it needs to be [removed](struct.FoldList.html#method.remove) beforehand.
   fn insert(&mut self, start: u64, end: u64, kw: Keyword) -> Result<(), Error> {
-    match self.folds.entry([start, end]) {
+    match self.0.entry([start, end]) {
       Entry::Occupied(_) => {
         return Err(failure::err_msg("Fold already in foldlist!"))
       }
@@ -255,35 +65,29 @@ impl FoldList {
   /// fold is in the FoldList, and returns an error otherwise.
   pub fn remove(&mut self, start: u64, end: u64) -> Result<(), Error> {
     self
-      .folds
+      .0
       .remove(&[start, end])
       .ok_or_else(|| failure::err_msg("Could not remove fold from foldlist"))?;
     Ok(())
   }
 
-  /// Remove all the entries from the FoldList, and iterate over lines to
-  /// populate it with new ones. Then recreate the [level 2
-  /// folds](::folds::FoldList::folds_level2).
-  pub fn recreate_all(
-    &mut self,
-    keywords: &[Option<Keyword>],
-    lines: &[Line],
-  ) -> Result<(), Error> {
-    self.clear();
-    self.add_folds(keywords, lines)?;
-    self.recreate_level2()
+  /// Copy the elements of a FoldList of the given level into a Vec, containing
+  /// the tuples (start, end, Keyword)
+  pub fn to_vec(&self) -> Vec<(u64, u64, Keyword)> {
+    self.0.iter().map(|(r, (k, _))| (r[0], r[1], *k)).collect()
   }
+
 
   /// Recreate the level 2 folds from the level 1 folds. If there's no or one
   /// level 1 fold, `Ok(())` is returned.
-  fn recreate_level2(&mut self) -> Result<(), Error> {
-    self.folds_level2.clear();
+  pub fn recreate_level2(&mut self, folds: &Folds) -> Result<(), Error> {
+    self.0.clear();
 
-    if self.folds.len() < 2 {
+    if folds.len() < 2 {
       return Ok(());
     }
 
-    let grouped = self.folds.iter().group_by(|(_, &(kw, _))| kw);
+    let grouped = folds.iter().group_by(|(_, &(kw, _))| kw);
 
     for (kw, mut group) in &grouped {
       let mut group = group.enumerate();
@@ -297,7 +101,7 @@ impl FoldList {
       let lastline = lastfold.0[1];
 
       if firstline < lastline {
-        match self.folds_level2.entry([firstline, lastline]) {
+        match self.0.entry([firstline, lastline]) {
           Entry::Occupied(_) => {
             return Err(failure::err_msg("Fold already in foldlist_level2!"))
           }
@@ -310,89 +114,131 @@ impl FoldList {
     Ok(())
   }
 
-  /// Delete all folds in nvim, and create the ones from the FoldList.
-  pub fn resend_all(&self, nvim: &mut Neovim) -> Result<(), Error> {
-    let luafn = "require('nvimpam').update_folds(...)";
-    let mut luaargs = vec![];
-
-    for (range, (_, text)) in self.folds.iter().chain(&self.folds_level2) {
-      luaargs.push(Value::from(vec![
-        Value::from(range[0] + 1),
-        Value::from(range[1] + 1),
-        Value::from(text.to_string()),
-      ]));
-    }
-
-    nvim
-      .execute_lua(luafn, vec![Value::from(luaargs)])
-      .context("Execute lua failed")?;
-
-    Ok(())
-  }
-
-  /// Copy the elements of a FoldList of the given level into a Vec, containing
-  /// the tuples (start, end, Keyword)
-  pub fn to_vec(&self, level: u8) -> Vec<(u64, u64, Keyword)> {
-    if level == 1 {
-      self.folds.iter().map(|(r, (k, _))| (r[0], r[1], *k)).collect()
-    } else if level == 2 {
-      self
-        .folds_level2
-        .iter()
-        .map(|(r, (k, _))| (r[0], r[1], *k))
-        .collect()
-    } else {
-      unimplemented!()
-    }
-  }
-
-  /// Parse an array of `Option<Keyword>`s into a
-  /// [`FoldList`](::folds::FoldList). The foldlist is cleared as a first step.
-  ///
-  /// Creates only level 1 folds. Depending on the
-  /// [`ownfold`](::card::Card::ownfold) parameter in the
-  /// definition of the card in the [carddata](::carddata) module, each card
-  /// will be in an own fold, or several adjacent (modulo comments) cards will
-  /// be subsumed into a fold.
-  pub fn add_folds(
+  // TODO: Pass newfolds by value
+  pub fn splice(
     &mut self,
-    keywords: &[Option<Keyword>],
-    lines: &[Line],
-  ) -> Result<(), Error> {
-    debug_assert!(keywords.len() == lines.len());
-    let mut li = keywords
-      .iter()
-      .zip(lines)
-      .enumerate()
-      .map(ParsedLine::from)
-      .remove_comments();
+    newfolds: &mut Folds,
+    firstline: usize,
+    lastline: usize,
+    added: i64,
+  ) {
+    let mut to_delete = vec![];
+    let mut to_split = vec![];
+    let mut last_before = None;
+    let mut first_after = None;
+    for (k, v) in self.0.iter() {
+      if (k[0] as usize) < firstline {
+        last_before = Some((*k, v.0));
+      }
+      if lastline <= k[1] as usize && first_after.is_none() {
+        first_after = Some((*k, v.0));
+      }
 
-    let mut foldstart;
-    let mut foldend;
-    let mut foldkw;
-    let mut skipped;
-
-    let mut nextline = unwrap_or_ok!(li.skip_to_next_keyword());
-
-    loop {
-      foldkw = nextline.keyword;
-      foldstart = nextline.number;
-      skipped = li.skip_fold(&nextline, self);
-
-      // The latter only happens when a file ends after the only line of a card
-      foldend = skipped.skip_end.unwrap_or_else(|| lines.len() - 1);
-
-      self.checked_insert(foldstart as u64, foldend as u64, *foldkw)?;
-
-      if let Some(Some(kl)) =
-        skipped.nextline.map(|pl| pl.try_into_keywordline())
+      if firstline <= k[0] as usize && (k[0] as usize) < lastline {
+        if (k[1] as usize) < lastline {
+          to_delete.push(*k);
+        } else {
+          to_split.push((*k, v.0));
+        }
+      } else if ((firstline as usize) <= k[1] as usize)
+        && ((k[1] as usize) < lastline)
       {
-        nextline = kl;
+        // from the if above, we can assume k[0] < firstline
+        to_split.push((*k, v.0));
+      } else if (k[0] as usize) < firstline && lastline <= k[1] as usize {
+        to_split.push((*k, v.0))
+      }
+
+      if lastline <= k[0] as usize {
+        break;
+      }
+    }
+
+    for k in to_delete {
+      self.0.remove(&k);
+    }
+
+    for (k, v) in to_split.into_iter() {
+      self.0.remove(&k);
+
+      if k[0] < firstline as u64 {
+        let _ = self.checked_insert(k[0], firstline as u64 - 1, v);
+        last_before = Some(([k[0], firstline as u64 - 1], v))
+      }
+
+      if (lastline as u64) <= k[1] {
+        let _ = self.checked_insert(lastline as u64, k[1], v);
+        first_after = Some(([lastline as u64, k[1]], v));
+      }
+    }
+
+    let first_new = match newfolds.0.iter().next() {
+      Some((k, v)) => Some((*k, v.0)),
+      None => None,
+    };
+    let mut merge_to_first = None;
+    let _ = last_before.map(|(k1, v1)| {
+      first_new.map(|(_, v2)| {
+        if v1 == v2 {
+          self.0.remove(&k1);
+          merge_to_first = last_before;
+        }
+      })
+    });
+
+    let last_new = match newfolds.0.range([0, 0]..).next_back() {
+      Some((k, v)) => Some((*k, v.0)),
+      None => None,
+    };
+    let mut merge_to_last = None;
+    let _ = first_after.map(|(k1, v1)| {
+      last_new.map(|(_, v2)| {
+        if v1 == v2 {
+          self.0.remove(&k1);
+          merge_to_last = first_after;
+        }
+      })
+    });
+
+    let first_fold_to_move =
+      match self.0.range([lastline as u64, 0]..).next() {
+        Some((i, k)) => Some((*i, k.0)),
+        None => None,
+      };
+
+    if let Some((f, _)) = first_fold_to_move {
+      let to_move = self.0.split_off(&f);
+
+      for (k, v) in to_move.iter() {
+        let _ = self.insert(
+          (k[0] as i64 + added) as u64,
+          (k[1] as i64 + added) as u64,
+          v.0,
+        );
+      }
+    }
+
+    let mut last_added = None;
+    for (k, v) in newfolds.0.iter() {
+      if let Some((k1, _)) = merge_to_first {
+        let _ = self.insert(k1[0], k[1] + firstline as u64, v.0);
+        last_added = Some([k1[0], k[1] + firstline as u64]);
+        merge_to_first = None;
       } else {
-        nextline = unwrap_or_ok!(li.skip_to_next_keyword());
+        let _ =
+          self.insert(k[0] + firstline as u64, k[1] + firstline as u64, v.0);
+        last_added = Some([k[0] + firstline as u64, k[1] + firstline as u64]);
+      }
+    }
+
+    if let Some(i) = last_added {
+      if let Some((k2, v2)) = merge_to_last {
+        self.0.remove(&i);
+        let _ = self.insert(i[0], (k2[1] as i64 + added) as u64, v2);
       }
     }
   }
+
 }
 
 #[cfg(test)]
@@ -401,19 +247,19 @@ macro_rules! splicetest {
   $first: expr, $last: expr, $added: expr; expected: $([$($g: expr),+]),+ ) => {
     #[test]
     fn $fn() {
-      use crate::bufdata::folds::FoldList;
+      use crate::bufdata::folds::Folds;
       use crate::card::keyword::Keyword::*;
 
-      let mut oldfolds = FoldList::new();
+      let mut oldfolds = Folds::new();
       $(let _ = oldfolds.insert($($e),+);)+
 
-      let mut newfolds = FoldList::new();
+      let mut newfolds = Folds::new();
       $(let _ = newfolds.insert($($f),+);)+
 
       oldfolds.splice(&mut newfolds, $first, $last, $added);
       let v = vec![$( ($($g),+ ),)+];
 
-      assert_eq!(v, oldfolds.to_vec(1));
+      assert_eq!(v, oldfolds.to_vec());
     }
   };
 }

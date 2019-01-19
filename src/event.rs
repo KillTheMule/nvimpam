@@ -9,7 +9,7 @@ use neovim_lib::{
   neovim_api::{Buffer, NeovimApi},
 };
 
-use crate::bufdata::folds::FoldList;
+use crate::bufdata::BufData;
 use crate::lines::Lines;
 
 /// The event list the main loop reacts to
@@ -71,8 +71,8 @@ impl Event {
 
     let curbuf = nvim.get_current_buf()?;
 
-    let mut foldlist = FoldList::new();
-    let mut tmp_folds = FoldList::new();
+    let mut foldlist = BufData::new();
+    let mut tmp_folds = BufData::new();
     let origlines;
     let mut lines = Default::default();
     let mut keywords: Keywords = Default::default();
@@ -84,7 +84,7 @@ impl Event {
         lines = Lines::from_slice(&origlines);
         keywords = Keywords::from_lines(&lines);
         foldlist.recreate_all(&keywords, &lines)?;
-        foldlist.resend_all(&mut nvim)?;
+        foldlist.resend_all_folds(&mut nvim)?;
         curbuf.attach(&mut nvim, false, vec![])?
       }
     };
@@ -110,7 +110,7 @@ impl Event {
             lines = Lines::from_vec(linedata);
             keywords = Keywords::from_lines(&lines);
             foldlist.recreate_all(&keywords, &lines)?;
-            foldlist.resend_all(&mut nvim)?;
+            foldlist.resend_all_folds(&mut nvim)?;
           } else if lastline >= 0 && firstline >= 0 {
             let added:i64 = linedata.len() as i64 - (lastline - firstline);
             keywords.update(firstline as usize, lastline as usize, &linedata);
@@ -128,7 +128,7 @@ impl Event {
               last as usize,
               added,
             );
-            foldlist.highlights_by_line.highlight_region(
+            foldlist.highlights.highlight_region(
               &mut nvim,
               first as u64,
               last as u64,
@@ -141,7 +141,7 @@ impl Event {
           }
         }
         Ok(RefreshFolds) => {
-          foldlist.resend_all(&mut nvim)?;
+          foldlist.resend_all_folds(&mut nvim)?;
         }
         Ok(HighlightRegion {
           firstline,
@@ -156,7 +156,7 @@ impl Event {
             ll += 1;
           }
 
-          foldlist.highlights_by_line.highlight_region(&mut nvim, fl, ll)?;
+          foldlist.highlights.highlight_region(&mut nvim, fl, ll)?;
         }
         Ok(Quit) => {
           break;

@@ -14,7 +14,7 @@ static GLOBAL: System = System;
 use std::{path::Path, process::Command, sync::mpsc};
 
 use nvimpam_lib::{
-  card::keyword::Keywords, event::Event::*, bufdata::folds::FoldList,
+  card::keyword::Keywords, event::Event::*, bufdata::BufData,
   handler::NeovimHandler, lines::Lines,
 };
 
@@ -39,7 +39,7 @@ fn main() {
   nvim.command("silent e! files/example.pc").expect("2");
   let curbuf = nvim.get_current_buf().expect("3");
 
-  let mut foldlist = FoldList::new();
+  let mut foldlist = BufData::new();
   let origlines = Lines::read_file("files/example.pc").expect("3.1");
   let lines = Lines::from_slice(&origlines);
   let keywords = Keywords::from_lines(&lines);
@@ -47,7 +47,7 @@ fn main() {
 
   while let Ok(ChangedTickEvent { .. }) = receiver.recv() {
     foldlist.recreate_all(&keywords, &lines).expect("5");
-    foldlist.resend_all(&mut nvim).expect("6");
+    foldlist.resend_all_folds(&mut nvim).expect("6");
     curbuf.detach(&mut nvim).expect("7");
     nvim.command("call rpcnotify(1, 'quit')").unwrap();
   }

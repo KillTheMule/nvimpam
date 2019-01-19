@@ -15,7 +15,7 @@ use crate::card::{
 };
 use crate::lines::{KeywordLine, ParsedLine};
 use crate::skipresult::SkipResult;
-use crate::bufdata::folds::FoldList;
+use crate::bufdata::BufData;
 
 // Used in skip functions. Returns the next `ParsedLine` from the iterator. If
 // theres no next line, return a `SkipResult` containing the line number of
@@ -184,7 +184,7 @@ where
   pub fn skip_fold<'b>(
     &'b mut self,
     skipline: &KeywordLine<'a>,
-    folds: &mut FoldList,
+    folds: &mut BufData,
   ) -> SkipResult<'a> {
     let card: &Card = skipline.keyword.into();
 
@@ -206,7 +206,7 @@ where
     &'b mut self,
     skipline: &KeywordLine<'a>,
     card: &Card,
-    folds: &mut FoldList,
+    folds: &mut BufData,
   ) -> SkipResult<'a> {
     let mut conds: Vec<CondResult> = vec![]; // the vec to hold the conditionals
     let mut cardlines = card.lines.iter();
@@ -216,7 +216,7 @@ where
       conds.push(c.evaluate(skipline.text));
     }
 
-    folds.highlights_by_line.extend(cardline.highlights(skipline.number, skipline.text));
+    folds.highlights.extend(cardline.highlights(skipline.number, skipline.text));
 
     let mut previdx: Option<usize> = None;
     let mut nextline = next_or_return_previdx!(self, previdx);
@@ -243,7 +243,7 @@ where
           }
         }
         CardLine::Cells(_s) => {
-          folds.highlights_by_line.extend(cardline.highlights(nextline.number, nextline.text));
+          folds.highlights.extend(cardline.highlights(nextline.number, nextline.text));
           advance!(self, previdx, nextline);
         }
         CardLine::Optional(_s, i) => {
@@ -307,7 +307,7 @@ where
     &'b mut self,
     skipline: &KeywordLine<'a>,
     card: &Card,
-    folds: &mut FoldList,
+    folds: &mut BufData,
   ) -> SkipResult<'a> {
     let mut res = self.skip_card(&skipline, card, folds);
 
@@ -333,7 +333,7 @@ mod tests {
   use crate::carddata::*;
   use crate::lines::{KeywordLine, Lines, ParsedLine};
   use crate::nocommentiter::{CommentLess, NoCommentIter};
-  use crate::bufdata::folds::FoldList;
+  use crate::bufdata::BufData;
 
   macro_rules! pline {
     ($number:expr, $text:expr, $keyword:expr) => {
@@ -586,7 +586,7 @@ mod tests {
     skip_incomplete_cards,
     CARD_MASS_INCOMPLETE,
     {|l: &mut NoCommentIter<_>| {
-        let mut folds = FoldList::new();
+        let mut folds = BufData::new();
         let firstline = l.next().unwrap();
         let tmp = l.skip_card(
           &firstline.try_into_keywordline().unwrap(),
@@ -647,7 +647,7 @@ mod tests {
 
   #[test]
   fn skips_gather_cards() {
-    let mut folds = FoldList::new();
+    let mut folds = BufData::new();
     let keywords: Vec<_> = LINES_GATHER
       .iter()
       .map(|l| Keyword::parse(l.as_ref()))

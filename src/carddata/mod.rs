@@ -9,35 +9,35 @@ macro_rules! cardtest {
     #[test]
     fn $name() {
       use crate::card::keyword::Keyword;
-      use crate::bufdata::folds::FoldList;
+      use crate::bufdata::BufData;
       use crate::lines::Lines;
 
       let lines = Lines::from_strs(&$c);
       let keywords: Vec<_> =
         lines.iter().map(|l| Keyword::parse(l.as_ref())).collect();
 
-      let mut foldlist = FoldList::new();
+      let mut foldlist = BufData::new();
       let _ = foldlist.recreate_all(&keywords, &lines);
 
-      assert_eq!($v, foldlist.to_vec(1));
+      assert_eq!($v, foldlist.folds.to_vec());
     }
   };
   ($name: ident, $c: ident, $v: expr, $w: expr) => {
     #[test]
     fn $name() {
       use crate::card::keyword::Keyword;
-      use crate::bufdata::folds::FoldList;
+      use crate::bufdata::BufData;
       use crate::lines::Lines;
 
       let lines = Lines::from_strs(&$c);
       let keywords: Vec<_> =
         lines.iter().map(|l| Keyword::parse(l.as_ref())).collect();
 
-      let mut foldlist = FoldList::new();
+      let mut foldlist = BufData::new();
       let _ = foldlist.recreate_all(&keywords, &lines);
 
-      assert_eq!($v, foldlist.to_vec(1));
-      assert_eq!($w, foldlist.to_vec(2));
+      assert_eq!($v, foldlist.folds.to_vec());
+      assert_eq!($w, foldlist.folds_level2.to_vec());
     }
   };
 }

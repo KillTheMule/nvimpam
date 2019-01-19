@@ -9,7 +9,7 @@ use nvimpam_lib::{
     ges::GesType,
     keyword::{Keyword, Keywords},
   },
-  bufdata::folds::FoldList,
+  bufdata::BufData,
   lines::{Lines, ParsedLine},
   nocommentiter::CommentLess,
 };
@@ -28,12 +28,12 @@ fn bench_parse2folddata(c: &mut Criterion) {
       .collect();
     let w: Vec<&str> = v.iter().map(|l| l.as_ref()).collect();
 
-    let mut f = FoldList::new();
+    let mut f = BufData::new();
     b.iter(|| {
       let lines = Lines::from_strs(&w[..]);
       let keywords = Keywords::from_lines(&lines);
       f.clear();
-      let _compacted = f.add_folds(&keywords, &lines);
+      let _compacted = f.add_from(&keywords, &lines);
     });
   });
 }
