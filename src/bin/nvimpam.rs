@@ -23,10 +23,10 @@
 //!
 //! If you want logging, set the following environment variables:
 //!
-//! * `NVIMPAM_LOG_FILE` is the path to the log file (no logging if this is empty)
-//! * `NVIMPAM_LOG_LEVEL` can be one of `error`, `warn`, `info`, `debug` and `trace`, in
-//!    ascending order of verbosity. The default is `warn`.
-//!
+//! * `NVIMPAM_LOG_FILE` is the path to the log file (no logging if this is
+//!   empty)
+//! * `NVIMPAM_LOG_LEVEL` can be one of `error`, `warn`, `info`, `debug` and
+//!   `trace`, in ascending order of verbosity. The default is `warn`.
 #[macro_use]
 extern crate log;
 extern crate failure;
@@ -34,19 +34,15 @@ extern crate neovim_lib;
 extern crate nvimpam_lib;
 extern crate simplelog;
 
-use std::sync::mpsc;
-use std::env::args_os;
+use std::{env::args_os, sync::mpsc};
 
-use failure::Error;
-use failure::ResultExt;
+use failure::{Error, ResultExt};
 
-use nvimpam_lib::event::Event;
-use nvimpam_lib::handler::NeovimHandler;
+use nvimpam_lib::{event::Event, handler::NeovimHandler};
 
-use neovim_lib::neovim::Neovim;
-use neovim_lib::neovim_api::NeovimApi;
-use neovim_lib::session::Session;
-use neovim_lib::Value;
+use neovim_lib::{
+  neovim::Neovim, neovim_api::NeovimApi, session::Session, Value,
+};
 
 use simplelog::{Config, Level, LevelFilter, WriteLogger};
 
@@ -81,9 +77,10 @@ fn main() {
 }
 
 fn init_logging() -> Result<(), Error> {
-  use std::env;
-  use std::env::VarError;
-  use std::fs::File;
+  use std::{
+    env::{self, VarError},
+    fs::File,
+  };
 
   let filepath = match env::var_os("NVIMPAM_LOG_FILE") {
     Some(s) => s,

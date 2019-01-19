@@ -5,7 +5,8 @@ use std::fmt;
 use crate::lines::ParsedLine;
 
 /// A struct returned by
-/// [`skip_to_next_keyword`](::nocommentiter::NoCommentIter::skip_to_next_keyword).
+/// [`skip_to_next_keyword`](::nocommentiter::NoCommentIter::
+/// skip_to_next_keyword).
 
 /// A data structure returned by several skip methods on
 /// [`NoCommentIter`](::nocommentiter::NoCommentIter)

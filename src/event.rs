@@ -9,8 +9,7 @@ use neovim_lib::{
   neovim_api::{Buffer, NeovimApi},
 };
 
-use crate::bufdata::BufData;
-use crate::lines::Lines;
+use crate::{bufdata::BufData, lines::Lines};
 
 /// The event list the main loop reacts to
 pub enum Event {
@@ -112,7 +111,7 @@ impl Event {
             foldlist.recreate_all(&keywords, &lines)?;
             foldlist.resend_all_folds(&mut nvim)?;
           } else if lastline >= 0 && firstline >= 0 {
-            let added:i64 = linedata.len() as i64 - (lastline - firstline);
+            let added: i64 = linedata.len() as i64 - (lastline - firstline);
             keywords.update(firstline as usize, lastline as usize, &linedata);
             lines.update(firstline as usize, lastline as usize, linedata);
             tmp_folds.clear();

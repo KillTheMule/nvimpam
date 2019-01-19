@@ -113,7 +113,13 @@ pub static TETR10: Card = Card {
 };
 
 pub static BAR: Card = Card {
-  lines: &[Cells(&[Kw(Bar), Integer(8), Integer(8), Integer(8), Integer(8)])],
+  lines: &[Cells(&[
+    Kw(Bar),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+  ])],
   ownfold: false,
 };
 
@@ -325,12 +331,24 @@ pub static MTOJNT: Card = Card {
 };
 
 pub static SPHEL: Card = Card {
-  lines: &[Cells(&[Kw(Sphel), Integer(8), Integer(8), Integer(8), Float(8)])],
+  lines: &[Cells(&[
+    Kw(Sphel),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Float(8),
+  ])],
   ownfold: false,
 };
 
 pub static SPHELO: Card = Card {
-  lines: &[Cells(&[Kw(Sphelo), Integer(8), Integer(8), Integer(8), Float(8)])],
+  lines: &[Cells(&[
+    Kw(Sphelo),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Float(8),
+  ])],
   ownfold: false,
 };
 

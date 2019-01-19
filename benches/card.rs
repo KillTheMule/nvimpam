@@ -5,11 +5,11 @@ extern crate criterion;
 use criterion::Criterion;
 
 use nvimpam_lib::{
+  bufdata::BufData,
   card::{
     ges::GesType,
     keyword::{Keyword, Keywords},
   },
-  bufdata::BufData,
   lines::{Lines, ParsedLine},
   nocommentiter::CommentLess,
 };

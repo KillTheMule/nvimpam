@@ -60,6 +60,7 @@ impl<'a> IntoIterator for HlLine<'a> {
     }
   }
 }
+
 #[derive(Debug)]
 pub struct HlIter<'a> {
   line: HlLine<'a>,

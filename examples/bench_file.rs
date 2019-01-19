@@ -14,7 +14,7 @@ static GLOBAL: System = System;
 use std::{path::Path, process::Command, sync::mpsc};
 
 use nvimpam_lib::{
-  card::keyword::Keywords, event::Event::*, bufdata::BufData,
+  bufdata::BufData, card::keyword::Keywords, event::Event::*,
   handler::NeovimHandler, lines::Lines,
 };
 

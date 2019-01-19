@@ -9,18 +9,19 @@
 //!
 //! A datastructure to hold the parsed data belonging to a buffer.
 
-pub mod highlights;
 pub mod folds;
+pub mod highlights;
 
 use failure::{Error, ResultExt};
 
 use neovim_lib::{Neovim, NeovimApi, Value};
 
-use crate::card::keyword::Keyword;
-use crate::bufdata::highlights::Highlights;
-use crate::lines::{Line, ParsedLine};
-use crate::bufdata::folds::Folds;
-use crate::nocommentiter::CommentLess;
+use crate::{
+  bufdata::{folds::Folds, highlights::Highlights},
+  card::keyword::Keyword,
+  lines::{Line, ParsedLine},
+  nocommentiter::CommentLess,
+};
 
 macro_rules! unwrap_or_ok {
   ($option:expr) => {
@@ -37,28 +38,14 @@ macro_rules! unwrap_or_ok {
   };
 }
 
-/// Holds the fold data of the buffer. A fold has the following data:
-/// Linenumbers start, end (indexed from 0), and a
-/// [Keyword](::card::Keyword).
 #[derive(Default, Debug)]
 pub struct BufData {
-  /// List of folds, keyed by [start, end], valued by
-  /// `([Keyword](::card::keyword::Keyword), String)`, where the `String` is
-  /// the fold's text. Sorted lexicographically on [start, end] (linenumbers
-  /// starting at 0).
   pub folds: Folds,
-  /// List of level 2 folds (i.e. containing level 1 folds), keyed by [start,
-  /// end], valued by `([Keyword](::card::keyword::Keyword), String)`, where
-  /// the `String` is the fold's text. Sorted lexicographically on [start,
-  /// end] (linenumbers starting at 0).
   pub folds_level2: Folds,
-  /// Highlights
   pub highlights: Highlights,
 }
 
 impl BufData {
-  /// Create a new FoldList. There does not seem to
-  /// be a way to create one with a predetermined capacity.
   pub fn new() -> BufData {
     BufData {
       folds: Folds::new(),
@@ -67,7 +54,6 @@ impl BufData {
     }
   }
 
-  /// Clear FoldList, by clearing the BTreeMap's individually
   pub fn clear(&mut self) {
     self.folds.clear();
     self.folds_level2.clear();
@@ -82,24 +68,23 @@ impl BufData {
     lastline: usize,
     added: i64,
   ) {
-    // Deal with highlights
-    self.highlights.splice(&mut newfolds.highlights, firstline,
-                                   lastline, added);
+    self.highlights.splice(
+      &mut newfolds.highlights,
+      firstline,
+      lastline,
+      added,
+    );
 
-    // Deal with folds
-    self.folds.splice(&mut newfolds.folds, firstline,
-                                   lastline, added);
+    self
+      .folds
+      .splice(&mut newfolds.folds, firstline, lastline, added);
 
-
-    // TODO: Should not need to call clear myself here
     let _ = self.folds_level2.recreate_level2(&self.folds);
   }
 
-
-
   /// Remove all the entries from the FoldList, and iterate over lines to
   /// populate it with new ones. Then recreate the [level 2
-  /// folds](::folds::FoldList::folds_level2).
+  /// folds](::bufdata::BufData::folds_level2).
   pub fn recreate_all(
     &mut self,
     keywords: &[Option<Keyword>],
@@ -111,7 +96,8 @@ impl BufData {
   }
 
   /// Parse an array of `Option<Keyword>`s into a
-  /// [`FoldList`](::folds::FoldList). The foldlist is cleared as a first step.
+  /// [`BufData`](::bufdata::BufData) struct. The computed folds and highlights
+  /// are inserted in ascending order.
   ///
   /// Creates only level 1 folds. Depending on the
   /// [`ownfold`](::card::Card::ownfold) parameter in the
@@ -146,7 +132,9 @@ impl BufData {
       // The latter only happens when a file ends after the only line of a card
       foldend = skipped.skip_end.unwrap_or_else(|| lines.len() - 1);
 
-      self.folds.checked_insert(foldstart as u64, foldend as u64, *foldkw)?;
+      self
+        .folds
+        .checked_insert(foldstart as u64, foldend as u64, *foldkw)?;
 
       if let Some(Some(kl)) =
         skipped.nextline.map(|pl| pl.try_into_keywordline())
@@ -163,7 +151,8 @@ impl BufData {
     let luafn = "require('nvimpam').update_folds(...)";
     let mut luaargs = vec![];
 
-    for (range, (_, text)) in self.folds.iter().chain(self.folds_level2.iter()) {
+    for (range, (_, text)) in self.folds.iter().chain(self.folds_level2.iter())
+    {
       luaargs.push(Value::from(vec![
         Value::from(range[0] + 1),
         Value::from(range[1] + 1),
@@ -177,5 +166,4 @@ impl BufData {
 
     Ok(())
   }
-
 }

@@ -7,7 +7,7 @@ use itertools::Itertools;
 use crate::card::keyword::Keyword;
 
 #[derive(Default, Debug)]
-pub struct Folds(BTreeMap<[u64;2], (Keyword, String)>);
+pub struct Folds(BTreeMap<[u64; 2], (Keyword, String)>);
 
 impl Folds {
   pub fn new() -> Self {
@@ -18,7 +18,7 @@ impl Folds {
     self.0.clear()
   }
 
-  pub fn iter(&self) -> impl Iterator<Item = (&[u64;2], &(Keyword, String))> {
+  pub fn iter(&self) -> impl Iterator<Item = (&[u64; 2], &(Keyword, String))> {
     self.0.iter()
   }
 
@@ -26,13 +26,13 @@ impl Folds {
     self.0.len()
   }
 
-  /// Insert a level 1 fold `([start, end], Keyword)` into the FoldList.
-  /// Returns an error if that fold is already in the list. In that case,
-  /// it needs to be [removed](struct.FoldList.html#method.remove) beforehand.
+  /// Insert a fold `([start, end], Keyword)`.  Returns an error if that fold is
+  /// already in the list. In that case, it needs to be
+  /// [removed](::bufdata::folds::Folds::remove) beforehand.
   fn insert(&mut self, start: u64, end: u64, kw: Keyword) -> Result<(), Error> {
     match self.0.entry([start, end]) {
       Entry::Occupied(_) => {
-        return Err(failure::err_msg("Fold already in foldlist!"))
+        return Err(failure::err_msg("Fold already in foldlist!"));
       }
       Entry::Vacant(entry) => {
         // TODO: Maybe use a &'static str without #lines for cards with ownfold
@@ -43,12 +43,10 @@ impl Folds {
     Ok(())
   }
 
-  /// Insert a level 1 fold `([start, end], Keyword)` into the FoldList. If
-  /// `end < start`, we silently return.  Otherwise, we call the internal
-  /// insert function that returns an error if the fold is already in the
-  /// list. In that case, it needs to be
-  /// [removed](struct.FoldList.html#method.remove)
-  /// beforehand.
+  /// Insert fold `([start, end], Keyword)`. If `end < start`, we silently
+  /// return.  Otherwise, we call the internal insert function that returns an
+  /// error if the fold is already in the list. In that case, it needs to be
+  /// [removed](::bufdata::folds::Folds::remove) beforehand.
   pub fn checked_insert(
     &mut self,
     start: u64,
@@ -61,8 +59,8 @@ impl Folds {
     Ok(())
   }
 
-  /// Remove a level 1 fold [start, end] from the foldlist. Only checks if the
-  /// fold is in the FoldList, and returns an error otherwise.
+  /// Remove a fold [start, end]. Only checks if the fold is in `Folds`,, and
+  /// returns an error otherwise.
   pub fn remove(&mut self, start: u64, end: u64) -> Result<(), Error> {
     self
       .0
@@ -77,8 +75,7 @@ impl Folds {
     self.0.iter().map(|(r, (k, _))| (r[0], r[1], *k)).collect()
   }
 
-
-  /// Recreate the level 2 folds from the level 1 folds. If there's no or one
+  /// Recreate level 2 folds from level 1 folds. If there's no or one
   /// level 1 fold, `Ok(())` is returned.
   pub fn recreate_level2(&mut self, folds: &Folds) -> Result<(), Error> {
     self.0.clear();
@@ -103,7 +100,7 @@ impl Folds {
       if firstline < lastline {
         match self.0.entry([firstline, lastline]) {
           Entry::Occupied(_) => {
-            return Err(failure::err_msg("Fold already in foldlist_level2!"))
+            return Err(failure::err_msg("Fold already in foldlist_level2!"));
           }
           Entry::Vacant(entry) => {
             entry.insert((kw, format!(" {} {:?}s ", nr + 1, kw)));
@@ -200,11 +197,10 @@ impl Folds {
       })
     });
 
-    let first_fold_to_move =
-      match self.0.range([lastline as u64, 0]..).next() {
-        Some((i, k)) => Some((*i, k.0)),
-        None => None,
-      };
+    let first_fold_to_move = match self.0.range([lastline as u64, 0]..).next() {
+      Some((i, k)) => Some((*i, k.0)),
+      None => None,
+    };
 
     if let Some((f, _)) = first_fold_to_move {
       let to_move = self.0.split_off(&f);
@@ -238,7 +234,6 @@ impl Folds {
       }
     }
   }
-
 }
 
 #[cfg(test)]

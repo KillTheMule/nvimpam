@@ -61,7 +61,10 @@ impl NeovimHandler {
 
     let lastline = parse_u64(&last_arg(&mut args, nea)?)?;
     let firstline = parse_u64(&last_arg(&mut args, nea)?)?;
-    Ok(Event::HighlightRegion { firstline, lastline })
+    Ok(Event::HighlightRegion {
+      firstline,
+      lastline,
+    })
   }
 
   /// Parse a nvim_buf_detach_event notification into a

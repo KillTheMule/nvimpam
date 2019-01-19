@@ -1,16 +1,12 @@
 //! This module contains all the global static [`Card`](::card::Card) instances
 //
 // Export the macros inside this crate
-#![macro_use]
-
 #[cfg(test)]
 macro_rules! cardtest {
   ($name: ident, $c: expr, $v: expr) => {
     #[test]
     fn $name() {
-      use crate::card::keyword::Keyword;
-      use crate::bufdata::BufData;
-      use crate::lines::Lines;
+      use crate::{bufdata::BufData, card::keyword::Keyword, lines::Lines};
 
       let lines = Lines::from_strs(&$c);
       let keywords: Vec<_> =
@@ -25,9 +21,7 @@ macro_rules! cardtest {
   ($name: ident, $c: ident, $v: expr, $w: expr) => {
     #[test]
     fn $name() {
-      use crate::card::keyword::Keyword;
-      use crate::bufdata::BufData;
-      use crate::lines::Lines;
+      use crate::{bufdata::BufData, card::keyword::Keyword, lines::Lines};
 
       let lines = Lines::from_strs(&$c);
       let keywords: Vec<_> =

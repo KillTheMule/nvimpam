@@ -1,21 +1,23 @@
 //! This module holds [`NoCommentIter`](::nocommentiter::NoCommentIter), the
-//! central datastructure for the folding functionality of nvimpam.
+//! central datastructure to parse the lines of a buffer.
 //!
 //! It returns enumerated Lines, but skips Comments (lines starting with `$` or
 //! `#`). All skip functions, used by
-//! [`add_folds`](::folds::FoldList::add_folds), work on a
+//! [`add_from`](::bufdata::BufData::add_from), work on a
 //! [`NoCommentIter`](::nocommentiter::NoCommentIter).
 use std::default::Default;
 
-use crate::card::{
-  ges::GesType,
-  keyword::Keyword,
-  line::{CondResult, Line as CardLine},
-  Card,
+use crate::{
+  bufdata::BufData,
+  card::{
+    ges::GesType,
+    keyword::Keyword,
+    line::{CondResult, Line as CardLine},
+    Card,
+  },
+  lines::{KeywordLine, ParsedLine},
+  skipresult::SkipResult,
 };
-use crate::lines::{KeywordLine, ParsedLine};
-use crate::skipresult::SkipResult;
-use crate::bufdata::BufData;
 
 // Used in skip functions. Returns the next `ParsedLine` from the iterator. If
 // theres no next line, return a `SkipResult` containing the line number of
@@ -27,7 +29,7 @@ macro_rules! next_or_return_previdx {
         return SkipResult {
           skip_end: $previdx,
           ..Default::default()
-        }
+        };
       }
       Some(t) => t,
     };
@@ -43,7 +45,7 @@ macro_rules! next_or_return_some_previdx {
         return Some(SkipResult {
           skip_end: $previdx,
           ..Default::default()
-        })
+        });
       }
       Some(t) => t,
     };
@@ -216,7 +218,9 @@ where
       conds.push(c.evaluate(skipline.text));
     }
 
-    folds.highlights.extend(cardline.highlights(skipline.number, skipline.text));
+    folds
+      .highlights
+      .extend(cardline.highlights(skipline.number, skipline.text));
 
     let mut previdx: Option<usize> = None;
     let mut nextline = next_or_return_previdx!(self, previdx);
@@ -243,7 +247,9 @@ where
           }
         }
         CardLine::Cells(_s) => {
-          folds.highlights.extend(cardline.highlights(nextline.number, nextline.text));
+          folds
+            .highlights
+            .extend(cardline.highlights(nextline.number, nextline.text));
           advance!(self, previdx, nextline);
         }
         CardLine::Optional(_s, i) => {
@@ -326,14 +332,16 @@ where
 
 #[cfg(test)]
 mod tests {
-  use crate::card::{
-    ges::GesType::GesNode,
-    keyword::Keyword::{self, *},
+  use crate::{
+    bufdata::BufData,
+    card::{
+      ges::GesType::GesNode,
+      keyword::Keyword::{self, *},
+    },
+    carddata::*,
+    lines::{KeywordLine, Lines, ParsedLine},
+    nocommentiter::{CommentLess, NoCommentIter},
   };
-  use crate::carddata::*;
-  use crate::lines::{KeywordLine, Lines, ParsedLine};
-  use crate::nocommentiter::{CommentLess, NoCommentIter};
-  use crate::bufdata::BufData;
 
   macro_rules! pline {
     ($number:expr, $text:expr, $keyword:expr) => {
@@ -664,13 +672,14 @@ mod tests {
       .remove_comments();
     let firstline = li.next().unwrap();
 
-    let mut tmp = li.skip_fold(&(firstline.try_into_keywordline()).unwrap(), &mut
-                               folds);
+    let mut tmp =
+      li.skip_fold(&(firstline.try_into_keywordline()).unwrap(), &mut folds);
     let mut tmp_nextline = tmp.nextline.unwrap();
     assert_eq!(tmp_nextline, pline!(5, &LINES_GATHER[5], Some(&Shell)));
     assert_eq!(tmp.skip_end, Some(3));
 
-    tmp = li.skip_fold(&tmp_nextline.try_into_keywordline().unwrap(), &mut folds);
+    tmp =
+      li.skip_fold(&tmp_nextline.try_into_keywordline().unwrap(), &mut folds);
     tmp_nextline = tmp.nextline.unwrap();
     assert_eq!(tmp_nextline, pline!(6, &LINES_GATHER[6], None));
     assert_eq!(tmp.skip_end, Some(5));
@@ -681,7 +690,8 @@ mod tests {
     assert_eq!(tmp_nextline, pline!(18, &LINES_GATHER[18], Some(&Node)));
     assert_eq!(tmp.skip_end, Some(15));
 
-    tmp = li.skip_fold(&tmp_nextline.try_into_keywordline().unwrap(), &mut folds);
+    tmp =
+      li.skip_fold(&tmp_nextline.try_into_keywordline().unwrap(), &mut folds);
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, None);
   }

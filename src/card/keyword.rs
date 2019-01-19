@@ -356,7 +356,9 @@ impl Keywords {
 
   // TODO: Efficient? Correct?
   pub fn first_before(&self, line: u64) -> u64 {
-    self.get(..=line as usize).unwrap_or(&[])
+    self
+      .get(..=line as usize)
+      .unwrap_or(&[])
       .iter()
       .enumerate()
       .rfind(|(_i, k)| k.is_some() && **k != Some(Keyword::Comment))

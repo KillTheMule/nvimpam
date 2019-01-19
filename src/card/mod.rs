@@ -14,8 +14,7 @@ pub mod ges;
 pub mod keyword;
 pub mod line;
 
-use self::keyword::Keyword;
-use self::line::Line;
+use self::{keyword::Keyword, line::Line};
 use crate::carddata::*;
 
 /// A card consists of severals [`Line`](::card::line::Line)s, and starts with a
