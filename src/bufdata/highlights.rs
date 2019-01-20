@@ -138,33 +138,30 @@ impl Highlights {
     lastline: usize,
     added: i64,
   ) {
-    let start = ((self
+    let start = self
       .0
       .iter()
       .enumerate()
       .find(|(_, ((l, _, _), _))| *l as usize >= firstline)
-      .unwrap()
-      .1)
-      .0)
-      .0;
-    let end = ((self.0[start as usize..]
+      .map(|(i, ((_, _, _), _))| i)
+      .unwrap_or_else(|| self.0.len());
+    let end = self.0[start..]
       .iter()
       .enumerate()
-      .rfind(|(_, ((l, _, _), _))| *l as usize == lastline)
-      .unwrap()
-      .1)
-      .0)
-      .0;
+      .find(|(_, ((l, _, _), _))| *l as usize >= lastline)
+      .map(|(i, ((_, _, _), _))| i + start)
+      .unwrap_or_else(|| self.0.len());
 
+    let num_new = newfolds.0.len();
     let _ = self.0.splice(
-      start as usize..=end as usize,
+      start..end,
       newfolds
         .0
         .into_iter()
         .map(|((l, s, e), h)| ((l + firstline as u64, s, e), h)),
     );
 
-    for t in self.0[end as usize + 1..].iter_mut() {
+    for t in self.0[start + num_new..].iter_mut() {
       ((*t).0).0 = (((*t).0).0 as i64 + added) as u64;
     }
   }
@@ -386,12 +383,11 @@ mod tests{
                  (2, 0, 8, Keyword),
                  (2, 9, 16, CellOdd)];
 
-    let mut w:Vec<_> = h.iter().map(|((l, s, e), h)| (*l, *s, *e, *h)).collect();
-
     // this is not a trivial test, it ascertains the iteration order
+    let mut w:Vec<_> = h.iter().map(|((l, s, e), h)| (*l, *s, *e, *h)).collect();
     assert_eq!(v, w);
 
-    let mut h1 =Highlights::new();
+    let mut h1 = Highlights::new();
 
     h1.add_highlight(0, 0, 4, Keyword);
     h1.add_highlight(0, 5, 80, CellOdd);
@@ -409,9 +405,34 @@ mod tests{
                  (5, 9, 16, CellOdd)];
 
     w = h.iter().map(|((l, s, e), h)| (*l, *s, *e, *h)).collect();
-
     assert_eq!(v, w);
 
+    let mut h2 = Highlights::new();
+
+    h2.add_highlight(0, 0, 8, Keyword);
+    h2.add_highlight(3, 0, 8, CellOdd);
+    h2.add_highlight(3, 9, 16, CellEven);
+    h2.add_highlight(3, 17, 24, CellOdd);
+    
+    // 4 lines have been pasted after the last line of the buffer
+    h.splice(h2, 6, 6, 4);
+
+    let v = vec![(0, 0, 4, Keyword),
+                 (0, 5, 80, CellOdd),
+                 (4, 0, 4, Keyword),
+                 (4, 5, 12, CellOdd),
+                 (4, 13, 20, CellEven),
+                 (5, 0, 8, Keyword),
+                 (5, 9, 16, CellOdd),
+                 (6, 0, 8, Keyword),
+                 (9, 0, 8, CellOdd),
+                 (9, 9, 16, CellEven),
+                 (9, 17, 24, CellOdd),
+    ];
+
+    eprintln!("H {:?}", h);
+    w = h.iter().map(|((l, s, e), h)| (*l, *s, *e, *h)).collect();
+    assert_eq!(v, w);
   }
 
 }
