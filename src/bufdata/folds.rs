@@ -114,7 +114,7 @@ impl Folds {
   // TODO: Pass newfolds by value
   pub fn splice(
     &mut self,
-    newfolds: &mut Folds,
+    newfolds: Folds,
     firstline: usize,
     lastline: usize,
     added: i64,
@@ -251,7 +251,7 @@ macro_rules! splicetest {
       let mut newfolds = Folds::new();
       $(let _ = newfolds.insert($($f),+);)+
 
-      oldfolds.splice(&mut newfolds, $first, $last, $added);
+      oldfolds.splice(newfolds, $first, $last, $added);
       let v = vec![$( ($($g),+ ),)+];
 
       assert_eq!(v, oldfolds.to_vec());

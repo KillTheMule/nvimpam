@@ -71,7 +71,7 @@ impl Event {
     let curbuf = nvim.get_current_buf()?;
 
     let mut foldlist = BufData::new();
-    let mut tmp_folds = BufData::new();
+    let mut tmp_folds: BufData;
     let origlines;
     let mut lines = Default::default();
     let mut keywords: Keywords = Default::default();
@@ -114,7 +114,7 @@ impl Event {
             let added: i64 = linedata.len() as i64 - (lastline - firstline);
             keywords.update(firstline as usize, lastline as usize, &linedata);
             lines.update(firstline as usize, lastline as usize, linedata);
-            tmp_folds.clear();
+            tmp_folds = Default::default();
             let first = keywords.first_before(firstline as u64);
             let last = keywords.first_after((lastline as i64 + added) as u64);
             tmp_folds.recreate_all(
@@ -122,7 +122,7 @@ impl Event {
               &lines[first as usize..last as usize],
             )?;
             foldlist.splice(
-              &mut tmp_folds,
+              tmp_folds,
               first as usize,
               last as usize,
               added,

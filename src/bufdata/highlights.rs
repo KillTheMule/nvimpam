@@ -1,9 +1,6 @@
 //! The highlight module
 use std::{self, cmp, convert::From};
 
-#[cfg(feature = "hl_vec_tuple")]
-use std::mem;
-
 #[cfg(feature = "hl_bt_tuple_hl")]
 use std::collections::{btree_map::Entry, BTreeMap};
 
@@ -136,7 +133,7 @@ impl Highlights {
 
   pub fn splice(
     &mut self,
-    newfolds: &mut Highlights,
+    newfolds: Highlights,
     firstline: usize,
     lastline: usize,
     added: i64,
@@ -158,11 +155,11 @@ impl Highlights {
       .1)
       .0)
       .0;
-    let newhls = mem::replace(&mut newfolds.0, Vec::new());
 
     let _ = self.0.splice(
       start as usize..=end as usize,
-      newhls
+      newfolds
+        .0
         .into_iter()
         .map(|((l, s, e), h)| ((l + firstline as u64, s, e), h)),
     );
@@ -254,7 +251,7 @@ impl Highlights {
 
   pub fn splice(
     &mut self,
-    newfolds: &mut Highlights,
+    newfolds: Highlights,
     firstline: usize,
     lastline: usize,
     added: i64,
@@ -401,7 +398,7 @@ mod tests{
 
     // the first line in the buffer got replaced by 4 lines
     // only the new first line has highlighting
-    h.splice(&mut h1, 0, 1, 3);
+    h.splice(h1, 0, 1, 3);
 
     let v = vec![(0, 0, 4, Keyword),
                  (0, 5, 80, CellOdd),

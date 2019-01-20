@@ -12,6 +12,8 @@
 pub mod folds;
 pub mod highlights;
 
+use std::mem;
+
 use failure::{Error, ResultExt};
 
 use neovim_lib::{Neovim, NeovimApi, Value};
@@ -63,13 +65,14 @@ impl BufData {
   // TODO: Pass newfolds by value
   pub fn splice(
     &mut self,
-    newfolds: &mut BufData,
+    mut newfolds: BufData,
     firstline: usize,
     lastline: usize,
     added: i64,
   ) {
+    let hl = mem::replace(&mut newfolds.highlights, Default::default());
     self.highlights.splice(
-      &mut newfolds.highlights,
+      hl,
       firstline,
       lastline,
       added,
@@ -77,7 +80,7 @@ impl BufData {
 
     self
       .folds
-      .splice(&mut newfolds.folds, firstline, lastline, added);
+      .splice(newfolds.folds, firstline, lastline, added);
 
     let _ = self.folds_level2.recreate_level2(&self.folds);
   }
