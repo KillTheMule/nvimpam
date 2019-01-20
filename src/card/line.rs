@@ -61,10 +61,9 @@ impl Line {
     }
   }
 
-  pub fn highlights<'a>(&'a self, num: usize, text: &'a [u8]) -> HlIter<'a> {
+  pub fn highlights<'a>(&'a self, text: &'a [u8]) -> HlIter<'a> {
     HlLine {
       cardline: &self,
-      num,
       text,
     }
     .into_iter()

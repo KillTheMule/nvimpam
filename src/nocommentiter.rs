@@ -220,7 +220,7 @@ where
 
     folds
       .highlights
-      .extend(cardline.highlights(skipline.number, skipline.text));
+      .add_line_highlights(skipline.number, cardline.highlights(skipline.text));
 
     let mut previdx: Option<usize> = None;
     let mut nextline = next_or_return_previdx!(self, previdx);
@@ -249,7 +249,7 @@ where
         CardLine::Cells(_s) => {
           folds
             .highlights
-            .extend(cardline.highlights(nextline.number, nextline.text));
+            .add_line_highlights(nextline.number, cardline.highlights(nextline.text));
           advance!(self, previdx, nextline);
         }
         CardLine::Optional(_s, i) => {

@@ -57,5 +57,5 @@ fn bench_folds_file(c: &mut Criterion) {
   });
 }
 
-criterion_group!(name = integration_file; config = Criterion::default().sample_size(10).without_plots(); targets = bench_folds_file);
+criterion_group!(name = integration_file; config = Criterion::default().sample_size(2).without_plots(); targets = bench_folds_file);
 criterion_main!(integration_file);

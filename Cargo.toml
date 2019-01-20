@@ -21,6 +21,11 @@ repository = "https://github.com/KillTheMule/nvimpam"
 readme = "README.md"
 autobenches = false
 
+[features]
+hl_vec_tuple = []
+hl_bt_tuple_hl = []
+default = ["hl_bt_tuple_hl"]
+
 [dependencies]
 log = "0.4.5"
 simplelog = "0.5.2"
