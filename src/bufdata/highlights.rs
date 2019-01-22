@@ -175,9 +175,9 @@ impl Highlights {
   where
     T: IntoIterator<Item = ((u8, u8), Hl)>,
   {
-        let _ = self
-          .0
-          .extend(it.into_iter().map(|((s, e), h)| ((num as u64, s, e), h)));
+    let _ = self
+      .0
+      .extend(it.into_iter().map(|((s, e), h)| ((num as u64, s, e), h)));
   }
 
   pub fn iter(&self) -> impl Iterator<Item = &((u64, u8, u8), Hl)> {
@@ -298,9 +298,9 @@ impl Highlights {
   where
     T: IntoIterator<Item = ((u8, u8), Hl)>,
   {
-        let _ = self
-          .0
-          .extend(it.into_iter().map(|((s, e), h)| ((num as u64, s, e), h)));
+    let _ = self
+      .0
+      .extend(it.into_iter().map(|((s, e), h)| ((num as u64, s, e), h)));
   }
 
   pub fn iter(&self) -> impl Iterator<Item = (&(u64, u8, u8), &Hl)> {
@@ -360,11 +360,224 @@ impl Highlights {
 }
 
 #[cfg(test)]
-mod tests{
-  use crate::bufdata::highlights::{Highlights, HighlightGroup::*};
+macro_rules! splicetest {
+  ($fn: ident; existing: $([$($e: expr),+]),+; new: $([$($f: expr),+]),+;
+  $first: expr, $last: expr, $added: expr; expected: $([$($g: expr),+]),+ ) => {
+    #[test]
+    fn $fn() {
+      let mut h = Highlights::new();
+      $(let _ = h.add_highlight($($e),+);)+
+
+      let mut h1 = Highlights::new();
+      $(let _ = h1.add_highlight($($f),+);)+
+
+      h.splice(h1, $first, $last, $added);
+      let v = vec![$( ($($g),+ ),)+];
+
+      let w:Vec<_> = h.iter().map(|((l, s, e), h)| (*l, *s, *e, *h)).collect();
+      assert_eq!(v, w);
+    }
+  };
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::bufdata::highlights::{HighlightGroup::*, Highlights};
+
+  // adding 3 lines before the buffer
+  splicetest!(hl_splice_before;
+              existing:
+                [0, 0, 8, Keyword],
+                [0, 9, 16, CellOdd],
+                [1, 0, 4, Keyword],
+                [1, 5, 12, CellOdd],
+                [1, 13, 20, CellEven],
+                [2, 0, 8, Keyword],
+                [2, 9, 16, CellOdd];
+              new:
+                [0, 0, 4, Keyword],
+                [0, 5, 80, CellOdd];
+              0, 1, 3;
+              expected:
+                 [0, 0, 4, Keyword],
+                 [0, 5, 80, CellOdd],
+                 [4, 0, 4, Keyword],
+                 [4, 5, 12, CellOdd],
+                 [4, 13, 20, CellEven],
+                 [5, 0, 8, Keyword],
+                 [5, 9, 16, CellOdd]
+                 );
+
+  // 4 lines have been pasted after the last line of the buffer
+  splicetest!(hl_splice_after;
+              existing:
+                 [0, 0, 4, Keyword],
+                 [0, 5, 80, CellOdd],
+                 [4, 0, 4, Keyword],
+                 [4, 5, 12, CellOdd],
+                 [4, 13, 20, CellEven],
+                 [5, 0, 8, Keyword],
+                 [5, 9, 16, CellOdd];
+              new:
+                 [0, 0, 8, Keyword],
+                 [3, 0, 8, CellOdd],
+                 [3, 9, 16, CellEven],
+                 [3, 17, 24, CellOdd];
+              6, 6, 4;
+              expected:
+                 [0, 0, 4, Keyword],
+                 [0, 5, 80, CellOdd],
+                 [4, 0, 4, Keyword],
+                 [4, 5, 12, CellOdd],
+                 [4, 13, 20, CellEven],
+                 [5, 0, 8, Keyword],
+                 [5, 9, 16, CellOdd],
+                 [6, 0, 8, Keyword],
+                 [9, 0, 8, CellOdd],
+                 [9, 9, 16, CellEven],
+                 [9, 17, 24, CellOdd]
+          );
+
+  // changing one line
+  splicetest!(hl_splice_change_one_line;
+              existing:
+                 [0, 0, 4, Keyword],
+                 [0, 5, 80, CellOdd],
+                 [1, 0, 4, Keyword],
+                 [1, 5, 12, CellOdd],
+                 [1, 13, 20, CellEven],
+                 [2, 0, 8, Keyword],
+                 [2, 9, 16, CellOdd],
+                 [3, 0, 8, Keyword],
+                 [3, 9, 16, CellOdd];
+              new:
+                 [0, 0, 8, Keyword];
+              1, 2, 0;
+              expected:
+                 [0, 0, 4, Keyword],
+                 [0, 5, 80, CellOdd],
+                 [1, 0, 8, Keyword],
+                 [2, 0, 8, Keyword],
+                 [2, 9, 16, CellOdd],
+                 [3, 0, 8, Keyword],
+                 [3, 9, 16, CellOdd]
+          );
+
+  // delete 1 line, insert 2
+  splicetest!(hl_splice_add_one_line;
+              existing:
+                 [0, 0, 4, Keyword],
+                 [0, 5, 80, CellOdd],
+                 [1, 0, 4, Keyword],
+                 [1, 5, 12, CellOdd],
+                 [1, 13, 20, CellEven],
+                 [2, 0, 8, Keyword],
+                 [2, 9, 16, CellOdd],
+                 [3, 0, 8, Keyword],
+                 [3, 9, 16, CellOdd];
+              new:
+                 [0, 0, 8, Keyword],
+                 [0, 9, 16, CellOdd],
+                 [1, 0, 8, Keyword],
+                 [1, 9, 12, CellOdd];
+              1, 2, 1;
+              expected:
+                 [0, 0, 4, Keyword],
+                 [0, 5, 80, CellOdd],
+                 [1, 0, 8, Keyword],
+                 [1, 9, 16, CellOdd],
+                 [2, 0, 8, Keyword],
+                 [2, 9, 12, CellOdd],
+                 [3, 0, 8, Keyword],
+                 [3, 9, 16, CellOdd],
+                 [4, 0, 8, Keyword],
+                 [4, 9, 16, CellOdd]
+          );
+
+  // delete 2 lines, insert 1
+  splicetest!(hl_splice_delete_one_line;
+              existing:
+                 [0, 0, 4, Keyword],
+                 [0, 5, 80, CellOdd],
+                 [1, 0, 4, Keyword],
+                 [1, 5, 12, CellOdd],
+                 [1, 13, 20, CellEven],
+                 [2, 0, 8, Keyword],
+                 [2, 9, 16, CellOdd],
+                 [3, 0, 8, Keyword],
+                 [3, 9, 16, CellOdd],
+                 [4, 0, 8, Keyword];
+              new:
+                 [0, 0, 8, Keyword],
+                 [0, 9, 16, CellOdd];
+              2, 4, -1;
+              expected:
+                 [0, 0, 4, Keyword],
+                 [0, 5, 80, CellOdd],
+                 [1, 0, 4, Keyword],
+                 [1, 5, 12, CellOdd],
+                 [1, 13, 20, CellEven],
+                 [2, 0, 8, Keyword],
+                 [2, 9, 16, CellOdd],
+                 [3, 0, 8, Keyword]
+          );
+
+  // overwrite the last 2 lines with 4 lines
+  splicetest!(hl_splice_overwrite_end;
+              existing:
+                 [0, 0, 4, Keyword],
+                 [0, 5, 80, CellOdd],
+                 [1, 0, 4, Keyword],
+                 [1, 5, 12, CellOdd],
+                 [1, 13, 20, CellEven],
+                 [2, 0, 8, Keyword],
+                 [2, 9, 16, CellOdd];
+              new:
+                 [0, 0, 8, Keyword],
+                 [0, 9, 16, CellOdd],
+                 [1, 0, 8, Keyword],
+                 [2, 0, 8, Keyword],
+                 [3, 0, 8, Keyword];
+              1, 3, 2;
+              expected:
+                 [0, 0, 4, Keyword],
+                 [0, 5, 80, CellOdd],
+                 [1, 0, 8, Keyword],
+                 [1, 9, 16, CellOdd],
+                 [2, 0, 8, Keyword],
+                 [3, 0, 8, Keyword],
+                 [4, 0, 8, Keyword]
+          );
+
+  // overwrite the first 2 lines with 4 lines
+  splicetest!(hl_splice_overwrite_start;
+              existing:
+                 [0, 0, 4, Keyword],
+                 [0, 5, 80, CellOdd],
+                 [1, 0, 4, Keyword],
+                 [1, 5, 12, CellOdd],
+                 [1, 13, 20, CellEven],
+                 [2, 0, 8, Keyword],
+                 [2, 9, 16, CellOdd];
+              new:
+                 [0, 0, 8, Keyword],
+                 [0, 9, 16, CellOdd],
+                 [1, 0, 8, Keyword],
+                 [2, 0, 8, Keyword],
+                 [3, 0, 8, Keyword];
+              0, 2, 2;
+              expected:
+                 [0, 0, 8, Keyword],
+                 [0, 9, 16, CellOdd],
+                 [1, 0, 8, Keyword],
+                 [2, 0, 8, Keyword],
+                 [3, 0, 8, Keyword],
+                 [4, 0, 8, Keyword],
+                 [4, 9, 16, CellOdd]
+          );
 
   #[test]
-  pub fn hls() {
+  pub fn hl_iteration_order() {
     let mut h = Highlights::new();
 
     h.add_highlight(0, 0, 8, Keyword);
@@ -375,63 +588,18 @@ mod tests{
     h.add_highlight(2, 0, 8, Keyword);
     h.add_highlight(2, 9, 16, CellOdd);
 
-    let v = vec![(0, 0, 8, Keyword),
-                 (0, 9, 16, CellOdd),
-                 (1, 0, 4, Keyword),
-                 (1, 5, 12, CellOdd),
-                 (1, 13, 20, CellEven),
-                 (2, 0, 8, Keyword),
-                 (2, 9, 16, CellOdd)];
-
-    // this is not a trivial test, it ascertains the iteration order
-    let mut w:Vec<_> = h.iter().map(|((l, s, e), h)| (*l, *s, *e, *h)).collect();
-    assert_eq!(v, w);
-
-    let mut h1 = Highlights::new();
-
-    h1.add_highlight(0, 0, 4, Keyword);
-    h1.add_highlight(0, 5, 80, CellOdd);
-
-    // the first line in the buffer got replaced by 4 lines
-    // only the new first line has highlighting
-    h.splice(h1, 0, 1, 3);
-
-    let v = vec![(0, 0, 4, Keyword),
-                 (0, 5, 80, CellOdd),
-                 (4, 0, 4, Keyword),
-                 (4, 5, 12, CellOdd),
-                 (4, 13, 20, CellEven),
-                 (5, 0, 8, Keyword),
-                 (5, 9, 16, CellOdd)];
-
-    w = h.iter().map(|((l, s, e), h)| (*l, *s, *e, *h)).collect();
-    assert_eq!(v, w);
-
-    let mut h2 = Highlights::new();
-
-    h2.add_highlight(0, 0, 8, Keyword);
-    h2.add_highlight(3, 0, 8, CellOdd);
-    h2.add_highlight(3, 9, 16, CellEven);
-    h2.add_highlight(3, 17, 24, CellOdd);
-    
-    // 4 lines have been pasted after the last line of the buffer
-    h.splice(h2, 6, 6, 4);
-
-    let v = vec![(0, 0, 4, Keyword),
-                 (0, 5, 80, CellOdd),
-                 (4, 0, 4, Keyword),
-                 (4, 5, 12, CellOdd),
-                 (4, 13, 20, CellEven),
-                 (5, 0, 8, Keyword),
-                 (5, 9, 16, CellOdd),
-                 (6, 0, 8, Keyword),
-                 (9, 0, 8, CellOdd),
-                 (9, 9, 16, CellEven),
-                 (9, 17, 24, CellOdd),
+    let v = vec![
+      (0, 0, 8, Keyword),
+      (0, 9, 16, CellOdd),
+      (1, 0, 4, Keyword),
+      (1, 5, 12, CellOdd),
+      (1, 13, 20, CellEven),
+      (2, 0, 8, Keyword),
+      (2, 9, 16, CellOdd),
     ];
 
-    eprintln!("H {:?}", h);
-    w = h.iter().map(|((l, s, e), h)| (*l, *s, *e, *h)).collect();
+    // this is not a trivial test, it ascertains the iteration order
+    let w: Vec<_> = h.iter().map(|((l, s, e), h)| (*l, *s, *e, *h)).collect();
     assert_eq!(v, w);
   }
 
