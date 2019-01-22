@@ -298,7 +298,7 @@ impl Highlights {
   where
     T: IntoIterator<Item = ((u8, u8), Hl)>,
   {
-    let _ = self
+    self
       .0
       .extend(it.into_iter().map(|((s, e), h)| ((num as u64, s, e), h)));
   }

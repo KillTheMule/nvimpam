@@ -26,6 +26,10 @@ impl Folds {
     self.0.len()
   }
 
+  pub fn is_empty(&self) -> bool {
+    self.0.is_empty()
+  }
+
   /// Insert a fold `([start, end], Keyword)`.  Returns an error if that fold is
   /// already in the list. In that case, it needs to be
   /// [removed](::bufdata::folds::Folds::remove) beforehand.
