@@ -1,5 +1,10 @@
 * Improve logging: Lua code should write to NVIMPAM_LOG_FILE (maybe even respect log llevel?), only the binaries stderr should really go to NVIMPAM_STDERR
 
+* use std::fs::read to read the file
+
+* Save lines by immutable ID and provide a map ID -> linenr somewhere? That
+  would make updating the linenumbers somewhat easier.
+
 * Check vimways.org for various plugin improvements
 
 * Add pyvars to cell verification
