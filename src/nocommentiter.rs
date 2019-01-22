@@ -247,9 +247,10 @@ where
           }
         }
         CardLine::Cells(_s) => {
-          folds
-            .highlights
-            .add_line_highlights(nextline.number, cardline.highlights(nextline.text));
+          folds.highlights.add_line_highlights(
+            nextline.number,
+            cardline.highlights(nextline.text),
+          );
           advance!(self, previdx, nextline);
         }
         CardLine::Optional(_s, i) => {

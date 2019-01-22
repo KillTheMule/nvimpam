@@ -71,12 +71,7 @@ impl BufData {
     added: i64,
   ) {
     let hl = mem::replace(&mut newfolds.highlights, Default::default());
-    self.highlights.splice(
-      hl,
-      firstline,
-      lastline,
-      added,
-    );
+    self.highlights.splice(hl, firstline, lastline, added);
 
     self
       .folds

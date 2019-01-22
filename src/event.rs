@@ -121,12 +121,7 @@ impl Event {
               &keywords[first as usize..last as usize],
               &lines[first as usize..last as usize],
             )?;
-            foldlist.splice(
-              tmp_folds,
-              first as usize,
-              last as usize,
-              added,
-            );
+            foldlist.splice(tmp_folds, first as usize, last as usize, added);
             foldlist.highlights.highlight_region(
               &mut nvim,
               first as u64,
