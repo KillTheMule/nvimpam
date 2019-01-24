@@ -138,13 +138,10 @@ impl Highlights {
     lastline: usize,
     added: i64,
   ) {
-    let start = self
-      .0
-      .iter()
-      .enumerate()
-      .find(|(_, ((l, _, _), _))| *l as usize >= firstline)
-      .map(|(i, ((_, _, _), _))| i)
-      .unwrap_or_else(|| self.0.len());
+    let start = self.0
+      .binary_search_by_key(&(firstline, 0),|&((l, s, _), _)| (l as usize, s))
+       // error contains index where ele could be inserted preserving Order
+      .unwrap_or_else(|e| e);
     let end = self.0[start..]
       .iter()
       .enumerate()
