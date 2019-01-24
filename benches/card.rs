@@ -5,35 +5,25 @@ extern crate criterion;
 use criterion::Criterion;
 
 use nvimpam_lib::{
+  bufdata::BufData,
   card::{
     ges::GesType,
     keyword::{Keyword, Keywords},
   },
-  folds::FoldList,
   lines::{Lines, ParsedLine},
   nocommentiter::CommentLess,
 };
 
-fn bench_parse2folddata(c: &mut Criterion) {
+fn bench_parse2bufdata(c: &mut Criterion) {
   c.bench_function("card_parse2folddata", |b| {
-    use std::{
-      fs::File,
-      io::{self, BufRead},
-    };
+    let origlines = Lines::read_file("files/example.pc").expect("3.1");
 
-    let file = File::open("files/example.pc").unwrap();
-    let v: Vec<String> = io::BufReader::new(file)
-      .lines()
-      .map(|l| l.unwrap())
-      .collect();
-    let w: Vec<&str> = v.iter().map(|l| l.as_ref()).collect();
-
-    let mut f = FoldList::new();
+    let mut f = BufData::new();
     b.iter(|| {
-      let lines = Lines::from_strs(&w[..]);
+      let lines = Lines::from_slice(&origlines);
       let keywords = Keywords::from_lines(&lines);
       f.clear();
-      let _compacted = f.add_folds(&keywords, &lines);
+      let _compacted = f.add_from(&keywords, &lines);
     });
   });
 }
@@ -95,6 +85,6 @@ fn bench_skip_ges(c: &mut Criterion) {
 criterion_group!(
   name = card;
   config = Criterion::default();
-  targets = bench_parse2folddata, bench_parse_str, bench_skip_ges
+  targets = bench_parse2bufdata, bench_parse_str, bench_skip_ges
 );
 criterion_main!(card);

@@ -1,43 +1,37 @@
 //! This module contains all the global static [`Card`](::card::Card) instances
 //
 // Export the macros inside this crate
-#![macro_use]
-
 #[cfg(test)]
 macro_rules! cardtest {
   ($name: ident, $c: expr, $v: expr) => {
     #[test]
     fn $name() {
-      use card::keyword::Keyword;
-      use folds::FoldList;
-      use lines::Lines;
+      use crate::{bufdata::BufData, card::keyword::Keyword, lines::Lines};
 
       let lines = Lines::from_strs(&$c);
       let keywords: Vec<_> =
         lines.iter().map(|l| Keyword::parse(l.as_ref())).collect();
 
-      let mut foldlist = FoldList::new();
+      let mut foldlist = BufData::new();
       let _ = foldlist.recreate_all(&keywords, &lines);
 
-      assert_eq!($v, foldlist.to_vec(1));
+      assert_eq!($v, foldlist.folds.to_vec());
     }
   };
   ($name: ident, $c: ident, $v: expr, $w: expr) => {
     #[test]
     fn $name() {
-      use card::keyword::Keyword;
-      use folds::FoldList;
-      use lines::Lines;
+      use crate::{bufdata::BufData, card::keyword::Keyword, lines::Lines};
 
       let lines = Lines::from_strs(&$c);
       let keywords: Vec<_> =
         lines.iter().map(|l| Keyword::parse(l.as_ref())).collect();
 
-      let mut foldlist = FoldList::new();
+      let mut foldlist = BufData::new();
       let _ = foldlist.recreate_all(&keywords, &lines);
 
-      assert_eq!($v, foldlist.to_vec(1));
-      assert_eq!($w, foldlist.to_vec(2));
+      assert_eq!($v, foldlist.folds.to_vec());
+      assert_eq!($w, foldlist.folds_level2.to_vec());
     }
   };
 }

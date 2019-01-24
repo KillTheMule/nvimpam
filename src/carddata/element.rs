@@ -1,6 +1,6 @@
 //! This modules holds the the global static element [`Card`](::card::Card)
 //! instances.
-use card::{cell::Cell::*, keyword::Keyword::*, line::Line::*, Card};
+use crate::card::{cell::Cell::*, keyword::Keyword::*, line::Line::*, Card};
 
 pub static SOLID: Card = Card {
   lines: &[
@@ -113,7 +113,13 @@ pub static TETR10: Card = Card {
 };
 
 pub static BAR: Card = Card {
-  lines: &[Cells(&[Kw(Bar), Integer(8), Integer(8), Integer(8), Integer(8)])],
+  lines: &[Cells(&[
+    Kw(Bar),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+  ])],
   ownfold: false,
 };
 
@@ -325,12 +331,24 @@ pub static MTOJNT: Card = Card {
 };
 
 pub static SPHEL: Card = Card {
-  lines: &[Cells(&[Kw(Sphel), Integer(8), Integer(8), Integer(8), Float(8)])],
+  lines: &[Cells(&[
+    Kw(Sphel),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Float(8),
+  ])],
   ownfold: false,
 };
 
 pub static SPHELO: Card = Card {
-  lines: &[Cells(&[Kw(Sphelo), Integer(8), Integer(8), Integer(8), Float(8)])],
+  lines: &[Cells(&[
+    Kw(Sphelo),
+    Integer(8),
+    Integer(8),
+    Integer(8),
+    Float(8),
+  ])],
   ownfold: false,
 };
 
@@ -357,7 +375,7 @@ pub static IMPMA: Card = Card {
 
 #[cfg(test)]
 mod tests {
-  use card::keyword::Keyword::*;
+  use crate::card::keyword::Keyword::*;
 
   const CARD_SOLID: [&'static str; 15] = [
     "$SOLID Element",

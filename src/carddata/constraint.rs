@@ -1,11 +1,12 @@
 //! This modules holds the the global static constraint [`Card`](::card::Card)
 //! instances.
-use card::cell::Cell::*;
-use card::ges::GesType::*;
-use card::keyword::Keyword::*;
-use card::line::Conditional::*;
-use card::line::Line::*;
-use card::Card;
+use crate::card::{
+  cell::Cell::*,
+  ges::GesType::*,
+  keyword::Keyword::*,
+  line::{Conditional::*, Line::*},
+  Card,
+};
 
 pub static MTOCO: Card = Card {
   lines: &[
@@ -182,7 +183,7 @@ pub static RBODY3: Card = Card {
 
 #[cfg(test)]
 mod tests {
-  use card::keyword::Keyword::*;
+  use crate::card::keyword::Keyword::*;
 
   const CARD_MTOCO: [&'static str; 11] = [
     "$Regular MTOCO",
@@ -198,11 +199,7 @@ mod tests {
     "        END",
   ];
 
-  cardtest!(
-    fold_mtoco,
-    CARD_MTOCO,
-    vec![(2, 5, Mtoco), (6, 10, Mtoco)]
-  );
+  cardtest!(fold_mtoco, CARD_MTOCO, vec![(2, 5, Mtoco), (6, 10, Mtoco)]);
 
   const CARD_MTOCO2: [&'static str; 8] = [
     "$MTOCO mit User Imposed Mass and Intertia",
@@ -215,11 +212,7 @@ mod tests {
     "        END",
   ];
 
-  cardtest!(
-    fold_mtoco2,
-    CARD_MTOCO2,
-    vec![(2, 7, Mtoco)]
-  );
+  cardtest!(fold_mtoco2, CARD_MTOCO2, vec![(2, 7, Mtoco)]);
 
   const CARD_OTMCO: [&'static str; 5] = [
     "$#         IDOTM  IDNODd  XYZUVW   IMETH  RADIUS   IELIM    ITYP   ALPHA",
@@ -229,11 +222,7 @@ mod tests {
     "END_OTMCO",
   ];
 
-  cardtest!(
-    fold_otmco,
-    CARD_OTMCO,
-    vec![(1, 4, Otmco)]
-  );
+  cardtest!(fold_otmco, CARD_OTMCO, vec![(1, 4, Otmco)]);
 
   const CARD_OTMCO2: [&'static str; 9] = [
     "$#         IDOTM  IDNODd  XYZUVW   IMETH  RADIUS   IELIM    ITYP   ALPHA",
@@ -247,11 +236,7 @@ mod tests {
     "END_OTMCO",
   ];
 
-  cardtest!(
-    fold_otmco2,
-    CARD_OTMCO2,
-    vec![(1, 8, Otmco)]
-  );
+  cardtest!(fold_otmco2, CARD_OTMCO2, vec![(1, 8, Otmco)]);
 
   const CARD_RBODY0: [&'static str; 6] = [
     "$RBODY Type 0",
@@ -262,11 +247,7 @@ mod tests {
     "        END",
   ];
 
-  cardtest!(
-    fold_rbody0,
-    CARD_RBODY0,
-    vec![(2, 5, Rbody0)]
-  );
+  cardtest!(fold_rbody0, CARD_RBODY0, vec![(2, 5, Rbody0)]);
 
   const CARD_RBODY1: [&'static str; 10] = [
     "$RBODY Type 1",
@@ -281,11 +262,7 @@ mod tests {
     "        END",
   ];
 
-  cardtest!(
-    fold_rbody1,
-    CARD_RBODY1,
-    vec![(2, 9, Rbody1)]
-  );
+  cardtest!(fold_rbody1, CARD_RBODY1, vec![(2, 9, Rbody1)]);
 
   const CARD_RBODY2: [&'static str; 7] = [
     "$#          IDRB   BLANK    ITRBIDNODcog                   ISENS    IFRA     HRB",
@@ -297,11 +274,7 @@ mod tests {
     "        END",
   ];
 
-  cardtest!(
-    fold_rbody2,
-    CARD_RBODY2,
-    vec![(1, 6, Rbody2)]
-  );
+  cardtest!(fold_rbody2, CARD_RBODY2, vec![(1, 6, Rbody2)]);
 
   const CARD_RBODY3: [&'static str; 8] = [
     "$RBODY Type 3",
@@ -314,10 +287,6 @@ mod tests {
     "        END",
   ];
 
-  cardtest!(
-    fold_rbody3,
-    CARD_RBODY3,
-    vec![(2, 7, Rbody3)]
-  );
+  cardtest!(fold_rbody3, CARD_RBODY3, vec![(2, 7, Rbody3)]);
 
 }

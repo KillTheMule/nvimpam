@@ -2,7 +2,14 @@
 
 * Check out using lookup tables for performance improvements. Ref https://github.com/lynaghk/question-rust-inlining also see https://github.com/sfackler/rust-phf
 
-* Replace `fs::read_to_end` by `fs::read`
+* use std::fs::read to read the file
+
+* Save lines by immutable ID and provide a map ID -> linenr somewhere? That
+  would make updating the linenumbers somewhat easier.
+
+* Check vimways.org for various plugin improvements
+
+* Add pyvars to cell verification
 
 * Write a size hint (exact!) for the HlIter
 

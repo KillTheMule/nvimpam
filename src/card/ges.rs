@@ -125,7 +125,7 @@ impl GesType {
 
 #[cfg(test)]
 mod tests {
-  use card::ges::GesType::GesNode;
+  use crate::card::ges::GesType::GesNode;
 
   const LINES: [&'static str; 10] = [
     "ab ll",
@@ -175,10 +175,10 @@ mod tests {
   #[test]
   fn byteslice_to_u64() {
     use byteorder::{BigEndian, ReadBytesExt};
-  
+
     let s1 = String::from("3");
     let mut v = Vec::new();
-    
+
     for i in 0..=8-s1.len(){
       let mut s2 = String::new();
       for j in 0..i {
@@ -190,7 +190,7 @@ mod tests {
       }
       v.push(s2);
     }
-    
+
     let l = v.len()-1;
     let mut comment = String::new();
     for (i, x) in v.iter().enumerate() {
@@ -201,14 +201,14 @@ mod tests {
     }
     let _ = comment.pop();
     eprintln!("{}", comment);
-    
+
     let mut s = String::new();
-    
+
     for x in v {
       let num = x.as_bytes().read_u64::<BigEndian>().unwrap();
       s.push_str(&format!(" {} |", num));
      }
-    
+
     let _ = s.pop();
     s.push_str("=> Some(");
     eprintln!("{}", s);
@@ -217,7 +217,7 @@ mod tests {
   let num = c.read_u64::<BigEndian>().unwrap();
   eprintln!("{}", num);
   let b = [b"MOD"];
-  
+
   for str in b.iter() {
     let mut c = &str[..];
     let num = c.read_u24::<BigEndian>().unwrap();

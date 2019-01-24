@@ -7,7 +7,7 @@ use std::sync::mpsc;
 use failure::{self, Error};
 use neovim_lib::{neovim_api::Buffer, Handler, Value};
 
-use event::Event;
+use crate::event::Event;
 
 /// The handler containing the sending end of a channel. The receiving end is
 /// the main [`event loop`](::event::Event::event_loop).
@@ -61,7 +61,10 @@ impl NeovimHandler {
 
     let lastline = parse_u64(&last_arg(&mut args, nea)?)?;
     let firstline = parse_u64(&last_arg(&mut args, nea)?)?;
-    Ok(Event::HighlightRegion { firstline, lastline })
+    Ok(Event::HighlightRegion {
+      firstline,
+      lastline,
+    })
   }
 
   /// Parse a nvim_buf_detach_event notification into a

@@ -1,6 +1,6 @@
 //! This modules holds the the global static auxiliary [`Card`](::card::Card)
 //! instances.
-use card::{
+use crate::card::{
   cell::Cell::*, ges::GesType::*, keyword::Keyword::*, line::Line::*, Card,
 };
 
@@ -20,7 +20,7 @@ pub static COMMENT: Card = Card {
 
 #[cfg(test)]
 mod tests {
-  use card::keyword::Keyword::*;
+  use crate::card::keyword::Keyword::*;
 
   const CARD_GROUP: [&'static str; 7] = [
     "GROUP / TitleOfTheGroup",

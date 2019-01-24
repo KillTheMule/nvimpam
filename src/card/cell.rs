@@ -4,7 +4,7 @@
 /// input file, aside from comments and header data.
 use std::str;
 
-use card::keyword::Keyword;
+use crate::card::keyword::Keyword;
 
 #[derive(Debug, PartialEq)]
 pub enum Cell {
@@ -39,7 +39,7 @@ impl Cell {
 
   #[inline]
   pub fn len(&self) -> u8 {
-    use card::cell::Cell::*;
+    use crate::card::cell::Cell::*;
     match *self {
       Kw(k) => k.len(),
       Fixed(s) => {
@@ -54,7 +54,7 @@ impl Cell {
 
   #[inline]
   pub fn is_empty(&self) -> bool {
-    use card::cell::Cell::*;
+    use crate::card::cell::Cell::*;
     match *self {
       Integer(u) | Float(u) | Blank(u) | Str(u) | Binary(u)
       | IntegerorBlank(u) => u == 0,

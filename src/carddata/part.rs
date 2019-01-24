@@ -1,6 +1,6 @@
 //! This modules holds the the global static part [`Card`](::card::Card)
 //! instances.
-use card::{
+use crate::card::{
   cell::Cell::*,
   keyword::Keyword::*,
   line::{Conditional::*, Line::*},
@@ -156,7 +156,7 @@ pub static PARTGAP: Card = part!(
 
 #[cfg(test)]
 mod tests {
-  use card::keyword::Keyword::*;
+  use crate::card::keyword::Keyword::*;
 
   const CARD_PARTSOLID: [&'static str; 22] = [
     "$PART Type SOLID",

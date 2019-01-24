@@ -9,8 +9,7 @@ use neovim_lib::{
   neovim_api::{Buffer, NeovimApi},
 };
 
-use folds::FoldList;
-use lines::Lines;
+use crate::{bufdata::BufData, lines::Lines};
 
 /// The event list the main loop reacts to
 pub enum Event {
@@ -67,11 +66,12 @@ impl Event {
     file: Option<OsString>,
   ) -> Result<(), Error> {
     use self::Event::*;
-    use card::keyword::Keywords;
+    use crate::card::keyword::Keywords;
 
     let curbuf = nvim.get_current_buf()?;
 
-    let mut foldlist = FoldList::new();
+    let mut foldlist = BufData::new();
+    let mut tmp_folds: BufData;
     let origlines;
     let mut lines = Default::default();
     let mut keywords: Keywords = Default::default();
@@ -83,7 +83,7 @@ impl Event {
         lines = Lines::from_slice(&origlines);
         keywords = Keywords::from_lines(&lines);
         foldlist.recreate_all(&keywords, &lines)?;
-        foldlist.resend_all(&mut nvim)?;
+        foldlist.resend_all_folds(&mut nvim)?;
         curbuf.attach(&mut nvim, false, vec![])?
       }
     };
@@ -109,15 +109,23 @@ impl Event {
             lines = Lines::from_vec(linedata);
             keywords = Keywords::from_lines(&lines);
             foldlist.recreate_all(&keywords, &lines)?;
-            foldlist.resend_all(&mut nvim)?;
+            foldlist.resend_all_folds(&mut nvim)?;
           } else if lastline >= 0 && firstline >= 0 {
+            let added: i64 = linedata.len() as i64 - (lastline - firstline);
             keywords.update(firstline as usize, lastline as usize, &linedata);
             lines.update(firstline as usize, lastline as usize, linedata);
-            foldlist.recreate_all(&keywords, &lines)?;
-            foldlist.highlight_region(
+            tmp_folds = Default::default();
+            let first = keywords.first_before(firstline as u64);
+            let last = keywords.first_after((lastline as i64 + added) as u64);
+            tmp_folds.recreate_all(
+              &keywords[first as usize..last as usize],
+              &lines[first as usize..last as usize],
+            )?;
+            foldlist.splice(tmp_folds, first as usize, last as usize, added);
+            foldlist.highlights.highlight_region(
               &mut nvim,
-              firstline as u64,
-              lastline as u64,
+              first as u64,
+              last as u64,
             )?;
           } else {
             error!(
@@ -127,15 +135,22 @@ impl Event {
           }
         }
         Ok(RefreshFolds) => {
-          foldlist.resend_all(&mut nvim)?;
+          foldlist.resend_all_folds(&mut nvim)?;
         }
         Ok(HighlightRegion {
           firstline,
           lastline,
         }) => {
           let fl = keywords.first_before(firstline);
-          let ll = keywords.first_after(lastline);
-          foldlist.highlight_region(&mut nvim, fl, ll)?;
+          let mut ll = keywords.first_after(lastline);
+
+          // highlight_region is end_exclusive, so we need to make sure
+          // we include the last line requested even if it is a keyword line
+          if ll == lastline {
+            ll += 1;
+          }
+
+          foldlist.highlights.highlight_region(&mut nvim, fl, ll)?;
         }
         Ok(Quit) => {
           break;

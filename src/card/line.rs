@@ -5,8 +5,10 @@ use std::{cmp, ops::Range};
 
 use atoi::atoi;
 
-use card::{cell::Cell, ges::GesType, keyword::Keyword};
-use highlights::{HlIter, HlLine};
+use crate::{
+  bufdata::highlights::{HlIter, HlLine},
+  card::{cell::Cell, ges::GesType, keyword::Keyword},
+};
 
 /// A line (actually, zero or more lines) inside a card in a Pamcrash input
 /// file.
@@ -59,14 +61,9 @@ impl Line {
     }
   }
 
-  pub fn highlights<'a>(
-    &'a self,
-    num: usize,
-    text: &'a [u8],
-  ) -> HlIter<'a> {
+  pub fn highlights<'a>(&'a self, text: &'a [u8]) -> HlIter<'a> {
     HlLine {
       cardline: &self,
-      num,
       text,
     }
     .into_iter()
@@ -148,7 +145,7 @@ impl Conditional {
 
 #[cfg(test)]
 mod tests {
-  use card::line::{CondResult::*, Conditional};
+  use crate::card::line::{CondResult::*, Conditional};
 
   #[test]
   fn relchar_can_be_evaluated() {

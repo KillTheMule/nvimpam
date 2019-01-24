@@ -56,7 +56,6 @@ function Screen:expect(expected, attr_ids, attr_ignore)
     -- value.
     grid = dedent(grid:gsub('\n[ ]+$', ''), 0)
     for row in grid:gmatch('[^\n]+') do
-      row = row:sub(1, #row - 1) -- Last char must be the screen delimiter.
       table.insert(expected_rows, row)
     end
   end
@@ -76,19 +75,11 @@ function Screen:expect(expected, attr_ids, attr_ignore)
       end
     end
 
-    if grid ~= nil and self._height ~= #expected_rows then
-      return ("Expected screen state's row count(" .. #expected_rows
-              .. ') differs from configured height(' .. self._height .. ') of Screen.')
-    end
-
     if self._options.ext_hlstate and self._new_attrs then
       attr_state.id_to_index = self:hlstate_check_attrs(attr_state.ids or {})
     end
 
-    local actual_rows = {}
-    for i = 1, self._height do
-      actual_rows[i] = self:_row_repr(self._rows[i], attr_state)
-    end
+    local actual_rows = self:render(not expected.any, attr_state)
 
     if expected.any ~= nil then
       -- Search for `any` anywhere in the screen lines.
@@ -97,13 +88,17 @@ function Screen:expect(expected, attr_ids, attr_ignore)
         return (
           'Failed to match any screen lines.\n'
           .. 'Expected (anywhere): "' .. expected.any .. '"\n'
-          .. 'Actual:\n  |' .. table.concat(actual_rows, '|\n  |') .. '|\n\n')
+          .. 'Actual:\n  |' .. table.concat(actual_rows, '\n  |') .. '\n\n')
       end
     end
 
     if grid ~= nil then
       -- `expected` must match the screen lines exactly.
-      for i = 1, self._height - 1 do
+      if #actual_rows ~= #expected_rows then
+        return "Expected screen state's row count(" .. #expected_rows
+        .. ') differs from configured height(' .. #actual_rows .. ') of Screen.'
+      end
+      for i = 1, #actual_rows - 1 do
         if expected_rows[i] ~= actual_rows[i] then
           local msg_expected_rows = {}
           for j = 1, #expected_rows do
@@ -113,8 +108,8 @@ function Screen:expect(expected, attr_ids, attr_ignore)
           actual_rows[i] = '*' .. actual_rows[i]
           return (
             'Row ' .. tostring(i) .. ' did not match.\n'
-            ..'Expected:\n  |'..table.concat(msg_expected_rows, '|\n  |')..'|\n'
-            ..'Actual:\n  |'..table.concat(actual_rows, '|\n  |')..'|\n\n'..[[
+            ..'Expected:\n  |'..table.concat(msg_expected_rows, '\n  |')..'\n'
+            ..'Actual:\n  |'..table.concat(actual_rows, '\n  |')..'\n\n'..[[
 To print the expect() call that would assert the current screen state, use
 screen:snapshot_util(). In case of non-deterministic failures, use
 screen:redraw_debug() to show all intermediate screen states.  ]])
@@ -160,7 +155,13 @@ describe('nvimpam', function()
       [4] = {bold = true, reverse = true},
       [5] = {background = Screen.colors.LightGrey, underline = true},
       [6] = {bold = true},
-      [7] = {foreground = Screen.colors.Grey3, background = 6291200}
+      [7] = {foreground = Screen.colors.Grey3, background = 6291200},
+      [8] = {bold = true, foreground = 8871680},
+      [9] = {background = 16777167},
+      [10] = {background = 15000804},
+      [11] = {foreground = Screen.colors.Grey100, background = Screen.colors.Red},
+      [12] = {foreground = Screen.colors.Grey100, background = 11468800},
+      [13] = {foreground = Screen.colors.Red},
     })
     command('set rtp+=../')
     command('source ../init.vim')
@@ -257,6 +258,26 @@ describe('nvimpam', function()
       $                                                                                |
                                                                                        |
     ]])
+
+    feed("zE")
+    command("NvimPamHighlightScreen")
+    screen:expect([[
+                                                                                       |
+                                                                                       |
+      $----------------------------------------------------------------                |
+      $     PART AND ELEMENT DEFINITIONS                                               |
+      $----------------------------------------------------------------                |
+      $#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT                         |
+      {8:^PART  / }{9:       1}{10:   SHELL}{9:       3}{10:       0}{9:       0}{10:       0}                         |
+      $#                                                                         TITLE |
+      {10:NAME}{9: Box section                                                                } |
+      $#  DTELIM    TSCALF                                                             |
+      {10:        0.}{9:          }                                                             |
+      $#   TCONT    EPSINI  COULFRIC                                                   |
+      {10:          }{9:          }{10:          }                                                   |
+      $#       H NINT    OFFSETNINTh                                                   |
+                                                                                       |
+    ]])
   end)
 
   it('can deal with insertions', function()
@@ -304,6 +325,26 @@ describe('nvimpam', function()
       {2:~                                                                                }|
                                                                                        |
     ]])
+
+    feed("zE")
+    command("NvimPamHighlightScreen")
+    screen:expect([[
+      {8:^NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      NODE  /        1              0.             0.5              0.                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      #Comment here                                                                    |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      #Comment                                                                         |
+      #Comment                                                                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      $Comment                                                                         |
+                                                                                       |
+    ]])
   end)
 
   it('can deal with deletions', function()
@@ -330,6 +371,26 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       {2:~                                                                                }|
       rust client connected to neovim                                                  |
+    ]])
+
+    feed("zE")
+    command("NvimPamHighlightScreen")
+    screen:expect([[
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      #Comment here                                                                    |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      ^#Comment                                                                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      $Comment                                                                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      $Comment                                                                         |
+      #Comment                                                                         |
+      3 fewer lines                                                                    |
     ]])
   end)
 
@@ -380,6 +441,28 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       {2:~                                                                                }|
                                                                                        |
+    ]])
+
+    -- trigger the subsitution again to get the error highlighting colors
+    feed("<C-r>")
+    feed("zR")
+    command("NvimPamHighlightScreen")
+    screen:expect([[
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      #Comment here                                                                    |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:^NODE  / }{9:    3129}{11:       1       1}{12:    2967    2971}{10:    2970}                         |
+      {8:NODE  / }{9:    3129}{11:       1       1}{12:    2967    2971}{10:    2970}                         |
+      #Comment                                                                         |
+      #Comment                                                                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      $Comment                                                                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      2 changes; after #2  0 seconds ago                                               |
     ]])
   end)
 
@@ -519,6 +602,10 @@ describe('nvimpam', function()
   end)
 
   it('provides a cardmenu', function()
+    -- impromptu uses this HL group, but the runtime isn't loaded on the
+    -- neovim test runner
+    command("hi def Comment cterm=NONE")
+
     command("set rtp+=../../impromptu.nvim")
     command("set nowrap")
     command('edit ' .. alter_slashes('../files/example.pc'))
@@ -596,4 +683,151 @@ describe('nvimpam', function()
     ]])
 
   end)
+
+  it('provides a filter-based cardmenu', function()
+    -- impromptu uses this HL group, but the runtime isn't loaded on the
+    -- neovim test runner
+    command("hi def Keyword cterm=NONE")
+
+    command("set rtp+=../../impromptu.nvim")
+    command("set nowrap")
+    command('edit ' .. alter_slashes('../files/example.pc'))
+
+
+    command('NvimPamFilter')
+    screen:expect([[
+      INPUTVERSION 2011                                                                |
+      ]]
+      ..
+      alter_slashes(
+      "{3:../files/example.pc                                                              }|"
+      )
+      ..
+      "\n"
+      ..
+      [[
+      Select a card                                                                    |
+      ─────────────────────────────────────────────────────────────────────────────────|
+      {13: →} 3D Boundary Condition                                                         |
+         ACFLD Acceleration Field                                                      |
+         ACTUA - Joint Actuator Definition                                             |
+         Acoustic Plane Wave                                                           |
+         BAGIN Definition                                                              |
+         BAR Element                                                                   |
+         BDFOR Body Forces                                                             |
+      ─────────────────────────────────────────────────────────────────────────────────|
+      ^                                                                                 |
+      {4:[Scratch]                                                                        }|
+                                                                                       |
+    ]])
+
+    feed("i3d")
+    screen:expect([[
+      INPUTVERSION 2011                                                                |
+      ]]
+      ..
+      alter_slashes(
+      "{3:../files/example.pc                                                              }|"
+      )
+      ..
+      "\n"
+      ..
+      [[
+      Select a card                                                                    |
+      ─────────────────────────────────────────────────────────────────────────────────|
+      {13: →} 3D Boundary Condition                                                         |
+         FBC3D Prescribed Motion onto Fluid Media                                      |
+         PART Type COS3D                                                               |
+                                                                                       |
+                                                                                       |
+                                                                                       |
+                                                                                       |
+      ─────────────────────────────────────────────────────────────────────────────────|
+      3d^                                                                               |
+      {4:[Scratch]                                                                        }|
+      {6:-- INSERT --}                                                                     |
+    ]])
+
+    feed("<C-j><Enter>")
+    screen:expect([[
+      ^INPUTVERSION 2011                                                                |
+      #FBC3D - Prescribed Motion onto Fluid Media                                      |
+      $#         IDNOQUALIFIER   IFUN1   IFUN2   IFUN3   SFAC1   SFAC2   SFAC3    IFAND|
+      FBC3D /        0ACCE           0       0       0      1.      1.      1.       0 |
+      $#                                                                         TITLE |
+      NAME FBC3D / ->1                                                                 |
+              END                                                                      |
+      ANALYSIS EXPLICIT                                                                |
+      SOLVER    CRASH                                                                  |
+      $                                                                                |
+      $----------------------------------------------------------------                |
+      $     PAM-SOLID SOLVER CONTROLS                                                  |
+      $----------------------------------------------------------------                |
+      UNIT       MM       KG       MS   KELVIN                                         |
+                                                                                       |
+    ]])
+
+  end)
+
+  it('updates error highlighting', function()
+    insert("NODE  /        1              0.             0.5              0.")
+    command('set ft=pamcrash')
+    command('NvimPamAttach')
+    command("NvimPamHighlightScreen")
+    if is_ci then
+      helpers.sleep(100)
+    else
+      helpers.sleep(10)
+    end
+
+    feed("1G")
+    feed("f0rx")
+    if is_ci then
+      helpers.sleep(100)
+    else
+      helpers.sleep(10)
+    end
+    screen:expect([[
+      {8:NODE  / }{9:       1}{11:              ^x.}{9:             0.5}{10:              0.}                 |
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+                                                                                       |
+    ]])
+
+    feed("u")
+    if is_ci then
+      helpers.sleep(100)
+    else
+      helpers.sleep(10)
+    end
+    screen:expect([[
+      {8:NODE  / }{9:       1}{10:              ^0.}{9:             0.5}{10:              0.}                 |
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      1 change; before #2  0 seconds ago                                               |
+    ]])
+  end)
+
 end)
