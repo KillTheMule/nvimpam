@@ -1,9 +1,6 @@
 //! The highlight module
 use std::{self, cmp, convert::From};
 
-#[cfg(feature = "hl_bt_tuple_hl")]
-use std::collections::{btree_map::Entry, BTreeMap};
-
 use failure::{Error, ResultExt};
 use neovim_lib::{Neovim, NeovimApi, Value};
 
@@ -113,15 +110,9 @@ impl<'a> Iterator for HlIter<'a> {
   }
 }
 
-#[cfg(feature = "hl_vec_tuple")]
 #[derive(Default, Debug)]
 pub struct Highlights(Vec<((u64, u8, u8), Hl)>);
 
-#[cfg(feature = "hl_bt_tuple_hl")]
-#[derive(Default, Debug)]
-pub struct Highlights(BTreeMap<(u64, u8, u8), Hl>);
-
-#[cfg(feature = "hl_vec_tuple")]
 impl Highlights {
   pub fn clear(&mut self) {
     self.0.clear()
@@ -204,85 +195,6 @@ impl Highlights {
 
 }
 
-#[cfg(feature = "hl_bt_tuple_hl")]
-impl Highlights {
-  pub fn clear(&mut self) {
-    self.0.clear()
-  }
-
-  pub fn new() -> Self {
-    Highlights(BTreeMap::new())
-  }
-
-  pub fn splice(
-    &mut self,
-    newfolds: Highlights,
-    firstline: usize,
-    lastline: usize,
-    added: i64,
-  ) {
-    let first_to_delete = self
-      .0
-      .range((firstline as u64, 0, 0)..)
-      .next()
-      .map(|f| *(f.0));
-
-    let mut to_change = match first_to_delete {
-      Some(ftd) => self.0.split_off(&ftd),
-      None => BTreeMap::new(),
-    };
-
-    let first_to_move = to_change
-      .range((lastline as u64, 0, 0)..)
-      .next()
-      .map(|f| *(f.0));
-
-    let to_move = match first_to_move {
-      Some(ftm) => to_change.split_off(&ftm),
-      None => BTreeMap::new(),
-    };
-
-    for (k, v) in newfolds.0.iter() {
-      self.add_highlight(k.0 + firstline as u64, k.1, k.2, *v);
-    }
-
-    for (k, v) in to_move.iter() {
-      self.add_highlight((k.0 as i64 + added) as u64, k.1, k.2, *v);
-    }
-  }
-
-  pub fn add_highlight(&mut self, line: u64, start: u8, end: u8, typ: Hl) {
-    match self.0.entry((line, start, end)) {
-      Entry::Vacant(entry) => {
-        entry.insert(typ);
-      }
-      Entry::Occupied(mut entry) => {
-        *entry.get_mut() = typ;
-      }
-    }
-  }
-
-  pub fn add_line_highlights<T>(&mut self, num: usize, it: T)
-  where
-    T: IntoIterator<Item = ((u8, u8), Hl)>,
-  {
-    self
-      .0
-      .extend(it.into_iter().map(|((s, e), h)| ((num as u64, s, e), h)));
-  }
-
-  pub fn iter(&self) -> impl Iterator<Item = (&(u64, u8, u8), &Hl)> {
-    self.0.iter()
-  }
-
-  pub fn linerange(
-    &self,
-    start: u64,
-    end: u64,
-  ) -> impl Iterator<Item = (&(u64, u8, u8), &Hl)> {
-    self.0.range((start, 0, 0)..(end, 0, 0))
-  }
-}
 /// Highlight all the lines in the given region
 // TODO: efficient? correct?
 pub fn highlight_region<'a, 'b, 'c, T>(
