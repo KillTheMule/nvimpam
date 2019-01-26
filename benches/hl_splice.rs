@@ -8,13 +8,19 @@ use criterion::{black_box, Criterion};
 
 use neovim_lib::Value;
 
-use nvimpam_lib::{bufdata::BufData, card::keyword::Keywords, lines::Lines};
+use nvimpam_lib::{
+  bufdata::highlights::HighlightGroup as Hl,
+  bufdata::BufData, card::keyword::Keywords, lines::Lines};
 
-fn fake_highlight_region(
-  bd: &BufData,
+fn fake_highlight_region<'a, 'b, 'c, T>(
+  iter: T,
   firstline: u64,
   lastline: u64,
-) -> Vec<Value> {
+  offset: bool
+) -> Vec<Value>
+where
+  T: Iterator<Item = (&'b (u64, u8, u8), &'b Hl)>,
+{
   let mut calls: Vec<Value> = vec![];
 
   calls.push(
@@ -31,27 +37,24 @@ fn fake_highlight_region(
     .into(),
   );
 
-  for ((l, s, e), t) in bd.highlights.iter() {
-    if firstline <= *l && *l < lastline {
-      let st: &'static str = (*t).into();
-      calls.push(
+  for ((l, s, e), t) in iter {
+    let st: &'static str = (*t).into();
+    let nr = if offset { *l + firstline } else { *l };
+    calls.push(
+      vec![
+        Value::from("nvim_buf_add_highlight".to_string()),
         vec![
-          Value::from("nvim_buf_add_highlight".to_string()),
-          vec![
-            Value::from(1),
-            Value::from(5),
-            Value::from(st.to_string()),
-            Value::from(*l),
-            Value::from(u64::from(*s)),
-            Value::from(u64::from(*e)),
-          ]
-          .into(),
+          Value::from(1),
+          Value::from(5),
+          Value::from(st.to_string()),
+          Value::from(nr),
+          Value::from(u64::from(*s)),
+          Value::from(u64::from(*e)),
         ]
         .into(),
-      );
-    } else if *l > lastline {
-      break;
-    }
+      ]
+      .into(),
+    );
   }
   calls
 }
@@ -77,12 +80,14 @@ macro_rules! hl_bench {
           tmp_bufdata
             .recreate_all(&keywords[$start..$end], &lines[$start..$end])
             .expect("3");
-          bufdata.splice(tmp_bufdata, $sstart, $ssend, $added);
           let _calls = black_box(fake_highlight_region(
-            &bufdata,
-            $sstart,
-            (($ssend as i64) + $added) as u64,
-          ));
+              tmp_bufdata.highlights.iter(),
+              $start,
+              $end,
+              true
+              ));
+
+          bufdata.splice(tmp_bufdata, $sstart, $ssend, $added);
         })
       });
     }
@@ -111,7 +116,7 @@ fn bench_bufdata_readonly(c: &mut Criterion) {
     bufdata.recreate_all(&keywords, &lines).expect("2");
 
     b.iter(|| {
-      let _calls = black_box(fake_highlight_region(&bufdata, 1000, 10000));
+      let _calls = black_box(fake_highlight_region(bufdata.highlights.linerange(1000, 10000), 1000, 10000, false));
     })
   });
 }

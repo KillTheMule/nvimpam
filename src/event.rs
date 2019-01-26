@@ -121,12 +121,14 @@ impl Event {
               &keywords[first as usize..last as usize],
               &lines[first as usize..last as usize],
             )?;
-            foldlist.splice(tmp_folds, first as usize, last as usize, added);
-            foldlist.highlights.highlight_region(
+            crate::bufdata::highlights::highlight_region(
+              tmp_folds.highlights.iter(),
               &mut nvim,
               first as u64,
               last as u64,
+              true
             )?;
+            foldlist.splice(tmp_folds, first as usize, last as usize, added);
           } else {
             error!(
               "LinesEvent only works with nonnegative numbers, except for
@@ -150,7 +152,8 @@ impl Event {
             ll += 1;
           }
 
-          foldlist.highlights.highlight_region(&mut nvim, fl, ll)?;
+          crate::bufdata::highlights::highlight_region(foldlist.highlights.linerange(fl, ll), &mut nvim, fl,
+          ll, false)?;
         }
         Ok(Quit) => {
           break;

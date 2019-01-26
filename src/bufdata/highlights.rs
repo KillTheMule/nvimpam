@@ -138,9 +138,10 @@ impl Highlights {
     lastline: usize,
     added: i64,
   ) {
-    let start = self.0
-      .binary_search_by_key(&(firstline, 0),|&((l, s, _), _)| (l as usize, s))
-       // error contains index where ele could be inserted preserving Order
+    let start = self
+      .0
+      .binary_search_by_key(&(firstline, 0), |&((l, s, _), _)| (l as usize, s))
+      // error contains index where ele could be inserted preserving Order
       .unwrap_or_else(|e| e);
     let end = self.0[start..]
       .iter()
@@ -177,60 +178,30 @@ impl Highlights {
       .extend(it.into_iter().map(|((s, e), h)| ((num as u64, s, e), h)));
   }
 
-  pub fn iter(&self) -> impl Iterator<Item = &((u64, u8, u8), Hl)> {
-    self.0.iter()
+  pub fn iter(&self) -> impl Iterator<Item = (&(u64, u8, u8), &Hl)> {
+    self.0.iter().map(|(ref a, ref b)| (a, b))
   }
 
-  /// Highlight all the lines in the given region
-  // TODO: efficient? correct?
-  pub fn highlight_region(
+  pub fn linerange(
     &self,
-    nvim: &mut Neovim,
     firstline: u64,
     lastline: u64,
-  ) -> Result<(), Error> {
-    let curbuf = nvim.get_current_buf()?;
-    let mut calls: Vec<Value> = vec![];
+  ) -> impl Iterator<Item = (&(u64, u8, u8), &Hl)> {
+    let start = self
+      .0
+      .binary_search_by_key(&(firstline, 0), |&((l, s, _), _)| (l, s))
+      // error contains index where ele could be inserted preserving Order
+      .unwrap_or_else(|e| e);
+    let end = self.0[start..]
+      .iter()
+      .enumerate()
+      .find(|(_, ((l, _, _), _))| *l >= lastline)
+      .map(|(i, ((_, _, _), _))| i + start)
+      .unwrap_or_else(|| self.0.len());
 
-    calls.push(
-      vec![
-        Value::from("nvim_buf_clear_highlight".to_string()),
-        vec![
-          curbuf.get_value().clone(),
-          Value::from(5),
-          Value::from(firstline),
-          Value::from(lastline),
-        ]
-        .into(),
-      ]
-      .into(),
-    );
-
-    for ((l, s, e), t) in self.0.iter() {
-      if firstline <= *l && *l < lastline {
-        let st: &'static str = (*t).into();
-        calls.push(
-          vec![
-            Value::from("nvim_buf_add_highlight".to_string()),
-            vec![
-              curbuf.get_value().clone(),
-              Value::from(5),
-              Value::from(st.to_string()),
-              Value::from(*l),
-              Value::from(u64::from(*s)),
-              Value::from(u64::from(*e)),
-            ]
-            .into(),
-          ]
-          .into(),
-        );
-      } else if *l > lastline {
-        break;
-      }
-    }
-    nvim.call_atomic(calls).context("call_atomic failed")?;
-    Ok(())
+    self.0[start..end].iter().map(|(ref a, ref b)| (a, b))
   }
+
 }
 
 #[cfg(feature = "hl_bt_tuple_hl")]
@@ -304,56 +275,64 @@ impl Highlights {
     self.0.iter()
   }
 
-  /// Highlight all the lines in the given region
-  // TODO: efficient? correct?
-  pub fn highlight_region(
+  pub fn linerange(
     &self,
-    nvim: &mut Neovim,
-    firstline: u64,
-    lastline: u64,
-  ) -> Result<(), Error> {
-    let curbuf = nvim.get_current_buf()?;
-    let mut calls: Vec<Value> = vec![];
+    start: u64,
+    end: u64,
+  ) -> impl Iterator<Item = (&(u64, u8, u8), &Hl)> {
+    self.0.range((start, 0, 0)..(end, 0, 0))
+  }
+}
+/// Highlight all the lines in the given region
+// TODO: efficient? correct?
+pub fn highlight_region<'a, 'b, 'c, T>(
+  iter: T,
+  nvim: &'a mut Neovim,
+  firstline: u64,
+  lastline: u64,
+  offset: bool
+) -> Result<(), Error>
+where
+  T: Iterator<Item = (&'b (u64, u8, u8), &'b Hl)>,
+{
+  let curbuf = nvim.get_current_buf()?;
+  let mut calls: Vec<Value> = vec![];
 
+  calls.push(
+    vec![
+      Value::from("nvim_buf_clear_highlight".to_string()),
+      vec![
+        curbuf.get_value().clone(),
+        Value::from(5),
+        Value::from(firstline),
+        Value::from(lastline),
+      ]
+      .into(),
+    ]
+    .into(),
+  );
+
+  for ((l, s, e), t) in iter {
+    let st: &'static str = (*t).into();
+    let nr = if offset { *l + firstline } else { *l };
     calls.push(
       vec![
-        Value::from("nvim_buf_clear_highlight".to_string()),
+        Value::from("nvim_buf_add_highlight".to_string()),
         vec![
           curbuf.get_value().clone(),
           Value::from(5),
-          Value::from(firstline),
-          Value::from(lastline),
+          Value::from(st.to_string()),
+          Value::from(nr),
+          Value::from(u64::from(*s)),
+          Value::from(u64::from(*e)),
         ]
         .into(),
       ]
       .into(),
     );
-
-    for ((l, s, e), t) in self.0.iter() {
-      if firstline <= *l && *l < lastline {
-        let st: &'static str = (*t).into();
-        calls.push(
-          vec![
-            Value::from("nvim_buf_add_highlight".to_string()),
-            vec![
-              curbuf.get_value().clone(),
-              Value::from(5),
-              Value::from(st.to_string()),
-              Value::from(*l),
-              Value::from(u64::from(*s)),
-              Value::from(u64::from(*e)),
-            ]
-            .into(),
-          ]
-          .into(),
-        );
-      } else if *l > lastline {
-        break;
-      }
-    }
-    nvim.call_atomic(calls).context("call_atomic failed")?;
-    Ok(())
   }
+  nvim.call_atomic(calls).context("call_atomic failed")?;
+  Ok(())
 }
 
 #[cfg(test)]
