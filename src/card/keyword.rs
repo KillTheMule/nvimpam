@@ -338,24 +338,31 @@ impl Keyword {
 pub struct Keywords(Vec<Option<Keyword>>);
 
 impl Keywords {
+  pub fn new() -> Self {
+    Keywords(vec![])
+  }
+
+  pub fn clear(&mut self) {
+    self.0.clear()
+  }
+
   /// Create a [`Keywords`](::card::keyword::Keywords) struct by parsing a
   /// [`Lines`](::lines::Lines) struct.
-  pub fn from_lines(lines: &Lines) -> Keywords {
-    let v: Vec<Option<Keyword>> = lines.iter().map(Keyword::parse).collect();
-    Keywords(v)
+  pub fn from_lines(&mut self, lines: &Lines) {
+    self.0.extend(lines.iter().map(Keyword::parse))
   }
 
   /// Update a [`Keywords`](::card::keyword::Keywords) struct by parsing a
   /// `Vec<String>` and splicing in the result on the interval `first..last`.
-  pub fn update(&mut self, first: usize, last: usize, linedata: &[String]) {
-    let range = first..last;
+  pub fn update(&mut self, first: u64, last: u64, linedata: &[String]) {
+    let range = first as usize..last as usize;
     let _ = self
       .0
       .splice(range, linedata.iter().map(|l| Keyword::parse(l.as_ref())));
   }
 
   // TODO: Efficient? Correct?
-  pub fn first_before(&self, line: u64) -> u64 {
+  pub fn first_before(&self, line: u64) -> usize {
     self
       .get(..=line as usize)
       .unwrap_or(&[])
@@ -363,18 +370,18 @@ impl Keywords {
       .enumerate()
       .rfind(|(_i, k)| k.is_some() && **k != Some(Keyword::Comment))
       .unwrap_or((0, &None))
-      .0 as u64
+      .0
   }
 
   // TODO: Efficient? Correct?
-  pub fn first_after(&self, line: u64) -> u64 {
+  pub fn first_after(&self, line: u64) -> usize {
     self
       .iter()
       .enumerate()
       .skip(line as usize)
       .find(|(_i, k)| k.is_some() && **k != Some(Keyword::Comment))
       .unwrap_or((self.len(), &None))
-      .0 as u64
+      .0
   }
 }
 

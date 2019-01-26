@@ -8,7 +8,7 @@
 use std::default::Default;
 
 use crate::{
-  bufdata::BufData,
+  bufdata::highlights::Highlights,
   card::{
     ges::GesType,
     keyword::Keyword,
@@ -186,14 +186,14 @@ where
   pub fn skip_fold<'b>(
     &'b mut self,
     skipline: &KeywordLine<'a>,
-    folds: &mut BufData,
+    highlights: &mut Highlights,
   ) -> SkipResult<'a> {
     let card: &Card = skipline.keyword.into();
 
     if card.ownfold {
-      self.skip_card(&skipline, card, folds)
+      self.skip_card(&skipline, card, highlights)
     } else {
-      self.skip_card_gather(&skipline, card, folds)
+      self.skip_card_gather(&skipline, card, highlights)
     }
   }
 
@@ -208,7 +208,7 @@ where
     &'b mut self,
     skipline: &KeywordLine<'a>,
     card: &Card,
-    folds: &mut BufData,
+    highlights: &mut Highlights,
   ) -> SkipResult<'a> {
     let mut conds: Vec<CondResult> = vec![]; // the vec to hold the conditionals
     let mut cardlines = card.lines.iter();
@@ -218,8 +218,7 @@ where
       conds.push(c.evaluate(skipline.text));
     }
 
-    folds
-      .highlights
+    highlights
       .add_line_highlights(skipline.number, cardline.highlights(skipline.text));
 
     let mut previdx: Option<usize> = None;
@@ -247,7 +246,7 @@ where
           }
         }
         CardLine::Cells(_s) => {
-          folds.highlights.add_line_highlights(
+          highlights.add_line_highlights(
             nextline.number,
             cardline.highlights(nextline.text),
           );
@@ -314,15 +313,15 @@ where
     &'b mut self,
     skipline: &KeywordLine<'a>,
     card: &Card,
-    folds: &mut BufData,
+    highlights: &mut Highlights,
   ) -> SkipResult<'a> {
-    let mut res = self.skip_card(&skipline, card, folds);
+    let mut res = self.skip_card(&skipline, card, highlights);
 
     #[cfg_attr(rustfmt, rustfmt_skip)]
     loop {
       if let Some(ParsedLine{keyword: Some(k),number,text}) = res.nextline {
         if Some(*k) == card.keyword() {
-          res = self.skip_card(&KeywordLine{keyword: k, number, text}, card, folds);
+          res = self.skip_card(&KeywordLine{keyword: k, number, text}, card, highlights);
           continue;
         }
       }

@@ -70,6 +70,13 @@ where
 }
 
 impl<'a> Lines<'a> {
+  pub fn new() -> Self {
+    Lines(vec![])
+  }
+
+  pub fn clear(&mut self) {
+    self.0.clear()
+  }
   /// Returns the number of lines
   pub fn len(&self) -> usize {
     self.0.len()
@@ -81,9 +88,8 @@ impl<'a> Lines<'a> {
   }
 
   /// Create a new `Lines` struct from a `Vec<String>`
-  pub fn from_vec(v: Vec<String>) -> Lines<'a> {
-    let w = v.into_iter().map(Line::ChangedLine).collect();
-    Lines(w)
+  pub fn from_vec(&mut self, v: Vec<String>) {
+    self.0.extend(v.into_iter().map(Line::ChangedLine))
   }
 
   /// Creates a new `Lines` struct from a slice of `&'str`s
@@ -94,17 +100,15 @@ impl<'a> Lines<'a> {
   }
 
   /// Create a new `Lines` struct from a byte slice by splitting on newlines.
-  pub fn from_slice(v: &'a [u8]) -> Lines<'a> {
-    let mut w: Vec<Line> =
-      v.split(|b| *b == b'\n').map(Line::OriginalLine).collect();
+  pub fn from_slice(&mut self, v: &'a [u8]) {
+    self.0.extend(
+      v.split(|b| *b == b'\n').map(Line::OriginalLine));
 
     // If the file contains a final newline, we need to remove the empty slice
     // at the end
-    if v.last() == Some(&b'\n') {
-      w.pop();
+    if self.0.last() == Some(&Line::OriginalLine(b"")) {
+      self.0.pop();
     }
-
-    Lines(w)
   }
 
   /// Read a file into a `Vec<u8>`. For usage with
@@ -127,8 +131,8 @@ impl<'a> Lines<'a> {
   ///   * `last` is the first line that has _not_ been updated
   /// This are the exact conditions to use the range `first..last` together with
   /// `splice` on a `Vec`.
-  pub fn update(&mut self, first: usize, last: usize, linedata: Vec<String>) {
-    let range = first..last;
+  pub fn update(&mut self, first: u64, last: u64, linedata: Vec<String>) {
+    let range = first as usize..last as usize;
     let _ = self
       .0
       .splice(range, linedata.into_iter().map(Line::ChangedLine));

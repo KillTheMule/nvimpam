@@ -66,24 +66,18 @@ impl Event {
     file: Option<OsString>,
   ) -> Result<(), Error> {
     use self::Event::*;
-    use crate::card::keyword::Keywords;
 
     let curbuf = nvim.get_current_buf()?;
 
-    let mut foldlist = BufData::new();
-    let mut tmp_folds: BufData;
     let origlines;
-    let mut lines = Default::default();
-    let mut keywords: Keywords = Default::default();
+    let mut bufdata = BufData::new();
 
     let connected = match file {
       None => curbuf.attach(&mut nvim, true, vec![])?,
       Some(f) => {
         origlines = Lines::read_file(f)?;
-        lines = Lines::from_slice(&origlines);
-        keywords = Keywords::from_lines(&lines);
-        foldlist.recreate_all(&keywords, &lines)?;
-        foldlist.resend_all_folds(&mut nvim)?;
+        bufdata.from_slice(&origlines);
+        bufdata.resend_all_folds(&mut nvim)?;
         curbuf.attach(&mut nvim, false, vec![])?
       }
     };
@@ -104,31 +98,21 @@ impl Event {
           if changedtick == 0 {
             continue;
           }
-
           if lastline == -1 {
-            lines = Lines::from_vec(linedata);
-            keywords = Keywords::from_lines(&lines);
-            foldlist.recreate_all(&keywords, &lines)?;
-            foldlist.resend_all_folds(&mut nvim)?;
+            bufdata.from_vec(linedata);
+            bufdata.resend_all_folds(&mut nvim)?;
           } else if lastline >= 0 && firstline >= 0 {
-            let added: i64 = linedata.len() as i64 - (lastline - firstline);
-            keywords.update(firstline as usize, lastline as usize, &linedata);
-            lines.update(firstline as usize, lastline as usize, linedata);
-            tmp_folds = Default::default();
-            let first = keywords.first_before(firstline as u64);
-            let last = keywords.first_after((lastline as i64 + added) as u64);
-            tmp_folds.recreate_all(
-              &keywords[first as usize..last as usize],
-              &lines[first as usize..last as usize],
-            )?;
+            bufdata.update(firstline as u64, lastline as u64, linedata);
+
+            /*
             crate::bufdata::highlights::highlight_region(
-              tmp_folds.highlights.iter(),
+              tmp_bufdata.highlights.iter(),
               &mut nvim,
               first as u64,
               last as u64,
               true,
             )?;
-            foldlist.splice(tmp_folds, first as usize, last as usize, added);
+            */
           } else {
             error!(
               "LinesEvent only works with nonnegative numbers, except for
@@ -137,26 +121,26 @@ impl Event {
           }
         }
         Ok(RefreshFolds) => {
-          foldlist.resend_all_folds(&mut nvim)?;
+          bufdata.resend_all_folds(&mut nvim)?;
         }
         Ok(HighlightRegion {
           firstline,
           lastline,
         }) => {
-          let fl = keywords.first_before(firstline);
-          let mut ll = keywords.first_after(lastline);
+          let fl = bufdata.keywords.first_before(firstline);
+          let mut ll = bufdata.keywords.first_after(lastline);
 
           // highlight_region is end_exclusive, so we need to make sure
           // we include the last line requested even if it is a keyword line
-          if ll == lastline {
+          if ll == lastline as usize {
             ll += 1;
           }
 
           crate::bufdata::highlights::highlight_region(
-            foldlist.highlights.linerange(fl, ll),
+            bufdata.highlights.linerange(fl as u64, ll as u64),
             &mut nvim,
-            fl,
-            ll,
+            fl as u64,
+            ll as u64,
             false,
           )?;
         }
