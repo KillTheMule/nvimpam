@@ -9,14 +9,16 @@ use criterion::{black_box, Criterion};
 use neovim_lib::Value;
 
 use nvimpam_lib::{
-  bufdata::highlights::HighlightGroup as Hl,
-  bufdata::BufData, card::keyword::Keywords, lines::Lines};
+  bufdata::{highlights::HighlightGroup as Hl, BufData},
+  card::keyword::Keywords,
+  lines::Lines,
+};
 
 fn fake_highlight_region<'a, 'b, 'c, T>(
   iter: T,
   firstline: u64,
   lastline: u64,
-  offset: bool
+  offset: bool,
 ) -> Vec<Value>
 where
   T: Iterator<Item = (&'b (u64, u8, u8), &'b Hl)>,
@@ -81,11 +83,11 @@ macro_rules! hl_bench {
             .recreate_all(&keywords[$start..$end], &lines[$start..$end])
             .expect("3");
           let _calls = black_box(fake_highlight_region(
-              tmp_bufdata.highlights.iter(),
-              $start,
-              $end,
-              true
-              ));
+            tmp_bufdata.highlights.iter(),
+            $start,
+            $end,
+            true,
+          ));
 
           bufdata.splice(tmp_bufdata, $sstart, $ssend, $added);
         })
@@ -116,7 +118,12 @@ fn bench_bufdata_readonly(c: &mut Criterion) {
     bufdata.recreate_all(&keywords, &lines).expect("2");
 
     b.iter(|| {
-      let _calls = black_box(fake_highlight_region(bufdata.highlights.linerange(1000, 10000), 1000, 10000, false));
+      let _calls = black_box(fake_highlight_region(
+        bufdata.highlights.linerange(1000, 10000),
+        1000,
+        10000,
+        false,
+      ));
     })
   });
 }

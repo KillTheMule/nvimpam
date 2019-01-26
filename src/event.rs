@@ -126,7 +126,7 @@ impl Event {
               &mut nvim,
               first as u64,
               last as u64,
-              true
+              true,
             )?;
             foldlist.splice(tmp_folds, first as usize, last as usize, added);
           } else {
@@ -152,8 +152,13 @@ impl Event {
             ll += 1;
           }
 
-          crate::bufdata::highlights::highlight_region(foldlist.highlights.linerange(fl, ll), &mut nvim, fl,
-          ll, false)?;
+          crate::bufdata::highlights::highlight_region(
+            foldlist.highlights.linerange(fl, ll),
+            &mut nvim,
+            fl,
+            ll,
+            false,
+          )?;
         }
         Ok(Quit) => {
           break;

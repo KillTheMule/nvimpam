@@ -164,7 +164,7 @@ impl Highlights {
   where
     T: IntoIterator<Item = ((u8, u8), Hl)>,
   {
-    let _ = self
+    self
       .0
       .extend(it.into_iter().map(|((s, e), h)| ((num as u64, s, e), h)));
   }
@@ -192,7 +192,6 @@ impl Highlights {
 
     self.0[start..end].iter().map(|(ref a, ref b)| (a, b))
   }
-
 }
 
 /// Highlight all the lines in the given region
@@ -202,7 +201,7 @@ pub fn highlight_region<'a, 'b, 'c, T>(
   nvim: &'a mut Neovim,
   firstline: u64,
   lastline: u64,
-  offset: bool
+  offset: bool,
 ) -> Result<(), Error>
 where
   T: Iterator<Item = (&'b (u64, u8, u8), &'b Hl)>,

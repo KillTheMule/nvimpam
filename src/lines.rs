@@ -88,10 +88,8 @@ impl<'a> Lines<'a> {
 
   /// Creates a new `Lines` struct from a slice of `&'str`s
   pub fn from_strs(v: &'a [&'a str]) -> Lines<'a> {
-    let w: Vec<Line<'a>> = v
-      .iter()
-      .map(|l| Line::OriginalLine(l.as_ref()))
-      .collect();
+    let w: Vec<Line<'a>> =
+      v.iter().map(|l| Line::OriginalLine(l.as_ref())).collect();
     Lines(w)
   }
 
