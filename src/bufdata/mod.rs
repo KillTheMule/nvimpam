@@ -189,9 +189,7 @@ impl<'a> BufData<'a> {
     }
   }
 
-  /// Delete all folds in nvim, and create the ones from the FoldList.
-  pub fn resend_all_folds(&self, nvim: &mut Neovim) -> Result<(), Error> {
-    let luafn = "require('nvimpam').update_folds(...)";
+  pub fn packup_all_folds(&self) -> Vec<Value> {
     let mut luaargs = vec![];
 
     for (range, (_, text)) in self.folds.iter().chain(self.folds_level2.iter())
@@ -203,8 +201,16 @@ impl<'a> BufData<'a> {
       ]));
     }
 
+    vec![Value::from(luaargs)]
+  }
+
+  /// Delete all folds in nvim, and create the ones from the FoldList.
+  pub fn resend_all_folds(&self, nvim: &mut Neovim) -> Result<(), Error> {
+    let luafn = "require('nvimpam').update_folds(...)";
+    let foldvalue = self.packup_all_folds();
+
     nvim
-      .execute_lua(luafn, vec![Value::from(luaargs)])
+      .execute_lua(luafn, foldvalue)
       .context("Execute lua failed")?;
 
     Ok(())
