@@ -42,6 +42,7 @@ use nvimpam_lib::{event::Event, handler::NeovimHandler};
 
 use neovim_lib::{
   neovim::Neovim, neovim_api::NeovimApi, session::Session, Value,
+  neovim_api_async::NeovimApiAsync
 };
 
 use simplelog::{Config, Level, LevelFilter, WriteLogger};
@@ -118,7 +119,7 @@ fn init_logging() -> Result<(), Error> {
   Ok(())
 }
 
-fn send_client_info(nvim: &mut Neovim) -> Result<(), Error> {
+fn send_client_info(nvim: &mut Neovim) {
   const VERSION_MAJOR: &str = env!("CARGO_PKG_VERSION_MAJOR");
   const VERSION_MINOR: &str = env!("CARGO_PKG_VERSION_MINOR");
   const VERSION_PATCH: &str = env!("CARGO_PKG_VERSION_PATCH");
@@ -160,8 +161,11 @@ fn send_client_info(nvim: &mut Neovim) -> Result<(), Error> {
   ];
 
   let typ = "remote";
-  nvim.set_client_info(NAME, version, typ, methods, attribs)?;
-  Ok(())
+  nvim.set_client_info_async(NAME, version, typ, methods, attribs)
+    .cb(|r| if let Err(e) = r {
+      error!("set_client_info_async returned an error: '{}'", e);
+    })
+  .call()
 }
 
 fn start_program() -> Result<(), Error> {
@@ -175,7 +179,7 @@ fn start_program() -> Result<(), Error> {
   });
   let mut nvim = Neovim::new(session);
 
-  send_client_info(&mut nvim)?;
+  send_client_info(&mut nvim);
 
   /* Leave this out for now, it's not really necessary and slows
    * down the first folds
