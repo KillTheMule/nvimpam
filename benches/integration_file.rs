@@ -8,7 +8,7 @@ use criterion::Criterion;
 use std::{path::Path, process::Command, sync::mpsc};
 
 use nvimpam_lib::{
-  bufdata::BufData, card::keyword::Keywords, event::Event::*,
+  bufdata::BufData, event::Event::*,
   handler::NeovimHandler, lines::Lines,
 };
 
@@ -37,17 +37,15 @@ fn bench_folds_file(c: &mut Criterion) {
   c.bench_function("integration1_file", move |b| {
     b.iter(|| {
       let origlines = Lines::read_file("files/example.pc").expect("3.1");
-      let lines = Lines::from_slice(&origlines);
-      let keywords = Keywords::from_lines(&lines);
-      let mut foldlist = BufData::new();
+      let mut bufdata = BufData::new();
 
       curbuf.attach(&mut nvim, false, vec![]).expect("4");
       loop {
         match receiver.recv() {
           Ok(ChangedTickEvent { .. }) => {
-            foldlist.recreate_all(&keywords, &lines).expect("5");
-            foldlist.resend_all_folds(&mut nvim).expect("6");
-            curbuf.detach(&mut nvim).expect("7");
+            bufdata.from_slice(&origlines);
+            bufdata.resend_all_folds(&mut nvim).expect("5");
+            curbuf.detach(&mut nvim).expect("6");
             nvim.command("call rpcnotify(1, 'quit')").unwrap();
           }
           _ => break,

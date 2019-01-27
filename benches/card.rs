@@ -18,12 +18,10 @@ fn bench_parse2bufdata(c: &mut Criterion) {
   c.bench_function("card_parse2folddata", |b| {
     let origlines = Lines::read_file("files/example.pc").expect("3.1");
 
-    let mut f = BufData::new();
+    let mut bufdata = BufData::new();
     b.iter(|| {
-      let lines = Lines::from_slice(&origlines);
-      let keywords = Keywords::from_lines(&lines);
-      f.clear();
-      let _compacted = f.add_from(&keywords, &lines);
+      bufdata.clear();
+      bufdata.from_slice(&origlines);
     });
   });
 }
@@ -64,8 +62,11 @@ const GES: [&str; 9] = [
 fn bench_skip_ges(c: &mut Criterion) {
   c.bench_function("card_skip_ges", |b| {
     let g = GesType::GesNode;
-    let lines = Lines::from_strs(&GES);
-    let keywords: Keywords = Keywords::from_lines(&lines);
+    let mut lines = Lines::new();
+    let mut keywords = Keywords::new();
+
+    lines.from_strs(&GES);
+    keywords.from_lines(&lines);
 
     b.iter(|| {
       let mut li = keywords

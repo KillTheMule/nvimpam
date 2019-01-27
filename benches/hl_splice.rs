@@ -10,7 +10,6 @@ use neovim_lib::Value;
 
 use nvimpam_lib::{
   bufdata::{highlights::HighlightGroup as Hl, BufData},
-  card::keyword::Keywords,
   lines::Lines,
 };
 
@@ -18,7 +17,6 @@ fn fake_highlight_region<'a, 'b, 'c, T>(
   iter: T,
   firstline: u64,
   lastline: u64,
-  offset: bool,
 ) -> Vec<Value>
 where
   T: Iterator<Item = (&'b (u64, u8, u8), &'b Hl)>,
@@ -41,7 +39,6 @@ where
 
   for ((l, s, e), t) in iter {
     let st: &'static str = (*t).into();
-    let nr = if offset { *l + firstline } else { *l };
     calls.push(
       vec![
         Value::from("nvim_buf_add_highlight".to_string()),
@@ -49,7 +46,7 @@ where
           Value::from(1),
           Value::from(5),
           Value::from(st.to_string()),
-          Value::from(nr),
+          Value::from(*l),
           Value::from(u64::from(*s)),
           Value::from(u64::from(*e)),
         ]
@@ -65,31 +62,35 @@ macro_rules! hl_bench {
   ($fn: ident; lines: ($start: expr, $end: expr);
    spliceto: ($sstart: expr, $ssend: expr, $added: expr)) => {
     fn $fn(c: &mut Criterion) {
+      use nvimpam_lib::bufdata::highlights::Highlights;
+
       c.bench_function(stringify!($fn), move |b| {
         let origlines = Lines::read_file("files/example.pc").expect("1");
-        let lines = Lines::from_slice(&origlines);
-        let keywords = Keywords::from_lines(&lines);
         let mut bufdata = BufData::new();
-        bufdata.recreate_all(&keywords, &lines).expect("2");
+        bufdata.from_slice(&origlines);
 
         // example.pc has 20586 lines, so 20587 is the last valid linenumber
         // so 20586 is the last valid line index
         assert!($end < 20587);
         assert!($ssend < 20587);
 
-        b.iter(|| {
-          let mut tmp_bufdata = black_box(BufData::new());
-          tmp_bufdata
-            .recreate_all(&keywords[$start..$end], &lines[$start..$end])
-            .expect("3");
-          let _calls = black_box(fake_highlight_region(
-            tmp_bufdata.highlights.iter(),
-            $start,
-            $end,
-            true,
-          ));
+        let v: Vec<_> = bufdata
+          .highlights
+          .iter()
+          .filter(|((l, _, _), _)| $start <= *l && *l < $end)
+          .map(|((l, s, e), h)| ((*l, *s, *e), *h))
+          .collect();
 
-          bufdata.splice(tmp_bufdata, $sstart, $ssend, $added);
+        b.iter(move || {
+          let newhls: Highlights = Highlights(v.clone());
+          let (start, end) =
+            bufdata.highlights.splice(newhls, $sstart, $ssend, $added);
+
+          let _calls = black_box(fake_highlight_region(
+            bufdata.highlights.indexrange(start, end),
+            start as u64,
+            end as u64,
+          ));
         })
       });
     }
@@ -99,12 +100,10 @@ macro_rules! hl_bench {
 fn bench_bufdata_create(c: &mut Criterion) {
   c.bench_function("bench_bufdata_create", move |b| {
     let origlines = Lines::read_file("files/example.pc").expect("1");
-    let lines = Lines::from_slice(&origlines);
-    let keywords = Keywords::from_lines(&lines);
     let mut bufdata = BufData::new();
 
     b.iter(|| {
-      bufdata.recreate_all(&keywords, &lines).expect("2");
+      bufdata.from_slice(&origlines);
     })
   });
 }
@@ -112,17 +111,14 @@ fn bench_bufdata_create(c: &mut Criterion) {
 fn bench_bufdata_readonly(c: &mut Criterion) {
   c.bench_function("bench_bufdata_readonly", move |b| {
     let origlines = Lines::read_file("files/example.pc").expect("1");
-    let lines = Lines::from_slice(&origlines);
-    let keywords = Keywords::from_lines(&lines);
     let mut bufdata = BufData::new();
-    bufdata.recreate_all(&keywords, &lines).expect("2");
+    bufdata.from_slice(&origlines);
 
     b.iter(|| {
       let _calls = black_box(fake_highlight_region(
         bufdata.highlights.linerange(1000, 10000),
         1000,
         10000,
-        false,
       ));
     })
   });
@@ -154,13 +150,13 @@ hl_bench!(
 
 hl_bench!(
   bench_bufdata_delete_line_start;
-  lines: (0, 0);
+  lines: (1, 1);
   spliceto: (28, 29, -1i64)
   );
 
 hl_bench!(
   bench_bufdata_delete_line_end;
-  lines: (0, 0);
+  lines: (1, 1);
   spliceto: (20500, 20501, -1i64)
   );
 

@@ -111,7 +111,7 @@ impl<'a> Iterator for HlIter<'a> {
 }
 
 #[derive(Default, Debug)]
-pub struct Highlights(Vec<((u64, u8, u8), Hl)>);
+pub struct Highlights(pub Vec<((u64, u8, u8), Hl)>);
 
 impl Highlights {
   pub fn clear(&mut self) {
