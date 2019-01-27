@@ -2,6 +2,8 @@
 
 * Check out using lookup tables for performance improvements. Ref https://github.com/lynaghk/question-rust-inlining also see https://github.com/sfackler/rust-phf
 
+* Startup is racy, as can be seen when the insertions test is ran without a sleep call. Maybe only register commands after startup? Maybe defer calls in lua when requested during startup?
+
 * use std::fs::read to read the file
 
 * Save lines by immutable ID and provide a map ID -> linenr somewhere? That
