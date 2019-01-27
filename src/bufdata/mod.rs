@@ -12,8 +12,6 @@
 pub mod folds;
 pub mod highlights;
 
-use std::mem;
-
 use failure::{Error, ResultExt};
 
 use neovim_lib::{Neovim, NeovimApi, Value};
@@ -21,7 +19,7 @@ use neovim_lib::{Neovim, NeovimApi, Value};
 use crate::{
   bufdata::{folds::Folds, highlights::Highlights},
   card::keyword::Keywords,
-  lines::{ParsedLine, Lines},
+  lines::{Lines, ParsedLine},
   nocommentiter::{CommentLess, NoCommentIter},
 };
 
@@ -69,20 +67,27 @@ impl<'a> BufData<'a> {
   }
 
   // will simply push stuff, makes only sense for new empty bufdata
-  pub fn from_slice(&'a mut self, v: &'a [u8]) {
+  pub fn from_slice<'c: 'a>(&mut self, v: &'c [u8]) {
     self.lines.from_slice(v);
     self.keywords.from_lines(&self.lines);
     self.regenerate();
   }
 
   // will simply push stuff, makes only sense for new empty bufdata
-  pub fn from_vec(&'a mut self, v: Vec<String>) {
+  pub fn from_vec(&mut self, v: Vec<String>) {
     self.lines.from_vec(v);
     self.keywords.from_lines(&self.lines);
     self.regenerate();
   }
 
-  pub fn regenerate(&'a mut self) {
+  // will simply push stuff, makes only sense for new empty bufdata
+  pub fn from_strs<'c: 'a>(&mut self, v: &'c [&'a str]) {
+    self.lines.from_strs(v);
+    self.keywords.from_lines(&self.lines);
+    self.regenerate();
+  }
+
+  pub fn regenerate(&mut self) {
     self.folds.clear();
     self.folds_level2.clear();
     self.highlights.clear();
@@ -91,44 +96,34 @@ impl<'a> BufData<'a> {
     self.folds_level2.recreate_level2(&self.folds);
   }
 
-  pub fn update(&'a mut self, firstline: u64, lastline: u64, linedata: Vec<String>) {
+  pub fn update(
+    &mut self,
+    firstline: u64,
+    lastline: u64,
+    linedata: Vec<String>,
+  ) -> (usize, usize) {
     let added: i64 = linedata.len() as i64 - (lastline - firstline) as i64;
     self.keywords.update(firstline, lastline, &linedata);
     self.lines.update(firstline, lastline, linedata);
 
     let first = self.keywords.first_before(firstline);
     let last = self.keywords.first_after((lastline as i64 + added) as u64);
-    let mut tmp_bufdata:BufData = Default::default();
+    let mut newhls: Highlights = Default::default();
+    let mut newfolds: Folds = Default::default();
 
-    {
-      let mut li = self.keywords[first..last]
-        .iter()
-        .zip(self.lines[first..last].iter())
-        .enumerate()
-        .map(ParsedLine::from)
-        .remove_comments();
+    let li = self.keywords[first..last]
+      .iter()
+      .zip(self.lines[first..last].iter())
+      .enumerate()
+      .map(ParsedLine::from)
+      .remove_comments();
 
-      tmp_bufdata.parse_from_iter(li);
-    }
+    BufData::parse_from_iter(&mut newhls, &mut newfolds, self.lines.len(), li);
 
-    self.splice(tmp_bufdata, first, last, added);
-  }
-
-  pub fn splice(
-    &mut self,
-    mut newfolds: BufData,
-    firstline: usize,
-    lastline: usize,
-    added: i64,
-  ) {
-    let hl = mem::replace(&mut newfolds.highlights, Default::default());
-    self.highlights.splice(hl, firstline, lastline, added);
-
-    self
-      .folds
-      .splice(newfolds.folds, firstline, lastline, added);
+    self.folds.splice(newfolds, last, last, added);
 
     let _ = self.folds_level2.recreate_level2(&self.folds);
+    self.highlights.splice(newhls, first, last, added)
   }
 
   /// Parse an array of `Option<Keyword>`s into a
@@ -140,22 +135,33 @@ impl<'a> BufData<'a> {
   /// definition of the card in the [carddata](::carddata) module, each card
   /// will be in an own fold, or several adjacent (modulo comments) cards will
   /// be subsumed into a fold.
-  pub fn parse_lines(
-    &mut self,
-  ) -> Result<(), Error> {
+  pub fn parse_lines(&mut self) -> Result<(), Error> {
     debug_assert!(self.keywords.len() == self.lines.len());
-    let mut li = self.keywords
+    let li = self
+      .keywords
       .iter()
       .zip(self.lines.iter())
       .enumerate()
       .map(ParsedLine::from)
       .remove_comments();
 
-    self.parse_from_iter(li)
+    BufData::parse_from_iter(
+      &mut self.highlights,
+      &mut self.folds,
+      self.lines.len(),
+      li,
+    )
   }
 
-  pub fn parse_from_iter<I>(&mut self, li: NoCommentIter<I>) -> Result<(), Error>
-    where I: Iterator<Item = ParsedLine<'a>> {
+  pub fn parse_from_iter<'b, I>(
+    highlights: &mut Highlights,
+    folds: &mut Folds,
+    len: usize,
+    mut li: NoCommentIter<I>,
+  ) -> Result<(), Error>
+  where
+    I: Iterator<Item = ParsedLine<'b>>,
+  {
     let mut foldstart;
     let mut foldend;
     let mut foldkw;
@@ -166,14 +172,12 @@ impl<'a> BufData<'a> {
     loop {
       foldkw = nextline.keyword;
       foldstart = nextline.number;
-      skipped = li.skip_fold(&nextline, &mut self.highlights);
+      skipped = li.skip_fold(&nextline, highlights);
 
       // The latter only happens when a file ends after the only line of a card
-      foldend = skipped.skip_end.unwrap_or_else(|| self.lines.len() - 1);
+      foldend = skipped.skip_end.unwrap_or_else(|| len - 1);
 
-      self
-        .folds
-        .checked_insert(foldstart as u64, foldend as u64, *foldkw)?;
+      folds.checked_insert(foldstart as u64, foldend as u64, *foldkw)?;
 
       if let Some(Some(kl)) =
         skipped.nextline.map(|pl| pl.try_into_keywordline())

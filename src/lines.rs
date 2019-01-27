@@ -93,14 +93,12 @@ impl<'a> Lines<'a> {
   }
 
   /// Creates a new `Lines` struct from a slice of `&'str`s
-  pub fn from_strs(v: &'a [&'a str]) -> Lines<'a> {
-    let w: Vec<Line<'a>> =
-      v.iter().map(|l| Line::OriginalLine(l.as_ref())).collect();
-    Lines(w)
+  pub fn from_strs<'c: 'a>(&mut self, v: &'c [&'a str]) {
+    self.0.extend(v.iter().map(|l| Line::OriginalLine(l.as_ref())));
   }
 
   /// Create a new `Lines` struct from a byte slice by splitting on newlines.
-  pub fn from_slice(&mut self, v: &'a [u8]) {
+  pub fn from_slice<'c: 'a>(&mut self, v: &'c [u8]) {
     self.0.extend(
       v.split(|b| *b == b'\n').map(Line::OriginalLine));
 
@@ -271,7 +269,8 @@ mod tests {
 
   #[test]
   fn lines_can_delete() {
-    let mut l = Lines::from_slice(LINES.as_ref());
+    let mut l = Lines::new();
+    l.from_slice(LINES.as_ref());
 
     l.update(1, 7, Vec::new());
 
@@ -282,7 +281,8 @@ mod tests {
 
   #[test]
   fn lines_can_insert() {
-    let mut l = Lines::from_slice(LINES.as_ref());
+    let mut l = Lines::new();
+    l.from_slice(LINES.as_ref());
     let newlines = vec![
       "haaargl".to_string(),
       "waaarglll".to_string(),
@@ -299,7 +299,8 @@ mod tests {
 
   #[test]
   fn lines_can_update() {
-    let mut l = Lines::from_slice(LINES.as_ref());
+    let mut l = Lines::new();
+    l.from_slice(LINES.as_ref());
     let newlines = vec![
       "haaargl".to_string(),
       "waaarglll".to_string(),
@@ -317,7 +318,8 @@ mod tests {
   #[test]
   fn lines_from_file() {
     let v = Lines::read_file(file!()).unwrap();
-    let l = Lines::from_slice(&v);
+    let mut l = Lines::new();
+    l.from_slice(&v);
     let f = OriginalLine(
       b"//! This module holds the datastructure for the Lines of the \
              buffer.",

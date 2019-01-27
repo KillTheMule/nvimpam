@@ -128,7 +128,7 @@ impl Highlights {
     firstline: usize,
     lastline: usize,
     added: i64,
-  ) {
+  ) -> (usize, usize) {
     let start = self
       .0
       .binary_search_by_key(&(firstline, 0), |&((l, s, _), _)| (l as usize, s))
@@ -153,6 +153,8 @@ impl Highlights {
     for t in self.0[start + num_new..].iter_mut() {
       ((*t).0).0 = (((*t).0).0 as i64 + added) as u64;
     }
+
+    (start, start + num_new)
   }
 
   pub fn add_highlight(&mut self, line: u64, start: u8, end: u8, typ: Hl) {
@@ -171,6 +173,14 @@ impl Highlights {
 
   pub fn iter(&self) -> impl Iterator<Item = (&(u64, u8, u8), &Hl)> {
     self.0.iter().map(|(ref a, ref b)| (a, b))
+  }
+
+  pub fn indexrange(
+    &self,
+    firstline: usize,
+    lastline: usize,
+  ) -> impl Iterator<Item = (&(u64, u8, u8), &Hl)> {
+    self.0[firstline..lastline].iter().map(|(ref a, ref b)| (a, b))
   }
 
   pub fn linerange(
@@ -201,7 +211,6 @@ pub fn highlight_region<'a, 'b, 'c, T>(
   nvim: &'a mut Neovim,
   firstline: u64,
   lastline: u64,
-  offset: bool,
 ) -> Result<(), Error>
 where
   T: Iterator<Item = (&'b (u64, u8, u8), &'b Hl)>,
@@ -225,7 +234,6 @@ where
 
   for ((l, s, e), t) in iter {
     let st: &'static str = (*t).into();
-    let nr = if offset { *l + firstline } else { *l };
     calls.push(
       vec![
         Value::from("nvim_buf_add_highlight".to_string()),
@@ -233,7 +241,7 @@ where
           curbuf.get_value().clone(),
           Value::from(5),
           Value::from(st.to_string()),
-          Value::from(nr),
+          Value::from(*l),
           Value::from(u64::from(*s)),
           Value::from(u64::from(*e)),
         ]

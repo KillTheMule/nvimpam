@@ -100,17 +100,14 @@ impl Event {
           if lastline == -1 {
             bufdata.from_vec(linedata);
           } else if lastline >= 0 && firstline >= 0 {
-            bufdata.update(firstline as u64, lastline as u64, linedata);
+            let (start, end) = bufdata.update(firstline as u64, lastline as u64, linedata);
 
-            /*
             crate::bufdata::highlights::highlight_region(
-              tmp_bufdata.highlights.iter(),
+              bufdata.highlights.indexrange(start, end),
               &mut nvim,
-              first as u64,
-              last as u64,
-              true,
+              firstline as u64,
+              lastline as u64,
             )?;
-            */
           } else {
             error!(
               "LinesEvent only works with nonnegative numbers, except for
@@ -139,7 +136,6 @@ impl Event {
             &mut nvim,
             fl as u64,
             ll as u64,
-            false,
           )?;
         }
         Ok(Quit) => {

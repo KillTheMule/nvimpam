@@ -336,7 +336,7 @@ mod tests {
     bufdata::BufData,
     card::{
       ges::GesType::GesNode,
-      keyword::Keyword::{self, *},
+      keyword::{Keyword::{self, *}, Keywords},
     },
     carddata::*,
     lines::{KeywordLine, Lines, ParsedLine},
@@ -365,11 +365,8 @@ mod tests {
 
   macro_rules! make_lineiter {
     ($lines:ident, $keywords:ident, $li: ident, $str:expr) => {
-      $lines = Lines::from_slice($str.as_ref());
-      $keywords = $lines
-        .iter()
-        .map(Keyword::parse)
-        .collect::<Vec<Option<Keyword>>>();
+      $lines.from_slice($str.as_ref());
+      $keywords.from_lines(&$lines);
       $li = $keywords
         .iter()
         .zip($lines.iter())
@@ -383,8 +380,8 @@ mod tests {
     ($name: ident, $strs: expr, $({$f:expr, $e:expr});+) => {
       #[test]
       fn $name() {
-        let lines;
-        let keywords;
+        let mut lines = Lines::new();
+        let mut keywords = Keywords::new();
         let mut li;
         make_lineiter!(lines, keywords, li, $strs);
         $( assert_eq!($f(&mut li), $e) );+
@@ -599,7 +596,7 @@ mod tests {
         let tmp = l.skip_card(
           &firstline.try_into_keywordline().unwrap(),
           &MASS,
-          &mut folds
+          &mut folds.highlights
         );
         assert_eq!(
           tmp.nextline.unwrap(),
@@ -673,25 +670,28 @@ mod tests {
     let firstline = li.next().unwrap();
 
     let mut tmp =
-      li.skip_fold(&(firstline.try_into_keywordline()).unwrap(), &mut folds);
+      li.skip_fold(&(firstline.try_into_keywordline()).unwrap(), &mut
+                   folds.highlights);
     let mut tmp_nextline = tmp.nextline.unwrap();
     assert_eq!(tmp_nextline, pline!(5, &LINES_GATHER[5], Some(&Shell)));
     assert_eq!(tmp.skip_end, Some(3));
 
     tmp =
-      li.skip_fold(&tmp_nextline.try_into_keywordline().unwrap(), &mut folds);
+      li.skip_fold(&tmp_nextline.try_into_keywordline().unwrap(), &mut
+                   folds.highlights);
     tmp_nextline = tmp.nextline.unwrap();
     assert_eq!(tmp_nextline, pline!(6, &LINES_GATHER[6], None));
     assert_eq!(tmp.skip_end, Some(5));
 
     let skipped = li.skip_to_next_keyword().unwrap();
-    tmp = li.skip_fold(&skipped.into(), &mut folds);
+    tmp = li.skip_fold(&skipped.into(), &mut folds.highlights);
     tmp_nextline = tmp.nextline.unwrap();
     assert_eq!(tmp_nextline, pline!(18, &LINES_GATHER[18], Some(&Node)));
     assert_eq!(tmp.skip_end, Some(15));
 
     tmp =
-      li.skip_fold(&tmp_nextline.try_into_keywordline().unwrap(), &mut folds);
+      li.skip_fold(&tmp_nextline.try_into_keywordline().unwrap(), &mut
+                   folds.highlights);
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, None);
   }
