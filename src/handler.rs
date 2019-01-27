@@ -11,9 +11,9 @@ use crate::event::Event;
 
 /// The handler containing the sending end of a channel. The receiving end is
 /// the main [`event loop`](::event::Event::event_loop).
-pub struct NeovimHandler{
+pub struct NeovimHandler {
   pub to_main: mpsc::Sender<Event>,
-  pub from_main: mpsc::Receiver<Value>
+  pub from_main: mpsc::Receiver<Value>,
 }
 
 impl NeovimHandler {
@@ -140,13 +140,20 @@ impl RequestHandler for NeovimHandler {
     match name {
       "RefreshFolds" => {
         if let Err(reason) = self.to_main.send(Event::RefreshFolds) {
-          Ok(Value::from(format!("Error sending request '{}': {}!", name, reason)))
+          Err(Value::from(format!(
+            "Error sending request '{}': {}!",
+            name, reason
+          )))
         } else {
-          self.from_main.recv().map_err(|e| Value::from(format!("Error
-          receiving value for request '{}' from main thread: {}!", name, e)))
+          self.from_main.recv().map_err(|e| {
+            Value::from(format!(
+              "Error receiving value for request '{}' from main thread: {}!",
+              name, e
+            ))
+          })
         }
       }
-    _ => Ok(Value::from(format!("Request {} not Implemented!", name)))
+      _ => Err(Value::from(format!("Request {} not Implemented!", name))),
     }
   }
 }
