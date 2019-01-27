@@ -77,7 +77,6 @@ impl Event {
       Some(f) => {
         origlines = Lines::read_file(f)?;
         bufdata.from_slice(&origlines);
-        bufdata.resend_all_folds(&mut nvim)?;
         curbuf.attach(&mut nvim, false, vec![])?
       }
     };
@@ -100,7 +99,6 @@ impl Event {
           }
           if lastline == -1 {
             bufdata.from_vec(linedata);
-            bufdata.resend_all_folds(&mut nvim)?;
           } else if lastline >= 0 && firstline >= 0 {
             bufdata.update(firstline as u64, lastline as u64, linedata);
 
