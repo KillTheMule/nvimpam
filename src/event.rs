@@ -7,6 +7,7 @@ use failure::{self, Error};
 use neovim_lib::{
   neovim::Neovim,
   neovim_api::{Buffer, NeovimApi},
+  Value
 };
 
 use crate::{bufdata::BufData, lines::Lines};
@@ -61,7 +62,8 @@ impl Event {
   /// Sending the [`Quit`](../event/enum.Event.html#variant.Quit) event will
   /// exit the loop and return from the function.
   pub fn event_loop(
-    receiver: &mpsc::Receiver<Event>,
+    from_handler: &mpsc::Receiver<Event>,
+    to_handler: &mpsc::Sender<Value>,
     mut nvim: Neovim,
     file: Option<OsString>,
   ) -> Result<(), Error> {
@@ -86,7 +88,7 @@ impl Event {
     }
 
     loop {
-      match receiver.recv() {
+      match from_handler.recv() {
         Ok(LinesEvent {
           firstline,
           lastline,
@@ -116,7 +118,7 @@ impl Event {
           }
         }
         Ok(RefreshFolds) => {
-          bufdata.resend_all_folds(&mut nvim)?;
+          to_handler.send(bufdata.packup_all_folds())?
         }
         Ok(HighlightRegion {
           firstline,

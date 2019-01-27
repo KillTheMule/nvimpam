@@ -21,7 +21,8 @@ use nvimpam_lib::{
 use neovim_lib::{neovim::Neovim, neovim_api::NeovimApi, session::Session};
 
 fn main() {
-  let (sender, receiver) = mpsc::channel();
+  let (handler_to_main, main_from_handler) = mpsc::channel();
+  let (main_to_handler, handler_from_main) = mpsc::channel();
   let nvimpath = Path::new("neovim").join("build").join("bin").join("nvim");
 
   let mut session = Session::new_child_cmd(
@@ -31,7 +32,10 @@ fn main() {
   )
   .unwrap();
 
-  session.start_event_loop_handler(NeovimHandler(sender));
+  session.start_event_loop_handler(NeovimHandler{
+    to_main: handler_to_main,
+    from_main: handler_from_main
+  });
   let mut nvim = Neovim::new(session);
 
   nvim.command("set noswapfile").expect("0");
@@ -44,7 +48,7 @@ fn main() {
   bufdata.from_slice(&origlines);
   curbuf.attach(&mut nvim, false, vec![]).expect("4");
 
-  while let Ok(ChangedTickEvent { .. }) = receiver.recv() {
+  while let Ok(ChangedTickEvent { .. }) = main_from_handler.recv() {
     bufdata.resend_all_folds(&mut nvim).expect("5");
     curbuf.detach(&mut nvim).expect("6");
     nvim.command("call rpcnotify(1, 'quit')").unwrap();

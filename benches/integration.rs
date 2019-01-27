@@ -15,7 +15,8 @@ use nvimpam_lib::{
 use neovim_lib::{neovim::Neovim, neovim_api::NeovimApi, session::Session};
 
 fn bench_folds(c: &mut Criterion) {
-  let (sender, receiver) = mpsc::channel();
+  let (handler_to_main, main_from_handler) = mpsc::channel();
+  let (main_to_handler, handler_from_main) = mpsc::channel();
   let nvimpath = Path::new("neovim").join("build").join("bin").join("nvim");
 
   let mut session = Session::new_child_cmd(
@@ -26,7 +27,10 @@ fn bench_folds(c: &mut Criterion) {
   .unwrap();
   session.set_infinity_timeout();
 
-  session.start_event_loop_handler(NeovimHandler(sender));
+  session.start_event_loop_handler(NeovimHandler{
+    to_main: handler_to_main,
+    from_main: handler_from_main
+  });
   let mut nvim = Neovim::new(session);
 
   nvim.command("set noswapfile").expect("0");
@@ -39,7 +43,7 @@ fn bench_folds(c: &mut Criterion) {
       let mut bufdata = BufData::new();
       curbuf.attach(&mut nvim, true, vec![]).expect("4");
       loop {
-        match receiver.recv() {
+        match main_from_handler.recv() {
           Ok(LinesEvent { linedata, .. }) => {
             bufdata.from_vec(linedata);
             bufdata.resend_all_folds(&mut nvim).expect("5");

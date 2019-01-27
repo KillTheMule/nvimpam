@@ -5,13 +5,16 @@
 use std::sync::mpsc;
 
 use failure::{self, Error};
-use neovim_lib::{neovim_api::Buffer, Handler, Value};
+use neovim_lib::{neovim_api::Buffer, Handler, RequestHandler, Value};
 
 use crate::event::Event;
 
 /// The handler containing the sending end of a channel. The receiving end is
 /// the main [`event loop`](::event::Event::event_loop).
-pub struct NeovimHandler(pub mpsc::Sender<Event>);
+pub struct NeovimHandler{
+  pub to_main: mpsc::Sender<Event>,
+  pub from_main: mpsc::Receiver<Value>
+}
 
 impl NeovimHandler {
   /// Parse a nvim_buf_lines_event notification into a
@@ -85,7 +88,7 @@ impl Handler for NeovimHandler {
       "nvim_buf_lines_event" => {
         if let Ok(event) = self.parse_lines_event(args) {
           info!("{:?}", event);
-          if let Err(reason) = self.0.send(event) {
+          if let Err(reason) = self.to_main.send(event) {
             error!("{}", reason);
           }
         }
@@ -93,7 +96,7 @@ impl Handler for NeovimHandler {
       "nvim_buf_changedtick_event" => {
         if let Ok(event) = self.parse_changedtick_event(args) {
           info!("{:?}", event);
-          if let Err(reason) = self.0.send(event) {
+          if let Err(reason) = self.to_main.send(event) {
             error!("{}", reason);
           }
         }
@@ -101,26 +104,21 @@ impl Handler for NeovimHandler {
       "nvim_buf_detach_event" => {
         if let Ok(event) = self.parse_detach_event(args) {
           info!("{:?}", event);
-          if let Err(reason) = self.0.send(event) {
+          if let Err(reason) = self.to_main.send(event) {
             error!("{}", reason);
           }
-        }
-      }
-      "RefreshFolds" => {
-        if let Err(reason) = self.0.send(Event::RefreshFolds) {
-          error!("{}", reason);
         }
       }
       "HighlightRegion" => {
         if let Ok(event) = self.parse_highlight_region(args) {
           info!("{:?}", event);
-          if let Err(reason) = self.0.send(event) {
+          if let Err(reason) = self.to_main.send(event) {
             error!("{}", reason);
           }
         }
       }
       "quit" => {
-        if let Err(reason) = self.0.send(Event::Quit) {
+        if let Err(reason) = self.to_main.send(Event::Quit) {
           error!("{}", reason);
         }
       }
@@ -129,15 +127,27 @@ impl Handler for NeovimHandler {
       }
     }
   }
+}
 
+impl RequestHandler for NeovimHandler {
   /// As of now, our handler cannot handle requests (only notifications). It
   /// doesn't need to.
   fn handle_request(
     &mut self,
-    _name: &str,
+    name: &str,
     _args: Vec<Value>,
   ) -> Result<Value, Value> {
-    Err(Value::from("not implemented"))
+    match name {
+      "RefreshFolds" => {
+        if let Err(reason) = self.to_main.send(Event::RefreshFolds) {
+          Ok(Value::from(format!("Error sending request '{}': {}!", name, reason)))
+        } else {
+          self.from_main.recv().map_err(|e| Value::from(format!("Error
+          receiving value for request '{}' from main thread: {}!", name, e)))
+        }
+      }
+    _ => Ok(Value::from(format!("Request {} not Implemented!", name)))
+    }
   }
 }
 

@@ -165,10 +165,14 @@ fn send_client_info(nvim: &mut Neovim) -> Result<(), Error> {
 }
 
 fn start_program() -> Result<(), Error> {
-  let (sender, receiver) = mpsc::channel();
+  let (handler_to_main, main_from_handler) = mpsc::channel();
+  let (main_to_handler, handler_from_main) = mpsc::channel();
   let mut session = Session::new_parent()?;
 
-  session.start_event_loop_handler(NeovimHandler(sender));
+  session.start_event_loop_handler(NeovimHandler{
+    to_main: handler_to_main,
+    from_main: handler_from_main
+  });
   let mut nvim = Neovim::new(session);
 
   send_client_info(&mut nvim)?;
@@ -186,7 +190,7 @@ fn start_program() -> Result<(), Error> {
 
   let file = args_os().nth(1);
 
-  Event::event_loop(&receiver, nvim, file)?;
+  Event::event_loop(&main_from_handler, &main_to_handler, nvim, file)?;
 
   Ok(())
 }
