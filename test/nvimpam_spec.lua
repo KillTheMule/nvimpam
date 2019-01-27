@@ -201,6 +201,7 @@ describe('nvimpam', function()
   it('basically works', function()
     command('edit ' .. alter_slashes('../files/example.pc'))
     command('NvimPamAttach')
+    command('NvimPamUpdateFolds')
     feed("28G")
 
     screen:expect([[
@@ -284,6 +285,7 @@ describe('nvimpam', function()
     insert(input)
     command('set ft=pamcrash')
     command('NvimPamAttach')
+    command('NvimPamUpdateFolds')
     feed("1G")
 
     screen:expect([[
@@ -398,6 +400,7 @@ describe('nvimpam', function()
     insert(input)
     command('set ft=pamcrash')
     command('NvimPamAttach')
+    command('NvimPamUpdateFolds')
     feed("1G")
     command("set nohls")
 
@@ -470,6 +473,7 @@ describe('nvimpam', function()
     command("set nowrap")
     command('edit ' .. alter_slashes('../files/example.pc'))
     command('NvimPamAttach')
+    command('NvimPamUpdateFolds')
     if is_ci then
       helpers.sleep(2000)
     else
@@ -478,6 +482,7 @@ describe('nvimpam', function()
     feed("28G")
     command("vs " .. alter_slashes("../files/example2.pc"))
     command("NvimPamAttach")
+    command('NvimPamUpdateFolds')
     feed("28G")
 
     screen:expect([[
