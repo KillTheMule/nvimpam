@@ -41,7 +41,7 @@ use failure::{Error, ResultExt};
 use nvimpam_lib::{event::Event, handler::NeovimHandler};
 
 use neovim_lib::{
-  neovim::Neovim, neovim_api::NeovimApi, session::Session, Value,
+  neovim::Neovim, session::Session, Value,
   neovim_api_async::NeovimApiAsync
 };
 

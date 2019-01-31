@@ -2,12 +2,10 @@
 //! [`NeovimHandler`](::handler::NeovimHandler) to the main loop.
 use std::{ffi::OsString, fmt, sync::mpsc};
 
-use failure::{self, Error};
+use failure::{self, Error, ResultExt};
 
 use neovim_lib::{
-  neovim::Neovim,
-  neovim_api::{Buffer, NeovimApi},
-  Value
+  neovim::Neovim, neovim_api::Buffer, neovim_api_async::NeovimApiAsync, Value,
 };
 
 use crate::{bufdata::BufData, lines::Lines};
@@ -69,7 +67,25 @@ impl Event {
   ) -> Result<(), Error> {
     use self::Event::*;
 
-    let curbuf = nvim.get_current_buf()?;
+    // capacity 0 => rendevous channel, send only returns after receive fetched
+    // the data
+    let (sender, receiver) = mpsc::sync_channel(0);
+
+    nvim
+      .get_current_buf_async()
+      .cb(move |r| {
+        sender
+          .send(r)
+          .unwrap_or_else(|e| error!("Could not send current buffer: {}", e))
+      })
+      .call();
+
+    let curbuf = receiver
+      .recv()
+      .context(
+        "Receving curbuf failed!",
+      )?
+      .context("Getting curbuf failed!")?;
 
     let origlines;
     let mut bufdata = BufData::new();
@@ -102,7 +118,8 @@ impl Event {
           if lastline == -1 {
             bufdata.from_vec(linedata);
           } else if lastline >= 0 && firstline >= 0 {
-            let (start, end) = bufdata.update(firstline as u64, lastline as u64, linedata);
+            let (start, end) =
+              bufdata.update(firstline as u64, lastline as u64, linedata);
 
             crate::bufdata::highlights::highlight_region(
               bufdata.highlights.indexrange(start, end),
@@ -117,9 +134,7 @@ impl Event {
             );
           }
         }
-        Ok(RefreshFolds) => {
-          to_handler.send(bufdata.packup_all_folds())?
-        }
+        Ok(RefreshFolds) => to_handler.send(bufdata.packup_all_folds())?,
         Ok(HighlightRegion {
           firstline,
           lastline,
