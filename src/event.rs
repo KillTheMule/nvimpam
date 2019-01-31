@@ -6,6 +6,7 @@ use failure::{self, Error, ResultExt};
 
 use neovim_lib::{
   neovim::Neovim, neovim_api::Buffer, neovim_api_async::NeovimApiAsync, Value,
+  neovim_api::NeovimApi
 };
 
 use crate::{bufdata::BufData, lines::Lines};
@@ -67,6 +68,7 @@ impl Event {
   ) -> Result<(), Error> {
     use self::Event::*;
 
+    /*
     // capacity 0 => rendevous channel, send only returns after receive fetched
     // the data
     let (sender, receiver) = mpsc::sync_channel(0);
@@ -82,10 +84,11 @@ impl Event {
 
     let curbuf = receiver
       .recv()
-      .context(
-        "Receving curbuf failed!",
-      )?
+      .context("Receving curbuf failed!")?
       .context("Getting curbuf failed!")?;
+      */
+
+    let curbuf = nvim.get_current_buf()?;
 
     let origlines;
     let mut bufdata = BufData::new();
