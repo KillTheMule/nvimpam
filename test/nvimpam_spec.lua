@@ -283,9 +283,12 @@ describe('nvimpam', function()
 
   it('can deal with insertions', function()
     insert(input)
+    --feed("1G")
     command('set ft=pamcrash')
     command('NvimPamAttach')
+    helpers.sleep(100)
     command('NvimPamUpdateFolds')
+    helpers.sleep(100)
     feed("1G")
 
     screen:expect([[
