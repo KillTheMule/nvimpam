@@ -5,7 +5,7 @@
 use std::sync::mpsc;
 
 use failure::{self, Error};
-use neovim_lib::{neovim_api::Buffer, Handler, Value};
+use neovim_lib::{neovim_api::Buffer, Handler, RequestHandler, Value};
 
 use crate::event::Event;
 
@@ -129,7 +129,9 @@ impl Handler for NeovimHandler {
       }
     }
   }
+}
 
+impl RequestHandler for NeovimHandler {
   /// As of now, our handler cannot handle requests (only notifications). It
   /// doesn't need to.
   fn handle_request(
