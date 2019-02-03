@@ -454,6 +454,14 @@ mod tests {
     expected: [0, 10, Node], [12, 14, Shell]
   );
 
+  splicetest!(splice_folds_inbetween_functionaltest;
+    existing: [0, 3, Node], [5, 14, Shell], [17, 19, Node], [20, 23, Shell];
+    new: [0, 1, Node], [4, 4, Shell];
+    6, 10, 0;
+    expected: [0, 3, Node], [5, 5, Shell], [6, 7, Node], [10, 14, Shell],
+              [17, 19, Node], [20, 23, Shell]
+  );
+
   splicetest!(splice_folds_cut_upper;
     existing: [0, 6, Node];
     new: [0, 1, Shell];
