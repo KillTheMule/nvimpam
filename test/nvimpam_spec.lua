@@ -286,7 +286,7 @@ describe('nvimpam', function()
     feed("1G")
     command('set ft=pamcrash')
     command('NvimPamAttach')
-    helpers.sleep(1000)
+    helpers.sleep(10)
     command('NvimPamUpdateFolds')
     feed("1G")
 
@@ -358,6 +358,7 @@ describe('nvimpam', function()
     feed("1G")
 
     command("7,9d")
+    helpers.sleep(10)
     command("NvimPamUpdateFolds")
     screen:expect([[
       {1: 4 lines: Node ··································································}|
@@ -400,20 +401,21 @@ describe('nvimpam', function()
 
   it('can deal with updates and undo', function()
     insert(input)
+    command("set nohls")
     command('set ft=pamcrash')
     command('NvimPamAttach')
-    command('NvimPamUpdateFolds')
-    feed("1G")
-    command("set nohls")
+    helpers.sleep(10)
 
-    feed("zR")
     command(":7,9s/^SHELL/NODE ")
+    feed("1G")
+    helpers.sleep(10)
     command("NvimPamUpdateFolds")
+
     screen:expect([[
-      {1: 4 lines: Node ··································································}|
+      {1:^ 4 lines: Node ··································································}|
       #Comment here                                                                    |
       SHELL /     3129       1       1    2967    2971    2970                         |
-      {1:^ 2 lines: Node ··································································}|
+      {1: 2 lines: Node ··································································}|
       #Comment                                                                         |
       #Comment                                                                         |
       {1: 5 lines: Shell ·································································}|
