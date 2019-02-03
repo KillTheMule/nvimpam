@@ -134,10 +134,10 @@ impl RequestHandler for NeovimHandler {
   /// doesn't need to.
   fn handle_request(
     &mut self,
-    name: &str,
+    name: String,
     _args: Vec<Value>,
   ) -> Result<Value, Value> {
-    match name {
+    match name.as_str() {
       "RefreshFolds" => {
         if let Err(reason) = self.to_main.send(Event::RefreshFolds) {
           Err(Value::from(format!(
