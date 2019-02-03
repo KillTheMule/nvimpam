@@ -5,8 +5,9 @@ use std::{ffi::OsString, fmt, sync::mpsc};
 use failure::{self, Error, ResultExt};
 
 use neovim_lib::{
-  neovim::Neovim, neovim_api::Buffer, neovim_api_async::NeovimApiAsync, Value,
-  neovim_api::NeovimApi
+  neovim::Neovim,
+  neovim_api::{Buffer, NeovimApi},
+  Value,
 };
 
 use crate::{bufdata::BufData, lines::Lines};
@@ -88,7 +89,9 @@ impl Event {
       .context("Getting curbuf failed!")?;
       */
 
-    let curbuf = nvim.get_current_buf()?;
+    let curbuf = nvim
+      .get_current_buf()
+      .context("Event loop could not get current buffer")?;
 
     let origlines;
     let mut bufdata = BufData::new();
