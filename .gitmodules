@@ -2,3 +2,7 @@
 	path = neovim
 	url = https://github.com/neovim/neovim.git
 	branch = master
+[submodule "neovim-lib"]
+	path = neovim-lib
+	url = https://github.com/KillTheMule/neovim-lib
+	branch = async_handlers
