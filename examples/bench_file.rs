@@ -14,8 +14,7 @@ static GLOBAL: System = System;
 use std::{path::Path, process::Command, sync::mpsc};
 
 use nvimpam_lib::{
-  bufdata::BufData, event::Event::*,
-  handler::NeovimHandler, lines::Lines,
+  bufdata::BufData, event::Event::*, handler::NeovimHandler, lines::Lines,
 };
 
 use neovim_lib::{neovim::Neovim, neovim_api::NeovimApi, session::Session};
@@ -32,9 +31,9 @@ fn main() {
   )
   .unwrap();
 
-  session.start_event_loop_handler(NeovimHandler{
+  session.start_event_loop_handler(NeovimHandler {
     to_main: handler_to_main,
-    from_main: handler_from_main
+    from_main: handler_from_main,
   });
   let mut nvim = Neovim::new(session);
 

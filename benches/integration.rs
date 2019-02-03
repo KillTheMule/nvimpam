@@ -7,10 +7,7 @@ use criterion::Criterion;
 
 use std::{path::Path, process::Command, sync::mpsc};
 
-use nvimpam_lib::{
-  bufdata::BufData, event::Event::*,
-  handler::NeovimHandler,
-};
+use nvimpam_lib::{bufdata::BufData, event::Event::*, handler::NeovimHandler};
 
 use neovim_lib::{neovim::Neovim, neovim_api::NeovimApi, session::Session};
 
@@ -27,9 +24,9 @@ fn bench_folds(c: &mut Criterion) {
   .unwrap();
   session.set_infinity_timeout();
 
-  session.start_event_loop_handler(NeovimHandler{
+  session.start_event_loop_handler(NeovimHandler {
     to_main: handler_to_main,
-    from_main: handler_from_main
+    from_main: handler_from_main,
   });
   let mut nvim = Neovim::new(session);
 

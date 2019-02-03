@@ -332,7 +332,10 @@ mod tests {
     bufdata::BufData,
     card::{
       ges::GesType::GesNode,
-      keyword::{Keyword::{self, *}, Keywords},
+      keyword::{
+        Keyword::{self, *},
+        Keywords,
+      },
     },
     carddata::*,
     lines::{KeywordLine, Lines, ParsedLine},
@@ -665,16 +668,18 @@ mod tests {
       .remove_comments();
     let firstline = li.next().unwrap();
 
-    let mut tmp =
-      li.skip_fold(&(firstline.try_into_keywordline()).unwrap(), &mut
-                   folds.highlights);
+    let mut tmp = li.skip_fold(
+      &(firstline.try_into_keywordline()).unwrap(),
+      &mut folds.highlights,
+    );
     let mut tmp_nextline = tmp.nextline.unwrap();
     assert_eq!(tmp_nextline, pline!(5, &LINES_GATHER[5], Some(&Shell)));
     assert_eq!(tmp.skip_end, 3);
 
-    tmp =
-      li.skip_fold(&tmp_nextline.try_into_keywordline().unwrap(), &mut
-                   folds.highlights);
+    tmp = li.skip_fold(
+      &tmp_nextline.try_into_keywordline().unwrap(),
+      &mut folds.highlights,
+    );
     tmp_nextline = tmp.nextline.unwrap();
     assert_eq!(tmp_nextline, pline!(6, &LINES_GATHER[6], None));
     assert_eq!(tmp.skip_end, 5);
@@ -685,9 +690,10 @@ mod tests {
     assert_eq!(tmp_nextline, pline!(18, &LINES_GATHER[18], Some(&Node)));
     assert_eq!(tmp.skip_end, 15);
 
-    tmp =
-      li.skip_fold(&tmp_nextline.try_into_keywordline().unwrap(), &mut
-                   folds.highlights);
+    tmp = li.skip_fold(
+      &tmp_nextline.try_into_keywordline().unwrap(),
+      &mut folds.highlights,
+    );
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, 19);
   }

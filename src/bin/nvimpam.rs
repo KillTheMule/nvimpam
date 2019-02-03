@@ -41,8 +41,7 @@ use failure::{Error, ResultExt};
 use nvimpam_lib::{event::Event, handler::NeovimHandler};
 
 use neovim_lib::{
-  neovim::Neovim, session::Session, Value,
-  neovim_api::NeovimApi
+  neovim::Neovim, neovim_api::NeovimApi, session::Session, Value,
 };
 
 use simplelog::{Config, Level, LevelFilter, WriteLogger};
@@ -162,7 +161,7 @@ fn send_client_info(nvim: &mut Neovim) -> Result<(), Error> {
 
   let typ = "remote";
   nvim.set_client_info(NAME, version, typ, methods, attribs)?;
-  
+
   Ok(())
 }
 
@@ -171,9 +170,9 @@ fn start_program() -> Result<(), Error> {
   let (main_to_handler, handler_from_main) = mpsc::channel();
   let mut session = Session::new_parent()?;
 
-  session.start_event_loop_handler(NeovimHandler{
+  session.start_event_loop_handler(NeovimHandler {
     to_main: handler_to_main,
-    from_main: handler_from_main
+    from_main: handler_from_main,
   });
   let mut nvim = Neovim::new(session);
 

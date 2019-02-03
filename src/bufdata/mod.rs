@@ -143,11 +143,7 @@ impl<'a> BufData<'a> {
       .map(ParsedLine::from)
       .remove_comments();
 
-    BufData::parse_from_iter(
-      &mut self.highlights,
-      &mut self.folds,
-      li,
-    )
+    BufData::parse_from_iter(&mut self.highlights, &mut self.folds, li)
   }
 
   pub fn parse_from_iter<'b, I>(

@@ -94,13 +94,16 @@ impl<'a> Lines<'a> {
 
   /// Creates a new `Lines` struct from a slice of `&'str`s
   pub fn from_strs<'c: 'a>(&mut self, v: &'c [&'a str]) {
-    self.0.extend(v.iter().map(|l| Line::OriginalLine(l.as_ref())));
+    self
+      .0
+      .extend(v.iter().map(|l| Line::OriginalLine(l.as_ref())));
   }
 
   /// Create a new `Lines` struct from a byte slice by splitting on newlines.
   pub fn from_slice<'c: 'a>(&mut self, v: &'c [u8]) {
-    self.0.extend(
-      v.split(|b| *b == b'\n').map(Line::OriginalLine));
+    self
+      .0
+      .extend(v.split(|b| *b == b'\n').map(Line::OriginalLine));
 
     // If the file contains a final newline, we need to remove the empty slice
     // at the end

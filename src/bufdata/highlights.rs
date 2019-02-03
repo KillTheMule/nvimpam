@@ -180,7 +180,9 @@ impl Highlights {
     firstline: usize,
     lastline: usize,
   ) -> impl Iterator<Item = (&(u64, u8, u8), &Hl)> {
-    self.0[firstline..lastline].iter().map(|(ref a, ref b)| (a, b))
+    self.0[firstline..lastline]
+      .iter()
+      .map(|(ref a, ref b)| (a, b))
   }
 
   pub fn linerange(
