@@ -118,10 +118,8 @@ impl<'a> BufData<'a> {
       .map(ParsedLine::from)
       .remove_comments();
 
-    BufData::parse_from_iter(&mut newhls, &mut newfolds, self.lines.len(), li);
-
-    self.folds.splice(newfolds, last, last, added);
-
+    BufData::parse_from_iter(&mut newhls, &mut newfolds, li);
+    self.folds.splice(newfolds, first, last, added);
     let _ = self.folds_level2.recreate_level2(&self.folds);
     self.highlights.splice(newhls, first, last, added)
   }
@@ -148,7 +146,6 @@ impl<'a> BufData<'a> {
     BufData::parse_from_iter(
       &mut self.highlights,
       &mut self.folds,
-      self.lines.len(),
       li,
     )
   }
@@ -156,7 +153,6 @@ impl<'a> BufData<'a> {
   pub fn parse_from_iter<'b, I>(
     highlights: &mut Highlights,
     folds: &mut Folds,
-    len: usize,
     mut li: NoCommentIter<I>,
   ) -> Result<(), Error>
   where
@@ -175,7 +171,7 @@ impl<'a> BufData<'a> {
       skipped = li.skip_fold(&nextline, highlights);
 
       // The latter only happens when a file ends after the only line of a card
-      foldend = skipped.skip_end.unwrap_or_else(|| len - 1);
+      foldend = skipped.skip_end;
 
       folds.checked_insert(foldstart as u64, foldend as u64, *foldkw)?;
 

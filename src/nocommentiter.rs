@@ -5,8 +5,6 @@
 //! `#`). All skip functions, used by
 //! [`add_from`](::bufdata::BufData::add_from), work on a
 //! [`NoCommentIter`](::nocommentiter::NoCommentIter).
-use std::default::Default;
-
 use crate::{
   bufdata::highlights::Highlights,
   card::{
@@ -28,7 +26,7 @@ macro_rules! next_or_return_previdx {
       None => {
         return SkipResult {
           skip_end: $previdx,
-          ..Default::default()
+          nextline: None,
         };
       }
       Some(t) => t,
@@ -44,7 +42,7 @@ macro_rules! next_or_return_some_previdx {
       None => {
         return Some(SkipResult {
           skip_end: $previdx,
-          ..Default::default()
+          nextline: None,
         });
       }
       Some(t) => t,
@@ -68,7 +66,7 @@ macro_rules! next_or_return_none {
 // from prevline's line number
 macro_rules! advance {
   ($self:ident, $previdx:ident, $nextline:ident) => {
-    $previdx = Some($nextline.number);
+    $previdx = $nextline.number;
     $nextline = next_or_return_previdx!($self, $previdx);
   };
 }
@@ -77,7 +75,7 @@ macro_rules! advance {
 // in skip_ges.
 macro_rules! advance_some {
   ($self:ident, $previdx:ident, $nextline:ident) => {
-    $previdx = Some($nextline.number);
+    $previdx = $nextline.number;
     $nextline = next_or_return_some_previdx!($self, $previdx);
   };
 }
@@ -141,14 +139,12 @@ where
   ///
   /// Returns `None` if skipline neither ends the GES, nor is
   /// contained in it. We did not try to advance the iterator in this case.
-  /// Returns `Some(Default::default())` if `skipline` ends the GES, and the
-  /// file ends after that.
   pub fn skip_ges<'b>(
     &'b mut self,
     ges: GesType,
     skipline: &ParsedLine<'a>,
   ) -> Option<SkipResult<'a>> {
-    let mut previdx: Option<usize> = None;
+    let mut previdx: usize = skipline.number;
     let mut nextline: ParsedLine<'a>;
 
     let contained = ges.contains(skipline.text);
@@ -158,12 +154,12 @@ where
       nextline = next_or_return_some_previdx!(self, previdx);
       Some(SkipResult {
         nextline: Some(nextline),
-        skip_end: Some(skipline.number),
+        skip_end: previdx,
       })
     } else if !ends && !contained {
       None
     } else {
-      nextline = next_or_return_some_previdx!(self, Some(skipline.number));
+      nextline = next_or_return_some_previdx!(self, skipline.number);
 
       while ges.contains(nextline.text) {
         advance_some!(self, previdx, nextline);
@@ -221,7 +217,7 @@ where
     highlights
       .add_line_highlights(skipline.number, cardline.highlights(skipline.text));
 
-    let mut previdx: Option<usize> = None;
+    let mut previdx: usize = skipline.number;
     let mut nextline = next_or_return_previdx!(self, previdx);
 
     for cardline in cardlines {
@@ -301,7 +297,7 @@ where
     }
     SkipResult {
       nextline: Some(nextline),
-      skip_end: previdx.or_else(|| Some(skipline.number)),
+      skip_end: previdx,
     }
   }
 
@@ -452,7 +448,7 @@ mod tests {
         let nextline = l.next().unwrap();
         let tmp = l.skip_ges(GesNode, &nextline).unwrap();
         assert_eq!(tmp.nextline.unwrap(), pline!(4, b"NODE  / ", Some(&Node)));
-        assert_eq!(tmp.skip_end, Some(3));
+        assert_eq!(tmp.skip_end, 3);
         l.next()
       }, None
     }
@@ -477,12 +473,12 @@ mod tests {
         let mut nextline = l.next().unwrap();
         let mut tmp = l.skip_ges(GesNode, &nextline).unwrap();
         assert_eq!(tmp.nextline.unwrap(), pline!(3, GES2_NEXT, None));
-        assert_eq!(tmp.skip_end, Some(2));
+        assert_eq!(tmp.skip_end, 2);
 
         nextline = l.next().unwrap();
         tmp = l.skip_ges(GesNode, &nextline).unwrap();
         assert_eq!(tmp.nextline, None);
-        assert_eq!(tmp.skip_end, Some(8));
+        assert_eq!(tmp.skip_end, 8);
         l.next()
       }, None
     }
@@ -509,12 +505,12 @@ mod tests {
         let mut nextline = l.next().unwrap();
         let mut tmp = l.skip_ges(GesNode, &nextline).unwrap();
         assert_eq!(tmp.nextline.unwrap(), pline!(2, GES3_FIRST, Some(&Node)));
-        assert_eq!(tmp.skip_end, Some(1));
+        assert_eq!(tmp.skip_end, 1);
 
         nextline = l.next().unwrap();
         tmp = l.skip_ges(GesNode, &nextline).unwrap();
         assert_eq!(tmp.nextline.unwrap(), pline!(7, GES3_SECOND, None));
-        assert_eq!(tmp.skip_end, Some(6));
+        assert_eq!(tmp.skip_end, 6);
         l.next()
       }, Some(pline!(8, GES3_LAST, None))
     }
@@ -552,7 +548,7 @@ mod tests {
         let nextline = l.next().unwrap();
         let tmp = l.skip_ges(GesNode, &nextline).unwrap();
         assert_eq!(tmp.nextline.unwrap(), pline!(6, GES5_NEXTL, Some(&Node)));
-        assert_eq!(tmp.skip_end, Some(4));
+        assert_eq!(tmp.skip_end, 4);
         l.next()
       }, None
     }
@@ -570,7 +566,7 @@ mod tests {
         let nextline = l.next().unwrap();
         let tmp = l.skip_ges(GesNode, &nextline).unwrap();
         assert_eq!(tmp.nextline, None);
-        assert_eq!(tmp.skip_end, Some(0));
+        assert_eq!(tmp.skip_end, 0);
         l.next()
       }, None
     }
@@ -603,7 +599,7 @@ mod tests {
           pline!(7, &"NODE  /      ", Some(&Node))
         );
         tmp.skip_end
-      }, Some(4)
+      }, 4
     }
   );
 
@@ -674,26 +670,26 @@ mod tests {
                    folds.highlights);
     let mut tmp_nextline = tmp.nextline.unwrap();
     assert_eq!(tmp_nextline, pline!(5, &LINES_GATHER[5], Some(&Shell)));
-    assert_eq!(tmp.skip_end, Some(3));
+    assert_eq!(tmp.skip_end, 3);
 
     tmp =
       li.skip_fold(&tmp_nextline.try_into_keywordline().unwrap(), &mut
                    folds.highlights);
     tmp_nextline = tmp.nextline.unwrap();
     assert_eq!(tmp_nextline, pline!(6, &LINES_GATHER[6], None));
-    assert_eq!(tmp.skip_end, Some(5));
+    assert_eq!(tmp.skip_end, 5);
 
     let skipped = li.skip_to_next_keyword().unwrap();
     tmp = li.skip_fold(&skipped.into(), &mut folds.highlights);
     tmp_nextline = tmp.nextline.unwrap();
     assert_eq!(tmp_nextline, pline!(18, &LINES_GATHER[18], Some(&Node)));
-    assert_eq!(tmp.skip_end, Some(15));
+    assert_eq!(tmp.skip_end, 15);
 
     tmp =
       li.skip_fold(&tmp_nextline.try_into_keywordline().unwrap(), &mut
                    folds.highlights);
     assert_eq!(tmp.nextline, None);
-    assert_eq!(tmp.skip_end, None);
+    assert_eq!(tmp.skip_end, 19);
   }
 
 }

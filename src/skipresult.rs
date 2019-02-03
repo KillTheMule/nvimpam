@@ -19,16 +19,7 @@ use crate::lines::ParsedLine;
 #[derive(Debug)]
 pub struct SkipResult<'a> {
   pub nextline: Option<ParsedLine<'a>>,
-  pub skip_end: Option<usize>,
-}
-
-impl<'a> Default for SkipResult<'a> {
-  fn default() -> Self {
-    SkipResult {
-      nextline: None,
-      skip_end: None,
-    }
-  }
+  pub skip_end: usize,
 }
 
 impl<'a> fmt::Display for SkipResult<'a> {
