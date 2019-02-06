@@ -100,7 +100,10 @@ fn init_logging() -> Result<(), Error> {
     "debug" => LevelFilter::Debug,
     "trace" => LevelFilter::Trace,
     _ => {
-      eprintln!("NVIMPAM_LOG_LEVEL (={}) unknown, disabling logging!", log_level);
+      eprintln!(
+        "NVIMPAM_LOG_LEVEL (={}) unknown, disabling logging!",
+        log_level
+      );
       LevelFilter::Off
     }
   };
@@ -136,11 +139,23 @@ fn send_client_info(nvim: &mut Neovim) -> Result<(), Error> {
   let methods: Vec<(Value, Value)> = vec![
     (
       "quit".into(),
-      vec![Value::from("nargs"), Value::from(0u8)].into(),
+      vec![Value::from(vec![Value::from("nargs"), Value::from(0u8)])].into(),
     ),
     (
       "RefreshFolds".into(),
-      vec![Value::from("nargs"), Value::from(0u8)].into(),
+      vec![
+        Value::from(vec![Value::from("nargs"), Value::from(0u8)]),
+        Value::from(vec![Value::from("async"), Value::from(false)]),
+      ]
+      .into(),
+    ),
+    (
+      "HighlightRegion".into(),
+      vec![
+        Value::from(vec![Value::from("nargs"), Value::from(2u8)]),
+        Value::from(vec![Value::from("async"), Value::from(true)]),
+      ]
+      .into(),
     ),
   ];
 
