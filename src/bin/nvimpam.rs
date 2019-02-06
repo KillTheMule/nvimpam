@@ -64,7 +64,6 @@ fn main() {
   match start_program() {
     Ok(_) => process::exit(0),
     Err(e) => {
-      eprintln!("Nvimpam encountered an error: {}", e);
       error!("Nvimpam encountered an error: {}", e);
       for cause in e.iter_chain().skip(1) {
         error!("Caused by: {}", cause)
