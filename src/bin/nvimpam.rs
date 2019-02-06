@@ -52,11 +52,10 @@ fn main() {
   match init_logging() {
     Err(e) => {
       eprintln!("Nvimpam: Error initializing logger: {}", e);
-      error!("Error initializing logger: {}", e);
       for cause in e.iter_chain().skip(1) {
-        error!("Caused by: {}", cause)
+        eprintln!("Caused by: {}", cause)
       }
-      error!("Nvimpam exiting!");
+      eprintln!("Nvimpam exiting!");
       process::exit(1);
     }
     Ok(()) => {}
