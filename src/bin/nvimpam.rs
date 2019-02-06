@@ -99,7 +99,10 @@ fn init_logging() -> Result<(), Error> {
     "info" => LevelFilter::Info,
     "debug" => LevelFilter::Debug,
     "trace" => LevelFilter::Trace,
-    _ => LevelFilter::Off,
+    _ => {
+      eprintln!("NVIMPAM_LOG_LEVEL (={}) unknown, disabling logging!", log_level);
+      LevelFilter::Off
+    }
   };
 
   let config = Config {
