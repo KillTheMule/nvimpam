@@ -9,6 +9,14 @@ local dedent = helpers.dedent
 
 local is_ci = os.getenv("TRAVIS") or os.getenv("APPVEYOR")
 
+local function sleep(time)
+  if is_ci then
+    helpers.sleep(20 * time)
+  else
+    helpers.sleep(time)
+  end
+end
+
 -- canonical order of ext keys, used  to generate asserts
 local ext_keys = {
   'popupmenu', 'cmdline', 'cmdline_block', 'wildmenu_items', 'wildmenu_pos'
@@ -286,7 +294,7 @@ describe('nvimpam', function()
     feed("1G")
     command('set ft=pamcrash')
     command('NvimPamAttach')
-    helpers.sleep(10)
+    sleep(10)
     command('NvimPamUpdateFolds')
     feed("1G")
 
@@ -358,7 +366,7 @@ describe('nvimpam', function()
     feed("1G")
 
     command("7,9d")
-    helpers.sleep(10)
+    sleep(10)
     command("NvimPamUpdateFolds")
     screen:expect([[
       {1: 4 lines: Node ··································································}|
@@ -408,7 +416,7 @@ describe('nvimpam', function()
 
     command(":7,9s/^SHELL/NODE ")
     feed("1G")
-    helpers.sleep(10)
+    sleep(10)
     command("NvimPamUpdateFolds")
 
     screen:expect([[
@@ -477,15 +485,12 @@ describe('nvimpam', function()
     command("set nowrap")
     command('edit ' .. alter_slashes('../files/example.pc'))
     command('NvimPamAttach')
+    sleep(10)
     command('NvimPamUpdateFolds')
-    if is_ci then
-      helpers.sleep(2000)
-    else
-      helpers.sleep(1000)
-    end
     feed("28G")
     command("vs " .. alter_slashes("../files/example2.pc"))
     command("NvimPamAttach")
+    sleep(10)
     command('NvimPamUpdateFolds')
     feed("28G")
 
