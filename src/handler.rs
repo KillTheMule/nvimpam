@@ -56,11 +56,13 @@ impl NeovimHandler {
     Ok(Event::ChangedTickEvent { buf, changedtick })
   }
 
+  /// Parse a HighlightRegion notification into a
+  /// [`HighlightRegion`](::event::Event::HighlightRegion) event
   pub fn parse_highlight_region(
     &mut self,
     mut args: Vec<Value>,
   ) -> Result<Event, Error> {
-    let nea = "Not enough arguments in hl_line_event!";
+    let nea = "Not enough arguments in HighlightRegion notification!";
 
     let lastline = parse_u64(&last_arg(&mut args, nea)?)?;
     let firstline = parse_u64(&last_arg(&mut args, nea)?)?;
@@ -123,15 +125,13 @@ impl Handler for NeovimHandler {
         }
       }
       unknown => {
-        error!("Receveid unknown event: {}!", unknown);
+        error!("Received unknown notification: '{}'!", unknown);
       }
     }
   }
 }
 
 impl RequestHandler for NeovimHandler {
-  /// As of now, our handler cannot handle requests (only notifications). It
-  /// doesn't need to.
   fn handle_request(
     &mut self,
     name: String,
@@ -153,7 +153,7 @@ impl RequestHandler for NeovimHandler {
           })
         }
       }
-      _ => Err(Value::from(format!("Request {} not Implemented!", name))),
+      _ => Err(Value::from(format!("Received unknown Request: '{}'!", name))),
     }
   }
 }
@@ -171,21 +171,21 @@ pub fn last_arg(
 pub fn parse_u64(value: &Value) -> Result<u64, Error> {
   value
     .as_u64()
-    .ok_or_else(|| failure::err_msg("cannot parse as u64"))
+    .ok_or_else(|| failure::err_msg(format!("Cannot parse '{:?}' as u64", value)))
 }
 ///
 /// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a i64
 pub fn parse_i64(value: &Value) -> Result<i64, Error> {
   value
     .as_i64()
-    .ok_or_else(|| failure::err_msg("cannot parse as i64"))
+    .ok_or_else(|| failure::err_msg(format!("Cannot parse '{:?}' as i64", value)))
 }
 
 /// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a bool
 pub fn parse_bool(value: &Value) -> Result<bool, Error> {
   value
     .as_bool()
-    .ok_or_else(|| failure::err_msg("cannot parse as bool"))
+    .ok_or_else(|| failure::err_msg(format!("Cannot parse '{:?}' as bool", value)))
 }
 
 /// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a `Vec<String>`. Note
@@ -200,14 +200,14 @@ pub fn parse_vecstr(value: Value) -> Result<Vec<String>, Error> {
       if let Value::String(s) = val {
         match s.into_str() {
           Some(string) => res.push(string),
-          None => return Err(failure::err_msg("non-utf8 values in array")),
+          None => return Err(failure::err_msg("Non-utf8 values in array")),
         }
       } else {
-        return Err(failure::err_msg("non-String value in array"));
+        return Err(failure::err_msg("Non-String value in array"));
       }
     }
   } else {
-    return Err(failure::err_msg("cannot parse as array"));
+    return Err(failure::err_msg(format!("Cannot parse '{:?}' as array", value)));
   }
 
   Ok(res)

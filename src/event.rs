@@ -69,26 +69,6 @@ impl Event {
   ) -> Result<(), Error> {
     use self::Event::*;
 
-    /*
-    // capacity 0 => rendevous channel, send only returns after receive fetched
-    // the data
-    let (sender, receiver) = mpsc::sync_channel(0);
-
-    nvim
-      .get_current_buf_async()
-      .cb(move |r| {
-        sender
-          .send(r)
-          .unwrap_or_else(|e| error!("Could not send current buffer: {}", e))
-      })
-      .call();
-
-    let curbuf = receiver
-      .recv()
-      .context("Receving curbuf failed!")?
-      .context("Getting curbuf failed!")?;
-      */
-
     let curbuf = nvim
       .get_current_buf()
       .context("Event loop could not get current buffer")?;
