@@ -88,41 +88,61 @@ impl Handler for NeovimHandler {
   fn handle_notify(&mut self, name: &str, args: Vec<Value>) {
     match name {
       "nvim_buf_lines_event" => {
-        if let Ok(event) = self.parse_lines_event(args) {
-          info!("{:?}", event);
-          if let Err(reason) = self.to_main.send(event) {
-            error!("{}", reason);
+        let event = match self.parse_lines_event(args) {
+          Ok(ev) => ev,
+          Err(e) => {
+            return error!("Could not parse args of {}: '{:?}'", name, e);
           }
-        }
+        };
+        info!("{:?}", event);
+        self.to_main.send(event).unwrap_or_else(|e| {
+          error!("Could not send 'LinesEvent' to main thread: '{:?}'", e)
+        });
       }
       "nvim_buf_changedtick_event" => {
-        if let Ok(event) = self.parse_changedtick_event(args) {
-          info!("{:?}", event);
-          if let Err(reason) = self.to_main.send(event) {
-            error!("{}", reason);
+        let event = match self.parse_changedtick_event(args) {
+          Ok(ev) => ev,
+          Err(e) => {
+            return error!("Could not parse args of {}: '{:?}'", name, e);
           }
-        }
+        };
+        info!("{:?}", event);
+        self.to_main.send(event).unwrap_or_else(|e| {
+          error!(
+            "Could not send 'ChangedTickEvent' to main thread: '{:?}'",
+            e
+          )
+        });
       }
       "nvim_buf_detach_event" => {
-        if let Ok(event) = self.parse_detach_event(args) {
-          info!("{:?}", event);
-          if let Err(reason) = self.to_main.send(event) {
-            error!("{}", reason);
+        let event = match self.parse_detach_event(args) {
+          Ok(ev) => ev,
+          Err(e) => {
+            return error!("Could not parse args of {}: '{:?}'", name, e);
           }
-        }
+        };
+        info!("{:?}", event);
+        self.to_main.send(event).unwrap_or_else(|e| {
+          error!("Could not send 'DetachEvent' to main thread: '{:?}'", e)
+        });
       }
       "HighlightRegion" => {
-        if let Ok(event) = self.parse_highlight_region(args) {
-          info!("{:?}", event);
-          if let Err(reason) = self.to_main.send(event) {
-            error!("{}", reason);
+        let event = match self.parse_highlight_region(args) {
+          Ok(ev) => ev,
+          Err(e) => {
+            return error!("Could not parse args of {}: '{:?}'", name, e);
           }
-        }
+        };
+        info!("{:?}", event);
+        self.to_main.send(event).unwrap_or_else(|e| {
+          error!("Could not send 'HighlightRegion' to main thread: '{:?}'", e)
+        });
       }
       "quit" => {
-        if let Err(reason) = self.to_main.send(Event::Quit) {
-          error!("{}", reason);
-        }
+        info!("{:?}", Event::Quit);
+        self.to_main.send(Event::Quit).unwrap_or_else(|e| {
+          error!("Could not send 'quit' to main thread: '{:?}'", e)
+        });
       }
       unknown => {
         error!("Received unknown notification: '{}'!", unknown);
@@ -139,21 +159,20 @@ impl RequestHandler for NeovimHandler {
   ) -> Result<Value, Value> {
     match name.as_str() {
       "RefreshFolds" => {
-        if let Err(reason) = self.to_main.send(Event::RefreshFolds) {
-          Err(Value::from(format!(
-            "Error sending request '{}': {}!",
-            name, reason
-          )))
-        } else {
-          self.from_main.recv().map_err(|e| {
-            Value::from(format!(
-              "Error receiving value for request '{}' from main thread: {}!",
-              name, e
-            ))
-          })
-        }
+        self.to_main.send(Event::RefreshFolds).map_err(|e| {
+          Value::from(format!(
+            "Could not send 'RefreshFolds' to main thread: {:?}!",
+            e
+          ))
+        })?;
+        self.from_main.recv().map_err(|e| {
+          Value::from(format!(
+            "Error receiving value for request '{}' from main thread: {:?}!",
+            name, e
+          ))
+        })
       }
-      _ => Err(Value::from(format!("Received unknown Request: '{}'!", name))),
+      _ => Err(Value::from(format!("Unknown Request: '{}'!", name))),
     }
   }
 }
@@ -169,23 +188,23 @@ pub fn last_arg(
 
 /// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a u64
 pub fn parse_u64(value: &Value) -> Result<u64, Error> {
-  value
-    .as_u64()
-    .ok_or_else(|| failure::err_msg(format!("Cannot parse '{:?}' as u64", value)))
+  value.as_u64().ok_or_else(|| {
+    failure::err_msg(format!("Cannot parse '{:?}' as u64", value))
+  })
 }
 ///
 /// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a i64
 pub fn parse_i64(value: &Value) -> Result<i64, Error> {
-  value
-    .as_i64()
-    .ok_or_else(|| failure::err_msg(format!("Cannot parse '{:?}' as i64", value)))
+  value.as_i64().ok_or_else(|| {
+    failure::err_msg(format!("Cannot parse '{:?}' as i64", value))
+  })
 }
 
 /// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a bool
 pub fn parse_bool(value: &Value) -> Result<bool, Error> {
-  value
-    .as_bool()
-    .ok_or_else(|| failure::err_msg(format!("Cannot parse '{:?}' as bool", value)))
+  value.as_bool().ok_or_else(|| {
+    failure::err_msg(format!("Cannot parse '{:?}' as bool", value))
+  })
 }
 
 /// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a `Vec<String>`. Note
@@ -207,7 +226,10 @@ pub fn parse_vecstr(value: Value) -> Result<Vec<String>, Error> {
       }
     }
   } else {
-    return Err(failure::err_msg(format!("Cannot parse '{:?}' as array", value)));
+    return Err(failure::err_msg(format!(
+      "Cannot parse '{:?}' as array",
+      value
+    )));
   }
 
   Ok(res)
