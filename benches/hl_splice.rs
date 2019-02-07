@@ -67,7 +67,7 @@ macro_rules! hl_bench {
       c.bench_function(stringify!($fn), move |b| {
         let origlines = Lines::read_file("files/example.pc").expect("1");
         let mut bufdata = BufData::new();
-        bufdata.from_slice(&origlines);
+        bufdata.parse_slice(&origlines).expect("2");
 
         // example.pc has 20586 lines, so 20587 is the last valid linenumber
         // so 20586 is the last valid line index
@@ -103,7 +103,7 @@ fn bench_bufdata_create(c: &mut Criterion) {
     let mut bufdata = BufData::new();
 
     b.iter(|| {
-      bufdata.from_slice(&origlines);
+      bufdata.parse_slice(&origlines).expect("2");
     })
   });
 }
@@ -112,7 +112,7 @@ fn bench_bufdata_readonly(c: &mut Criterion) {
   c.bench_function("bench_bufdata_readonly", move |b| {
     let origlines = Lines::read_file("files/example.pc").expect("1");
     let mut bufdata = BufData::new();
-    bufdata.from_slice(&origlines);
+    bufdata.parse_slice(&origlines).expect("2");
 
     b.iter(|| {
       let _calls = black_box(fake_highlight_region(

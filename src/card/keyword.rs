@@ -348,7 +348,7 @@ impl Keywords {
 
   /// Create a [`Keywords`](::card::keyword::Keywords) struct by parsing a
   /// [`Lines`](::lines::Lines) struct.
-  pub fn from_lines(&mut self, lines: &Lines) {
+  pub fn parse_lines(&mut self, lines: &Lines) {
     self.0.extend(lines.iter().map(Keyword::parse))
   }
 

@@ -364,8 +364,8 @@ mod tests {
 
   macro_rules! make_lineiter {
     ($lines:ident, $keywords:ident, $li: ident, $str:expr) => {
-      $lines.from_slice($str.as_ref());
-      $keywords.from_lines(&$lines);
+      $lines.parse_slice($str.as_ref());
+      $keywords.parse_lines(&$lines);
       $li = $keywords
         .iter()
         .zip($lines.iter())

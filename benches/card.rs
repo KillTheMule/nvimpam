@@ -21,7 +21,7 @@ fn bench_parse2bufdata(c: &mut Criterion) {
     let mut bufdata = BufData::new();
     b.iter(|| {
       bufdata.clear();
-      bufdata.from_slice(&origlines);
+      bufdata.parse_slice(&origlines).expect("4");
     });
   });
 }
@@ -65,8 +65,8 @@ fn bench_skip_ges(c: &mut Criterion) {
     let mut lines = Lines::new();
     let mut keywords = Keywords::new();
 
-    lines.from_strs(&GES);
-    keywords.from_lines(&lines);
+    lines.parse_strs(&GES);
+    keywords.parse_lines(&lines);
 
     b.iter(|| {
       let mut li = keywords

@@ -67,27 +67,27 @@ impl<'a> BufData<'a> {
   }
 
   // will simply push stuff, makes only sense for new empty bufdata
-  pub fn from_slice<'c: 'a>(&mut self, v: &'c [u8]) -> Result<(), Error> {
-    self.lines.from_slice(v);
-    self.keywords.from_lines(&self.lines);
+  pub fn parse_slice<'c: 'a>(&mut self, v: &'c [u8]) -> Result<(), Error> {
+    self.lines.parse_slice(v);
+    self.keywords.parse_lines(&self.lines);
     self.regenerate()?;
 
     Ok(())
   }
 
   // will simply push stuff, makes only sense for new empty bufdata
-  pub fn from_vec(&mut self, v: Vec<String>) -> Result<(), Error>{
-    self.lines.from_vec(v);
-    self.keywords.from_lines(&self.lines);
+  pub fn parse_vec(&mut self, v: Vec<String>) -> Result<(), Error> {
+    self.lines.parse_vec(v);
+    self.keywords.parse_lines(&self.lines);
     self.regenerate()?;
 
     Ok(())
   }
 
   // will simply push stuff, makes only sense for new empty bufdata
-  pub fn from_strs<'c: 'a>(&mut self, v: &'c [&'a str]) -> Result<(), Error>{
-    self.lines.from_strs(v);
-    self.keywords.from_lines(&self.lines);
+  pub fn parse_strs<'c: 'a>(&mut self, v: &'c [&'a str]) -> Result<(), Error> {
+    self.lines.parse_strs(v);
+    self.keywords.parse_lines(&self.lines);
     self.regenerate()?;
 
     Ok(())

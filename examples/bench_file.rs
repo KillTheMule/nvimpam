@@ -44,7 +44,7 @@ fn main() {
 
   let origlines = Lines::read_file("files/example.pc").expect("3.1");
   let mut bufdata = BufData::new();
-  bufdata.from_slice(&origlines).unwrap();
+  bufdata.parse_slice(&origlines).unwrap();
   curbuf.attach(&mut nvim, false, vec![]).expect("4");
 
   while let Ok(ChangedTickEvent { .. }) = main_from_handler.recv() {

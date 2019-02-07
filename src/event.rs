@@ -77,7 +77,7 @@ impl Event {
       None => curbuf.attach(nvim, true, vec![])?,
       Some(f) => {
         origlines = Lines::read_file(f)?;
-        bufdata.from_slice(&origlines)?;
+        bufdata.parse_slice(&origlines)?;
         curbuf.attach(nvim, false, vec![])?
       }
     };
@@ -99,7 +99,7 @@ impl Event {
             continue;
           }
           if lastline == -1 {
-            bufdata.from_vec(linedata)?;
+            bufdata.parse_vec(linedata)?;
           } else if lastline >= 0 && firstline >= 0 {
             let (start, end) =
               bufdata.update(firstline as u64, lastline as u64, linedata)?;
