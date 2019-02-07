@@ -74,6 +74,18 @@ fn main() {
   };
 }
 
+fn send_err(nvim: &mut Neovim, err: &Error) {
+  let luafn = "require('nvimpam').nvimpam_err(...)";
+  let luaargs = Value::from(vec![Value::from(format!(
+    "Nvimpam ecountered an error: '{:?}'!",
+    err
+  ))]);
+
+  if let Err(e) = nvim.execute_lua(luafn, vec![luaargs]) {
+    error!("Could not send error to neovim: '{:?}'", e);
+  }
+}
+
 fn init_logging() -> Result<(), Error> {
   use std::{
     env::{self, VarError},
@@ -207,7 +219,10 @@ fn start_program() -> Result<(), Error> {
 
   let file = args_os().nth(1);
 
-  Event::event_loop(&main_from_handler, &main_to_handler, nvim, file)?;
-
-  Ok(())
+  if let Err(err) = Event::event_loop(&main_from_handler, &main_to_handler, &mut nvim, file) {
+    send_err(&mut nvim, &err);
+    Err(err)
+  } else {
+    Ok(())
+  }
 }

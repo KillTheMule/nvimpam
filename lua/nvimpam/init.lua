@@ -11,6 +11,7 @@ return {
   on_stderr = job.on_stderr,
   on_exit = job.on_exit,
   printstderr = job.printstderr,
+  nvimpam_err = job.nvimpam_err,
   -- fold
   update_folds = fold.update_folds,
   refresh_folds = fold.refresh_folds,

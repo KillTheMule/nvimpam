@@ -61,7 +61,7 @@ impl Event {
   pub fn event_loop(
     from_handler: &mpsc::Receiver<Event>,
     to_handler: &mpsc::Sender<Value>,
-    mut nvim: Neovim,
+    nvim: &mut Neovim,
     file: Option<OsString>,
   ) -> Result<(), Error> {
     use self::Event::*;
@@ -74,11 +74,11 @@ impl Event {
     let mut bufdata = BufData::new();
 
     let connected = match file {
-      None => curbuf.attach(&mut nvim, true, vec![])?,
+      None => curbuf.attach(nvim, true, vec![])?,
       Some(f) => {
         origlines = Lines::read_file(f)?;
         bufdata.from_slice(&origlines);
-        curbuf.attach(&mut nvim, false, vec![])?
+        curbuf.attach(nvim, false, vec![])?
       }
     };
 
@@ -106,7 +106,7 @@ impl Event {
 
             crate::bufdata::highlights::highlight_region(
               bufdata.highlights.indexrange(start, end),
-              &mut nvim,
+              nvim,
               firstline as u64,
               lastline as u64,
             )?;
@@ -133,7 +133,7 @@ impl Event {
 
           crate::bufdata::highlights::highlight_region(
             bufdata.highlights.linerange(fl as u64, ll as u64),
-            &mut nvim,
+            nvim,
             fl as u64,
             ll as u64,
           )?;
