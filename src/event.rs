@@ -54,12 +54,9 @@ impl Event {
   /// It creates [`lines`](::lines::Lines),
   /// [`keywords`](::card::keyword::Keywords) and a
   /// [`foldlist`](::folds::FoldList)  and updates them from the events
-  /// received. It calls [`resend_all`](::folds::FoldList::resend_all) when the
-  /// [`foldlist`](::folds::FoldList) was created, or the
-  /// [`RefreshFolds`](../event/enum.Event.html#variant.RefreshFolds) event was
-  /// sent.
+  /// received.
   ///
-  /// Sending the [`Quit`](../event/enum.Event.html#variant.Quit) event will
+  /// Sending the [`Quit`](::event::Event::Quit) event will
   /// exit the loop and return from the function.
   pub fn event_loop(
     from_handler: &mpsc::Receiver<Event>,
@@ -185,10 +182,10 @@ impl fmt::Debug for Event {
         lastline,
       } => write!(
         f,
-        "Hl_Line{{ firstline: {}, lastline: {} }}",
+        "HighlightRegion{{ firstline: {}, lastline: {} }}",
         firstline, lastline
       ),
-      DetachEvent { .. } => write!(f, "UpdatesEnd"),
+      DetachEvent { .. } => write!(f, "DetachEvent"),
       RefreshFolds => write!(f, "RefreshFolds"),
       Quit => write!(f, "Quit"),
     }
