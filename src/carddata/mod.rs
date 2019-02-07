@@ -9,7 +9,7 @@ macro_rules! cardtest {
       use crate::bufdata::BufData;
 
       let mut bufdata = BufData::new();
-      bufdata.from_strs(&$c);
+      bufdata.from_strs(&$c).unwrap();
 
       assert_eq!($v, bufdata.folds.to_vec());
     }
@@ -20,7 +20,7 @@ macro_rules! cardtest {
       use crate::bufdata::BufData;
 
       let mut bufdata = BufData::new();
-      bufdata.from_strs(&$c);
+      bufdata.from_strs(&$c).unwrap();
 
       assert_eq!($v, bufdata.folds.to_vec());
       assert_eq!($w, bufdata.folds_level2.to_vec());

@@ -67,33 +67,41 @@ impl<'a> BufData<'a> {
   }
 
   // will simply push stuff, makes only sense for new empty bufdata
-  pub fn from_slice<'c: 'a>(&mut self, v: &'c [u8]) {
+  pub fn from_slice<'c: 'a>(&mut self, v: &'c [u8]) -> Result<(), Error> {
     self.lines.from_slice(v);
     self.keywords.from_lines(&self.lines);
-    self.regenerate();
+    self.regenerate()?;
+
+    Ok(())
   }
 
   // will simply push stuff, makes only sense for new empty bufdata
-  pub fn from_vec(&mut self, v: Vec<String>) {
+  pub fn from_vec(&mut self, v: Vec<String>) -> Result<(), Error>{
     self.lines.from_vec(v);
     self.keywords.from_lines(&self.lines);
-    self.regenerate();
+    self.regenerate()?;
+
+    Ok(())
   }
 
   // will simply push stuff, makes only sense for new empty bufdata
-  pub fn from_strs<'c: 'a>(&mut self, v: &'c [&'a str]) {
+  pub fn from_strs<'c: 'a>(&mut self, v: &'c [&'a str]) -> Result<(), Error>{
     self.lines.from_strs(v);
     self.keywords.from_lines(&self.lines);
-    self.regenerate();
+    self.regenerate()?;
+
+    Ok(())
   }
 
-  pub fn regenerate(&mut self) {
+  pub fn regenerate(&mut self) -> Result<(), Error> {
     self.folds.clear();
     self.folds_level2.clear();
     self.highlights.clear();
 
-    self.parse_lines();
-    self.folds_level2.recreate_level2(&self.folds);
+    self.parse_lines()?;
+    self.folds_level2.recreate_level2(&self.folds)?;
+
+    Ok(())
   }
 
   pub fn update(
@@ -101,7 +109,7 @@ impl<'a> BufData<'a> {
     firstline: u64,
     lastline: u64,
     linedata: Vec<String>,
-  ) -> (usize, usize) {
+  ) -> Result<(usize, usize), Error> {
     let added: i64 = linedata.len() as i64 - (lastline - firstline) as i64;
     self.keywords.update(firstline, lastline, &linedata);
     self.lines.update(firstline, lastline, linedata);
@@ -118,10 +126,10 @@ impl<'a> BufData<'a> {
       .map(ParsedLine::from)
       .remove_comments();
 
-    BufData::parse_from_iter(&mut newhls, &mut newfolds, li);
+    BufData::parse_from_iter(&mut newhls, &mut newfolds, li)?;
     self.folds.splice(newfolds, first, last, added);
     let _ = self.folds_level2.recreate_level2(&self.folds);
-    self.highlights.splice(newhls, first, last, added)
+    Ok(self.highlights.splice(newhls, first, last, added))
   }
 
   /// Parse an array of `Option<Keyword>`s into a

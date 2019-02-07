@@ -219,7 +219,9 @@ fn start_program() -> Result<(), Error> {
 
   let file = args_os().nth(1);
 
-  if let Err(err) = Event::event_loop(&main_from_handler, &main_to_handler, &mut nvim, file) {
+  if let Err(err) =
+    Event::event_loop(&main_from_handler, &main_to_handler, &mut nvim, file)
+  {
     send_err(&mut nvim, &err);
     Err(err)
   } else {

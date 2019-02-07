@@ -21,7 +21,7 @@ use neovim_lib::{neovim::Neovim, neovim_api::NeovimApi, session::Session};
 
 fn main() {
   let (handler_to_main, main_from_handler) = mpsc::channel();
-  let (main_to_handler, handler_from_main) = mpsc::channel();
+  let (_main_to_handler, handler_from_main) = mpsc::channel();
   let nvimpath = Path::new("neovim").join("build").join("bin").join("nvim");
 
   let mut session = Session::new_child_cmd(
@@ -44,7 +44,7 @@ fn main() {
 
   let origlines = Lines::read_file("files/example.pc").expect("3.1");
   let mut bufdata = BufData::new();
-  bufdata.from_slice(&origlines);
+  bufdata.from_slice(&origlines).unwrap();
   curbuf.attach(&mut nvim, false, vec![]).expect("4");
 
   while let Ok(ChangedTickEvent { .. }) = main_from_handler.recv() {
