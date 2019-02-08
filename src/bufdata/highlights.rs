@@ -9,6 +9,7 @@ use crate::{
   card::{cell::Cell, line::Line as CardLine},
 };
 
+/// An enum to denote the nvim highlight groups within nvimpam
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum HighlightGroup {
   CellEven,
@@ -32,6 +33,8 @@ impl From<HighlightGroup> for &'static str {
   }
 }
 
+/// A struct for a line that should get highlighting applied to it. Its main use
+/// is as an `Iterator` over the highlights of that line.
 #[derive(Debug)]
 pub struct HlLine<'a> {
   pub cardline: &'a CardLine,
@@ -56,6 +59,7 @@ impl<'a> IntoIterator for HlLine<'a> {
   }
 }
 
+/// The Iterator for a [`HlLine`](::bufdata::highlights::HlLine).
 #[derive(Debug)]
 pub struct HlIter<'a> {
   line: HlLine<'a>,
@@ -110,6 +114,10 @@ impl<'a> Iterator for HlIter<'a> {
   }
 }
 
+/// The struct to hold the highlights for a buffer. The internal `Vec` needs to
+/// stay ordered on the first tuple.
+///
+/// TODO(KillTheMule): Don't expose the internal `Vec`
 #[derive(Default, Debug)]
 pub struct Highlights(pub Vec<((u64, u8, u8), Hl)>);
 
@@ -122,9 +130,14 @@ impl Highlights {
     Highlights(Vec::new())
   }
 
+  /// Remove all the highlights with linenumbers in `firstline..lastline`, and
+  /// paste in the ones given in `newhls`. Keeps the `Vec` ordered. Returns a
+  /// tuple `(s, e)` such that `s..e` is the index range of the new highlight
+  /// entries (note that all the elements in the index range `e..` have been
+  /// modified, as their line numbers had to be shifted).
   pub fn splice(
     &mut self,
-    newfolds: Highlights,
+    newhls: Highlights,
     firstline: usize,
     lastline: usize,
     added: i64,
@@ -141,26 +154,32 @@ impl Highlights {
       .map(|(i, ((_, _, _), _))| i + start)
       .unwrap_or_else(|| self.0.len());
 
-    let num_new = newfolds.0.len();
+    let num_new = newhls.0.len();
     let _ = self.0.splice(
       start..end,
-      newfolds
+      newhls
         .0
         .into_iter()
         .map(|((l, s, e), h)| ((l + firstline as u64, s, e), h)),
     );
 
-    for t in self.0[start + num_new..].iter_mut() {
-      ((*t).0).0 = (((*t).0).0 as i64 + added) as u64;
+    if added != 0 {
+      for t in self.0[start + num_new..].iter_mut() {
+        ((*t).0).0 = (((*t).0).0 as i64 + added) as u64;
+      }
     }
 
     (start, start + num_new)
   }
 
+  /// Add a highlight by pushing it to the end of the `Vec`. Be sure that the
+  /// order of the `Vec` is not destroyed by this!
   pub fn add_highlight(&mut self, line: u64, start: u8, end: u8, typ: Hl) {
     self.0.push(((line, start, end), typ));
   }
 
+  /// Add the highlights of a line by pushing them to the end of the `Vec`. Be
+  /// sure that the order of the `Vec` is not destroyed by this!
   #[inline]
   pub fn add_line_highlights<T>(&mut self, num: usize, it: T)
   where
@@ -175,6 +194,8 @@ impl Highlights {
     self.0.iter().map(|(ref a, ref b)| (a, b))
   }
 
+  /// Return an iterator over the highlights of the lines with index (in the
+  /// internal `Vec`) in the range `firstline..lastline`.
   pub fn indexrange(
     &self,
     firstline: usize,
@@ -185,6 +206,8 @@ impl Highlights {
       .map(|(ref a, ref b)| (a, b))
   }
 
+  /// Return an iterator over the highlights of the lines with linenumber in the
+  /// range `firstline..lastline`.
   pub fn linerange(
     &self,
     firstline: u64,
@@ -206,8 +229,11 @@ impl Highlights {
   }
 }
 
-/// Highlight all the lines in the given region
-// TODO: efficient? correct?
+/// Send the lighlights from the passed Iterator to neovim. All the highlights
+/// in the linerange `firstline..lastline` are cleared beforehand.
+///
+/// TODO(KillTheMule): efficient?
+/// TODO(KillTheMule): This should be a method on BufData
 pub fn highlight_region<'a, 'b, 'c, T>(
   iter: T,
   nvim: &'a mut Neovim,
@@ -234,24 +260,23 @@ where
     .into(),
   );
 
-  for ((l, s, e), t) in iter {
+  calls.extend(iter.map(|((l, s, e), t)| {
     let st: &'static str = (*t).into();
-    calls.push(
+    vec![
+      Value::from("nvim_buf_add_highlight".to_string()),
       vec![
-        Value::from("nvim_buf_add_highlight".to_string()),
-        vec![
-          curbuf.get_value().clone(),
-          Value::from(5),
-          Value::from(st.to_string()),
-          Value::from(*l),
-          Value::from(u64::from(*s)),
-          Value::from(u64::from(*e)),
-        ]
-        .into(),
+        curbuf.get_value().clone(),
+        Value::from(5),
+        Value::from(st.to_string()),
+        Value::from(*l),
+        Value::from(u64::from(*s)),
+        Value::from(u64::from(*e)),
       ]
       .into(),
-    );
-  }
+    ]
+    .into()
+  }));
+
   nvim.call_atomic(calls).context("call_atomic failed")?;
   Ok(())
 }

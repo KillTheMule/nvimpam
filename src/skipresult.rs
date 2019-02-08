@@ -14,8 +14,7 @@ use crate::lines::ParsedLine;
 /// `nextline` will be `None` in those cases where the iterator returned `None`
 /// before such a line could be found, i.e. the file ended.
 ///
-/// `skip_end` is the index of the last line we skipped. It will be `None` if
-/// we could not fully skip something before the file ended
+/// `skip_end` is the index of the last line we skipped.
 #[derive(Debug)]
 pub struct SkipResult<'a> {
   pub nextline: Option<ParsedLine<'a>>,

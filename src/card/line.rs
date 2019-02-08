@@ -41,6 +41,8 @@ pub enum Line {
 }
 
 impl Line {
+  /// If the line starts with a [`Keyword`](::card::keyword::Keyword), return
+  /// it. Otherwise, return `None`.
   #[inline]
   pub fn keyword(&self) -> Option<Keyword> {
     use self::Line::*;
@@ -51,6 +53,8 @@ impl Line {
     }
   }
 
+  /// If the line contains a slice of [`Cells`](::card::cell::Cell), return it.
+  /// Otherwise, return None.
   #[inline]
   pub fn cells(&self) -> Option<&'static [Cell]> {
     use self::Line::*;
@@ -61,6 +65,8 @@ impl Line {
     }
   }
 
+  /// Return an iterator over the highlight of a line. The `text` is
+  /// parsed in the process to potentially highlight errors.
   pub fn highlights<'a>(&'a self, text: &'a [u8]) -> HlIter<'a> {
     HlLine {
       cardline: &self,
@@ -82,7 +88,7 @@ pub enum Conditional {
   Number(Range<u8>),
 }
 
-// An enum to represent the different results of conditionals
+/// An enum to represent the different results of conditionals
 #[derive(Debug, PartialEq)]
 pub enum CondResult {
   Bool(bool),
@@ -96,8 +102,7 @@ impl Conditional {
 
     match *self {
       Conditional::RelChar(idx, c) => {
-        let idx = idx as usize;
-        Bool(line.get(idx) == Some(&c))
+        Bool(line.get(idx as usize) == Some(&c))
       }
       Conditional::Int(ref r, b) => {
         let range = r.start as usize..cmp::min(line.len(), r.end as usize);

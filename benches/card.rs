@@ -2,6 +2,9 @@ extern crate nvimpam_lib;
 
 #[macro_use]
 extern crate criterion;
+
+use std::fs;
+
 use criterion::Criterion;
 
 use nvimpam_lib::{
@@ -16,7 +19,7 @@ use nvimpam_lib::{
 
 fn bench_parse2bufdata(c: &mut Criterion) {
   c.bench_function("card_parse2folddata", |b| {
-    let origlines = Lines::read_file("files/example.pc").expect("3.1");
+    let origlines = fs::read("files/example.pc").expect("3.1");
 
     let mut bufdata = BufData::new();
     b.iter(|| {

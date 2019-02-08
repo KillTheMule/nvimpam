@@ -1,13 +1,5 @@
-//! This module provides the [`FoldList`](::folds::FoldList) struct to
-//! manage folds in a buffer. It carries both level 1 folds as well as level 2
-//! folds (i.e. folds that contain folds of level 1). All functions that
-//! insert/remove/modify folds operate on level 1 folds, the only thing to be
-//! done for the level 2 folds is regenerating them in full from the level 1
-//! folds.
-//!
-//! Example usage:
-//!
-//! A datastructure to hold the parsed data belonging to a buffer.
+//! This module provides the [`BufData`](::bufdata::BufData) struct to
+//! manage the lines, folds and highlights in a buffer.
 
 pub mod folds;
 pub mod highlights;
@@ -38,12 +30,18 @@ macro_rules! unwrap_or_ok {
   };
 }
 
+/// The datastructure to hold all the information of a buffer.
 #[derive(Default, Debug)]
 pub struct BufData<'a> {
+  /// The lines of the buffer
   pub lines: Lines<'a>,
+  /// The keywords of the buffer as parsed from the lines.
   pub keywords: Keywords,
+  /// The level 1 folds.
   pub folds: Folds,
+  /// The level 2 folds.
   pub folds_level2: Folds,
+  /// The highlights of the buffer
   pub highlights: Highlights,
 }
 
@@ -66,7 +64,10 @@ impl<'a> BufData<'a> {
     self.highlights.clear();
   }
 
-  // will simply push stuff, makes only sense for new empty bufdata
+  /// Extend the lines of the buffer by splitting the slice on newlines. Parse
+  /// for new keywords, and update the folds/highlights appropriately.
+  ///
+  /// Assumes the `BufData` was empty before.
   pub fn parse_slice<'c: 'a>(&mut self, v: &'c [u8]) -> Result<(), Error> {
     self.lines.parse_slice(v);
     self.keywords.parse_lines(&self.lines);
@@ -75,7 +76,10 @@ impl<'a> BufData<'a> {
     Ok(())
   }
 
-  // will simply push stuff, makes only sense for new empty bufdata
+  /// Extend the lines of the buffer by the `String`s in the `Vec`. Parse
+  /// for new keywords, and update the folds/highlights appropriately.
+  ///
+  /// Assumes the `BufData` was empty before.
   pub fn parse_vec(&mut self, v: Vec<String>) -> Result<(), Error> {
     self.lines.parse_vec(v);
     self.keywords.parse_lines(&self.lines);
@@ -84,7 +88,10 @@ impl<'a> BufData<'a> {
     Ok(())
   }
 
-  // will simply push stuff, makes only sense for new empty bufdata
+  /// Extend the lines of the buffer by the `&str`s in the `slice`. Parse
+  /// for new keywords, and update the folds/highlights appropriately.
+  ///
+  /// Assumes the `BufData` was empty before.
   pub fn parse_strs<'c: 'a>(&mut self, v: &'c [&'a str]) -> Result<(), Error> {
     self.lines.parse_strs(v);
     self.keywords.parse_lines(&self.lines);
@@ -93,6 +100,10 @@ impl<'a> BufData<'a> {
     Ok(())
   }
 
+  /// After adding lines and the keywords of a `BufData` structure, this
+  /// computes the folds and highlights. Everything's cleared beforehand, so it
+  /// should only be used after the initalization. Use
+  /// [`update`](::bufdata::BufData::update) otherwise.
   pub fn regenerate(&mut self) -> Result<(), Error> {
     self.folds.clear();
     self.folds_level2.clear();
@@ -104,6 +115,13 @@ impl<'a> BufData<'a> {
     Ok(())
   }
 
+  /// Update the `BufData` structure from the lines of a `Vec<String>`. Tries to
+  /// be as efficient as possible. Returns a tuple `Some((s, e))` such that
+  /// `s..e` is the range of the indices of the highlight entries which are new.
+  /// This is usefull to call
+  /// [`indexrange`](::bufdata::highlights::Highlights::indexrange) afterwards
+  /// to efficiently send the new data to neovim via
+  /// [`highlight_region`](::bufdata::highlights::highlight_region).
   pub fn update(
     &mut self,
     firstline: u64,
@@ -132,15 +150,11 @@ impl<'a> BufData<'a> {
     Ok(self.highlights.splice(newhls, first, last, added))
   }
 
-  /// Parse an array of `Option<Keyword>`s into a
-  /// [`BufData`](::bufdata::BufData) struct. The computed folds and highlights
-  /// are inserted in ascending order.
+  /// After initializing the lines and keywords of a `BufData` structure, this
+  /// finally parses them into highlights/folds. Only useful for the initial
+  /// parse.
   ///
-  /// Creates only level 1 folds. Depending on the
-  /// [`ownfold`](::card::Card::ownfold) parameter in the
-  /// definition of the card in the [carddata](::carddata) module, each card
-  /// will be in an own fold, or several adjacent (modulo comments) cards will
-  /// be subsumed into a fold.
+  /// TODO(KillTheMule): Can we merge this with update?
   pub fn parse_lines(&mut self) -> Result<(), Error> {
     debug_assert!(self.keywords.len() == self.lines.len());
     let li = self
@@ -154,6 +168,8 @@ impl<'a> BufData<'a> {
     BufData::parse_from_iter(&mut self.highlights, &mut self.folds, li)
   }
 
+  /// Iterate over a [`NoCommentIter`](::nocommentiter::NoCommentIter) and add
+  /// the highlights and folds to the given structures.
   pub fn parse_from_iter<'b, I>(
     highlights: &mut Highlights,
     folds: &mut Folds,
@@ -189,6 +205,8 @@ impl<'a> BufData<'a> {
     }
   }
 
+  /// Pack up all existing level 1 and level 2 folds (in that order) into a
+  /// `Value` suitable to send to neovim.
   pub fn packup_all_folds(&self) -> Value {
     let mut luaargs = vec![];
 
@@ -204,7 +222,7 @@ impl<'a> BufData<'a> {
     Value::from(luaargs)
   }
 
-  /// Delete all folds in nvim, and create the ones from the FoldList.
+  /// Delete all folds in nvim, and create the ones from the `BufData`.
   pub fn resend_all_folds(&self, nvim: &mut Neovim) -> Result<(), Error> {
     let luafn = "require('nvimpam').update_folds(...)";
     let foldvalue = self.packup_all_folds();

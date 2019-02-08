@@ -334,6 +334,9 @@ impl Keyword {
   }
 }
 
+/// The [`Keywords`](::card::keyword::Keywords) struct to hold the keywords of a
+/// [`Lines`](::lines::Lines) struct. Supposed to be kept in sync via
+/// [`Keywords::update`](::card::keyword::Keywords::update).
 #[derive(Debug, Default)]
 pub struct Keywords(Vec<Option<Keyword>>);
 
@@ -346,14 +349,14 @@ impl Keywords {
     self.0.clear()
   }
 
-  /// Create a [`Keywords`](::card::keyword::Keywords) struct by parsing a
+  /// Extend a [`Keywords`](::card::keyword::Keywords) struct by parsing a
   /// [`Lines`](::lines::Lines) struct.
   pub fn parse_lines(&mut self, lines: &Lines) {
     self.0.extend(lines.iter().map(Keyword::parse))
   }
 
   /// Update a [`Keywords`](::card::keyword::Keywords) struct by parsing a
-  /// `Vec<String>` and splicing in the result on the interval `first..last`.
+  /// `Vec<String>` and splicing in the result on the range `first..last`.
   pub fn update(&mut self, first: u64, last: u64, linedata: &[String]) {
     let range = first as usize..last as usize;
     let _ = self
@@ -361,7 +364,10 @@ impl Keywords {
       .splice(range, linedata.iter().map(|l| Keyword::parse(l.as_ref())));
   }
 
-  // TODO: Efficient? Correct?
+  // TODO(KillTheMule): Efficient? This is called a lot ...
+  /// Find the index of the first line that starts with a non-comment keyword
+  /// before the line with the given number. If the line with the given number
+  /// itself starts with a non-comment keyword, its index is returned.
   pub fn first_before(&self, line: u64) -> usize {
     self
       .get(..=line as usize)
@@ -373,7 +379,10 @@ impl Keywords {
       .0
   }
 
-  // TODO: Efficient? Correct?
+  // TODO(KillTheMule): Efficient? This is called a lot ...
+  /// Find the index of the next line that starts with a non-comment keyword
+  /// after the line with the given number. If the line with the given number
+  /// itself starts with a non-comment keyword, its index is returned.
   pub fn first_after(&self, line: u64) -> usize {
     self
       .iter()

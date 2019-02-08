@@ -5,19 +5,15 @@
 use std::{
   convert::{AsRef, From},
   fmt,
-  fs::File,
-  io::Read,
   ops::Deref,
-  path::Path,
 };
-
-use failure::{Error, ResultExt};
 
 use crate::card::keyword::Keyword;
 
 /// An enum representing a line of a file, either as a byte slice (which we
 /// obtain from reading a file into a `Vec<u8>` and splitting on newlines) or an
-/// owned `String` (which we get from neovim's buffer update API).
+/// owned `String` (which we get from neovim's buffer update API via a
+/// [`LinesEvent`](::event::Event::LinesEvent)).
 #[derive(Debug, PartialEq)]
 pub enum Line<'a> {
   OriginalLine(&'a [u8]),
@@ -51,8 +47,8 @@ impl<'a> fmt::Display for Lines<'a> {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     let mut s = String::new();
     s.push_str("Lines {{\n");
-    for line in self.iter() {
-      s.push_str(&format!(" {{{}}}\n", String::from_utf8_lossy(line)));
+    for line in self.0.iter() {
+      s.push_str(&format!(" {{{}}}\n", line));
     }
     s.push_str("}}\n");
     write!(f, "{}", s)
@@ -60,7 +56,7 @@ impl<'a> fmt::Display for Lines<'a> {
 }
 
 /// A struct returned by the [`iter()`](::lines::Lines::iter) method of
-/// [`Lines`](::lines::Lines). Used to iterate over the [`Line`](::lines::Line)
+/// [`Lines`](::lines::Lines). Used to iterate over the [`Line`](::lines::Line)s
 /// of a file.
 pub struct LinesIter<'a, I>
 where
@@ -77,29 +73,28 @@ impl<'a> Lines<'a> {
   pub fn clear(&mut self) {
     self.0.clear()
   }
-  /// Returns the number of lines
   pub fn len(&self) -> usize {
     self.0.len()
   }
 
-  /// Check if there are any lines
   pub fn is_empty(&self) -> bool {
     self.0.is_empty()
   }
 
-  /// Create a new `Lines` struct from a `Vec<String>`
+  /// Extend a [`Lines`](::lines::Lines) struct from a `Vec<String>`
   pub fn parse_vec(&mut self, v: Vec<String>) {
     self.0.extend(v.into_iter().map(Line::ChangedLine))
   }
 
-  /// Creates a new `Lines` struct from a slice of `&'str`s
+  /// Extend a [`Lines`](::lines::Lines) struct from a slice of `&'str`s
   pub fn parse_strs<'c: 'a>(&mut self, v: &'c [&'a str]) {
     self
       .0
       .extend(v.iter().map(|l| Line::OriginalLine(l.as_ref())));
   }
 
-  /// Create a new `Lines` struct from a byte slice by splitting on newlines.
+  /// Extend a [`Lines`](::lines::Lines) struct from a byte slice by splitting
+  /// on newlines.
   pub fn parse_slice<'c: 'a>(&mut self, v: &'c [u8]) {
     self
       .0
@@ -110,21 +105,6 @@ impl<'a> Lines<'a> {
     if self.0.last() == Some(&Line::OriginalLine(b"")) {
       self.0.pop();
     }
-  }
-
-  /// Read a file into a `Vec<u8>`. For usage with
-  /// [`from_slice`](::lines::Lines::from_slice).
-  pub fn read_file<P: AsRef<Path>>(path: P) -> Result<Vec<u8>, Error> {
-    let mut file = File::open(&path).with_context(|e| {
-      format!("Error opening {}: {}", path.as_ref().display(), e)
-    })?;
-    let l = file.metadata().unwrap().len();
-    let mut v: Vec<u8> = Vec::with_capacity(l as usize);
-    let _ = file.read_to_end(&mut v).with_context(|e| {
-      format!("Error reading {}: {}", path.as_ref().display(), e)
-    })?;
-
-    Ok(v)
   }
 
   /// Update Lines:
@@ -145,6 +125,7 @@ impl<'a> Lines<'a> {
   }
 }
 
+/// An iterator over the `&[u8]` slices representing the lines of a file
 impl<'a, I> Iterator for LinesIter<'a, I>
 where
   I: Iterator<Item = &'a Line<'a>>,
@@ -267,6 +248,7 @@ impl<'a> Deref for Lines<'a> {
 #[cfg(test)]
 mod tests {
   use crate::lines::{Line::*, Lines};
+  use std::fs;
 
   const LINES: &str = "This\nis \nan \nexample \nof \nsome \nlines \n.";
 
@@ -320,7 +302,7 @@ mod tests {
 
   #[test]
   fn lines_from_file() {
-    let v = Lines::read_file(file!()).unwrap();
+    let v = fs::read(file!()).unwrap();
     let mut l = Lines::new();
     l.parse_slice(&v);
     let f = OriginalLine(

@@ -5,7 +5,7 @@ extern crate nvimpam_lib;
 extern crate criterion;
 use criterion::Criterion;
 
-use std::{path::Path, process::Command, sync::mpsc};
+use std::{path::Path, process::Command, sync::mpsc, fs};
 
 use nvimpam_lib::{
   bufdata::BufData, event::Event::*, handler::NeovimHandler, lines::Lines,
@@ -39,7 +39,7 @@ fn bench_folds_file(c: &mut Criterion) {
 
   c.bench_function("integration1_file", move |b| {
     b.iter(|| {
-      let origlines = Lines::read_file("files/example.pc").expect("3.1");
+      let origlines = fs::read("files/example.pc").expect("3.1");
       let mut bufdata = BufData::new();
 
       curbuf.attach(&mut nvim, false, vec![]).expect("4");

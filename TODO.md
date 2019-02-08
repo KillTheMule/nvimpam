@@ -1,10 +1,10 @@
+* Check out changing Cell: Make another enum Fixed that maps to fixed strings, and put that into Cell::Fixed to get the size down to u8.
+
 * Improve logging: Lua code should write to NVIMPAM_LOG_FILE (maybe even respect log llevel?), only the binaries stderr should really go to NVIMPAM_STDERR
 
 * Check out using lookup tables for performance improvements. Ref https://github.com/lynaghk/question-rust-inlining also see https://github.com/sfackler/rust-phf
 
 * Startup is racy, as can be seen when the insertions test is ran without a sleep call. Maybe only register commands after startup? Maybe defer calls in lua when requested during startup?
-
-* use std::fs::read to read the file
 
 * Save lines by immutable ID and provide a map ID -> linenr somewhere? That
   would make updating the linenumbers somewhat easier.

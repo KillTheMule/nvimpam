@@ -17,10 +17,9 @@ pub mod line;
 use self::{keyword::Keyword, line::Line};
 use crate::carddata::*;
 
-/// A card consists of severals [`Line`](::card::line::Line)s, and starts with a
-/// given [`Keyword`](::card::keyword::Keyword). If `ownfold` is true, than each
-/// card of this type will get an own fold. Otherwise, all adjacent cards of
-/// that type are gathered into one fold.
+/// A card consists of severals [`Line`](::card::line::Line). If `ownfold` is
+/// true, than each card of this type will get an own fold. Otherwise, all
+/// adjacent cards of that type are gathered into one fold.
 #[derive(Debug)]
 pub struct Card {
   pub lines: &'static [Line],
@@ -28,9 +27,16 @@ pub struct Card {
 }
 
 impl Card {
+  /// Return the keyword of the first line of the card. This is the only keyword
+  /// in the card, and will always be present.
   #[inline]
-  pub fn keyword(&self) -> Option<Keyword> {
-    self.lines[0].keyword()
+  pub fn keyword(&self) -> Keyword {
+    self.lines[0].keyword().unwrap_or_else(|| {
+      panic!(format!(
+        "This card did not have a keyword starting its first line: {:?}",
+        self
+      ))
+    })
   }
 }
 

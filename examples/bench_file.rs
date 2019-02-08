@@ -11,10 +11,10 @@ use std::alloc::System;
 #[global_allocator]
 static GLOBAL: System = System;
 
-use std::{path::Path, process::Command, sync::mpsc};
+use std::{path::Path, process::Command, sync::mpsc, fs};
 
 use nvimpam_lib::{
-  bufdata::BufData, event::Event::*, handler::NeovimHandler, lines::Lines,
+  bufdata::BufData, event::Event::*, handler::NeovimHandler
 };
 
 use neovim_lib::{neovim::Neovim, neovim_api::NeovimApi, session::Session};
@@ -42,7 +42,7 @@ fn main() {
   nvim.command("silent e! files/example.pc").expect("2");
   let curbuf = nvim.get_current_buf().expect("3");
 
-  let origlines = Lines::read_file("files/example.pc").expect("3.1");
+  let origlines = fs::read("files/example.pc").expect("3.1");
   let mut bufdata = BufData::new();
   bufdata.parse_slice(&origlines).unwrap();
   curbuf.attach(&mut nvim, false, vec![]).expect("4");

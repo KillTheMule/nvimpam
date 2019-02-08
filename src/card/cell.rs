@@ -62,6 +62,11 @@ impl Cell {
     }
   }
 
+  /// Checks if the contents of the cell in the file are valid for the type of
+  /// the cell. Right now, only checks [`Float`](::card::cell::Cell::Float)
+  /// cells.
+  ///
+  /// TODO(KillTheMule): Extend. Implement Pyvars.
   #[inline]
   pub fn verify(&self, s: &[u8]) -> bool {
     use self::Cell::*;

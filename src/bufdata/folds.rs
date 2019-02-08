@@ -6,6 +6,12 @@ use itertools::Itertools;
 
 use crate::card::keyword::Keyword;
 
+/// Folds are saved as the **end-inclusive** interval [start, end] of line
+/// numbers, the corresponding [`Keyword`](::card::keyword::Keyword) and a
+/// `String` for usage in nvims foldtext.
+///
+/// TODO(KillTheMule): Check out other data structures for this, especially wrt
+/// usage in [`splice`](::bufdata::folds::Folds::splice)
 #[derive(Default, Debug)]
 pub struct Folds(BTreeMap<[u64; 2], (Keyword, String)>);
 
@@ -30,8 +36,8 @@ impl Folds {
     self.0.is_empty()
   }
 
-  /// Insert a fold `([start, end], Keyword)`.  Returns an error if that fold is
-  /// already in the list. In that case, it needs to be
+  /// Insert a fold `([start, end], (Keyword, String))`.  Returns an error if
+  /// that fold is already in the list. In that case, it needs to be
   /// [removed](::bufdata::folds::Folds::remove) beforehand.
   fn insert(&mut self, start: u64, end: u64, kw: Keyword) -> Result<(), Error> {
     match self.0.entry([start, end]) {
@@ -47,10 +53,10 @@ impl Folds {
     Ok(())
   }
 
-  /// Insert fold `([start, end], Keyword)`. If `end < start`, we silently
-  /// return.  Otherwise, we call the internal insert function that returns an
-  /// error if the fold is already in the list. In that case, it needs to be
-  /// [removed](::bufdata::folds::Folds::remove) beforehand.
+  /// Insert fold `([start, end], (Keyword, String))`. If `end < start`, we
+  /// return an Error.  Otherwise, we call the internal insert function that
+  /// returns an error if the fold is already in the list. In that case, it
+  /// needs to be [removed](::bufdata::folds::Folds::remove) beforehand.
   pub fn checked_insert(
     &mut self,
     start: u64,
@@ -58,12 +64,13 @@ impl Folds {
     kw: Keyword,
   ) -> Result<(), Error> {
     if start <= end {
-      self.insert(start, end, kw)?
+      self.insert(start, end, kw)
+    } else {
+      return Err(failure::err_msg("Need start <= end to insert a fold!"));
     }
-    Ok(())
   }
 
-  /// Remove a fold [start, end]. Only checks if the fold is in `Folds`,, and
+  /// Remove a fold [start, end]. Only checks if the fold is in `Folds`, and
   /// returns an error otherwise.
   pub fn remove(&mut self, start: u64, end: u64) -> Result<(), Error> {
     self
@@ -73,7 +80,7 @@ impl Folds {
     Ok(())
   }
 
-  /// Copy the elements of a FoldList of the given level into a Vec, containing
+  /// Copy the elements of a FoldList into a Vec, containing
   /// the tuples (start, end, Keyword)
   pub fn to_vec(&self) -> Vec<(u64, u64, Keyword)> {
     self.0.iter().map(|(r, (k, _))| (r[0], r[1], *k)).collect()
@@ -101,6 +108,8 @@ impl Folds {
       let firstline = firstfold.0[0];
       let lastline = lastfold.0[1];
 
+      // TODO(KillTheMule): This is sort of redundant wrt checked_insert, but we
+      // want our own foldtext here.
       if firstline < lastline {
         match self.0.entry([firstline, lastline]) {
           Entry::Occupied(_) => {
@@ -115,7 +124,12 @@ impl Folds {
     Ok(())
   }
 
-  // TODO: Pass newfolds by value
+  /// Splices a new set of folds, existing in the range firstline..lastline of
+  /// lines, into self. Needs the number of added lines to work.
+  ///
+  /// Note: The major pain point here is fusing folds at the boundary. This will
+  /// stay somewhat complicated no matter what, but the code might be
+  /// complicated by our use of a `HashMap`.
   pub fn splice(
     &mut self,
     newfolds: Folds,
@@ -127,6 +141,7 @@ impl Folds {
     let mut to_split = vec![];
     let mut last_before = None;
     let mut first_after = None;
+
     for (k, v) in self.0.iter() {
       if (k[0] as usize) < firstline {
         last_before = Some((*k, v.0));

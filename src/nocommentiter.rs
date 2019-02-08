@@ -3,7 +3,7 @@
 //!
 //! It returns enumerated Lines, but skips Comments (lines starting with `$` or
 //! `#`). All skip functions, used by
-//! [`add_from`](::bufdata::BufData::add_from), work on a
+//! [`parse_from_iter`](::bufdata::BufData::parse_from_iter), work on a
 //! [`NoCommentIter`](::nocommentiter::NoCommentIter).
 use crate::{
   bufdata::highlights::Highlights,
@@ -138,7 +138,7 @@ where
   /// Selection (GES).
   ///
   /// Returns `None` if skipline neither ends the GES, nor is
-  /// contained in it. We did not try to advance the iterator in this case.
+  /// contained in it. We do not try to advance the iterator in this case.
   pub fn skip_ges<'b>(
     &'b mut self,
     ges: GesType,
@@ -261,6 +261,7 @@ where
             _ => continue,
           };
 
+          // TODO(KillTheMule): Is this comment still right? Guess not...
           // We need one more loop than *num because we need to get the next
           // line for the next outer iteration
           for _ in 0..*num {
@@ -302,27 +303,27 @@ where
   }
 
   /// Let [`NoCommentIter`](NoCommentIter) skip all given
-  /// [`Card`](::card::Card)s, until the next card starts. The basic assumption
-  /// is that the last line the iterator returned is a the first line of a card
-  /// of the given type, which is passed as `skipline`.
+  /// [`Card`](::card::Card)s, until the next different card starts. The basic
+  /// assumption is that the last line the iterator returned is a the first line
+  /// of a card of the given type, which is passed as `skipline`.
   pub fn skip_card_gather<'b>(
     &'b mut self,
     skipline: &KeywordLine<'a>,
     card: &Card,
-    highlights: &mut Highlights,
+    hls: &mut Highlights,
   ) -> SkipResult<'a> {
-    let mut res = self.skip_card(&skipline, card, highlights);
+    let mut res = self.skip_card(&skipline, card, hls);
 
     #[cfg_attr(rustfmt, rustfmt_skip)]
-    loop {
-      if let Some(ParsedLine{keyword: Some(k),number,text}) = res.nextline {
-        if Some(*k) == card.keyword() {
-          res = self.skip_card(&KeywordLine{keyword: k, number, text}, card, highlights);
-          continue;
-        }
+    while let Some(ParsedLine{keyword: Some(k), number, text}) = res.nextline {
+      if *k == card.keyword() {
+        res = self.skip_card(&KeywordLine{keyword: k, number, text}, card, hls);
+      } else {
+        break
       }
-      return res;
     }
+
+    res
   }
 }
 

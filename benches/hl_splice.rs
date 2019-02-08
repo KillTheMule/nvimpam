@@ -4,14 +4,13 @@ extern crate nvimpam_lib;
 extern crate criterion;
 extern crate neovim_lib;
 
+use std::fs;
+
 use criterion::{black_box, Criterion};
 
 use neovim_lib::Value;
 
-use nvimpam_lib::{
-  bufdata::{highlights::HighlightGroup as Hl, BufData},
-  lines::Lines,
-};
+use nvimpam_lib::bufdata::{highlights::HighlightGroup as Hl, BufData};
 
 fn fake_highlight_region<'a, 'b, 'c, T>(
   iter: T,
@@ -65,7 +64,7 @@ macro_rules! hl_bench {
       use nvimpam_lib::bufdata::highlights::Highlights;
 
       c.bench_function(stringify!($fn), move |b| {
-        let origlines = Lines::read_file("files/example.pc").expect("1");
+        let origlines = fs::read("files/example.pc").expect("1");
         let mut bufdata = BufData::new();
         bufdata.parse_slice(&origlines).expect("2");
 
@@ -99,7 +98,7 @@ macro_rules! hl_bench {
 
 fn bench_bufdata_create(c: &mut Criterion) {
   c.bench_function("bench_bufdata_create", move |b| {
-    let origlines = Lines::read_file("files/example.pc").expect("1");
+    let origlines = fs::read("files/example.pc").expect("1");
     let mut bufdata = BufData::new();
 
     b.iter(|| {
@@ -110,7 +109,7 @@ fn bench_bufdata_create(c: &mut Criterion) {
 
 fn bench_bufdata_readonly(c: &mut Criterion) {
   c.bench_function("bench_bufdata_readonly", move |b| {
-    let origlines = Lines::read_file("files/example.pc").expect("1");
+    let origlines = fs::read("files/example.pc").expect("1");
     let mut bufdata = BufData::new();
     bufdata.parse_slice(&origlines).expect("2");
 

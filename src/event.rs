@@ -1,6 +1,6 @@
 //! The events that nvimpam needs to accept and deal with. They're sent by the
 //! [`NeovimHandler`](::handler::NeovimHandler) to the main loop.
-use std::{ffi::OsString, fmt, sync::mpsc};
+use std::{ffi::OsString, fmt, sync::mpsc, fs};
 
 use failure::{self, Error, ResultExt};
 
@@ -10,7 +10,7 @@ use neovim_lib::{
   Value,
 };
 
-use crate::{bufdata::BufData, lines::Lines};
+use crate::bufdata::BufData;
 
 /// The event list the main loop reacts to
 pub enum Event {
@@ -49,12 +49,14 @@ impl Event {
   /// Run the event loop. The receiver receives the events from the
   /// [handler](::handler::NeovimHandler).
   ///
-  /// The loop starts by enabling
-  /// [buffer events](https://neovim.io/doc/user/api.html#nvim_buf_attach()).
-  /// It creates [`lines`](::lines::Lines),
-  /// [`keywords`](::card::keyword::Keywords) and a
-  /// [`foldlist`](::folds::FoldList)  and updates them from the events
-  /// received.
+  /// If a file was given as an argument, nvimpam reads it and creates its
+  /// [`BufData`](::bufdata::BufData) from it. Then it enables
+  /// [buffer events](https://neovim.io/doc/user/api.html#nvim_buf_attach()) and
+  /// updates the [`BufData`](::bufdata::BufData) accordingly.
+  ///
+  /// If no file was given as an argument, nvimpam directly enables
+  /// [buffer events](https://neovim.io/doc/user/api.html#nvim_buf_attach())
+  /// and requests the buffer's contents from it instead.
   ///
   /// Sending the [`Quit`](::event::Event::Quit) event will
   /// exit the loop and return from the function.
@@ -76,7 +78,7 @@ impl Event {
     let connected = match file {
       None => curbuf.attach(nvim, true, vec![])?,
       Some(f) => {
-        origlines = Lines::read_file(f)?;
+        origlines = fs::read(f)?;
         bufdata.parse_slice(&origlines)?;
         curbuf.attach(nvim, false, vec![])?
       }
