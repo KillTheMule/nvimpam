@@ -101,9 +101,7 @@ impl Conditional {
     use self::CondResult::*;
 
     match *self {
-      Conditional::RelChar(idx, c) => {
-        Bool(line.get(idx as usize) == Some(&c))
-      }
+      Conditional::RelChar(idx, c) => Bool(line.get(idx as usize) == Some(&c)),
       Conditional::Int(ref r, b) => {
         let range = r.start as usize..cmp::min(line.len(), r.end as usize);
 
@@ -115,13 +113,12 @@ impl Conditional {
         let firstdigit = cell
           .iter()
           .position(|b| *b >= b'0' && *b <= b'9')
-          .unwrap_or(0usize);
+          .unwrap_or(0_usize);
 
         Bool(
           cell
             .get(firstdigit..)
-            .map(|s| atoi::<usize>(s) == Some(b as usize))
-            .unwrap_or(false),
+            .map_or(false, |s| atoi::<usize>(s) == Some(b as usize)),
         )
       }
       Conditional::Number(ref r) => {
@@ -135,14 +132,9 @@ impl Conditional {
         let firstdigit = cell
           .iter()
           .position(|b| *b >= b'0' && *b <= b'9')
-          .unwrap_or(0usize);
+          .unwrap_or(0_usize);
 
-        Number(
-          cell
-            .get(firstdigit..)
-            .map(|s| atoi::<usize>(s))
-            .unwrap_or(None),
-        )
+        Number(cell.get(firstdigit..).and_then(|s| atoi::<usize>(s)))
       }
     }
   }

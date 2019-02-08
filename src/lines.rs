@@ -47,7 +47,7 @@ impl<'a> fmt::Display for Lines<'a> {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     let mut s = String::new();
     s.push_str("Lines {{\n");
-    for line in self.0.iter() {
+    for line in &self.0 {
       s.push_str(&format!(" {{{}}}\n", line));
     }
     s.push_str("}}\n");

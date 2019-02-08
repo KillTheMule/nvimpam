@@ -17,7 +17,7 @@ pub struct Folds(BTreeMap<[i64; 2], (Keyword, String)>);
 
 impl Folds {
   pub fn new() -> Self {
-    Folds(BTreeMap::new())
+    Self(BTreeMap::new())
   }
 
   pub fn clear(&mut self) {
@@ -66,7 +66,7 @@ impl Folds {
     if start <= end {
       self.insert(start, end, kw)
     } else {
-      return Err(failure::err_msg("Need start <= end to insert a fold!"));
+      Err(failure::err_msg("Need start <= end to insert a fold!"))
     }
   }
 
@@ -88,7 +88,7 @@ impl Folds {
 
   /// Recreate level 2 folds from level 1 folds. If there's no or one
   /// level 1 fold, `Ok(())` is returned.
-  pub fn recreate_level2(&mut self, folds: &Folds) -> Result<(), Error> {
+  pub fn recreate_level2(&mut self, folds: &Self) -> Result<(), Error> {
     self.0.clear();
 
     if folds.len() < 2 {
@@ -132,7 +132,7 @@ impl Folds {
   /// complicated by our use of a `HashMap`.
   pub fn splice(
     &mut self,
-    newfolds: Folds,
+    newfolds: Self,
     firstline: i64,
     lastline: i64,
     added: i64,
@@ -142,8 +142,8 @@ impl Folds {
     let mut last_before = None;
     let mut first_after = None;
 
-    for (k, v) in self.0.iter() {
-      if k[0]  < firstline {
+    for (k, v) in &self.0 {
+      if k[0] < firstline {
         last_before = Some((*k, v.0));
       }
       if lastline <= k[1] && first_after.is_none() {
@@ -151,14 +151,12 @@ impl Folds {
       }
 
       if firstline <= k[0] && k[0] < lastline {
-        if k[1]  < lastline {
+        if k[1] < lastline {
           to_delete.push(*k);
         } else {
           to_split.push((*k, v.0));
         }
-      } else if firstline <= k[1]
-        && k[1] < lastline
-      {
+      } else if firstline <= k[1] && k[1] < lastline {
         // from the if above, we can assume k[0] < firstline
         to_split.push((*k, v.0));
       } else if k[0] < firstline && lastline <= k[1] {
@@ -174,7 +172,7 @@ impl Folds {
       self.0.remove(&k);
     }
 
-    for (k, v) in to_split.into_iter() {
+    for (k, v) in to_split {
       self.0.remove(&k);
 
       if k[0] < firstline {
@@ -224,24 +222,19 @@ impl Folds {
     if let Some((f, _)) = first_fold_to_move {
       let to_move = self.0.split_off(&f);
 
-      for (k, v) in to_move.iter() {
-        let _ = self.insert(
-          k[0] + added,
-          k[1] + added,
-          v.0,
-        );
+      for (k, v) in &to_move {
+        let _ = self.insert(k[0] + added, k[1] + added, v.0);
       }
     }
 
     let mut last_added = None;
-    for (k, v) in newfolds.0.iter() {
+    for (k, v) in &newfolds.0 {
       if let Some((k1, _)) = merge_to_first {
         let _ = self.insert(k1[0], k[1] + firstline, v.0);
         last_added = Some([k1[0], k[1] + firstline]);
         merge_to_first = None;
       } else {
-        let _ =
-          self.insert(k[0] + firstline, k[1] + firstline, v.0);
+        let _ = self.insert(k[0] + firstline, k[1] + firstline, v.0);
         last_added = Some([k[0] + firstline, k[1] + firstline]);
       }
     }

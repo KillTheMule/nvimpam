@@ -102,7 +102,7 @@ impl Keyword {
 
   /// Parse a string to determine if it starts with the keyword of a card.
   #[inline]
-  pub fn parse(s: &[u8]) -> Option<Keyword> {
+  pub fn parse(s: &[u8]) -> Option<Self> {
     use self::Keyword::*;
     use byteorder::{BigEndian, ReadBytesExt};
 
@@ -342,7 +342,7 @@ pub struct Keywords(Vec<Option<Keyword>>);
 
 impl Keywords {
   pub fn new() -> Self {
-    Keywords(vec![])
+    Self(vec![])
   }
 
   pub fn clear(&mut self) {

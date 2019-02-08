@@ -1,6 +1,6 @@
 //! The events that nvimpam needs to accept and deal with. They're sent by the
 //! [`NeovimHandler`](::handler::NeovimHandler) to the main loop.
-use std::{ffi::OsString, fmt, sync::mpsc, fs};
+use std::{ffi::OsString, fmt, fs, sync::mpsc};
 
 use failure::{self, Error, ResultExt};
 
@@ -61,7 +61,7 @@ impl Event {
   /// Sending the [`Quit`](::event::Event::Quit) event will
   /// exit the loop and return from the function.
   pub fn event_loop(
-    from_handler: &mpsc::Receiver<Event>,
+    from_handler: &mpsc::Receiver<Self>,
     to_handler: &mpsc::Sender<Value>,
     nvim: &mut Neovim,
     file: Option<OsString>,
@@ -103,8 +103,7 @@ impl Event {
           if lastline == -1 {
             bufdata.parse_vec(linedata)?;
           } else if lastline >= 0 && firstline >= 0 {
-            let (start, end) =
-              bufdata.update(firstline, lastline, linedata)?;
+            let (start, end) = bufdata.update(firstline, lastline, linedata)?;
 
             crate::bufdata::highlights::highlight_region(
               bufdata.highlights.indexrange(start, end),
@@ -124,6 +123,7 @@ impl Event {
           firstline,
           lastline,
         }) => {
+          // TODO(KillTheMule): Check the args ar >= 0
           let fl = bufdata.keywords.first_before(firstline);
           let mut ll = bufdata.keywords.first_after(lastline);
 

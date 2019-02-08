@@ -134,11 +134,11 @@ impl<'a> BufData<'a> {
 
     let first = self.keywords.first_before(firstline);
     let last = self.keywords.first_after(lastline + added);
-    let mut newhls: Highlights = Default::default();
-    let mut newfolds: Folds = Default::default();
+    let mut newhls = Highlights::default();
+    let mut newfolds = Folds::default();
 
     // this is enumerate with i64 instead of usize
-    let li = (0i64..)
+    let li = (0_i64..)
       .zip(
         self.keywords[first as usize..last as usize]
           .iter()
@@ -160,7 +160,7 @@ impl<'a> BufData<'a> {
   /// TODO(KillTheMule): Can we merge this with update?
   pub fn parse_lines(&mut self) -> Result<(), Error> {
     debug_assert!(self.keywords.len() == self.lines.len());
-    let li = (0i64..)
+    let li = (0_i64..)
       .zip(self.keywords.iter().zip(self.lines.iter()))
       .map(ParsedLine::from)
       .remove_comments();

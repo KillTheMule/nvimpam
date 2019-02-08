@@ -151,12 +151,12 @@ fn send_client_info(nvim: &mut Neovim) -> Result<(), Error> {
   let methods: Vec<(Value, Value)> = vec![
     (
       "quit".into(),
-      vec![Value::from(vec![Value::from("nargs"), Value::from(0u8)])].into(),
+      vec![Value::from(vec![Value::from("nargs"), Value::from(0_u8)])].into(),
     ),
     (
       "RefreshFolds".into(),
       vec![
-        Value::from(vec![Value::from("nargs"), Value::from(0u8)]),
+        Value::from(vec![Value::from("nargs"), Value::from(0_u8)]),
         Value::from(vec![Value::from("async"), Value::from(false)]),
       ]
       .into(),
@@ -164,7 +164,7 @@ fn send_client_info(nvim: &mut Neovim) -> Result<(), Error> {
     (
       "HighlightRegion".into(),
       vec![
-        Value::from(vec![Value::from("nargs"), Value::from(2u8)]),
+        Value::from(vec![Value::from("nargs"), Value::from(2_u8)]),
         Value::from(vec![Value::from("async"), Value::from(true)]),
       ]
       .into(),

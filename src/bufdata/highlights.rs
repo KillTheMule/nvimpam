@@ -34,7 +34,9 @@ impl From<HighlightGroup> for &'static str {
 }
 
 /// A struct for a line that should get highlighting applied to it. Its main use
-/// is as an `Iterator` over the highlights of that line.
+/// is as an `Iterator` over the highlights of that line. Note that highlighting
+/// stops at column 81, since no line in a pamcrash file can be longer than that
+/// and be valid.
 #[derive(Debug)]
 pub struct HlLine<'a> {
   pub cardline: &'a CardLine,
@@ -46,7 +48,9 @@ impl<'a> IntoIterator for HlLine<'a> {
   type IntoIter = HlIter<'a>;
 
   fn into_iter(self) -> Self::IntoIter {
-    let linelen = self.text.len();
+    // We only highlight until column 81
+    #![allow(clippy::cast_possible_truncation)]
+    let linelen = cmp::min(self.text.len(), 81) as u8;
     let cells = self.cardline.cells().unwrap_or(&[]).iter();
 
     HlIter {
@@ -63,7 +67,7 @@ impl<'a> IntoIterator for HlLine<'a> {
 #[derive(Debug)]
 pub struct HlIter<'a> {
   line: HlLine<'a>,
-  linelen: usize,
+  linelen: u8,
   until: u8,
   odd: bool,
   cells: std::slice::Iter<'a, Cell>,
@@ -73,7 +77,7 @@ impl<'a> Iterator for HlIter<'a> {
   type Item = ((u8, u8), Hl);
 
   fn next(&mut self) -> Option<Self::Item> {
-    if self.until as usize >= self.linelen {
+    if self.until >= self.linelen {
       return None;
     }
 
@@ -83,29 +87,33 @@ impl<'a> Iterator for HlIter<'a> {
     };
 
     let celllen = cell.len();
-    let range = self.until as usize
-      ..cmp::min(self.linelen, (self.until + celllen) as usize);
+    let range = self.until..cmp::min(self.linelen, self.until + celllen);
     let odd = self.odd;
 
     self.until += celllen;
     self.odd = !odd;
 
     if let Cell::Kw(_) = cell {
-      Some(((range.start as u8, range.end as u8), Hl::Keyword))
+      Some(((range.start, range.end), Hl::Keyword))
     } else {
-      match self.line.text.get(range.clone()).map(|s| cell.verify(s)) {
+      match self
+        .line
+        .text
+        .get(range.start as usize..range.end as usize)
+        .map(|s| cell.verify(s))
+      {
         Some(true) => {
           if odd {
-            Some(((range.start as u8, range.end as u8), Hl::CellEven))
+            Some(((range.start, range.end), Hl::CellEven))
           } else {
-            Some(((range.start as u8, range.end as u8), Hl::CellOdd))
+            Some(((range.start, range.end), Hl::CellOdd))
           }
         }
         Some(false) => {
           if odd {
-            Some(((range.start as u8, range.end as u8), Hl::ErrorCellEven))
+            Some(((range.start, range.end), Hl::ErrorCellEven))
           } else {
-            Some(((range.start as u8, range.end as u8), Hl::ErrorCellOdd))
+            Some(((range.start, range.end), Hl::ErrorCellOdd))
           }
         }
         None => None,
@@ -127,7 +135,7 @@ impl Highlights {
   }
 
   pub fn new() -> Self {
-    Highlights(Vec::new())
+    Self(Vec::new())
   }
 
   /// Remove all the highlights with linenumbers in `firstline..lastline`, and
@@ -137,7 +145,7 @@ impl Highlights {
   /// modified, as their line numbers had to be shifted).
   pub fn splice(
     &mut self,
-    newhls: Highlights,
+    newhls: Self,
     firstline: i64,
     lastline: i64,
     added: i64,
@@ -151,8 +159,7 @@ impl Highlights {
       .iter()
       .enumerate()
       .find(|(_, ((l, _, _), _))| *l >= lastline)
-      .map(|(i, ((_, _, _), _))| i + start)
-      .unwrap_or_else(|| self.0.len());
+      .map_or_else(|| self.0.len(), |(i, ((_, _, _), _))| i + start);
 
     let num_new = newhls.0.len();
     let _ = self.0.splice(
@@ -165,7 +172,7 @@ impl Highlights {
 
     if added != 0 {
       for t in self.0[start + num_new..].iter_mut() {
-        ((*t).0).0 = ((*t).0).0 + added;
+        ((*t).0).0 += added;
       }
     }
 
@@ -222,8 +229,7 @@ impl Highlights {
       .iter()
       .enumerate()
       .find(|(_, ((l, _, _), _))| *l >= lastline)
-      .map(|(i, ((_, _, _), _))| i + start)
-      .unwrap_or_else(|| self.0.len());
+      .map_or_else(|| self.0.len(), |(i, ((_, _, _), _))| i + start);
 
     self.0[start..end].iter().map(|(ref a, ref b)| (a, b))
   }
@@ -233,7 +239,7 @@ impl Highlights {
 /// in the linerange `firstline..lastline` are cleared beforehand.
 ///
 /// TODO(KillTheMule): efficient?
-/// TODO(KillTheMule): This should be a method on BufData
+/// TODO(KillTheMule): This should be a method on `BufData`
 pub fn highlight_region<'a, 'b, 'c, T>(
   iter: T,
   nvim: &'a mut Neovim,

@@ -113,7 +113,7 @@ impl<'a, I> CommentLess for I
 where
   I: Iterator<Item = ParsedLine<'a>>,
 {
-  fn remove_comments(self) -> NoCommentIter<I> {
+  fn remove_comments(self) -> NoCommentIter<Self> {
     NoCommentIter { it: self }
   }
 }
@@ -368,11 +368,7 @@ mod tests {
       $lines.parse_slice($str.as_ref());
       $keywords.parse_lines(&$lines);
       $li = (0i64..)
-        .zip(
-          $keywords
-          .iter()
-          .zip($lines.iter())
-        )
+        .zip($keywords.iter().zip($lines.iter()))
         .map(ParsedLine::from)
         .remove_comments()
     };
@@ -660,11 +656,7 @@ mod tests {
       .map(|l| Keyword::parse(l.as_ref()))
       .collect();
     let mut li = (0i64..)
-      .zip(
-        LINES_GATHER
-        .iter()
-        .zip(keywords.iter())
-      )
+      .zip(LINES_GATHER.iter().zip(keywords.iter()))
       .map(|(n, (t, k))| ParsedLine {
         number: n,
         text: t.as_ref(),
