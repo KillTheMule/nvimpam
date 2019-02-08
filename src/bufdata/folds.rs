@@ -13,7 +13,7 @@ use crate::card::keyword::Keyword;
 /// TODO(KillTheMule): Check out other data structures for this, especially wrt
 /// usage in [`splice`](::bufdata::folds::Folds::splice)
 #[derive(Default, Debug)]
-pub struct Folds(BTreeMap<[u64; 2], (Keyword, String)>);
+pub struct Folds(BTreeMap<[i64; 2], (Keyword, String)>);
 
 impl Folds {
   pub fn new() -> Self {
@@ -24,7 +24,7 @@ impl Folds {
     self.0.clear()
   }
 
-  pub fn iter(&self) -> impl Iterator<Item = (&[u64; 2], &(Keyword, String))> {
+  pub fn iter(&self) -> impl Iterator<Item = (&[i64; 2], &(Keyword, String))> {
     self.0.iter()
   }
 
@@ -39,7 +39,7 @@ impl Folds {
   /// Insert a fold `([start, end], (Keyword, String))`.  Returns an error if
   /// that fold is already in the list. In that case, it needs to be
   /// [removed](::bufdata::folds::Folds::remove) beforehand.
-  fn insert(&mut self, start: u64, end: u64, kw: Keyword) -> Result<(), Error> {
+  fn insert(&mut self, start: i64, end: i64, kw: Keyword) -> Result<(), Error> {
     match self.0.entry([start, end]) {
       Entry::Occupied(_) => {
         return Err(failure::err_msg("Fold already in foldlist!"));
@@ -59,8 +59,8 @@ impl Folds {
   /// needs to be [removed](::bufdata::folds::Folds::remove) beforehand.
   pub fn checked_insert(
     &mut self,
-    start: u64,
-    end: u64,
+    start: i64,
+    end: i64,
     kw: Keyword,
   ) -> Result<(), Error> {
     if start <= end {
@@ -72,7 +72,7 @@ impl Folds {
 
   /// Remove a fold [start, end]. Only checks if the fold is in `Folds`, and
   /// returns an error otherwise.
-  pub fn remove(&mut self, start: u64, end: u64) -> Result<(), Error> {
+  pub fn remove(&mut self, start: i64, end: i64) -> Result<(), Error> {
     self
       .0
       .remove(&[start, end])
@@ -82,7 +82,7 @@ impl Folds {
 
   /// Copy the elements of a FoldList into a Vec, containing
   /// the tuples (start, end, Keyword)
-  pub fn to_vec(&self) -> Vec<(u64, u64, Keyword)> {
+  pub fn to_vec(&self) -> Vec<(i64, i64, Keyword)> {
     self.0.iter().map(|(r, (k, _))| (r[0], r[1], *k)).collect()
   }
 
@@ -124,7 +124,7 @@ impl Folds {
     Ok(())
   }
 
-  /// Splices a new set of folds, existing in the range firstline..lastline of
+  /// Splices a new set of folds, existing in the range `firstline..lastline` of
   /// lines, into self. Needs the number of added lines to work.
   ///
   /// Note: The major pain point here is fusing folds at the boundary. This will
@@ -133,8 +133,8 @@ impl Folds {
   pub fn splice(
     &mut self,
     newfolds: Folds,
-    firstline: usize,
-    lastline: usize,
+    firstline: i64,
+    lastline: i64,
     added: i64,
   ) {
     let mut to_delete = vec![];
@@ -143,29 +143,29 @@ impl Folds {
     let mut first_after = None;
 
     for (k, v) in self.0.iter() {
-      if (k[0] as usize) < firstline {
+      if k[0]  < firstline {
         last_before = Some((*k, v.0));
       }
-      if lastline <= k[1] as usize && first_after.is_none() {
+      if lastline <= k[1] && first_after.is_none() {
         first_after = Some((*k, v.0));
       }
 
-      if firstline <= k[0] as usize && (k[0] as usize) < lastline {
-        if (k[1] as usize) < lastline {
+      if firstline <= k[0] && k[0] < lastline {
+        if k[1]  < lastline {
           to_delete.push(*k);
         } else {
           to_split.push((*k, v.0));
         }
-      } else if ((firstline as usize) <= k[1] as usize)
-        && ((k[1] as usize) < lastline)
+      } else if firstline <= k[1]
+        && k[1] < lastline
       {
         // from the if above, we can assume k[0] < firstline
         to_split.push((*k, v.0));
-      } else if (k[0] as usize) < firstline && lastline <= k[1] as usize {
+      } else if k[0] < firstline && lastline <= k[1] {
         to_split.push((*k, v.0))
       }
 
-      if lastline <= k[0] as usize {
+      if lastline <= k[0] {
         break;
       }
     }
@@ -177,14 +177,14 @@ impl Folds {
     for (k, v) in to_split.into_iter() {
       self.0.remove(&k);
 
-      if k[0] < firstline as u64 {
-        let _ = self.checked_insert(k[0], firstline as u64 - 1, v);
-        last_before = Some(([k[0], firstline as u64 - 1], v))
+      if k[0] < firstline {
+        let _ = self.checked_insert(k[0], firstline - 1, v);
+        last_before = Some(([k[0], firstline - 1], v))
       }
 
-      if (lastline as u64) <= k[1] {
-        let _ = self.checked_insert(lastline as u64, k[1], v);
-        first_after = Some(([lastline as u64, k[1]], v));
+      if lastline <= k[1] {
+        let _ = self.checked_insert(lastline, k[1], v);
+        first_after = Some(([lastline, k[1]], v));
       }
     }
 
@@ -216,7 +216,7 @@ impl Folds {
       })
     });
 
-    let first_fold_to_move = match self.0.range([lastline as u64, 0]..).next() {
+    let first_fold_to_move = match self.0.range([lastline, 0]..).next() {
       Some((i, k)) => Some((*i, k.0)),
       None => None,
     };
@@ -226,8 +226,8 @@ impl Folds {
 
       for (k, v) in to_move.iter() {
         let _ = self.insert(
-          (k[0] as i64 + added) as u64,
-          (k[1] as i64 + added) as u64,
+          k[0] + added,
+          k[1] + added,
           v.0,
         );
       }
@@ -236,20 +236,20 @@ impl Folds {
     let mut last_added = None;
     for (k, v) in newfolds.0.iter() {
       if let Some((k1, _)) = merge_to_first {
-        let _ = self.insert(k1[0], k[1] + firstline as u64, v.0);
-        last_added = Some([k1[0], k[1] + firstline as u64]);
+        let _ = self.insert(k1[0], k[1] + firstline, v.0);
+        last_added = Some([k1[0], k[1] + firstline]);
         merge_to_first = None;
       } else {
         let _ =
-          self.insert(k[0] + firstline as u64, k[1] + firstline as u64, v.0);
-        last_added = Some([k[0] + firstline as u64, k[1] + firstline as u64]);
+          self.insert(k[0] + firstline, k[1] + firstline, v.0);
+        last_added = Some([k[0] + firstline, k[1] + firstline]);
       }
     }
 
     if let Some(i) = last_added {
       if let Some((k2, v2)) = merge_to_last {
         self.0.remove(&i);
-        let _ = self.insert(i[0], (k2[1] as i64 + added) as u64, v2);
+        let _ = self.insert(i[0], k2[1] + added, v2);
       }
     }
   }

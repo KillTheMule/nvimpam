@@ -357,7 +357,7 @@ impl Keywords {
 
   /// Update a [`Keywords`](::card::keyword::Keywords) struct by parsing a
   /// `Vec<String>` and splicing in the result on the range `first..last`.
-  pub fn update(&mut self, first: u64, last: u64, linedata: &[String]) {
+  pub fn update(&mut self, first: i64, last: i64, linedata: &[String]) {
     let range = first as usize..last as usize;
     let _ = self
       .0
@@ -368,7 +368,7 @@ impl Keywords {
   /// Find the index of the first line that starts with a non-comment keyword
   /// before the line with the given number. If the line with the given number
   /// itself starts with a non-comment keyword, its index is returned.
-  pub fn first_before(&self, line: u64) -> usize {
+  pub fn first_before(&self, line: i64) -> i64 {
     self
       .get(..=line as usize)
       .unwrap_or(&[])
@@ -376,21 +376,21 @@ impl Keywords {
       .enumerate()
       .rfind(|(_i, k)| k.is_some() && **k != Some(Keyword::Comment))
       .unwrap_or((0, &None))
-      .0
+      .0 as i64
   }
 
   // TODO(KillTheMule): Efficient? This is called a lot ...
   /// Find the index of the next line that starts with a non-comment keyword
   /// after the line with the given number. If the line with the given number
   /// itself starts with a non-comment keyword, its index is returned.
-  pub fn first_after(&self, line: u64) -> usize {
+  pub fn first_after(&self, line: i64) -> i64 {
     self
       .iter()
       .enumerate()
       .skip(line as usize)
       .find(|(_i, k)| k.is_some() && **k != Some(Keyword::Comment))
       .unwrap_or((self.len(), &None))
-      .0
+      .0 as i64
   }
 }
 

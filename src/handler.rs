@@ -64,8 +64,8 @@ impl NeovimHandler {
   ) -> Result<Event, Error> {
     let nea = "Not enough arguments in HighlightRegion notification!";
 
-    let lastline = parse_u64(&last_arg(&mut args, nea)?)?;
-    let firstline = parse_u64(&last_arg(&mut args, nea)?)?;
+    let lastline = parse_i64(&last_arg(&mut args, nea)?)?;
+    let firstline = parse_i64(&last_arg(&mut args, nea)?)?;
     Ok(Event::HighlightRegion {
       firstline,
       lastline,

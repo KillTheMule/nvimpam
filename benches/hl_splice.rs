@@ -14,11 +14,11 @@ use nvimpam_lib::bufdata::{highlights::HighlightGroup as Hl, BufData};
 
 fn fake_highlight_region<'a, 'b, 'c, T>(
   iter: T,
-  firstline: u64,
-  lastline: u64,
+  firstline: i64,
+  lastline: i64,
 ) -> Vec<Value>
 where
-  T: Iterator<Item = (&'b (u64, u8, u8), &'b Hl)>,
+  T: Iterator<Item = (&'b (i64, u8, u8), &'b Hl)>,
 {
   let mut calls: Vec<Value> = vec![];
 
@@ -87,8 +87,8 @@ macro_rules! hl_bench {
 
           let _calls = black_box(fake_highlight_region(
             bufdata.highlights.indexrange(start, end),
-            start as u64,
-            end as u64,
+            start as i64,
+            end as i64,
           ));
         })
       });

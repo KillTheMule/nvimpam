@@ -119,7 +119,7 @@ impl<'a> Iterator for HlIter<'a> {
 ///
 /// TODO(KillTheMule): Don't expose the internal `Vec`
 #[derive(Default, Debug)]
-pub struct Highlights(pub Vec<((u64, u8, u8), Hl)>);
+pub struct Highlights(pub Vec<((i64, u8, u8), Hl)>);
 
 impl Highlights {
   pub fn clear(&mut self) {
@@ -138,19 +138,19 @@ impl Highlights {
   pub fn splice(
     &mut self,
     newhls: Highlights,
-    firstline: usize,
-    lastline: usize,
+    firstline: i64,
+    lastline: i64,
     added: i64,
   ) -> (usize, usize) {
     let start = self
       .0
-      .binary_search_by_key(&(firstline, 0), |&((l, s, _), _)| (l as usize, s))
+      .binary_search_by_key(&(firstline, 0), |&((l, s, _), _)| (l, s))
       // error contains index where ele could be inserted preserving Order
       .unwrap_or_else(|e| e);
     let end = self.0[start..]
       .iter()
       .enumerate()
-      .find(|(_, ((l, _, _), _))| *l as usize >= lastline)
+      .find(|(_, ((l, _, _), _))| *l >= lastline)
       .map(|(i, ((_, _, _), _))| i + start)
       .unwrap_or_else(|| self.0.len());
 
@@ -160,12 +160,12 @@ impl Highlights {
       newhls
         .0
         .into_iter()
-        .map(|((l, s, e), h)| ((l + firstline as u64, s, e), h)),
+        .map(|((l, s, e), h)| ((l + firstline, s, e), h)),
     );
 
     if added != 0 {
       for t in self.0[start + num_new..].iter_mut() {
-        ((*t).0).0 = (((*t).0).0 as i64 + added) as u64;
+        ((*t).0).0 = ((*t).0).0 + added;
       }
     }
 
@@ -174,23 +174,23 @@ impl Highlights {
 
   /// Add a highlight by pushing it to the end of the `Vec`. Be sure that the
   /// order of the `Vec` is not destroyed by this!
-  pub fn add_highlight(&mut self, line: u64, start: u8, end: u8, typ: Hl) {
+  pub fn add_highlight(&mut self, line: i64, start: u8, end: u8, typ: Hl) {
     self.0.push(((line, start, end), typ));
   }
 
   /// Add the highlights of a line by pushing them to the end of the `Vec`. Be
   /// sure that the order of the `Vec` is not destroyed by this!
   #[inline]
-  pub fn add_line_highlights<T>(&mut self, num: usize, it: T)
+  pub fn add_line_highlights<T>(&mut self, num: i64, it: T)
   where
     T: IntoIterator<Item = ((u8, u8), Hl)>,
   {
     self
       .0
-      .extend(it.into_iter().map(|((s, e), h)| ((num as u64, s, e), h)));
+      .extend(it.into_iter().map(|((s, e), h)| ((num, s, e), h)));
   }
 
-  pub fn iter(&self) -> impl Iterator<Item = (&(u64, u8, u8), &Hl)> {
+  pub fn iter(&self) -> impl Iterator<Item = (&(i64, u8, u8), &Hl)> {
     self.0.iter().map(|(ref a, ref b)| (a, b))
   }
 
@@ -200,7 +200,7 @@ impl Highlights {
     &self,
     firstline: usize,
     lastline: usize,
-  ) -> impl Iterator<Item = (&(u64, u8, u8), &Hl)> {
+  ) -> impl Iterator<Item = (&(i64, u8, u8), &Hl)> {
     self.0[firstline..lastline]
       .iter()
       .map(|(ref a, ref b)| (a, b))
@@ -210,9 +210,9 @@ impl Highlights {
   /// range `firstline..lastline`.
   pub fn linerange(
     &self,
-    firstline: u64,
-    lastline: u64,
-  ) -> impl Iterator<Item = (&(u64, u8, u8), &Hl)> {
+    firstline: i64,
+    lastline: i64,
+  ) -> impl Iterator<Item = (&(i64, u8, u8), &Hl)> {
     let start = self
       .0
       .binary_search_by_key(&(firstline, 0), |&((l, s, _), _)| (l, s))
@@ -237,11 +237,11 @@ impl Highlights {
 pub fn highlight_region<'a, 'b, 'c, T>(
   iter: T,
   nvim: &'a mut Neovim,
-  firstline: u64,
-  lastline: u64,
+  firstline: i64,
+  lastline: i64,
 ) -> Result<(), Error>
 where
-  T: Iterator<Item = (&'b (u64, u8, u8), &'b Hl)>,
+  T: Iterator<Item = (&'b (i64, u8, u8), &'b Hl)>,
 {
   let curbuf = nvim.get_current_buf()?;
   let mut calls: Vec<Value> = vec![];

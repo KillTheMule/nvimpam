@@ -40,7 +40,7 @@ pub enum Event {
   RefreshFolds,
   /// Highlight lines in the buffer containing at least the given line range
   // TODO: maybe accept buffer as an argument?
-  HighlightRegion { firstline: u64, lastline: u64 },
+  HighlightRegion { firstline: i64, lastline: i64 },
   /// This plugin should quit. Currently only sent by the user directly.
   Quit,
 }
@@ -104,13 +104,13 @@ impl Event {
             bufdata.parse_vec(linedata)?;
           } else if lastline >= 0 && firstline >= 0 {
             let (start, end) =
-              bufdata.update(firstline as u64, lastline as u64, linedata)?;
+              bufdata.update(firstline, lastline, linedata)?;
 
             crate::bufdata::highlights::highlight_region(
               bufdata.highlights.indexrange(start, end),
               nvim,
-              firstline as u64,
-              lastline as u64,
+              firstline,
+              lastline,
             )?;
           } else {
             error!(
@@ -129,15 +129,15 @@ impl Event {
 
           // highlight_region is end_exclusive, so we need to make sure
           // we include the last line requested even if it is a keyword line
-          if ll == lastline as usize {
+          if ll == lastline {
             ll += 1;
           }
 
           crate::bufdata::highlights::highlight_region(
-            bufdata.highlights.linerange(fl as u64, ll as u64),
+            bufdata.highlights.linerange(fl, ll),
             nvim,
-            fl as u64,
-            ll as u64,
+            fl,
+            ll,
           )?;
         }
         Ok(Quit) => {

@@ -5,11 +5,9 @@ extern crate nvimpam_lib;
 extern crate criterion;
 use criterion::Criterion;
 
-use std::{path::Path, process::Command, sync::mpsc, fs};
+use std::{fs, path::Path, process::Command, sync::mpsc};
 
-use nvimpam_lib::{
-  bufdata::BufData, event::Event::*, handler::NeovimHandler, lines::Lines,
-};
+use nvimpam_lib::{bufdata::BufData, event::Event::*, handler::NeovimHandler};
 
 use neovim_lib::{neovim::Neovim, neovim_api::NeovimApi, session::Session};
 

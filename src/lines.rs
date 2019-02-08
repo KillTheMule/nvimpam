@@ -112,7 +112,7 @@ impl<'a> Lines<'a> {
   ///   * `last` is the first line that has _not_ been updated
   /// This are the exact conditions to use the range `first..last` together with
   /// `splice` on a `Vec`.
-  pub fn update(&mut self, first: u64, last: u64, linedata: Vec<String>) {
+  pub fn update(&mut self, first: i64, last: i64, linedata: Vec<String>) {
     let range = first as usize..last as usize;
     let _ = self
       .0
@@ -147,7 +147,7 @@ impl<'a> From<Vec<String>> for Lines<'a> {
 /// [`parse`](::card::keyword::Keyword::parse)d before.
 #[derive(PartialEq, Debug)]
 pub struct ParsedLine<'a> {
-  pub number: usize,
+  pub number: i64,
   pub text: &'a [u8],
   pub keyword: Option<&'a Keyword>,
 }
@@ -169,9 +169,9 @@ impl<'a> ParsedLine<'a> {
   }
 }
 
-impl<'a> From<(usize, (&'a Option<Keyword>, &'a [u8]))> for ParsedLine<'a> {
+impl<'a> From<(i64, (&'a Option<Keyword>, &'a [u8]))> for ParsedLine<'a> {
   fn from(
-    (u, (k, t)): (usize, (&'a Option<Keyword>, &'a [u8])),
+    (u, (k, t)): (i64, (&'a Option<Keyword>, &'a [u8])),
   ) -> ParsedLine<'a> {
     ParsedLine {
       number: u,
@@ -181,9 +181,9 @@ impl<'a> From<(usize, (&'a Option<Keyword>, &'a [u8]))> for ParsedLine<'a> {
   }
 }
 
-impl<'a> From<(usize, (&'a Option<Keyword>, &'a Line<'a>))> for ParsedLine<'a> {
+impl<'a> From<(i64, (&'a Option<Keyword>, &'a Line<'a>))> for ParsedLine<'a> {
   fn from(
-    (u, (k, t)): (usize, (&'a Option<Keyword>, &'a Line<'a>)),
+    (u, (k, t)): (i64, (&'a Option<Keyword>, &'a Line<'a>)),
   ) -> ParsedLine<'a> {
     ParsedLine {
       number: u,
@@ -220,7 +220,7 @@ impl<'a> fmt::Display for ParsedLine<'a> {
 /// [`Keyword`](::card::keyword::Keyword).
 #[derive(PartialEq, Debug)]
 pub struct KeywordLine<'a> {
-  pub number: usize,
+  pub number: i64,
   pub text: &'a [u8],
   pub keyword: &'a Keyword,
 }

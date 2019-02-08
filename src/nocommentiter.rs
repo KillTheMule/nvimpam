@@ -144,7 +144,7 @@ where
     ges: GesType,
     skipline: &ParsedLine<'a>,
   ) -> Option<SkipResult<'a>> {
-    let mut previdx: usize = skipline.number;
+    let mut previdx: i64 = skipline.number;
     let mut nextline: ParsedLine<'a>;
 
     let contained = ges.contains(skipline.text);
@@ -217,7 +217,7 @@ where
     highlights
       .add_line_highlights(skipline.number, cardline.highlights(skipline.text));
 
-    let mut previdx: usize = skipline.number;
+    let mut previdx: i64 = skipline.number;
     let mut nextline = next_or_return_previdx!(self, previdx);
 
     for cardline in cardlines {
@@ -367,10 +367,12 @@ mod tests {
     ($lines:ident, $keywords:ident, $li: ident, $str:expr) => {
       $lines.parse_slice($str.as_ref());
       $keywords.parse_lines(&$lines);
-      $li = $keywords
-        .iter()
-        .zip($lines.iter())
-        .enumerate()
+      $li = (0i64..)
+        .zip(
+          $keywords
+          .iter()
+          .zip($lines.iter())
+        )
         .map(ParsedLine::from)
         .remove_comments()
     };
@@ -657,10 +659,12 @@ mod tests {
       .iter()
       .map(|l| Keyword::parse(l.as_ref()))
       .collect();
-    let mut li = LINES_GATHER
-      .iter()
-      .zip(keywords.iter())
-      .enumerate()
+    let mut li = (0i64..)
+      .zip(
+        LINES_GATHER
+        .iter()
+        .zip(keywords.iter())
+      )
       .map(|(n, (t, k))| ParsedLine {
         number: n,
         text: t.as_ref(),

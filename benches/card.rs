@@ -72,10 +72,12 @@ fn bench_skip_ges(c: &mut Criterion) {
     keywords.parse_lines(&lines);
 
     b.iter(|| {
-      let mut li = keywords
-        .iter()
-        .zip(lines.iter())
-        .enumerate()
+      let mut li = (0i64..)
+        .zip(
+          keywords
+          .iter()
+          .zip(lines.iter())
+        )
         .map(ParsedLine::from)
         .remove_comments();
       let mut tmp = li.next().unwrap();

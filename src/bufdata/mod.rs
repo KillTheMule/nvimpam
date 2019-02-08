@@ -124,23 +124,26 @@ impl<'a> BufData<'a> {
   /// [`highlight_region`](::bufdata::highlights::highlight_region).
   pub fn update(
     &mut self,
-    firstline: u64,
-    lastline: u64,
+    firstline: i64,
+    lastline: i64,
     linedata: Vec<String>,
   ) -> Result<(usize, usize), Error> {
-    let added: i64 = linedata.len() as i64 - (lastline - firstline) as i64;
+    let added: i64 = linedata.len() as i64 - (lastline - firstline);
     self.keywords.update(firstline, lastline, &linedata);
     self.lines.update(firstline, lastline, linedata);
 
     let first = self.keywords.first_before(firstline);
-    let last = self.keywords.first_after((lastline as i64 + added) as u64);
+    let last = self.keywords.first_after(lastline + added);
     let mut newhls: Highlights = Default::default();
     let mut newfolds: Folds = Default::default();
 
-    let li = self.keywords[first..last]
-      .iter()
-      .zip(self.lines[first..last].iter())
-      .enumerate()
+    // this is enumerate with i64 instead of usize
+    let li = (0i64..)
+      .zip(
+        self.keywords[first as usize..last as usize]
+          .iter()
+          .zip(self.lines[first as usize..last as usize].iter()),
+      )
       .map(ParsedLine::from)
       .remove_comments();
 
@@ -157,11 +160,8 @@ impl<'a> BufData<'a> {
   /// TODO(KillTheMule): Can we merge this with update?
   pub fn parse_lines(&mut self) -> Result<(), Error> {
     debug_assert!(self.keywords.len() == self.lines.len());
-    let li = self
-      .keywords
-      .iter()
-      .zip(self.lines.iter())
-      .enumerate()
+    let li = (0i64..)
+      .zip(self.keywords.iter().zip(self.lines.iter()))
       .map(ParsedLine::from)
       .remove_comments();
 
@@ -193,7 +193,7 @@ impl<'a> BufData<'a> {
       // The latter only happens when a file ends after the only line of a card
       foldend = skipped.skip_end;
 
-      folds.checked_insert(foldstart as u64, foldend as u64, *foldkw)?;
+      folds.checked_insert(foldstart, foldend, *foldkw)?;
 
       if let Some(Some(kl)) =
         skipped.nextline.map(|pl| pl.try_into_keywordline())
