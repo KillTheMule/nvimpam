@@ -34,6 +34,8 @@ macro_rules! unwrap_or_ok {
 }
 
 /// The datastructure to hold all the information of a buffer.
+// TODO(KillTheMule): This needs to hold the current buffer, then make
+// highlights_region etc methods on BufData
 #[derive(Default, Debug)]
 pub struct BufData<'a> {
   /// The lines of the buffer

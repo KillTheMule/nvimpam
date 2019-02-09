@@ -1,7 +1,5 @@
 * Check linenr.rs: Replace all debug_assert by assert and lets see the performance implications
 
-* Check out changing Cell: Make another enum Fixed that maps to fixed strings, and put that into Cell::Fixed to get the size down to u8.
-
 * Improve logging: Lua code should write to NVIMPAM_LOG_FILE (maybe even respect log llevel?), only the binaries stderr should really go to NVIMPAM_STDERR
 
 * Check out using lookup tables for performance improvements. Ref https://github.com/lynaghk/question-rust-inlining also see https://github.com/sfackler/rust-phf
@@ -42,8 +40,6 @@
 * Check out for docs:
   * https://github.com/Geal/cargo-external-doc
   * https://github.com/vitiral/artifact
-
-* Improve example usage in src/folds.rs
 
 * Write more tests for conditionals in src/card/line.rs
 
