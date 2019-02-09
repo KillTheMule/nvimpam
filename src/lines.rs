@@ -181,7 +181,9 @@ impl<'a> From<(LineNr, (&'a Option<Keyword>, &'a [u8]))> for ParsedLine<'a> {
   }
 }
 
-impl<'a> From<(LineNr, (&'a Option<Keyword>, &'a Line<'a>))> for ParsedLine<'a> {
+impl<'a> From<(LineNr, (&'a Option<Keyword>, &'a Line<'a>))>
+  for ParsedLine<'a>
+{
   fn from(
     (u, (k, t)): (LineNr, (&'a Option<Keyword>, &'a Line<'a>)),
   ) -> ParsedLine<'a> {

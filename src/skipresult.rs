@@ -2,7 +2,7 @@
 //! [`NoCommentIter`](::nocommentiter::NoCommentIter)
 use std::fmt;
 
-use crate::{lines::ParsedLine, linenr::LineNr};
+use crate::{linenr::LineNr, lines::ParsedLine};
 
 /// A data structure returned by several skip methods on
 /// [`NoCommentIter`](::nocommentiter::NoCommentIter)

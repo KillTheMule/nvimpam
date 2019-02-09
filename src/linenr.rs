@@ -1,7 +1,8 @@
 //! The struct for linenumbers.
 use std::{
-  fmt, isize, u32, i32,
+  fmt, i32, isize,
   ops::{Add, AddAssign, Sub},
+  u32,
 };
 
 use neovim_lib::Value;

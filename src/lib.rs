@@ -14,7 +14,7 @@ pub mod bufdata;
 pub mod card;
 pub mod event;
 pub mod handler;
+pub mod linenr;
 pub mod lines;
 pub mod nocommentiter;
 pub mod skipresult;
-pub mod linenr;

@@ -24,7 +24,9 @@ impl Folds {
     self.0.clear()
   }
 
-  pub fn iter(&self) -> impl Iterator<Item = (&[LineNr; 2], &(Keyword, String))> {
+  pub fn iter(
+    &self,
+  ) -> impl Iterator<Item = (&[LineNr; 2], &(Keyword, String))> {
     self.0.iter()
   }
 
@@ -39,7 +41,12 @@ impl Folds {
   /// Insert a fold `([start, end], (Keyword, String))`.  Returns an error if
   /// that fold is already in the list. In that case, it needs to be
   /// [removed](::bufdata::folds::Folds::remove) beforehand.
-  fn insert(&mut self, start: LineNr, end: LineNr, kw: Keyword) -> Result<(), Error> {
+  fn insert(
+    &mut self,
+    start: LineNr,
+    end: LineNr,
+    kw: Keyword,
+  ) -> Result<(), Error> {
     match self.0.entry([start, end]) {
       Entry::Occupied(_) => {
         return Err(failure::err_msg("Fold already in foldlist!"));
@@ -84,7 +91,11 @@ impl Folds {
   /// the tuples (start, end, Keyword). Only needed for tests.
   #[cfg(test)]
   pub fn to_vec(&self) -> Vec<(usize, usize, Keyword)> {
-    self.0.iter().map(|(r, (k, _))| (r[0].into(), r[1].into(), *k)).collect()
+    self
+      .0
+      .iter()
+      .map(|(r, (k, _))| (r[0].into(), r[1].into(), *k))
+      .collect()
   }
 
   /// Recreate level 2 folds from level 1 folds. If there's no or one
@@ -201,7 +212,11 @@ impl Folds {
       })
     });
 
-    let last_new = match newfolds.0.range([0_usize.into(), 0_usize.into()]..).next_back() {
+    let last_new = match newfolds
+      .0
+      .range([0_usize.into(), 0_usize.into()]..)
+      .next_back()
+    {
       Some((k, v)) => Some((*k, v.0)),
       None => None,
     };
@@ -215,10 +230,11 @@ impl Folds {
       })
     });
 
-    let first_fold_to_move = match self.0.range([lastline, 0_usize.into()]..).next() {
-      Some((i, k)) => Some((*i, k.0)),
-      None => None,
-    };
+    let first_fold_to_move =
+      match self.0.range([lastline, 0_usize.into()]..).next() {
+        Some((i, k)) => Some((*i, k.0)),
+        None => None,
+      };
 
     if let Some((f, _)) = first_fold_to_move {
       let to_move = self.0.split_off(&f);

@@ -408,8 +408,10 @@ impl Deref for Keywords {
 
 #[cfg(test)]
 mod tests {
-  use crate::card::keyword::{Keyword::*, Keywords};
-  use crate::linenr::LineNr;
+  use crate::{
+    card::keyword::{Keyword::*, Keywords},
+    linenr::LineNr,
+  };
 
   #[test]
   fn first() {

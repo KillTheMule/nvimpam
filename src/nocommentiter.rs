@@ -13,9 +13,9 @@ use crate::{
     line::{CondResult, Line as CardLine},
     Card,
   },
+  linenr::LineNr,
   lines::{KeywordLine, ParsedLine},
   skipresult::SkipResult,
-  linenr::LineNr,
 };
 
 // Used in skip functions. Returns the next `ParsedLine` from the iterator. If
@@ -340,9 +340,9 @@ mod tests {
       },
     },
     carddata::*,
+    linenr::LineNr,
     lines::{KeywordLine, Lines, ParsedLine},
     nocommentiter::{CommentLess, NoCommentIter},
-    linenr::LineNr,
   };
 
   macro_rules! pline {
@@ -674,7 +674,10 @@ mod tests {
       &mut folds.highlights,
     );
     let mut tmp_nextline = tmp.nextline.unwrap();
-    assert_eq!(tmp_nextline, pline!(5.into(), &LINES_GATHER[5], Some(&Shell)));
+    assert_eq!(
+      tmp_nextline,
+      pline!(5.into(), &LINES_GATHER[5], Some(&Shell))
+    );
     assert_eq!(tmp.skip_end, 3.into());
 
     tmp = li.skip_fold(
@@ -688,7 +691,10 @@ mod tests {
     let skipped = li.skip_to_next_keyword().unwrap();
     tmp = li.skip_fold(&skipped.into(), &mut folds.highlights);
     tmp_nextline = tmp.nextline.unwrap();
-    assert_eq!(tmp_nextline, pline!(18.into(), &LINES_GATHER[18], Some(&Node)));
+    assert_eq!(
+      tmp_nextline,
+      pline!(18.into(), &LINES_GATHER[18], Some(&Node))
+    );
     assert_eq!(tmp.skip_end, 15.into());
 
     tmp = li.skip_fold(

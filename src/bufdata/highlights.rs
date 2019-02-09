@@ -206,11 +206,9 @@ impl Highlights {
   /// internal `Vec`) in the range `firstline..lastline`.
   pub fn indexrange(
     &self,
-    range: Range<usize>
+    range: Range<usize>,
   ) -> impl Iterator<Item = (&(LineNr, u8, u8), &Hl)> {
-    self.0[range]
-      .iter()
-      .map(|(ref a, ref b)| (a, b))
+    self.0[range].iter().map(|(ref a, ref b)| (a, b))
   }
 
   /// Return an iterator over the highlights of the lines with linenumber in the
