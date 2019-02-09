@@ -1,48 +1,38 @@
 //! The struct for linenumbers.
 use std::{
-  fmt, isize, mem,
+  fmt, isize, u32, i32,
   ops::{Add, AddAssign, Sub},
 };
 
 use neovim_lib::Value;
 
-/// Wraps a `usize`, but we actually make sure on construction to stay in
-/// `isize` range. This *should* hold through all operations, but we actually
+/// Wraps a `u32`, but we actually make sure on construction to stay in
+/// `i32` range. This *should* hold through all operations, but we actually
 /// only check this in debug mode. It will become a problem if you're dealing
-/// with more than `isize::MAX` lines, which is only 32k on 16bit, which we
-/// don't support really, and 2G on 32bit. I'm not saying I'll be dead when this
-/// becomes a problem, but see if you can make me care about 32bit by then :)
+/// with more than `i32::MAX` lines, which is 2G.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
-pub struct LineNr(usize);
+pub struct LineNr(u32);
 
 impl LineNr {
   pub fn from_i64(num: i64) -> Self {
     debug_assert!(num >= 0);
+    debug_assert!(num <= i32::MAX as i64);
 
-    // We trust the compiler to optimize that out
-    match mem::size_of::<usize>() {
-      8 => Self(num as usize),
-      4 => {
-        assert!(num <= (isize::MAX as i64), "Got a i64 > isize::MAX!");
-        Self(num as usize)
-      }
-      _ => unimplemented!(
-        "Can only compile on architectures with an usize of 64bit or 32bit!"
-      ),
-    }
+    Self(num as u32)
   }
 
   pub fn from_usize(num: usize) -> Self {
-    debug_assert!(num <= isize::MAX as usize, "Got a usize > isize::MAX!");
-    LineNr(num)
+    debug_assert!(num <= u32::MAX as usize, "Got a usize > u32::MAX!");
+    LineNr(num as u32)
   }
 
   pub fn from_isize(num: isize) -> Self {
     debug_assert!(num >= 0, "Negative isizes can't be LineNrs!");
-    LineNr(num as usize)
+    debug_assert!(num <= i32::MAX as isize);
+    LineNr(num as u32)
   }
 
-  pub fn prev(&self) -> Self {
+  pub fn prev(self) -> Self {
     debug_assert!(self.0 >= 1, "LineNr 0 has no previous LineNr!");
     LineNr(self.0 - 1)
   }
@@ -50,13 +40,13 @@ impl LineNr {
 
 impl From<LineNr> for usize {
   fn from(l: LineNr) -> Self {
-    l.0
+    l.0 as usize
   }
 }
 
 impl From<usize> for LineNr {
   fn from(num: usize) -> Self {
-    LineNr(num)
+    LineNr::from_usize(num)
   }
 }
 
@@ -65,7 +55,7 @@ impl Add for LineNr {
 
   fn add(self, other: Self) -> Self::Output {
     let res = self.0 + other.0;
-    debug_assert!(res <= isize::MAX as usize);
+    debug_assert!(res <= i32::MAX as u32);
     Self(res)
   }
 }
@@ -76,8 +66,8 @@ impl Add<isize> for LineNr {
   fn add(self, other: isize) -> Self::Output {
     // Cast is lossless, see the comment for [`LineNr`](::linenr::LineNr)
     let res = self.0 as isize + other;
-    debug_assert!(res >= 0 && res <= isize::MAX);
-    Self(res as usize)
+    debug_assert!(res >= 0 && res <= i32::MAX as isize);
+    Self(res as u32)
   }
 }
 
@@ -92,11 +82,10 @@ impl Sub for LineNr {
 
 impl AddAssign<isize> for LineNr {
   fn add_assign(&mut self, other: isize) {
+    let res = self.0 as isize + other;
     // Casts are lossless, see the comment for [`LineNr`](::linenr::LineNr)
-    debug_assert!(
-      self.0 as isize + other >= 0 && self.0 as isize + other <= isize::MAX
-    );
-    self.0 = Self::from_isize(self.0 as isize + other).0;
+    debug_assert!(res >= 0 && res <= i32::MAX as isize);
+    self.0 = res as u32;
   }
 }
 
