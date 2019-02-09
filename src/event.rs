@@ -10,7 +10,7 @@ use neovim_lib::{
   Value,
 };
 
-use crate::bufdata::BufData;
+use crate::{bufdata::BufData, linenr::LineNr};
 
 /// The event list the main loop reacts to
 pub enum Event {
@@ -102,20 +102,21 @@ impl Event {
           }
           if lastline == -1 {
             bufdata.parse_vec(linedata)?;
-          } else if lastline >= 0 && firstline >= 0 {
-            let (start, end) = bufdata.update(firstline, lastline, linedata)?;
+          } else {
+            debug_assert!(
+              lastline >= 0 && firstline >= 0 && lastline >= firstline
+            );
+            let lastline = LineNr::from_i64(lastline);
+            let firstline = LineNr::from_i64(firstline);
+
+            let newrange = bufdata.update(firstline, lastline, linedata)?;
 
             crate::bufdata::highlights::highlight_region(
-              bufdata.highlights.indexrange(start, end),
+              bufdata.highlights.indexrange(newrange),
               nvim,
               firstline,
               lastline,
             )?;
-          } else {
-            error!(
-              "LinesEvent only works with nonnegative numbers, except for
-               lastline = -1!"
-            );
           }
         }
         Ok(RefreshFolds) => to_handler.send(bufdata.packup_all_folds())?,
@@ -123,7 +124,12 @@ impl Event {
           firstline,
           lastline,
         }) => {
-          // TODO(KillTheMule): Check the args ar >= 0
+          debug_assert!(
+            lastline >= 0 && firstline >= 0 && lastline >= firstline
+          );
+          let lastline = LineNr::from_i64(lastline);
+          let firstline = LineNr::from_i64(firstline);
+
           let fl = bufdata.keywords.first_before(firstline);
           let mut ll = bufdata.keywords.first_after(lastline);
 

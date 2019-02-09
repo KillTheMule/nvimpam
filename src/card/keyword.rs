@@ -7,8 +7,8 @@
 //! Also provides the [`Keywords`](::card::keyword::Keywords) struct to hold the
 //! keywords of a [`Lines`](::lines::Lines) struct. Supposed to be kept in sync
 //! via [`Keywords::update`](::card::keyword::Keywords::update).
-use crate::lines::Lines;
-use std::ops::Deref;
+use crate::{linenr::LineNr, lines::Lines};
+use std::ops::{Deref, Range};
 
 /// An enum to denote the several types of cards a line might belong to.
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -357,8 +357,8 @@ impl Keywords {
 
   /// Update a [`Keywords`](::card::keyword::Keywords) struct by parsing a
   /// `Vec<String>` and splicing in the result on the range `first..last`.
-  pub fn update(&mut self, first: i64, last: i64, linedata: &[String]) {
-    let range = first as usize..last as usize;
+  pub fn update(&mut self, first: LineNr, last: LineNr, linedata: &[String]) {
+    let range: Range<usize> = first.into()..last.into();
     let _ = self
       .0
       .splice(range, linedata.iter().map(|l| Keyword::parse(l.as_ref())));
@@ -368,29 +368,33 @@ impl Keywords {
   /// Find the index of the first line that starts with a non-comment keyword
   /// before the line with the given number. If the line with the given number
   /// itself starts with a non-comment keyword, its index is returned.
-  pub fn first_before(&self, line: i64) -> i64 {
-    self
-      .get(..=line as usize)
-      .unwrap_or(&[])
-      .iter()
-      .enumerate()
-      .rfind(|(_i, k)| k.is_some() && **k != Some(Keyword::Comment))
-      .unwrap_or((0, &None))
-      .0 as i64
+  pub fn first_before(&self, line: LineNr) -> LineNr {
+    LineNr::from_usize(
+      self
+        .get(..=line.into())
+        .unwrap_or(&[])
+        .iter()
+        .enumerate()
+        .rfind(|(_i, k)| k.is_some() && **k != Some(Keyword::Comment))
+        .unwrap_or((0, &None))
+        .0,
+    )
   }
 
   // TODO(KillTheMule): Efficient? This is called a lot ...
   /// Find the index of the next line that starts with a non-comment keyword
   /// after the line with the given number. If the line with the given number
   /// itself starts with a non-comment keyword, its index is returned.
-  pub fn first_after(&self, line: i64) -> i64 {
-    self
-      .iter()
-      .enumerate()
-      .skip(line as usize)
-      .find(|(_i, k)| k.is_some() && **k != Some(Keyword::Comment))
-      .unwrap_or((self.len(), &None))
-      .0 as i64
+  pub fn first_after(&self, line: LineNr) -> LineNr {
+    LineNr::from_usize(
+      self
+        .iter()
+        .enumerate()
+        .skip(line.into())
+        .find(|(_i, k)| k.is_some() && **k != Some(Keyword::Comment))
+        .unwrap_or((self.len(), &None))
+        .0,
+    )
   }
 }
 
@@ -405,6 +409,7 @@ impl Deref for Keywords {
 #[cfg(test)]
 mod tests {
   use crate::card::keyword::{Keyword::*, Keywords};
+  use crate::linenr::LineNr;
 
   #[test]
   fn first() {
@@ -420,27 +425,27 @@ mod tests {
       None,
     ]);
 
-    assert_eq!(2, kw.first_before(2));
-    assert_eq!(2, kw.first_after(2));
+    assert_eq!(LineNr::from_usize(2), kw.first_before(2.into()));
+    assert_eq!(LineNr::from_usize(2), kw.first_after(2.into()));
 
-    assert_eq!(2, kw.first_before(4));
-    assert_eq!(6, kw.first_after(4));
+    assert_eq!(LineNr::from_usize(2), kw.first_before(4.into()));
+    assert_eq!(LineNr::from_usize(6), kw.first_after(4.into()));
 
-    assert_eq!(0, kw.first_before(1));
-    assert_eq!(9, kw.first_after(7));
+    assert_eq!(LineNr::from_usize(0), kw.first_before(1.into()));
+    assert_eq!(LineNr::from_usize(9), kw.first_after(7.into()));
   }
 
   #[test]
   fn first_oneline() {
     let mut kw = Keywords(vec![Some(Node)]);
-    assert_eq!(0, kw.first_before(0));
-    assert_eq!(0, kw.first_after(0));
+    assert_eq!(LineNr::from_usize(0), kw.first_before(0.into()));
+    assert_eq!(LineNr::from_usize(0), kw.first_after(0.into()));
 
     kw = Keywords(vec![Some(Comment)]);
-    assert_eq!(0, kw.first_before(0));
-    assert_eq!(1, kw.first_after(0));
-    assert_eq!(0, kw.first_before(1));
-    assert_eq!(1, kw.first_after(1));
+    assert_eq!(LineNr::from_usize(0), kw.first_before(0.into()));
+    assert_eq!(LineNr::from_usize(1), kw.first_after(0.into()));
+    assert_eq!(LineNr::from_usize(0), kw.first_before(1.into()));
+    assert_eq!(LineNr::from_usize(1), kw.first_after(1.into()));
   }
 
 }

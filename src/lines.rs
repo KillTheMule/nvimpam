@@ -5,10 +5,10 @@
 use std::{
   convert::{AsRef, From},
   fmt,
-  ops::Deref,
+  ops::{Deref, Range},
 };
 
-use crate::card::keyword::Keyword;
+use crate::{card::keyword::Keyword, linenr::LineNr};
 
 /// An enum representing a line of a file, either as a byte slice (which we
 /// obtain from reading a file into a `Vec<u8>` and splitting on newlines) or an
@@ -112,8 +112,8 @@ impl<'a> Lines<'a> {
   ///   * `last` is the first line that has _not_ been updated
   /// This are the exact conditions to use the range `first..last` together with
   /// `splice` on a `Vec`.
-  pub fn update(&mut self, first: i64, last: i64, linedata: Vec<String>) {
-    let range = first as usize..last as usize;
+  pub fn update(&mut self, first: LineNr, last: LineNr, linedata: Vec<String>) {
+    let range: Range<usize> = first.into()..last.into();
     let _ = self
       .0
       .splice(range, linedata.into_iter().map(Line::ChangedLine));
@@ -147,7 +147,7 @@ impl<'a> From<Vec<String>> for Lines<'a> {
 /// [`parse`](::card::keyword::Keyword::parse)d before.
 #[derive(PartialEq, Debug)]
 pub struct ParsedLine<'a> {
-  pub number: i64,
+  pub number: LineNr,
   pub text: &'a [u8],
   pub keyword: Option<&'a Keyword>,
 }
@@ -169,9 +169,9 @@ impl<'a> ParsedLine<'a> {
   }
 }
 
-impl<'a> From<(i64, (&'a Option<Keyword>, &'a [u8]))> for ParsedLine<'a> {
+impl<'a> From<(LineNr, (&'a Option<Keyword>, &'a [u8]))> for ParsedLine<'a> {
   fn from(
-    (u, (k, t)): (i64, (&'a Option<Keyword>, &'a [u8])),
+    (u, (k, t)): (LineNr, (&'a Option<Keyword>, &'a [u8])),
   ) -> ParsedLine<'a> {
     ParsedLine {
       number: u,
@@ -181,9 +181,9 @@ impl<'a> From<(i64, (&'a Option<Keyword>, &'a [u8]))> for ParsedLine<'a> {
   }
 }
 
-impl<'a> From<(i64, (&'a Option<Keyword>, &'a Line<'a>))> for ParsedLine<'a> {
+impl<'a> From<(LineNr, (&'a Option<Keyword>, &'a Line<'a>))> for ParsedLine<'a> {
   fn from(
-    (u, (k, t)): (i64, (&'a Option<Keyword>, &'a Line<'a>)),
+    (u, (k, t)): (LineNr, (&'a Option<Keyword>, &'a Line<'a>)),
   ) -> ParsedLine<'a> {
     ParsedLine {
       number: u,
@@ -220,7 +220,7 @@ impl<'a> fmt::Display for ParsedLine<'a> {
 /// [`Keyword`](::card::keyword::Keyword).
 #[derive(PartialEq, Debug)]
 pub struct KeywordLine<'a> {
-  pub number: i64,
+  pub number: LineNr,
   pub text: &'a [u8],
   pub keyword: &'a Keyword,
 }
@@ -257,7 +257,7 @@ mod tests {
     let mut l = Lines::new();
     l.parse_slice(LINES.as_ref());
 
-    l.update(1, 7, Vec::new());
+    l.update(1.into(), 7.into(), Vec::new());
 
     assert_eq!(l.0[0], OriginalLine(b"This"));
     assert_eq!(l.0[1], OriginalLine(b"."));
@@ -274,7 +274,7 @@ mod tests {
       "blaaargl".to_string(),
     ];
 
-    l.update(2, 2, newlines);
+    l.update(2.into(), 2.into(), newlines);
 
     assert_eq!(l.0[1], OriginalLine(b"is "));
     assert_eq!(l.0[2], ChangedLine("haaargl".to_string()));
@@ -292,7 +292,7 @@ mod tests {
       "blaaargl".to_string(),
     ];
 
-    l.update(1, 7, newlines);
+    l.update(1.into(), 7.into(), newlines);
 
     assert_eq!(l.0[0], OriginalLine(b"This"));
     assert_eq!(l.0[3], ChangedLine("blaaargl".to_string()));

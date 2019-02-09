@@ -2,7 +2,7 @@
 //! [`NoCommentIter`](::nocommentiter::NoCommentIter)
 use std::fmt;
 
-use crate::lines::ParsedLine;
+use crate::{lines::ParsedLine, linenr::LineNr};
 
 /// A data structure returned by several skip methods on
 /// [`NoCommentIter`](::nocommentiter::NoCommentIter)
@@ -14,7 +14,7 @@ use crate::lines::ParsedLine;
 #[derive(Debug)]
 pub struct SkipResult<'a> {
   pub nextline: Option<ParsedLine<'a>>,
-  pub skip_end: i64,
+  pub skip_end: LineNr,
 }
 
 impl<'a> fmt::Display for SkipResult<'a> {

@@ -17,3 +17,4 @@ pub mod handler;
 pub mod lines;
 pub mod nocommentiter;
 pub mod skipresult;
+pub mod linenr;

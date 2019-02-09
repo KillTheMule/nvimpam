@@ -4,7 +4,7 @@ use std::collections::{btree_map::Entry, BTreeMap};
 use failure::Error;
 use itertools::Itertools;
 
-use crate::card::keyword::Keyword;
+use crate::{card::keyword::Keyword, linenr::LineNr};
 
 /// Folds are saved as the **end-inclusive** interval [start, end] of line
 /// numbers, the corresponding [`Keyword`](::card::keyword::Keyword) and a
@@ -13,7 +13,7 @@ use crate::card::keyword::Keyword;
 /// TODO(KillTheMule): Check out other data structures for this, especially wrt
 /// usage in [`splice`](::bufdata::folds::Folds::splice)
 #[derive(Default, Debug)]
-pub struct Folds(BTreeMap<[i64; 2], (Keyword, String)>);
+pub struct Folds(BTreeMap<[LineNr; 2], (Keyword, String)>);
 
 impl Folds {
   pub fn new() -> Self {
@@ -24,7 +24,7 @@ impl Folds {
     self.0.clear()
   }
 
-  pub fn iter(&self) -> impl Iterator<Item = (&[i64; 2], &(Keyword, String))> {
+  pub fn iter(&self) -> impl Iterator<Item = (&[LineNr; 2], &(Keyword, String))> {
     self.0.iter()
   }
 
@@ -39,7 +39,7 @@ impl Folds {
   /// Insert a fold `([start, end], (Keyword, String))`.  Returns an error if
   /// that fold is already in the list. In that case, it needs to be
   /// [removed](::bufdata::folds::Folds::remove) beforehand.
-  fn insert(&mut self, start: i64, end: i64, kw: Keyword) -> Result<(), Error> {
+  fn insert(&mut self, start: LineNr, end: LineNr, kw: Keyword) -> Result<(), Error> {
     match self.0.entry([start, end]) {
       Entry::Occupied(_) => {
         return Err(failure::err_msg("Fold already in foldlist!"));
@@ -59,8 +59,8 @@ impl Folds {
   /// needs to be [removed](::bufdata::folds::Folds::remove) beforehand.
   pub fn checked_insert(
     &mut self,
-    start: i64,
-    end: i64,
+    start: LineNr,
+    end: LineNr,
     kw: Keyword,
   ) -> Result<(), Error> {
     if start <= end {
@@ -72,7 +72,7 @@ impl Folds {
 
   /// Remove a fold [start, end]. Only checks if the fold is in `Folds`, and
   /// returns an error otherwise.
-  pub fn remove(&mut self, start: i64, end: i64) -> Result<(), Error> {
+  pub fn remove(&mut self, start: LineNr, end: LineNr) -> Result<(), Error> {
     self
       .0
       .remove(&[start, end])
@@ -81,9 +81,10 @@ impl Folds {
   }
 
   /// Copy the elements of a FoldList into a Vec, containing
-  /// the tuples (start, end, Keyword)
-  pub fn to_vec(&self) -> Vec<(i64, i64, Keyword)> {
-    self.0.iter().map(|(r, (k, _))| (r[0], r[1], *k)).collect()
+  /// the tuples (start, end, Keyword). Only needed for tests.
+  #[cfg(test)]
+  pub fn to_vec(&self) -> Vec<(usize, usize, Keyword)> {
+    self.0.iter().map(|(r, (k, _))| (r[0].into(), r[1].into(), *k)).collect()
   }
 
   /// Recreate level 2 folds from level 1 folds. If there's no or one
@@ -133,9 +134,9 @@ impl Folds {
   pub fn splice(
     &mut self,
     newfolds: Self,
-    firstline: i64,
-    lastline: i64,
-    added: i64,
+    firstline: LineNr,
+    lastline: LineNr,
+    added: isize,
   ) {
     let mut to_delete = vec![];
     let mut to_split = vec![];
@@ -176,8 +177,8 @@ impl Folds {
       self.0.remove(&k);
 
       if k[0] < firstline {
-        let _ = self.checked_insert(k[0], firstline - 1, v);
-        last_before = Some(([k[0], firstline - 1], v))
+        let _ = self.checked_insert(k[0], firstline.prev(), v);
+        last_before = Some(([k[0], firstline.prev()], v))
       }
 
       if lastline <= k[1] {
@@ -200,7 +201,7 @@ impl Folds {
       })
     });
 
-    let last_new = match newfolds.0.range([0, 0]..).next_back() {
+    let last_new = match newfolds.0.range([0_usize.into(), 0_usize.into()]..).next_back() {
       Some((k, v)) => Some((*k, v.0)),
       None => None,
     };
@@ -214,7 +215,7 @@ impl Folds {
       })
     });
 
-    let first_fold_to_move = match self.0.range([lastline, 0]..).next() {
+    let first_fold_to_move = match self.0.range([lastline, 0_usize.into()]..).next() {
       Some((i, k)) => Some((*i, k.0)),
       None => None,
     };
@@ -250,20 +251,42 @@ impl Folds {
 
 #[cfg(test)]
 macro_rules! splicetest {
-  ($fn: ident; existing: $([$($e: expr),+]),+; new: $([$($f: expr),+]),+;
-  $first: expr, $last: expr, $added: expr; expected: $([$($g: expr),+]),+ ) => {
+  (
+    $fn: ident;
+    existing: $([$s: expr, $e: expr, $t: expr]),+;
+    new: $([$sn: expr, $en: expr, $tn: expr]),+;
+    $first: expr, $last: expr, $added: expr;
+    expected: $([$($g: expr),+]),+
+  ) => {
     #[test]
     fn $fn() {
       use crate::bufdata::folds::Folds;
       use crate::card::keyword::Keyword::*;
+      use crate::linenr::LineNr;
 
       let mut oldfolds = Folds::new();
-      $(let _ = oldfolds.insert($($e),+);)+
+      $(let _ = oldfolds.insert(
+          LineNr::from_usize($s),
+          LineNr::from_usize($e),
+          $t
+          );
+        )+
 
       let mut newfolds = Folds::new();
-      $(let _ = newfolds.insert($($f),+);)+
+      $(let _ = newfolds.insert(
+          LineNr::from_usize($sn),
+          LineNr::from_usize($en),
+          $tn
+          );
+        )+
 
-      oldfolds.splice(newfolds, $first, $last, $added);
+      oldfolds.splice(
+        newfolds,
+        LineNr::from_usize($first),
+        LineNr::from_usize($last),
+        $added
+      );
+
       let v = vec![$( ($($g),+ ),)+];
 
       assert_eq!(v, oldfolds.to_vec());

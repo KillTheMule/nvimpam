@@ -15,6 +15,7 @@ use crate::{
   },
   lines::{KeywordLine, ParsedLine},
   skipresult::SkipResult,
+  linenr::LineNr,
 };
 
 // Used in skip functions. Returns the next `ParsedLine` from the iterator. If
@@ -144,7 +145,7 @@ where
     ges: GesType,
     skipline: &ParsedLine<'a>,
   ) -> Option<SkipResult<'a>> {
-    let mut previdx: i64 = skipline.number;
+    let mut previdx: LineNr = skipline.number;
     let mut nextline: ParsedLine<'a>;
 
     let contained = ges.contains(skipline.text);
@@ -217,7 +218,7 @@ where
     highlights
       .add_line_highlights(skipline.number, cardline.highlights(skipline.text));
 
-    let mut previdx: i64 = skipline.number;
+    let mut previdx: LineNr = skipline.number;
     let mut nextline = next_or_return_previdx!(self, previdx);
 
     for cardline in cardlines {
@@ -341,6 +342,7 @@ mod tests {
     carddata::*,
     lines::{KeywordLine, Lines, ParsedLine},
     nocommentiter::{CommentLess, NoCommentIter},
+    linenr::LineNr,
   };
 
   macro_rules! pline {
@@ -367,7 +369,8 @@ mod tests {
     ($lines:ident, $keywords:ident, $li: ident, $str:expr) => {
       $lines.parse_slice($str.as_ref());
       $keywords.parse_lines(&$lines);
-      $li = (0i64..)
+      $li = (0_usize..)
+        .map(LineNr::from_usize)
         .zip($keywords.iter().zip($lines.iter()))
         .map(ParsedLine::from)
         .remove_comments()
@@ -407,8 +410,8 @@ mod tests {
   make_test!(
     works_with_slice,
     COMMENTS,
-    { next_nocom, Some(pline!(4, "of", None)) };
-    { next_nocom, Some(pline!(5, "some", None))}
+    { next_nocom, Some(pline!(4.into(), "of", None)) };
+    { next_nocom, Some(pline!(5.into(), "some", None))}
   );
 
   const KEYWORD_LINES: &'static str = "#Comment\n   nokeyword\nNODE  / \
@@ -431,8 +434,8 @@ mod tests {
   make_test!(
     finds_real_keywords,
     KEYWORD_LINES,
-    { next_kw, Some(kwline!(2, b"NODE  / ", &Node)) };
-    { next_kw, Some(kwline!(4, b"NSMAS / ", &Nsmas)) };
+    { next_kw, Some(kwline!(2.into(), b"NODE  / ", &Node)) };
+    { next_kw, Some(kwline!(4.into(), b"NSMAS / ", &Nsmas)) };
     { next_kw, None };
     { next_nocom, None }
   );
@@ -449,8 +452,8 @@ mod tests {
     {|l: &mut NoCommentIter<_>| {
         let nextline = l.next().unwrap();
         let tmp = l.skip_ges(GesNode, &nextline).unwrap();
-        assert_eq!(tmp.nextline.unwrap(), pline!(4, b"NODE  / ", Some(&Node)));
-        assert_eq!(tmp.skip_end, 3);
+        assert_eq!(tmp.nextline.unwrap(), pline!(4.into(), b"NODE  / ", Some(&Node)));
+        assert_eq!(tmp.skip_end, 3.into());
         l.next()
       }, None
     }
@@ -474,13 +477,13 @@ mod tests {
     {|l:  &mut NoCommentIter<_>| {
         let mut nextline = l.next().unwrap();
         let mut tmp = l.skip_ges(GesNode, &nextline).unwrap();
-        assert_eq!(tmp.nextline.unwrap(), pline!(3, GES2_NEXT, None));
-        assert_eq!(tmp.skip_end, 2);
+        assert_eq!(tmp.nextline.unwrap(), pline!(3.into(), GES2_NEXT, None));
+        assert_eq!(tmp.skip_end, 2.into());
 
         nextline = l.next().unwrap();
         tmp = l.skip_ges(GesNode, &nextline).unwrap();
         assert_eq!(tmp.nextline, None);
-        assert_eq!(tmp.skip_end, 8);
+        assert_eq!(tmp.skip_end, 8.into());
         l.next()
       }, None
     }
@@ -506,15 +509,15 @@ mod tests {
     {|l: &mut NoCommentIter<_>| {
         let mut nextline = l.next().unwrap();
         let mut tmp = l.skip_ges(GesNode, &nextline).unwrap();
-        assert_eq!(tmp.nextline.unwrap(), pline!(2, GES3_FIRST, Some(&Node)));
-        assert_eq!(tmp.skip_end, 1);
+        assert_eq!(tmp.nextline.unwrap(), pline!(2.into(), GES3_FIRST, Some(&Node)));
+        assert_eq!(tmp.skip_end, 1.into());
 
         nextline = l.next().unwrap();
         tmp = l.skip_ges(GesNode, &nextline).unwrap();
-        assert_eq!(tmp.nextline.unwrap(), pline!(7, GES3_SECOND, None));
-        assert_eq!(tmp.skip_end, 6);
+        assert_eq!(tmp.nextline.unwrap(), pline!(7.into(), GES3_SECOND, None));
+        assert_eq!(tmp.skip_end, 6.into());
         l.next()
-      }, Some(pline!(8, GES3_LAST, None))
+      }, Some(pline!(8.into(), GES3_LAST, None))
     }
   );
 
@@ -529,7 +532,7 @@ mod tests {
         let tmp = l.skip_ges(GesNode, &nextline);
         assert!(tmp.is_none());
         l.next().unwrap()
-      }, pline!(1, GES4_LAST, Some(&Node))
+      }, pline!(1.into(), GES4_LAST, Some(&Node))
     }
   );
 
@@ -549,8 +552,8 @@ mod tests {
     {|l: &mut NoCommentIter<_>| {
         let nextline = l.next().unwrap();
         let tmp = l.skip_ges(GesNode, &nextline).unwrap();
-        assert_eq!(tmp.nextline.unwrap(), pline!(6, GES5_NEXTL, Some(&Node)));
-        assert_eq!(tmp.skip_end, 4);
+        assert_eq!(tmp.nextline.unwrap(), pline!(6.into(), GES5_NEXTL, Some(&Node)));
+        assert_eq!(tmp.skip_end, 4.into());
         l.next()
       }, None
     }
@@ -568,7 +571,7 @@ mod tests {
         let nextline = l.next().unwrap();
         let tmp = l.skip_ges(GesNode, &nextline).unwrap();
         assert_eq!(tmp.nextline, None);
-        assert_eq!(tmp.skip_end, 0);
+        assert_eq!(tmp.skip_end, 0.into());
         l.next()
       }, None
     }
@@ -598,10 +601,10 @@ mod tests {
         );
         assert_eq!(
           tmp.nextline.unwrap(),
-          pline!(7, &"NODE  /      ", Some(&Node))
+          pline!(7.into(), &"NODE  /      ", Some(&Node))
         );
         tmp.skip_end
-      }, 4
+      }, 4.into()
     }
   );
 
@@ -655,7 +658,8 @@ mod tests {
       .iter()
       .map(|l| Keyword::parse(l.as_ref()))
       .collect();
-    let mut li = (0i64..)
+    let mut li = (0_usize..)
+      .map(LineNr::from_usize)
       .zip(LINES_GATHER.iter().zip(keywords.iter()))
       .map(|(n, (t, k))| ParsedLine {
         number: n,
@@ -670,29 +674,29 @@ mod tests {
       &mut folds.highlights,
     );
     let mut tmp_nextline = tmp.nextline.unwrap();
-    assert_eq!(tmp_nextline, pline!(5, &LINES_GATHER[5], Some(&Shell)));
-    assert_eq!(tmp.skip_end, 3);
+    assert_eq!(tmp_nextline, pline!(5.into(), &LINES_GATHER[5], Some(&Shell)));
+    assert_eq!(tmp.skip_end, 3.into());
 
     tmp = li.skip_fold(
       &tmp_nextline.try_into_keywordline().unwrap(),
       &mut folds.highlights,
     );
     tmp_nextline = tmp.nextline.unwrap();
-    assert_eq!(tmp_nextline, pline!(6, &LINES_GATHER[6], None));
-    assert_eq!(tmp.skip_end, 5);
+    assert_eq!(tmp_nextline, pline!(6.into(), &LINES_GATHER[6], None));
+    assert_eq!(tmp.skip_end, 5.into());
 
     let skipped = li.skip_to_next_keyword().unwrap();
     tmp = li.skip_fold(&skipped.into(), &mut folds.highlights);
     tmp_nextline = tmp.nextline.unwrap();
-    assert_eq!(tmp_nextline, pline!(18, &LINES_GATHER[18], Some(&Node)));
-    assert_eq!(tmp.skip_end, 15);
+    assert_eq!(tmp_nextline, pline!(18.into(), &LINES_GATHER[18], Some(&Node)));
+    assert_eq!(tmp.skip_end, 15.into());
 
     tmp = li.skip_fold(
       &tmp_nextline.try_into_keywordline().unwrap(),
       &mut folds.highlights,
     );
     assert_eq!(tmp.nextline, None);
-    assert_eq!(tmp.skip_end, 19);
+    assert_eq!(tmp.skip_end, 19.into());
   }
 
 }

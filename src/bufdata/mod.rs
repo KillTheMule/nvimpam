@@ -4,6 +4,8 @@
 pub mod folds;
 pub mod highlights;
 
+use std::ops::Range;
+
 use failure::{Error, ResultExt};
 
 use neovim_lib::{Neovim, NeovimApi, Value};
@@ -11,6 +13,7 @@ use neovim_lib::{Neovim, NeovimApi, Value};
 use crate::{
   bufdata::{folds::Folds, highlights::Highlights},
   card::keyword::Keywords,
+  linenr::LineNr,
   lines::{Lines, ParsedLine},
   nocommentiter::{CommentLess, NoCommentIter},
 };
@@ -116,19 +119,18 @@ impl<'a> BufData<'a> {
   }
 
   /// Update the `BufData` structure from the lines of a `Vec<String>`. Tries to
-  /// be as efficient as possible. Returns a tuple `Some((s, e))` such that
-  /// `s..e` is the range of the indices of the highlight entries which are new.
-  /// This is usefull to call
+  /// be as efficient as possible. Returns the range of indices with new
+  /// highlights. This is usefull to call
   /// [`indexrange`](::bufdata::highlights::Highlights::indexrange) afterwards
   /// to efficiently send the new data to neovim via
   /// [`highlight_region`](::bufdata::highlights::highlight_region).
   pub fn update(
     &mut self,
-    firstline: i64,
-    lastline: i64,
+    firstline: LineNr,
+    lastline: LineNr,
     linedata: Vec<String>,
-  ) -> Result<(usize, usize), Error> {
-    let added: i64 = linedata.len() as i64 - (lastline - firstline);
+  ) -> Result<Range<usize>, Error> {
+    let added: isize = linedata.len() as isize - (lastline - firstline);
     self.keywords.update(firstline, lastline, &linedata);
     self.lines.update(firstline, lastline, linedata);
 
@@ -137,12 +139,12 @@ impl<'a> BufData<'a> {
     let mut newhls = Highlights::default();
     let mut newfolds = Folds::default();
 
-    // this is enumerate with i64 instead of usize
-    let li = (0_i64..)
+    let li = (0_usize..)
+      .map(LineNr::from_usize)
       .zip(
-        self.keywords[first as usize..last as usize]
+        self.keywords[first.into()..last.into()]
           .iter()
-          .zip(self.lines[first as usize..last as usize].iter()),
+          .zip(self.lines[first.into()..last.into()].iter()),
       )
       .map(ParsedLine::from)
       .remove_comments();
@@ -160,7 +162,8 @@ impl<'a> BufData<'a> {
   /// TODO(KillTheMule): Can we merge this with update?
   pub fn parse_lines(&mut self) -> Result<(), Error> {
     debug_assert!(self.keywords.len() == self.lines.len());
-    let li = (0_i64..)
+    let li = (0_usize..)
+      .map(LineNr::from_usize)
       .zip(self.keywords.iter().zip(self.lines.iter()))
       .map(ParsedLine::from)
       .remove_comments();

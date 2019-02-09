@@ -15,6 +15,7 @@ use nvimpam_lib::{
   },
   lines::{Lines, ParsedLine},
   nocommentiter::CommentLess,
+  linenr::LineNr,
 };
 
 fn bench_parse2bufdata(c: &mut Criterion) {
@@ -72,7 +73,8 @@ fn bench_skip_ges(c: &mut Criterion) {
     keywords.parse_lines(&lines);
 
     b.iter(|| {
-      let mut li = (0i64..)
+      let mut li = (0_usize..)
+        .map(LineNr::from_usize)
         .zip(keywords.iter().zip(lines.iter()))
         .map(ParsedLine::from)
         .remove_comments();

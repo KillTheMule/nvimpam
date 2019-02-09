@@ -1,5 +1,5 @@
 //! The highlight module
-use std::{self, cmp, convert::From};
+use std::{self, cmp, convert::From, ops::Range};
 
 use failure::{Error, ResultExt};
 use neovim_lib::{Neovim, NeovimApi, Value};
@@ -7,6 +7,7 @@ use neovim_lib::{Neovim, NeovimApi, Value};
 use crate::{
   bufdata::highlights::HighlightGroup as Hl,
   card::{cell::Cell, line::Line as CardLine},
+  linenr::LineNr,
 };
 
 /// An enum to denote the nvim highlight groups within nvimpam
@@ -127,7 +128,7 @@ impl<'a> Iterator for HlIter<'a> {
 ///
 /// TODO(KillTheMule): Don't expose the internal `Vec`
 #[derive(Default, Debug)]
-pub struct Highlights(pub Vec<((i64, u8, u8), Hl)>);
+pub struct Highlights(pub Vec<((LineNr, u8, u8), Hl)>);
 
 impl Highlights {
   pub fn clear(&mut self) {
@@ -139,17 +140,17 @@ impl Highlights {
   }
 
   /// Remove all the highlights with linenumbers in `firstline..lastline`, and
-  /// paste in the ones given in `newhls`. Keeps the `Vec` ordered. Returns a
-  /// tuple `(s, e)` such that `s..e` is the index range of the new highlight
-  /// entries (note that all the elements in the index range `e..` have been
-  /// modified, as their line numbers had to be shifted).
+  /// paste in the ones given in `newhls`. Keeps the `Vec` ordered. Returns the
+  /// range of indices with new highlight entries (note that all the elements
+  /// above that range have been modified, as their line numbers had to be
+  /// shifted).
   pub fn splice(
     &mut self,
     newhls: Self,
-    firstline: i64,
-    lastline: i64,
-    added: i64,
-  ) -> (usize, usize) {
+    firstline: LineNr,
+    lastline: LineNr,
+    added: isize,
+  ) -> Range<usize> {
     let start = self
       .0
       .binary_search_by_key(&(firstline, 0), |&((l, s, _), _)| (l, s))
@@ -176,19 +177,19 @@ impl Highlights {
       }
     }
 
-    (start, start + num_new)
+    start..(start + num_new)
   }
 
   /// Add a highlight by pushing it to the end of the `Vec`. Be sure that the
   /// order of the `Vec` is not destroyed by this!
-  pub fn add_highlight(&mut self, line: i64, start: u8, end: u8, typ: Hl) {
+  pub fn add_highlight(&mut self, line: LineNr, start: u8, end: u8, typ: Hl) {
     self.0.push(((line, start, end), typ));
   }
 
   /// Add the highlights of a line by pushing them to the end of the `Vec`. Be
   /// sure that the order of the `Vec` is not destroyed by this!
   #[inline]
-  pub fn add_line_highlights<T>(&mut self, num: i64, it: T)
+  pub fn add_line_highlights<T>(&mut self, num: LineNr, it: T)
   where
     T: IntoIterator<Item = ((u8, u8), Hl)>,
   {
@@ -197,7 +198,7 @@ impl Highlights {
       .extend(it.into_iter().map(|((s, e), h)| ((num, s, e), h)));
   }
 
-  pub fn iter(&self) -> impl Iterator<Item = (&(i64, u8, u8), &Hl)> {
+  pub fn iter(&self) -> impl Iterator<Item = (&(LineNr, u8, u8), &Hl)> {
     self.0.iter().map(|(ref a, ref b)| (a, b))
   }
 
@@ -205,10 +206,9 @@ impl Highlights {
   /// internal `Vec`) in the range `firstline..lastline`.
   pub fn indexrange(
     &self,
-    firstline: usize,
-    lastline: usize,
-  ) -> impl Iterator<Item = (&(i64, u8, u8), &Hl)> {
-    self.0[firstline..lastline]
+    range: Range<usize>
+  ) -> impl Iterator<Item = (&(LineNr, u8, u8), &Hl)> {
+    self.0[range]
       .iter()
       .map(|(ref a, ref b)| (a, b))
   }
@@ -217,9 +217,9 @@ impl Highlights {
   /// range `firstline..lastline`.
   pub fn linerange(
     &self,
-    firstline: i64,
-    lastline: i64,
-  ) -> impl Iterator<Item = (&(i64, u8, u8), &Hl)> {
+    firstline: LineNr,
+    lastline: LineNr,
+  ) -> impl Iterator<Item = (&(LineNr, u8, u8), &Hl)> {
     let start = self
       .0
       .binary_search_by_key(&(firstline, 0), |&((l, s, _), _)| (l, s))
@@ -243,11 +243,11 @@ impl Highlights {
 pub fn highlight_region<'a, 'b, 'c, T>(
   iter: T,
   nvim: &'a mut Neovim,
-  firstline: i64,
-  lastline: i64,
+  firstline: LineNr,
+  lastline: LineNr,
 ) -> Result<(), Error>
 where
-  T: Iterator<Item = (&'b (i64, u8, u8), &'b Hl)>,
+  T: Iterator<Item = (&'b (LineNr, u8, u8), &'b Hl)>,
 {
   let curbuf = nvim.get_current_buf()?;
   let mut calls: Vec<Value> = vec![];
@@ -289,18 +289,25 @@ where
 
 #[cfg(test)]
 macro_rules! splicetest {
-  ($fn: ident; existing: $([$($e: expr),+]),+; new: $([$($f: expr),+]),+;
-  $first: expr, $last: expr, $added: expr; expected: $([$($g: expr),+]),+ ) => {
+  (
+    $fn: ident;
+    existing: $([$l: expr, $($e: expr),+]),+;
+    new: $([$ll: expr, $($f: expr),+]),+;
+    $first: expr, $last: expr, $added: expr;
+    expected: $([$lll: expr, $($g: expr),+]),+
+  ) => {
     #[test]
     fn $fn() {
+      use crate::linenr::LineNr;
+
       let mut h = Highlights::new();
-      $(let _ = h.add_highlight($($e),+);)+
+      $(let _ = h.add_highlight(LineNr::from_usize($l), $($e),+);)+
 
       let mut h1 = Highlights::new();
-      $(let _ = h1.add_highlight($($f),+);)+
+      $(let _ = h1.add_highlight(LineNr::from_usize($ll), $($f),+);)+
 
-      h.splice(h1, $first, $last, $added);
-      let v = vec![$( ($($g),+ ),)+];
+      h.splice(h1, LineNr::from_usize($first), LineNr::from_usize($last), $added);
+      let v = vec![$( (LineNr::from_usize($lll), $($g),+ ),)+];
 
       let w:Vec<_> = h.iter().map(|((l, s, e), h)| (*l, *s, *e, *h)).collect();
       assert_eq!(v, w);
@@ -508,22 +515,22 @@ mod tests {
   pub fn hl_iteration_order() {
     let mut h = Highlights::new();
 
-    h.add_highlight(0, 0, 8, Keyword);
-    h.add_highlight(0, 9, 16, CellOdd);
-    h.add_highlight(1, 0, 4, Keyword);
-    h.add_highlight(1, 5, 12, CellOdd);
-    h.add_highlight(1, 13, 20, CellEven);
-    h.add_highlight(2, 0, 8, Keyword);
-    h.add_highlight(2, 9, 16, CellOdd);
+    h.add_highlight(0.into(), 0, 8, Keyword);
+    h.add_highlight(0.into(), 9, 16, CellOdd);
+    h.add_highlight(1.into(), 0, 4, Keyword);
+    h.add_highlight(1.into(), 5, 12, CellOdd);
+    h.add_highlight(1.into(), 13, 20, CellEven);
+    h.add_highlight(2.into(), 0, 8, Keyword);
+    h.add_highlight(2.into(), 9, 16, CellOdd);
 
     let v = vec![
-      (0, 0, 8, Keyword),
-      (0, 9, 16, CellOdd),
-      (1, 0, 4, Keyword),
-      (1, 5, 12, CellOdd),
-      (1, 13, 20, CellEven),
-      (2, 0, 8, Keyword),
-      (2, 9, 16, CellOdd),
+      (0.into(), 0, 8, Keyword),
+      (0.into(), 9, 16, CellOdd),
+      (1.into(), 0, 4, Keyword),
+      (1.into(), 5, 12, CellOdd),
+      (1.into(), 13, 20, CellEven),
+      (2.into(), 0, 8, Keyword),
+      (2.into(), 9, 16, CellOdd),
     ];
 
     // this is not a trivial test, it ascertains the iteration order

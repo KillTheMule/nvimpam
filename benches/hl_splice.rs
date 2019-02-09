@@ -10,15 +10,18 @@ use criterion::{black_box, Criterion};
 
 use neovim_lib::Value;
 
-use nvimpam_lib::bufdata::{highlights::HighlightGroup as Hl, BufData};
+use nvimpam_lib::{
+  bufdata::{ highlights::HighlightGroup as Hl, BufData},
+  linenr::LineNr,
+};
 
 fn fake_highlight_region<'a, 'b, 'c, T>(
   iter: T,
-  firstline: i64,
-  lastline: i64,
+  firstline: LineNr,
+  lastline: LineNr,
 ) -> Vec<Value>
 where
-  T: Iterator<Item = (&'b (i64, u8, u8), &'b Hl)>,
+  T: Iterator<Item = (&'b (LineNr, u8, u8), &'b Hl)>,
 {
   let mut calls: Vec<Value> = vec![];
 
@@ -76,19 +79,21 @@ macro_rules! hl_bench {
         let v: Vec<_> = bufdata
           .highlights
           .iter()
-          .filter(|((l, _, _), _)| $start <= *l && *l < $end)
+          .filter(|((l, _, _), _)| {
+            LineNr::from_usize($start) <= *l && *l < LineNr::from_usize($end)
+          })
           .map(|((l, s, e), h)| ((*l, *s, *e), *h))
           .collect();
 
         b.iter(move || {
           let newhls: Highlights = Highlights(v.clone());
-          let (start, end) =
-            bufdata.highlights.splice(newhls, $sstart, $ssend, $added);
+          let range =
+            bufdata.highlights.splice(newhls, $sstart.into(), $ssend.into(), $added);
 
           let _calls = black_box(fake_highlight_region(
-            bufdata.highlights.indexrange(start, end),
-            start as i64,
-            end as i64,
+            bufdata.highlights.indexrange(range.clone()),
+            range.start.into(),
+            range.end.into(),
           ));
         })
       });
@@ -115,9 +120,9 @@ fn bench_bufdata_readonly(c: &mut Criterion) {
 
     b.iter(|| {
       let _calls = black_box(fake_highlight_region(
-        bufdata.highlights.linerange(1000, 10000),
-        1000,
-        10000,
+        bufdata.highlights.linerange(1000.into(), 10000.into()),
+        1000.into(),
+        10000.into(),
       ));
     })
   });
@@ -150,13 +155,13 @@ hl_bench!(
 hl_bench!(
   bench_bufdata_delete_line_start;
   lines: (1, 1);
-  spliceto: (28, 29, -1i64)
+  spliceto: (28, 29, -1_isize)
   );
 
 hl_bench!(
   bench_bufdata_delete_line_end;
   lines: (1, 1);
-  spliceto: (20500, 20501, -1i64)
+  spliceto: (20500, 20501, -1_isize)
   );
 
 hl_bench!(
