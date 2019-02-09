@@ -1,3 +1,5 @@
+* Check linenr.rs: Replace all debug_assert by assert and lets see the performance implications
+
 * Check out changing Cell: Make another enum Fixed that maps to fixed strings, and put that into Cell::Fixed to get the size down to u8.
 
 * Improve logging: Lua code should write to NVIMPAM_LOG_FILE (maybe even respect log llevel?), only the binaries stderr should really go to NVIMPAM_STDERR
