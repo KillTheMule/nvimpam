@@ -16,25 +16,25 @@ pub struct LineNr(u32);
 
 impl LineNr {
   pub fn from_i64(num: i64) -> Self {
-    debug_assert!(num >= 0);
-    debug_assert!(num <= i32::MAX as i64);
+    assert!(num >= 0);
+    assert!(num <= i32::MAX as i64);
 
     Self(num as u32)
   }
 
   pub fn from_usize(num: usize) -> Self {
-    debug_assert!(num <= u32::MAX as usize, "Got a usize > u32::MAX!");
+    assert!(num <= u32::MAX as usize, "Got a usize > u32::MAX!");
     LineNr(num as u32)
   }
 
   pub fn from_isize(num: isize) -> Self {
-    debug_assert!(num >= 0, "Negative isizes can't be LineNrs!");
-    debug_assert!(num <= i32::MAX as isize);
+    assert!(num >= 0, "Negative isizes can't be LineNrs!");
+    assert!(num <= i32::MAX as isize);
     LineNr(num as u32)
   }
 
   pub fn prev(self) -> Self {
-    debug_assert!(self.0 >= 1, "LineNr 0 has no previous LineNr!");
+    assert!(self.0 >= 1, "LineNr 0 has no previous LineNr!");
     LineNr(self.0 - 1)
   }
 }
@@ -56,7 +56,7 @@ impl Add for LineNr {
 
   fn add(self, other: Self) -> Self::Output {
     let res = self.0 + other.0;
-    debug_assert!(res <= i32::MAX as u32);
+    assert!(res <= i32::MAX as u32);
     Self(res)
   }
 }
@@ -67,7 +67,7 @@ impl Add<isize> for LineNr {
   fn add(self, other: isize) -> Self::Output {
     // Cast is lossless, see the comment for [`LineNr`](::linenr::LineNr)
     let res = self.0 as isize + other;
-    debug_assert!(res >= 0 && res <= i32::MAX as isize);
+    assert!(res >= 0 && res <= i32::MAX as isize);
     Self(res as u32)
   }
 }
@@ -85,7 +85,7 @@ impl AddAssign<isize> for LineNr {
   fn add_assign(&mut self, other: isize) {
     let res = self.0 as isize + other;
     // Casts are lossless, see the comment for [`LineNr`](::linenr::LineNr)
-    debug_assert!(res >= 0 && res <= i32::MAX as isize);
+    assert!(res >= 0 && res <= i32::MAX as isize);
     self.0 = res as u32;
   }
 }
