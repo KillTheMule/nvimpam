@@ -1,7 +1,7 @@
 //! This modules holds the the global static constraint [`Card`](::card::Card)
 //! instances.
 use crate::card::{
-  cell::Cell::*,
+  cell::{Cell::*, FixedStr},
   ges::GesType::*,
   keyword::Keyword::*,
   line::{Conditional::*, Line::*},
@@ -23,7 +23,7 @@ pub static MTOCO: Card = Card {
       ],
       Int(41..49, 1),
     ),
-    Cells(&[Fixed("NAME"), Str(76)]),
+    Cells(&[Fixed(FixedStr::Name), Str(76)]),
     Optional(
       &[
         Integer(8),
@@ -57,9 +57,9 @@ pub static OTMCO: Card = Card {
       Integer(8),
       Float(8),
     ]),
-    Cells(&[Fixed("NAME"), Str(76)]),
+    Cells(&[Fixed(FixedStr::Name), Str(76)]),
     Block(
-      &[Cells(&[Blank(8), Fixed("WEIGHT"), Float(58)]), Ges(GesNode)],
+      &[Cells(&[Blank(8), Fixed(FixedStr::Weight), Float(58)]), Ges(GesNode)],
       b"END_OTMCO",
     ),
   ],
@@ -81,7 +81,7 @@ pub static RBODY0: Card = Card {
       Blank(8),
       Float(8),
     ]),
-    Cells(&[Fixed("NAME"), Str(76)]),
+    Cells(&[Fixed(FixedStr::Name), Str(76)]),
     Ges(GesNode),
   ],
 
@@ -101,7 +101,7 @@ pub static RBODY1: Card = Card {
       Blank(8),
       Float(8),
     ]),
-    Cells(&[Fixed("NAME"), Str(76)]),
+    Cells(&[Fixed(FixedStr::Name), Str(76)]),
     Cells(&[
       Blank(8),
       Float(8),
@@ -133,7 +133,7 @@ pub static RBODY2: Card = Card {
       Blank(8),
       Float(8),
     ]),
-    Cells(&[Fixed("NAME"), Str(76)]),
+    Cells(&[Fixed(FixedStr::Name), Str(76)]),
     Cells(&[
       Blank(8),
       Float(8),
@@ -164,7 +164,7 @@ pub static RBODY3: Card = Card {
       Integer(8),
       Float(8),
     ]),
-    Cells(&[Fixed("NAME"), Str(76)]),
+    Cells(&[Fixed(FixedStr::Name), Str(76)]),
     Cells(&[
       Integer(8),
       Float(8),

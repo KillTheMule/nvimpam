@@ -6,12 +6,47 @@ use std::str;
 
 use crate::card::keyword::Keyword;
 
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum FixedStr {
+  Name,
+  Weight,
+  Rmat,
+  EndPart, // 'END_PART'
+  Comment, // '#'
+}
+
+impl FixedStr {
+  pub fn len(&self) -> u8 {
+    use self::FixedStr::*;
+    match self {
+      Name => 4,
+      Weight => 6,
+      Rmat => 4,
+      EndPart => 8, // 'END_PART'
+      Comment => 1, // '#'
+    }
+  }
+}
+
+impl From<FixedStr> for &'static str {
+  fn from(f: FixedStr) -> Self {
+    use self::FixedStr::*;
+    match f {
+      Name => "NAME",
+      Weight => "WEIGHT",
+      Rmat => "RMAT",
+      EndPart => "END_PART",
+      Comment => "#",
+    }
+  }
+}
+
 #[derive(Debug, PartialEq)]
 pub enum Cell {
   /// A [`keyword`](::card::keyword::Keyword)
   Kw(Keyword),
   /// A fixed, non-keyword entry
-  Fixed(&'static str),
+  Fixed(FixedStr),
   /// An integer with a given maximum string-length
   Integer(u8),
   /// A float with a given maximum string-length
@@ -42,7 +77,7 @@ impl Cell {
     use crate::card::cell::Cell::*;
     match *self {
       Kw(k) => k.len(),
-      Fixed(s) => {
+      Fixed(ref s) => {
         debug_assert!(s.len() < 81);
         s.len() as u8
       }

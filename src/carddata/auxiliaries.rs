@@ -1,7 +1,7 @@
 //! This modules holds the the global static auxiliary [`Card`](::card::Card)
 //! instances.
 use crate::card::{
-  cell::Cell::*, ges::GesType::*, keyword::Keyword::*, line::Line::*, Card,
+  cell::{Cell::*, FixedStr}, ges::GesType::*, keyword::Keyword::*, line::Line::*, Card,
 };
 
 pub static GROUP: Card = Card {
@@ -14,7 +14,7 @@ pub static GROUP: Card = Card {
 };
 
 pub static COMMENT: Card = Card {
-  lines: &[Cells(&[Fixed("#")])],
+  lines: &[Cells(&[Fixed(FixedStr::Comment)])],
   ownfold: false,
 };
 

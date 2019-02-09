@@ -1,6 +1,6 @@
 //! This modules holds the the global static element [`Card`](::card::Card)
 //! instances.
-use crate::card::{cell::Cell::*, keyword::Keyword::*, line::Line::*, Card};
+use crate::card::{cell::{Cell::*, FixedStr}, keyword::Keyword::*, line::Line::*, Card};
 
 pub static SOLID: Card = Card {
   lines: &[
@@ -367,7 +367,7 @@ pub static GAP: Card = Card {
 pub static IMPMA: Card = Card {
   lines: &[
     Cells(&[Kw(Impma), Integer(8), Str(8), Str(8), Str(8), Integer(8)]),
-    Cells(&[Fixed("NAME"), Str(76)]),
+    Cells(&[Fixed(FixedStr::Name), Str(76)]),
     Cells(&[Blank(8), Str(76)]),
   ],
   ownfold: false,

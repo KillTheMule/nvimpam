@@ -1,7 +1,7 @@
 //! This modules holds the the global static part [`Card`](::card::Card)
 //! instances.
 use crate::card::{
-  cell::Cell::*,
+  cell::{Cell::*, FixedStr},
   keyword::Keyword::*,
   line::{Conditional::*, Line::*},
   Card,
@@ -20,12 +20,12 @@ macro_rules! part {
           Integer(8),
           Integer(8)
           ], Int(25..33, 0)),
-        Optional(&[Fixed("RMAT"), Str(76)], 0),
-        Cells(&[Fixed("NAME"), Str(76)]),
+        Optional(&[Fixed(FixedStr::Rmat), Str(76)], 0),
+        Cells(&[Fixed(FixedStr::Name), Str(76)]),
         Cells(&[Float(10), Float(10)]),
         Cells(&[Float(10), Float(10), Float(10)]),
         $( $e ),+ ,
-        Cells(&[Fixed("END_PART")]),
+        Cells(&[Fixed(FixedStr::EndPart)]),
       ],
       ownfold: true,
     };

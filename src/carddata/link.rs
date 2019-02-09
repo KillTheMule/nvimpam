@@ -1,7 +1,7 @@
 //! This modules holds the the global static link [`Card`](::card::Card)
 //! instances.
 use crate::card::{
-  cell::Cell::*, ges::GesType::*, keyword::Keyword::*, line::Line::*, Card,
+  cell::{Cell::*, FixedStr}, ges::GesType::*, keyword::Keyword::*, line::Line::*, Card,
 };
 
 pub static ELINK: Card = Card {
@@ -54,7 +54,7 @@ pub static PLINK: Card = Card {
 pub static TIED: Card = Card {
   lines: &[
     Cells(&[Kw(Tied), Integer(8), Integer(8), Integer(8)]),
-    Cells(&[Fixed("NAME"), Str(76)]),
+    Cells(&[Fixed(FixedStr::Name), Str(76)]),
     Ges(GesNode),
     Ges(GesFace),
   ],
