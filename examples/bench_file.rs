@@ -41,7 +41,7 @@ fn main() {
   let curbuf = nvim.get_current_buf().expect("3");
 
   let origlines = fs::read("files/example.pc").expect("3.1");
-  let mut bufdata = BufData::new();
+  let mut bufdata = BufData::new(&curbuf);
   bufdata.parse_slice(&origlines).unwrap();
   curbuf.attach(&mut nvim, false, vec![]).expect("4");
 

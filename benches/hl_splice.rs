@@ -8,67 +8,24 @@ use std::fs;
 
 use criterion::{black_box, Criterion};
 
-use neovim_lib::Value;
+use neovim_lib::{Value, neovim_api::Buffer};
 
 use nvimpam_lib::{
-  bufdata::{ highlights::HighlightGroup as Hl, BufData},
+  bufdata::BufData,
   linenr::LineNr,
 };
-
-fn fake_highlight_region<'a, 'b, 'c, T>(
-  iter: T,
-  firstline: LineNr,
-  lastline: LineNr,
-) -> Vec<Value>
-where
-  T: Iterator<Item = (&'b (LineNr, u8, u8), &'b Hl)>,
-{
-  let mut calls: Vec<Value> = vec![];
-
-  calls.push(
-    vec![
-      Value::from("nvim_buf_clear_highlight".to_string()),
-      vec![
-        Value::from(1),
-        Value::from(5),
-        Value::from(firstline),
-        Value::from(lastline),
-      ]
-      .into(),
-    ]
-    .into(),
-  );
-
-  for ((l, s, e), t) in iter {
-    let st: &'static str = (*t).into();
-    calls.push(
-      vec![
-        Value::from("nvim_buf_add_highlight".to_string()),
-        vec![
-          Value::from(1),
-          Value::from(5),
-          Value::from(st.to_string()),
-          Value::from(*l),
-          Value::from(u64::from(*s)),
-          Value::from(u64::from(*e)),
-        ]
-        .into(),
-      ]
-      .into(),
-    );
-  }
-  calls
-}
 
 macro_rules! hl_bench {
   ($fn: ident; lines: ($start: expr, $end: expr);
    spliceto: ($sstart: expr, $ssend: expr, $added: expr)) => {
     fn $fn(c: &mut Criterion) {
       use nvimpam_lib::bufdata::highlights::Highlights;
+      use neovim_lib::{Value, neovim_api::Buffer};
 
       c.bench_function(stringify!($fn), move |b| {
+        let buf = Buffer::new(Value::from(0_usize));
         let origlines = fs::read("files/example.pc").expect("1");
-        let mut bufdata = BufData::new();
+        let mut bufdata = BufData::new(&buf);
         bufdata.parse_slice(&origlines).expect("2");
 
         // example.pc has 20586 lines, so 20587 is the last valid linenumber
@@ -90,8 +47,8 @@ macro_rules! hl_bench {
           let range =
             bufdata.highlights.splice(newhls, $sstart.into(), $ssend.into(), $added);
 
-          let _calls = black_box(fake_highlight_region(
-            bufdata.highlights.indexrange(range.clone()),
+          let _calls = black_box(bufdata.highlight_region_calls(
+            range.clone(),
             range.start.into(),
             range.end.into(),
           ));
@@ -104,7 +61,8 @@ macro_rules! hl_bench {
 fn bench_bufdata_create(c: &mut Criterion) {
   c.bench_function("bench_bufdata_create", move |b| {
     let origlines = fs::read("files/example.pc").expect("1");
-    let mut bufdata = BufData::new();
+    let buf = Buffer::new(Value::from(0_usize));
+    let mut bufdata = BufData::new(&buf);
 
     b.iter(|| {
       bufdata.parse_slice(&origlines).expect("2");
@@ -115,12 +73,13 @@ fn bench_bufdata_create(c: &mut Criterion) {
 fn bench_bufdata_readonly(c: &mut Criterion) {
   c.bench_function("bench_bufdata_readonly", move |b| {
     let origlines = fs::read("files/example.pc").expect("1");
-    let mut bufdata = BufData::new();
+    let buf = Buffer::new(Value::from(0_usize));
+    let mut bufdata = BufData::new(&buf);
     bufdata.parse_slice(&origlines).expect("2");
 
     b.iter(|| {
-      let _calls = black_box(fake_highlight_region(
-        bufdata.highlights.linerange(1000.into(), 10000.into()),
+      let _calls = black_box(bufdata.highlight_region_calls(
+        1000..10000,
         1000.into(),
         10000.into(),
       ));

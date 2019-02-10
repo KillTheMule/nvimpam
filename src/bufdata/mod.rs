@@ -8,7 +8,7 @@ use std::ops::Range;
 
 use failure::{Error, ResultExt};
 
-use neovim_lib::{Neovim, NeovimApi, Value};
+use neovim_lib::{Neovim, NeovimApi, Value, neovim_api::Buffer};
 
 use crate::{
   bufdata::{folds::Folds, highlights::Highlights},
@@ -36,8 +36,9 @@ macro_rules! unwrap_or_ok {
 /// The datastructure to hold all the information of a buffer.
 // TODO(KillTheMule): This needs to hold the current buffer, then make
 // highlights_region etc methods on BufData
-#[derive(Default, Debug)]
 pub struct BufData<'a> {
+  /// The buffer the plugin is attached to
+  buf: &'a Buffer,
   /// The lines of the buffer
   pub lines: Lines<'a>,
   /// The keywords of the buffer as parsed from the lines.
@@ -51,8 +52,13 @@ pub struct BufData<'a> {
 }
 
 impl<'a> BufData<'a> {
-  pub fn new() -> Self {
+  /// Create a new BufData instance for the given Neovim instance. Calls
+  /// `nvim_get_current_buf` to get the buffer we're attaching to.
+  ///
+  /// TODO(KillTheMule): Can we take `Neovim` by value here?
+  pub fn new(buf: &'a Buffer) -> Self {
     BufData {
+      buf,
       lines: Lines::new(),
       keywords: Keywords::new(),
       folds: Folds::new(),
@@ -209,6 +215,21 @@ impl<'a> BufData<'a> {
       }
     }
   }
+
+  pub fn highlight_region_calls(
+    &mut self,
+    indexrange: Range<usize>,
+    firstline: LineNr,
+    lastline: LineNr,
+  ) -> Vec<Value>
+{
+    crate::bufdata::highlights::highlight_region_calls(
+      self.highlights.indexrange(indexrange),
+      &self.buf,
+      firstline,
+      lastline,
+    )
+}
 
   /// Pack up all existing level 1 and level 2 folds (in that order) into a
   /// `Value` suitable to send to neovim.

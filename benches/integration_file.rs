@@ -38,7 +38,7 @@ fn bench_folds_file(c: &mut Criterion) {
   c.bench_function("integration1_file", move |b| {
     b.iter(|| {
       let origlines = fs::read("files/example.pc").expect("3.1");
-      let mut bufdata = BufData::new();
+      let mut bufdata = BufData::new(&curbuf);
 
       curbuf.attach(&mut nvim, false, vec![]).expect("4");
       loop {

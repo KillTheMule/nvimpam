@@ -1,8 +1,7 @@
 //! The highlight module
 use std::{self, cmp, convert::From, ops::Range};
 
-use failure::{Error, ResultExt};
-use neovim_lib::{Neovim, NeovimApi, Value};
+use neovim_lib::{Value, neovim_api::Buffer};
 
 use crate::{
   bufdata::highlights::HighlightGroup as Hl,
@@ -217,7 +216,7 @@ impl Highlights {
     &self,
     firstline: LineNr,
     lastline: LineNr,
-  ) -> impl Iterator<Item = (&(LineNr, u8, u8), &Hl)> {
+  ) -> Range<usize> {
     let start = self
       .0
       .binary_search_by_key(&(firstline, 0), |&((l, s, _), _)| (l, s))
@@ -229,7 +228,7 @@ impl Highlights {
       .find(|(_, ((l, _, _), _))| *l >= lastline)
       .map_or_else(|| self.0.len(), |(i, ((_, _, _), _))| i + start);
 
-    self.0[start..end].iter().map(|(ref a, ref b)| (a, b))
+    start..end
   }
 }
 
@@ -238,23 +237,22 @@ impl Highlights {
 ///
 /// TODO(KillTheMule): efficient?
 /// TODO(KillTheMule): This should be a method on `BufData`
-pub fn highlight_region<'a, 'b, 'c, T>(
-  iter: T,
-  nvim: &'a mut Neovim,
+pub fn highlight_region_calls<'a, 'b, 'c, I>(
+  iter: I,
+  buf: &Buffer,
   firstline: LineNr,
   lastline: LineNr,
-) -> Result<(), Error>
+) -> Vec<Value>
 where
-  T: Iterator<Item = (&'b (LineNr, u8, u8), &'b Hl)>,
+  I: Iterator<Item = (&'b (LineNr, u8, u8), &'b Hl)>,
 {
-  let curbuf = nvim.get_current_buf()?;
   let mut calls: Vec<Value> = vec![];
 
   calls.push(
     vec![
       Value::from("nvim_buf_clear_highlight".to_string()),
       vec![
-        curbuf.get_value().clone(),
+        buf.get_value().clone(),
         Value::from(5),
         Value::from(firstline),
         Value::from(lastline),
@@ -269,7 +267,7 @@ where
     vec![
       Value::from("nvim_buf_add_highlight".to_string()),
       vec![
-        curbuf.get_value().clone(),
+        buf.get_value().clone(),
         Value::from(5),
         Value::from(st.to_string()),
         Value::from(*l),
@@ -281,8 +279,7 @@ where
     .into()
   }));
 
-  nvim.call_atomic(calls).context("call_atomic failed")?;
-  Ok(())
+  calls
 }
 
 #[cfg(test)]

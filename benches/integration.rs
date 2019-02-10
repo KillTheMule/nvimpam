@@ -37,7 +37,7 @@ fn bench_folds(c: &mut Criterion) {
 
   c.bench_function("integration1", move |b| {
     b.iter(|| {
-      let mut bufdata = BufData::new();
+      let mut bufdata = BufData::new(&curbuf);
       curbuf.attach(&mut nvim, true, vec![]).expect("4");
       loop {
         match main_from_handler.recv() {

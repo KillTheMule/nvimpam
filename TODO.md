@@ -1,3 +1,5 @@
+* Send the bufnr as a notification directly after jobstart to avoid races
+
 * Check linenr.rs: Replace all debug_assert by assert and lets see the performance implications
 
 * Improve logging: Lua code should write to NVIMPAM_LOG_FILE (maybe even respect log llevel?), only the binaries stderr should really go to NVIMPAM_STDERR

@@ -345,6 +345,8 @@ mod tests {
     nocommentiter::{CommentLess, NoCommentIter},
   };
 
+  use neovim_lib::{Value, neovim_api::Buffer};
+
   macro_rules! pline {
     ($number:expr, $text:expr, $keyword:expr) => {
       ParsedLine {
@@ -592,7 +594,8 @@ mod tests {
     skip_incomplete_cards,
     CARD_MASS_INCOMPLETE,
     {|l: &mut NoCommentIter<_>| {
-        let mut folds = BufData::new();
+        let buf = Buffer::new(Value::from(0_usize));
+        let mut folds = BufData::new(&buf);
         let firstline = l.next().unwrap();
         let tmp = l.skip_card(
           &firstline.try_into_keywordline().unwrap(),
@@ -653,7 +656,8 @@ mod tests {
 
   #[test]
   fn skips_gather_cards() {
-    let mut folds = BufData::new();
+    let buf = Buffer::new(Value::from(0_usize));
+    let mut folds = BufData::new(&buf);
     let keywords: Vec<_> = LINES_GATHER
       .iter()
       .map(|l| Keyword::parse(l.as_ref()))

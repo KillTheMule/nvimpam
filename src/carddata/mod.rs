@@ -7,8 +7,10 @@ macro_rules! cardtest {
     #[test]
     fn $name() {
       use crate::bufdata::BufData;
+      use neovim_lib::{Value, neovim_api::Buffer};
 
-      let mut bufdata = BufData::new();
+      let buf = Buffer::new(Value::from(0_usize));
+      let mut bufdata = BufData::new(&buf);
       bufdata.parse_strs(&$c).unwrap();
 
       assert_eq!($v, bufdata.folds.to_vec());
@@ -18,8 +20,10 @@ macro_rules! cardtest {
     #[test]
     fn $name() {
       use crate::bufdata::BufData;
+      use neovim_lib::{Value, neovim_api::Buffer};
 
-      let mut bufdata = BufData::new();
+      let buf = Buffer::new(Value::from(0_usize));
+      let mut bufdata = BufData::new(&buf);
       bufdata.parse_strs(&$c).unwrap();
 
       assert_eq!($v, bufdata.folds.to_vec());

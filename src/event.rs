@@ -4,11 +4,7 @@ use std::{ffi::OsString, fmt, fs, sync::mpsc};
 
 use failure::{self, Error, ResultExt};
 
-use neovim_lib::{
-  neovim::Neovim,
-  neovim_api::{Buffer, NeovimApi},
-  Value,
-};
+use neovim_lib::{NeovimApi, neovim::Neovim, neovim_api::Buffer, Value};
 
 use crate::{bufdata::BufData, linenr::LineNr};
 
@@ -68,12 +64,9 @@ impl Event {
   ) -> Result<(), Error> {
     use self::Event::*;
 
-    let curbuf = nvim
-      .get_current_buf()
-      .context("Event loop could not get current buffer")?;
-
+    let curbuf = nvim.get_current_buf()?;
     let origlines;
-    let mut bufdata = BufData::new();
+    let mut bufdata = BufData::new(&curbuf);
 
     let connected = match file {
       None => curbuf.attach(nvim, true, vec![])?,
@@ -111,12 +104,8 @@ impl Event {
 
             let newrange = bufdata.update(firstline, lastline, linedata)?;
 
-            crate::bufdata::highlights::highlight_region(
-              bufdata.highlights.indexrange(newrange),
-              nvim,
-              firstline,
-              lastline,
-            )?;
+            let calls = bufdata.highlight_region_calls(newrange, firstline, lastline);
+            nvim.call_atomic(calls).context("call_atomic failed")?;
           }
         }
         Ok(RefreshFolds) => to_handler.send(bufdata.packup_all_folds())?,
@@ -138,13 +127,10 @@ impl Event {
           if ll == lastline {
             ll += 1;
           }
+          let newrange = bufdata.highlights.linerange(fl, ll);
 
-          crate::bufdata::highlights::highlight_region(
-            bufdata.highlights.linerange(fl, ll),
-            nvim,
-            fl,
-            ll,
-          )?;
+          let calls = bufdata.highlight_region_calls(newrange, fl, ll);
+          nvim.call_atomic(calls).context("call_atomic failed")?;
         }
         Ok(Quit) => {
           break;
