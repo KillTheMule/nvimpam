@@ -557,11 +557,7 @@ describe('nvimpam', function()
     eq(client2.name, 'nvimpam')
 
     command("NvimPamDetach")
-    if is_ci then
-      helpers.sleep(1000)
-    else
-      helpers.sleep(100)
-    end
+    sleep(100)
     chans = meths.list_chans()
     eq(chans[3].client.name, 'nvimpam')
     eq(nil, chans[4])
@@ -788,19 +784,11 @@ describe('nvimpam', function()
     command('set ft=pamcrash')
     command('NvimPamAttach')
     command("NvimPamHighlightScreen")
-    if is_ci then
-      helpers.sleep(100)
-    else
-      helpers.sleep(10)
-    end
+    sleep(10)
 
     feed("1G")
     feed("f0rx")
-    if is_ci then
-      helpers.sleep(100)
-    else
-      helpers.sleep(10)
-    end
+    sleep(10)
     screen:expect([[
       {8:NODE  / }{9:       1}{11:              ^x.}{9:             0.5}{10:              0.}                 |
       {2:~                                                                                }|
@@ -820,11 +808,7 @@ describe('nvimpam', function()
     ]])
 
     feed("u")
-    if is_ci then
-      helpers.sleep(100)
-    else
-      helpers.sleep(10)
-    end
+    sleep(10)
     screen:expect([[
       {8:NODE  / }{9:       1}{10:              ^0.}{9:             0.5}{10:              0.}                 |
       {2:~                                                                                }|
