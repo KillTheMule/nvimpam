@@ -1,3 +1,7 @@
+* Handle DetachEvent!!!
+
+* Check out the insertions highlighting test, it's wrong!
+
 * Send the bufnr as a notification directly after jobstart to avoid races
 
 * Check linenr.rs: Replace all debug_assert by assert and lets see the performance implications
