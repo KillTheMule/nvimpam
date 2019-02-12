@@ -247,12 +247,12 @@ impl Folds {
     let mut last_added = None;
     for (k, v) in &newfolds.0 {
       if let Some((k1, _)) = merge_to_first {
-        let _ = self.insert(k1[0], k[1] + firstline, v.0);
-        last_added = Some([k1[0], k[1] + firstline]);
+        let _ = self.insert(k1[0], k[1], v.0);
+        last_added = Some([k1[0], k[1]]);
         merge_to_first = None;
       } else {
-        let _ = self.insert(k[0] + firstline, k[1] + firstline, v.0);
-        last_added = Some([k[0] + firstline, k[1] + firstline]);
+        let _ = self.insert(k[0], k[1], v.0);
+        last_added = Some([k[0], k[1]]);
       }
     }
 
@@ -475,21 +475,21 @@ mod tests {
 
   splicetest!(splice_folds_trivial;
     existing: [0, 4, Node], [10, 14, PartSolid];
-    new: [0, 6, Shell];
+    new: [7, 13, Shell];
     7, 9, 5;
     expected: [0, 4, Node],[7, 13, Shell],[15, 19, PartSolid]
   );
 
   splicetest!(splice_folds_add_below;
     existing: [0, 4, Node], [7, 9, Shell], [15, 19, PartSolid];
-    new: [0, 1, Node];
+    new: [5, 6, Node];
     5, 6, 1;
     expected: [0, 6, Node], [8, 10, Shell], [16, 20, PartSolid]
   );
 
   splicetest!(splice_folds_add_after;
     existing: [0, 6, Node], [8, 10, Shell], [16, 20, PartSolid];
-    new: [0, 1, Shell];
+    new: [8, 9, Shell];
     8, 8, 2;
     expected: [0, 6, Node], [8, 12, Shell], [18, 22, PartSolid]
   );
@@ -503,7 +503,7 @@ mod tests {
 
   splicetest!(splice_folds_inbetween_functionaltest;
     existing: [0, 3, Node], [5, 14, Shell], [17, 19, Node], [20, 23, Shell];
-    new: [0, 1, Node], [4, 4, Shell];
+    new: [6, 7, Node], [10, 10, Shell];
     6, 10, 0;
     expected: [0, 3, Node], [5, 5, Shell], [6, 7, Node], [10, 14, Shell],
               [17, 19, Node], [20, 23, Shell]
@@ -511,7 +511,7 @@ mod tests {
 
   splicetest!(splice_folds_cut_upper;
     existing: [0, 6, Node];
-    new: [0, 1, Shell];
+    new: [3, 4, Shell];
     3, 7, -2;
     expected: [0, 2, Node], [3, 4, Shell]
   );
@@ -525,7 +525,7 @@ mod tests {
 
   splicetest!(splice_folds_divide;
     existing: [0, 10, Node];
-    new: [0,2, Shell];
+    new: [3,5, Shell];
     3, 3, 3;
     expected: [0, 2, Node], [3, 5, Shell], [6, 13, Node]
   );

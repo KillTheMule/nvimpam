@@ -14,7 +14,7 @@ use nvimpam_lib::{
   bufdata::BufData,
   card::{
     ges::GesType,
-    keyword::{Keyword, Keywords},
+    keyword::Keyword,
   },
   lines::{Lines, ParsedLine},
   nocommentiter::CommentLess,
@@ -71,16 +71,26 @@ fn bench_skip_ges(c: &mut Criterion) {
   c.bench_function("card_skip_ges", |b| {
     let g = GesType::GesNode;
     let mut lines = Lines::new();
-    let mut keywords = Keywords::new();
-
     lines.parse_strs(&GES);
-    keywords.parse_lines(&lines);
+
+    let keywords: Vec<_> = GES
+      .iter()
+      .filter(|l| l.as_bytes()[0] != b'$' && l.as_bytes()[0] != b'#')
+      .map(|l| Keyword::parse(l.as_ref()))
+      .collect();
+
 
     b.iter(|| {
       let mut li = (0_usize..)
         .map(LineNr::from_usize)
-        .zip(keywords.iter().zip(lines.iter()))
-        .map(ParsedLine::from)
+        .zip(GES.iter())
+        .filter(|(_, l)| l.as_bytes()[0] != b'$' && l.as_bytes()[0] != b'#')
+        .zip(keywords.iter())
+        .map(|((n, t), k)| ParsedLine {
+          number: n,
+          text: t.as_ref(),
+          keyword: k.as_ref(),
+        })
         .remove_comments();
       let mut tmp = li.next().unwrap();
       let mut _a = li.skip_ges(g, &tmp);

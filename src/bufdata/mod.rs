@@ -8,7 +8,7 @@ use std::ops::Range;
 
 use failure::{Error, ResultExt};
 
-use neovim_lib::{Neovim, NeovimApi, Value, neovim_api::Buffer};
+use neovim_lib::{neovim_api::Buffer, Neovim, NeovimApi, Value};
 
 use crate::{
   bufdata::{folds::Folds, highlights::Highlights},
@@ -139,28 +139,27 @@ impl<'a> BufData<'a> {
     linedata: Vec<String>,
   ) -> Result<Range<usize>, Error> {
     let added: isize = linedata.len() as isize - (lastline - firstline);
-    self.keywords.update(firstline, lastline, &linedata);
-    self.lines.update(firstline, lastline, linedata);
+    let indexrange = self.keywords.update(firstline, lastline, &linedata);
+    self.lines.update(indexrange, firstline, lastline, linedata);
 
     let first = self.keywords.first_before(firstline);
     let last = self.keywords.first_after(lastline + added);
     let mut newhls = Highlights::default();
     let mut newfolds = Folds::default();
 
-    let li = (0_usize..)
-      .map(LineNr::from_usize)
-      .zip(
-        self.keywords[first.into()..last.into()]
-          .iter()
-          .zip(self.lines[first.into()..last.into()].iter()),
-      )
-      .map(ParsedLine::from)
+    let li = self.keywords[first.0..last.0]
+      .iter()
+      .zip(self.lines[first.0..last.0].iter())
+      .map(|((n, k), l)| {
+        debug_assert!(*n == l.nr());
+        ParsedLine::from((k, l))
+      })
       .remove_comments();
 
     BufData::parse_from_iter(&mut newhls, &mut newfolds, li)?;
-    self.folds.splice(newfolds, first, last, added);
+    self.folds.splice(newfolds, firstline, lastline, added);
     let _ = self.folds_level2.recreate_level2(&self.folds);
-    Ok(self.highlights.splice(newhls, first, last, added))
+    Ok(self.highlights.splice(newhls, firstline, lastline, added))
   }
 
   /// After initializing the lines and keywords of a `BufData` structure, this
@@ -170,10 +169,14 @@ impl<'a> BufData<'a> {
   /// TODO(KillTheMule): Can we merge this with update?
   pub fn parse_lines(&mut self) -> Result<(), Error> {
     debug_assert!(self.keywords.len() == self.lines.len());
-    let li = (0_usize..)
-      .map(LineNr::from_usize)
-      .zip(self.keywords.iter().zip(self.lines.iter()))
-      .map(ParsedLine::from)
+    let li = self
+      .keywords
+      .iter()
+      .zip(self.lines.iter())
+      .map(|((n, k), l)| {
+        debug_assert!(*n == l.nr());
+        ParsedLine::from((k, l))
+      })
       .remove_comments();
 
     BufData::parse_from_iter(&mut self.highlights, &mut self.folds, li)
@@ -221,15 +224,14 @@ impl<'a> BufData<'a> {
     indexrange: Range<usize>,
     firstline: LineNr,
     lastline: LineNr,
-  ) -> Vec<Value>
-{
+  ) -> Vec<Value> {
     crate::bufdata::highlights::highlight_region_calls(
       self.highlights.indexrange(indexrange),
       &self.buf,
       firstline,
       lastline,
     )
-}
+  }
 
   /// Pack up all existing level 1 and level 2 folds (in that order) into a
   /// `Value` suitable to send to neovim.

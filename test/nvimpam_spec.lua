@@ -342,7 +342,7 @@ describe('nvimpam', function()
     command("NvimPamHighlightScreen")
     screen:expect([[
       {8:^NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
-      NODE  /        1              0.             0.5              0.                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
       {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
       {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
       {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |

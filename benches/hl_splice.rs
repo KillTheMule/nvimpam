@@ -65,6 +65,7 @@ fn bench_bufdata_create(c: &mut Criterion) {
     let mut bufdata = BufData::new(&buf);
 
     b.iter(|| {
+      bufdata.clear();
       bufdata.parse_slice(&origlines).expect("2");
     })
   });

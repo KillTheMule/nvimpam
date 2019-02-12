@@ -9,7 +9,6 @@ use crate::{
   bufdata::highlights::Highlights,
   card::{
     ges::GesType,
-    keyword::Keyword,
     line::{CondResult, Line as CardLine},
     Card,
   },
@@ -101,12 +100,7 @@ where
   type Item = ParsedLine<'a>;
 
   fn next(&mut self) -> Option<Self::Item> {
-    while let Some(pl) = self.it.next() {
-      if pl.keyword != Some(&Keyword::Comment) {
-        return Some(pl);
-      }
-    }
-    None
+    self.it.next()
   }
 }
 
@@ -345,7 +339,7 @@ mod tests {
     nocommentiter::{CommentLess, NoCommentIter},
   };
 
-  use neovim_lib::{Value, neovim_api::Buffer};
+  use neovim_lib::{neovim_api::Buffer, Value};
 
   macro_rules! pline {
     ($number:expr, $text:expr, $keyword:expr) => {
@@ -371,10 +365,13 @@ mod tests {
     ($lines:ident, $keywords:ident, $li: ident, $str:expr) => {
       $lines.parse_slice($str.as_ref());
       $keywords.parse_lines(&$lines);
-      $li = (0_usize..)
-        .map(LineNr::from_usize)
-        .zip($keywords.iter().zip($lines.iter()))
-        .map(ParsedLine::from)
+      $li = $keywords
+        .iter()
+        .zip($lines.iter())
+        .map(|((n, k), l)| {
+          assert!(*n == l.nr());
+          ParsedLine::from((k, l))
+        })
         .remove_comments()
     };
   }
@@ -660,12 +657,16 @@ mod tests {
     let mut folds = BufData::new(&buf);
     let keywords: Vec<_> = LINES_GATHER
       .iter()
+      .filter(|l| l.as_bytes()[0] != b'$' && l.as_bytes()[0] != b'#')
       .map(|l| Keyword::parse(l.as_ref()))
       .collect();
+
     let mut li = (0_usize..)
       .map(LineNr::from_usize)
-      .zip(LINES_GATHER.iter().zip(keywords.iter()))
-      .map(|(n, (t, k))| ParsedLine {
+      .zip(LINES_GATHER .iter())
+      .filter(|(_, l)| l.as_bytes()[0] != b'$' && l.as_bytes()[0] != b'#')
+      .zip(keywords.iter())
+      .map(|((n, t), k)| ParsedLine {
         number: n,
         text: t.as_ref(),
         keyword: k.as_ref(),

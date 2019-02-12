@@ -167,7 +167,7 @@ impl Highlights {
       newhls
         .0
         .into_iter()
-        .map(|((l, s, e), h)| ((l + firstline, s, e), h)),
+        .map(|((l, s, e), h)| ((l, s, e), h)),
     );
 
     if added != 0 {
@@ -349,10 +349,10 @@ mod tests {
                  [5, 0, 8, Keyword],
                  [5, 9, 16, CellOdd];
               new:
-                 [0, 0, 8, Keyword],
-                 [3, 0, 8, CellOdd],
-                 [3, 9, 16, CellEven],
-                 [3, 17, 24, CellOdd];
+                 [6, 0, 8, Keyword],
+                 [9, 0, 8, CellOdd],
+                 [9, 9, 16, CellEven],
+                 [9, 17, 24, CellOdd];
               6, 6, 4;
               expected:
                  [0, 0, 4, Keyword],
@@ -381,7 +381,7 @@ mod tests {
                  [3, 0, 8, Keyword],
                  [3, 9, 16, CellOdd];
               new:
-                 [0, 0, 8, Keyword];
+                 [1, 0, 8, Keyword];
               1, 2, 0;
               expected:
                  [0, 0, 4, Keyword],
@@ -406,10 +406,10 @@ mod tests {
                  [3, 0, 8, Keyword],
                  [3, 9, 16, CellOdd];
               new:
-                 [0, 0, 8, Keyword],
-                 [0, 9, 16, CellOdd],
                  [1, 0, 8, Keyword],
-                 [1, 9, 12, CellOdd];
+                 [1, 9, 16, CellOdd],
+                 [2, 0, 8, Keyword],
+                 [2, 9, 12, CellOdd];
               1, 2, 1;
               expected:
                  [0, 0, 4, Keyword],
@@ -438,8 +438,8 @@ mod tests {
                  [3, 9, 16, CellOdd],
                  [4, 0, 8, Keyword];
               new:
-                 [0, 0, 8, Keyword],
-                 [0, 9, 16, CellOdd];
+                 [2, 0, 8, Keyword],
+                 [2, 9, 16, CellOdd];
               2, 4, -1;
               expected:
                  [0, 0, 4, Keyword],
@@ -463,11 +463,11 @@ mod tests {
                  [2, 0, 8, Keyword],
                  [2, 9, 16, CellOdd];
               new:
-                 [0, 0, 8, Keyword],
-                 [0, 9, 16, CellOdd],
                  [1, 0, 8, Keyword],
+                 [1, 9, 16, CellOdd],
                  [2, 0, 8, Keyword],
-                 [3, 0, 8, Keyword];
+                 [3, 0, 8, Keyword],
+                 [4, 0, 8, Keyword];
               1, 3, 2;
               expected:
                  [0, 0, 4, Keyword],

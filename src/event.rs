@@ -104,7 +104,10 @@ impl Event {
 
             let newrange = bufdata.update(firstline, lastline, linedata)?;
 
+            error!("Region_calls: newrange {:?}, firstline {:?}, lastline {:?}",
+                   newrange, firstline, lastline);
             let calls = bufdata.highlight_region_calls(newrange, firstline, lastline);
+            error!("calls: {:?}", calls);
             nvim.call_atomic(calls).context("call_atomic failed")?;
           }
         }
@@ -121,15 +124,17 @@ impl Event {
 
           let fl = bufdata.keywords.first_before(firstline);
           let mut ll = bufdata.keywords.first_after(lastline);
+          error!("Fl {:?}, Ll {:?}", fl, ll);
 
           // highlight_region is end_exclusive, so we need to make sure
           // we include the last line requested even if it is a keyword line
-          if ll == lastline {
-            ll += 1;
+          if ll.1 == lastline {
+            ll.0 += 1;
+            ll.1 += 1;
           }
-          let newrange = bufdata.highlights.linerange(fl, ll);
+          let newrange = bufdata.highlights.linerange(fl.1, ll.1);
 
-          let calls = bufdata.highlight_region_calls(newrange, fl, ll);
+          let calls = bufdata.highlight_region_calls(newrange,fl.1, ll.1);
           nvim.call_atomic(calls).context("call_atomic failed")?;
         }
         Ok(Quit) => {

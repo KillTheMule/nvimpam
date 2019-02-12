@@ -16,25 +16,52 @@ use crate::{card::keyword::Keyword, linenr::LineNr};
 /// [`LinesEvent`](::event::Event::LinesEvent)).
 #[derive(Debug, PartialEq)]
 pub enum Line<'a> {
-  OriginalLine(&'a [u8]),
-  ChangedLine(String),
+  OriginalLine(LineNr, &'a [u8]),
+  ChangedLine(LineNr, String),
 }
 
-impl<'a> AsRef<[u8]> for Line<'a> {
-  fn as_ref(&self) -> &[u8] {
+impl<'a> Line<'a> {
+  pub fn nr(&self) -> LineNr {
+    match *self {
+      Line::OriginalLine(n, _) => n,
+      Line::ChangedLine(n, _) => n,
+    }
+  }
+
+  pub fn text(&self) -> &[u8] {
+    match *self {
+      Line::OriginalLine(_, ref l) => l,
+      Line::ChangedLine(_, ref l) => l.as_ref(),
+    }
+  }
+
+  pub fn shift(&mut self, added: isize) {
     match self {
-      Line::OriginalLine(l) => l,
-      Line::ChangedLine(s) => s.as_ref(),
+      Line::OriginalLine(l, _) => *l += added,
+      Line::ChangedLine(l, _) => *l += added,
     }
   }
 }
+
+/*
+impl<'a> AsRef<[u8]> for Line<'a> {
+  fn as_ref(&self) -> &[u8] {
+    match self {
+      Line::OriginalLine(_, l) => l,
+      Line::ChangedLine(_, s) => s.as_ref(),
+    }
+  }
+}
+*/
 
 impl<'a> fmt::Display for Line<'a> {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     use self::Line::*;
     match self {
-      OriginalLine(l) => write!(f, "Line {{ {} }}", String::from_utf8_lossy(l)),
-      ChangedLine(s) => write!(f, "Line {{ {} }}", s),
+      OriginalLine(n, l) => {
+        write!(f, "Line {{ {}: '{}' }}", n, String::from_utf8_lossy(l))
+      }
+      ChangedLine(n, s) => write!(f, "Line {{ {}: '{}' }}", n, s),
     }
   }
 }
@@ -83,26 +110,46 @@ impl<'a> Lines<'a> {
 
   /// Extend a [`Lines`](::lines::Lines) struct from a `Vec<String>`
   pub fn parse_vec(&mut self, v: Vec<String>) {
-    self.0.extend(v.into_iter().map(Line::ChangedLine))
+    self.0.extend(
+      v.into_iter()
+        .enumerate()
+        .filter(|(_, s)| {
+          let first = s.as_bytes().get(0);
+          first != Some(&b'$') && first != Some(&b'#')
+        })
+        .map(|(n, s)| Line::ChangedLine(n.into(), s)),
+    )
   }
 
   /// Extend a [`Lines`](::lines::Lines) struct from a slice of `&'str`s
   pub fn parse_strs<'c: 'a>(&mut self, v: &'c [&'a str]) {
-    self
-      .0
-      .extend(v.iter().map(|l| Line::OriginalLine(l.as_ref())));
+    self.0.extend(
+      v.into_iter()
+        .enumerate()
+        .filter(|(_, s)| {
+          let first = s.as_bytes().get(0_usize);
+          first != Some(&b'$') && first != Some(&b'#')
+        })
+        .map(|(n, l)| Line::OriginalLine(n.into(), l.as_ref())),
+    );
   }
 
   /// Extend a [`Lines`](::lines::Lines) struct from a byte slice by splitting
   /// on newlines.
   pub fn parse_slice<'c: 'a>(&mut self, v: &'c [u8]) {
-    self
-      .0
-      .extend(v.split(|b| *b == b'\n').map(Line::OriginalLine));
+    self.0.extend(
+      v.split(|b| *b == b'\n')
+        .enumerate()
+        .filter(|(_, s)| {
+          let first = s.get(0_usize);
+          first != Some(&b'$') && first != Some(&b'#')
+        })
+        .map(|(n, s)| Line::OriginalLine(n.into(), s)),
+    );
 
     // If the file contains a final newline, we need to remove the empty slice
     // at the end
-    if self.0.last() == Some(&Line::OriginalLine(b"")) {
+    if let Some(&Line::OriginalLine(_, b"")) = self.0.last() {
       self.0.pop();
     }
   }
@@ -112,11 +159,25 @@ impl<'a> Lines<'a> {
   ///   * `last` is the first line that has _not_ been updated
   /// This are the exact conditions to use the range `first..last` together with
   /// `splice` on a `Vec`.
-  pub fn update(&mut self, first: LineNr, last: LineNr, linedata: Vec<String>) {
-    let range: Range<usize> = first.into()..last.into();
-    let _ = self
-      .0
-      .splice(range, linedata.into_iter().map(Line::ChangedLine));
+  pub fn update(
+    &mut self,
+    indexrange: Range<usize>,
+    first: LineNr,
+    last: LineNr,
+    linedata: Vec<String>,
+  ) {
+    let added: isize = linedata.len() as isize - (last - first);
+    for line in self.0[indexrange.end..].iter_mut() {
+      line.shift(added);
+    };
+    let range = usize::from(first)..;
+
+    let _ = self.0.splice(
+      indexrange,
+      range
+        .zip(linedata.into_iter())
+        .map(|(n, l)| Line::ChangedLine(n.into(), l)),
+    );
   }
 
   /// Return an Iterator over the lines of a file.
@@ -126,20 +187,31 @@ impl<'a> Lines<'a> {
 }
 
 /// An iterator over the `&[u8]` slices representing the lines of a file
+///
+/// TODO(KillTheMule): This might be unneccessary
 impl<'a, I> Iterator for LinesIter<'a, I>
 where
   I: Iterator<Item = &'a Line<'a>>,
 {
-  type Item = &'a [u8];
+  type Item = &'a Line<'a>;
 
   fn next(&mut self) -> Option<Self::Item> {
-    self.li.next().map(|o| o.as_ref())
+    self.li.next()
   }
 }
 
 impl<'a> From<Vec<String>> for Lines<'a> {
   fn from(v: Vec<String>) -> Lines<'a> {
-    Lines(v.into_iter().map(Line::ChangedLine).collect())
+    Lines(
+      v.into_iter()
+        .enumerate()
+        .filter(|(_, s)| {
+          let first = s.as_bytes().get(0_usize);
+          first != Some(&b'$') && first != Some(&b'#')
+        })
+        .map(|(n, l)| Line::ChangedLine(n.into(), l))
+        .collect(),
+    )
   }
 }
 
@@ -181,19 +253,31 @@ impl<'a> From<(LineNr, (&'a Option<Keyword>, &'a [u8]))> for ParsedLine<'a> {
   }
 }
 
-impl<'a> From<(LineNr, (&'a Option<Keyword>, &'a Line<'a>))>
-  for ParsedLine<'a>
-{
-  fn from(
-    (u, (k, t)): (LineNr, (&'a Option<Keyword>, &'a Line<'a>)),
-  ) -> ParsedLine<'a> {
+impl<'a> From<(&'a Option<Keyword>, &'a Line<'a>)> for ParsedLine<'a> {
+  fn from((k, l): (&'a Option<Keyword>, &'a Line<'a>)) -> ParsedLine<'a> {
     ParsedLine {
-      number: u,
-      text: t.as_ref(),
+      number: l.nr(),
+      text: l.text(),
       keyword: k.as_ref(),
     }
   }
 }
+
+/*
+impl<'a> From<(LineNr, (&'a Option<Keyword>, &'a Line<'a>))>
+  for ParsedLine<'a>
+{
+  fn from(
+    (u, (k, l)): (LineNr, (&'a Option<Keyword>, &'a Line<'a>)),
+  ) -> ParsedLine<'a> {
+    ParsedLine {
+      number: u,
+      text: l.text(),
+      keyword: k.as_ref(),
+    }
+  }
+}
+*/
 
 impl<'a> From<KeywordLine<'a>> for ParsedLine<'a> {
   fn from(kl: KeywordLine<'a>) -> ParsedLine<'a> {
@@ -259,10 +343,10 @@ mod tests {
     let mut l = Lines::new();
     l.parse_slice(LINES.as_ref());
 
-    l.update(1.into(), 7.into(), Vec::new());
+    l.update(1..7, 1.into(), 7.into(), Vec::new());
 
-    assert_eq!(l.0[0], OriginalLine(b"This"));
-    assert_eq!(l.0[1], OriginalLine(b"."));
+    assert_eq!(l.0[0], OriginalLine(0_usize.into(), b"This"));
+    assert_eq!(l.0[1], OriginalLine(1_usize.into(), b"."));
     assert_eq!(l.len(), 2);
   }
 
@@ -276,11 +360,13 @@ mod tests {
       "blaaargl".to_string(),
     ];
 
-    l.update(2.into(), 2.into(), newlines);
+    eprintln!("before: {}", l);
+    l.update(2..2, 2.into(), 2.into(), newlines);
+    eprintln!("after: {}", l);
 
-    assert_eq!(l.0[1], OriginalLine(b"is "));
-    assert_eq!(l.0[2], ChangedLine("haaargl".to_string()));
-    assert_eq!(l.0[5], OriginalLine(b"an "));
+    assert_eq!(l.0[1], OriginalLine(1_usize.into(), b"is "));
+    assert_eq!(l.0[2], ChangedLine(2_usize.into(), "haaargl".to_string()));
+    assert_eq!(l.0[5], OriginalLine(5_usize.into(), b"an "));
     assert_eq!(l.len(), 11);
   }
 
@@ -294,11 +380,11 @@ mod tests {
       "blaaargl".to_string(),
     ];
 
-    l.update(1.into(), 7.into(), newlines);
+    l.update(1..7, 1.into(), 7.into(), newlines);
 
-    assert_eq!(l.0[0], OriginalLine(b"This"));
-    assert_eq!(l.0[3], ChangedLine("blaaargl".to_string()));
-    assert_eq!(l.0[4], OriginalLine(b"."));
+    assert_eq!(l.0[0], OriginalLine(0_usize.into(), b"This"));
+    assert_eq!(l.0[3], ChangedLine(3_usize.into(), "blaaargl".to_string()));
+    assert_eq!(l.0[4], OriginalLine(4_usize.into(), b"."));
     assert_eq!(l.len(), 5);
   }
 
@@ -308,6 +394,7 @@ mod tests {
     let mut l = Lines::new();
     l.parse_slice(&v);
     let f = OriginalLine(
+      0_usize.into(),
       b"//! This module holds the datastructure for the Lines of the \
              buffer.",
     );
