@@ -136,21 +136,21 @@ impl<'a> BufData<'a> {
     let added: isize = linedata.len() as isize - (lastline - firstline);
     self.lines.update(firstline, lastline, linedata);
 
-    let firstidx = self.lines.first_before(firstline).0;
-    let mut lastidx = self.lines.first_after(lastline + added).0;
+    let first = self.lines.first_before(firstline);
+    let mut last = self.lines.first_after(lastline + added);
     // If lastline was the last line of the file, we need to up the index by 1
     // to include the line
     if self.lines.len() == (lastline + added).into() {
-      lastidx += 1;
+      last = (last.0 +1, lastline+added);
     }
 
     let mut newhls = Highlights::new();
     let mut newfolds = Folds::new();
 
-    let li = LinesIter::new(self.lines[firstidx..lastidx].iter());
+    let li = LinesIter::new(self.lines[first.0..last.0].iter());
 
     BufData::parse_from_iter(&mut newhls, &mut newfolds, li)?;
-    self.folds.splice(newfolds, firstline, lastline, added);
+    self.folds.splice(newfolds, first.1, last.1, added);
     self.folds_level2.recreate_level2(&self.folds)?;
     Ok(self.highlights.splice(newhls, firstline, lastline, added))
   }
