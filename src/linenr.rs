@@ -90,6 +90,13 @@ impl AddAssign<isize> for LineNr {
   }
 }
 
+impl AddAssign<LineNr> for LineNr {
+  fn add_assign(&mut self, other: LineNr) {
+    self.0 += other.0;
+    debug_assert!(self.0 <= i32::MAX as u32);
+  }
+}
+
 impl fmt::Display for LineNr {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{}", self.0)

@@ -6,7 +6,6 @@ use std::{cmp, ops::Range};
 use atoi::atoi;
 
 use crate::{
-  bufdata::highlights::{HlIter, HlLine},
   card::{cell::Cell, ges::GesType, keyword::Keyword},
 };
 
@@ -65,6 +64,7 @@ impl Line {
     }
   }
 
+  /*
   /// Return an iterator over the highlight of a line. The `text` is
   /// parsed in the process to potentially highlight errors.
   pub fn highlights<'a>(&'a self, text: &'a [u8]) -> HlIter<'a> {
@@ -74,6 +74,7 @@ impl Line {
     }
     .into_iter()
   }
+  */
 }
 
 /// An enum to represent different conditionals on lines

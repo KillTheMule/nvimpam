@@ -6,17 +6,19 @@ pub mod highlights;
 
 use std::ops::Range;
 
-use failure::{Error, ResultExt};
+use failure::Error;
 
-use neovim_lib::{neovim_api::Buffer, Neovim, NeovimApi, Value};
+use neovim_lib::{neovim_api::Buffer, Value};
 
 use crate::{
   bufdata::{folds::Folds, highlights::Highlights},
-  card::keyword::Keywords,
   linenr::LineNr,
   lines::{Lines, ParsedLine},
-  nocommentiter::{CommentLess, NoCommentIter},
+  linesiter::LinesIter,
 };
+
+#[cfg(test)]
+use crate::card::keyword::Keyword;
 
 macro_rules! unwrap_or_ok {
   ($option:expr) => {
@@ -40,15 +42,13 @@ pub struct BufData<'a> {
   /// The buffer the plugin is attached to
   buf: &'a Buffer,
   /// The lines of the buffer
-  pub lines: Lines<'a>,
-  /// The keywords of the buffer as parsed from the lines.
-  pub keywords: Keywords,
+  lines: Lines<'a>,
   /// The level 1 folds.
-  pub folds: Folds,
+  folds: Folds,
   /// The level 2 folds.
-  pub folds_level2: Folds,
+  folds_level2: Folds,
   /// The highlights of the buffer
-  pub highlights: Highlights,
+  highlights: Highlights,
 }
 
 impl<'a> BufData<'a> {
@@ -60,7 +60,6 @@ impl<'a> BufData<'a> {
     BufData {
       buf,
       lines: Lines::new(),
-      keywords: Keywords::new(),
       folds: Folds::new(),
       folds_level2: Folds::new(),
       highlights: Highlights::new(),
@@ -69,7 +68,6 @@ impl<'a> BufData<'a> {
 
   pub fn clear(&mut self) {
     self.lines.clear();
-    self.keywords.clear();
     self.folds.clear();
     self.folds_level2.clear();
     self.highlights.clear();
@@ -81,7 +79,6 @@ impl<'a> BufData<'a> {
   /// Assumes the `BufData` was empty before.
   pub fn parse_slice<'c: 'a>(&mut self, v: &'c [u8]) -> Result<(), Error> {
     self.lines.parse_slice(v);
-    self.keywords.parse_lines(&self.lines);
     self.regenerate()?;
 
     Ok(())
@@ -93,7 +90,6 @@ impl<'a> BufData<'a> {
   /// Assumes the `BufData` was empty before.
   pub fn parse_vec(&mut self, v: Vec<String>) -> Result<(), Error> {
     self.lines.parse_vec(v);
-    self.keywords.parse_lines(&self.lines);
     self.regenerate()?;
 
     Ok(())
@@ -105,7 +101,6 @@ impl<'a> BufData<'a> {
   /// Assumes the `BufData` was empty before.
   pub fn parse_strs<'c: 'a>(&mut self, v: &'c [&'a str]) -> Result<(), Error> {
     self.lines.parse_strs(v);
-    self.keywords.parse_lines(&self.lines);
     self.regenerate()?;
 
     Ok(())
@@ -139,26 +134,24 @@ impl<'a> BufData<'a> {
     linedata: Vec<String>,
   ) -> Result<Range<usize>, Error> {
     let added: isize = linedata.len() as isize - (lastline - firstline);
-    let indexrange = self.keywords.update(firstline, lastline, &linedata);
-    self.lines.update(indexrange, firstline, lastline, linedata);
+    self.lines.update(firstline, lastline, linedata);
 
-    let first = self.keywords.first_before(firstline);
-    let last = self.keywords.first_after(lastline + added);
-    let mut newhls = Highlights::default();
-    let mut newfolds = Folds::default();
+    let firstidx = self.lines.first_before(firstline).0;
+    let mut lastidx = self.lines.first_after(lastline + added).0;
+    // If lastline was the last line of the file, we need to up the index by 1
+    // to include the line
+    if self.lines.len() == (lastline + added).into() {
+      lastidx += 1;
+    }
 
-    let li = self.keywords[first.0..last.0]
-      .iter()
-      .zip(self.lines[first.0..last.0].iter())
-      .map(|((n, k), l)| {
-        debug_assert!(*n == l.nr());
-        ParsedLine::from((k, l))
-      })
-      .remove_comments();
+    let mut newhls = Highlights::new();
+    let mut newfolds = Folds::new();
+
+    let li = LinesIter::new(self.lines[firstidx..lastidx].iter());
 
     BufData::parse_from_iter(&mut newhls, &mut newfolds, li)?;
     self.folds.splice(newfolds, firstline, lastline, added);
-    let _ = self.folds_level2.recreate_level2(&self.folds);
+    self.folds_level2.recreate_level2(&self.folds)?;
     Ok(self.highlights.splice(newhls, firstline, lastline, added))
   }
 
@@ -168,29 +161,20 @@ impl<'a> BufData<'a> {
   ///
   /// TODO(KillTheMule): Can we merge this with update?
   pub fn parse_lines(&mut self) -> Result<(), Error> {
-    debug_assert!(self.keywords.len() == self.lines.len());
-    let li = self
-      .keywords
-      .iter()
-      .zip(self.lines.iter())
-      .map(|((n, k), l)| {
-        debug_assert!(*n == l.nr());
-        ParsedLine::from((k, l))
-      })
-      .remove_comments();
+    let li = self.lines.iter();
 
     BufData::parse_from_iter(&mut self.highlights, &mut self.folds, li)
   }
 
   /// Iterate over a [`NoCommentIter`](::nocommentiter::NoCommentIter) and add
   /// the highlights and folds to the given structures.
-  pub fn parse_from_iter<'b, I>(
+  fn parse_from_iter<'b, I>(
     highlights: &mut Highlights,
     folds: &mut Folds,
-    mut li: NoCommentIter<I>,
+    mut li: LinesIter<'b, I>,
   ) -> Result<(), Error>
   where
-    I: Iterator<Item = ParsedLine<'b>>,
+    I: Iterator<Item = &'b ParsedLine<'b>>,
   {
     let mut foldstart;
     let mut foldend;
@@ -207,7 +191,7 @@ impl<'a> BufData<'a> {
       // The latter only happens when a file ends after the only line of a card
       foldend = skipped.skip_end;
 
-      folds.checked_insert(foldstart, foldend, *foldkw)?;
+      folds.checked_insert(foldstart, foldend, foldkw)?;
 
       if let Some(Some(kl)) =
         skipped.nextline.map(|pl| pl.try_into_keywordline())
@@ -219,46 +203,45 @@ impl<'a> BufData<'a> {
     }
   }
 
+  pub fn hl_linerange(&self, first: LineNr, last: LineNr) -> Range<usize> {
+    self.highlights.linerange(first, last)
+  }
+
+  pub fn first_before(&self, line: LineNr) -> (usize, LineNr) {
+    self.lines.first_before(line)
+  }
+
+  pub fn first_after(&self, line: LineNr) -> (usize, LineNr) {
+    self.lines.first_after(line)
+  }
+
   pub fn highlight_region_calls(
     &mut self,
     indexrange: Range<usize>,
     firstline: LineNr,
     lastline: LineNr,
   ) -> Vec<Value> {
-    crate::bufdata::highlights::highlight_region_calls(
-      self.highlights.indexrange(indexrange),
-      &self.buf,
-      firstline,
-      lastline,
-    )
+    self
+      .highlights
+      .highlight_region_calls(&self.buf, indexrange, firstline, lastline)
   }
 
   /// Pack up all existing level 1 and level 2 folds (in that order) into a
   /// `Value` suitable to send to neovim.
-  pub fn packup_all_folds(&self) -> Value {
-    let mut luaargs = vec![];
-
-    for (range, (_, text)) in self.folds.iter().chain(self.folds_level2.iter())
-    {
-      luaargs.push(Value::from(vec![
-        Value::from(range[0] + 1),
-        Value::from(range[1] + 1),
-        Value::from(text.to_string()),
-      ]));
-    }
-
-    Value::from(luaargs)
+  pub fn fold_calls(&self) -> Value {
+    Value::from(vec![
+      self.folds.fold_calls(),
+      self.folds_level2.fold_calls(),
+    ])
   }
 
-  /// Delete all folds in nvim, and create the ones from the `BufData`.
-  pub fn resend_all_folds(&self, nvim: &mut Neovim) -> Result<(), Error> {
-    let luafn = "require('nvimpam').update_folds(...)";
-    let foldvalue = self.packup_all_folds();
+  #[cfg(test)]
+  pub fn folds_to_vec(&self) -> Vec<(usize, usize, Keyword)> {
+    self.folds.to_vec()
+  }
 
-    nvim
-      .execute_lua(luafn, vec![foldvalue])
-      .context("Execute lua failed")?;
-
-    Ok(())
+  #[cfg(test)]
+  pub fn folds_level2_to_vec(&self) -> Vec<(usize, usize, Keyword)> {
+    self.folds_level2.to_vec()
   }
 }

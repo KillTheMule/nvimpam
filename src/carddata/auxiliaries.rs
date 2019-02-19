@@ -1,21 +1,16 @@
 //! This modules holds the the global static auxiliary [`Card`](::card::Card)
 //! instances.
 use crate::card::{
-  cell::{Cell::*, FixedStr}, ges::GesType::*, keyword::Keyword::*, line::Line::*, Card,
+  cell::Cell::*, ges::GesType::*, keyword::Keyword::*, line::Line::*, Card,
 };
 
-pub static GROUP: Card = Card {
+pub(crate) static GROUP: Card = Card {
   lines: &[
     Cells(&[Kw(Group), Str(72)]),
     OptionalBlock(b"META", b"END_META"),
     Ges(GesNode),
   ],
   ownfold: true,
-};
-
-pub static COMMENT: Card = Card {
-  lines: &[Cells(&[Fixed(FixedStr::Comment)])],
-  ownfold: false,
 };
 
 #[cfg(test)]

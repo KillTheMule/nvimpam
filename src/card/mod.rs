@@ -114,7 +114,6 @@ impl<'a> From<&'a Keyword> for &'static Card {
       Keyword::Rbody3 => &RBODY3,
       // Auxiliaries
       Keyword::Group => &GROUP,
-      Keyword::Comment => &COMMENT,
     }
   }
 }

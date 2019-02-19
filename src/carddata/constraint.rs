@@ -8,7 +8,7 @@ use crate::card::{
   Card,
 };
 
-pub static MTOCO: Card = Card {
+pub(crate) static MTOCO: Card = Card {
   lines: &[
     Provides(
       &[
@@ -44,7 +44,7 @@ pub static MTOCO: Card = Card {
   ownfold: true,
 };
 
-pub static OTMCO: Card = Card {
+pub(crate) static OTMCO: Card = Card {
   lines: &[
     Cells(&[
       Kw(Otmco),
@@ -67,7 +67,7 @@ pub static OTMCO: Card = Card {
   ownfold: true,
 };
 
-pub static RBODY0: Card = Card {
+pub(crate) static RBODY0: Card = Card {
   lines: &[
     Cells(&[
       Kw(Rbody0),
@@ -88,7 +88,7 @@ pub static RBODY0: Card = Card {
   ownfold: true,
 };
 
-pub static RBODY1: Card = Card {
+pub(crate) static RBODY1: Card = Card {
   lines: &[
     Cells(&[
       Kw(Rbody1),
@@ -120,7 +120,7 @@ pub static RBODY1: Card = Card {
   ownfold: true,
 };
 
-pub static RBODY2: Card = Card {
+pub(crate) static RBODY2: Card = Card {
   lines: &[
     Cells(&[
       Kw(Rbody2),
@@ -150,7 +150,7 @@ pub static RBODY2: Card = Card {
   ownfold: true,
 };
 
-pub static RBODY3: Card = Card {
+pub(crate) static RBODY3: Card = Card {
   lines: &[
     Cells(&[
       Kw(Rbody3),

@@ -34,10 +34,16 @@ local function printfolds(which)
 end
 
 local function update_folds(texts)
-  foldtexts = texts
+  foldtexts = texts[1]
 
   local cmd = 'exe "norm! zE"'
-  for _, v in ipairs(foldtexts) do
+  -- The level 1 folds
+  for _, v in ipairs(texts[1]) do
+    cmd = cmd.."|"..v[1]..","..v[2].."fo" 
+  end
+  -- The level 2 folds
+  for _, v in ipairs(texts[2]) do
+    table.insert(foldtexts, v)
     cmd = cmd.."|"..v[1]..","..v[2].."fo" 
   end
   command(cmd)

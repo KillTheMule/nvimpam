@@ -8,7 +8,7 @@ use crate::card::{
   Card,
 };
 
-pub static NODE: Card = Card {
+pub(crate) static NODE: Card = Card {
   lines: &[Cells(&[
     Kw(Node),
     Integer(8),
@@ -19,7 +19,7 @@ pub static NODE: Card = Card {
   ownfold: false,
 };
 
-pub static CNODE: Card = Card {
+pub(crate) static CNODE: Card = Card {
   lines: &[Cells(&[
     Kw(Cnode),
     Integer(8),
@@ -30,7 +30,7 @@ pub static CNODE: Card = Card {
   ownfold: false,
 };
 
-pub static MASS: Card = Card {
+pub(crate) static MASS: Card = Card {
   lines: &[
     Cells(&[
       Kw(Mass),
@@ -52,7 +52,7 @@ pub static MASS: Card = Card {
   ownfold: true,
 };
 
-pub static NSMAS: Card = Card {
+pub(crate) static NSMAS: Card = Card {
   lines: &[
     Cells(&[
       Kw(Nsmas),
@@ -68,7 +68,7 @@ pub static NSMAS: Card = Card {
   ownfold: true,
 };
 
-pub static NSMAS2: Card = Card {
+pub(crate) static NSMAS2: Card = Card {
   lines: &[
     Cells(&[
       Kw(Nsmas2),

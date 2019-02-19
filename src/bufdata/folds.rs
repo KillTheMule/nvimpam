@@ -3,6 +3,7 @@ use std::collections::{btree_map::Entry, BTreeMap};
 
 use failure::Error;
 use itertools::Itertools;
+use neovim_lib::Value;
 
 use crate::{card::keyword::Keyword, linenr::LineNr};
 
@@ -13,29 +14,25 @@ use crate::{card::keyword::Keyword, linenr::LineNr};
 /// TODO(KillTheMule): Check out other data structures for this, especially wrt
 /// usage in [`splice`](::bufdata::folds::Folds::splice)
 #[derive(Default, Debug)]
-pub struct Folds(BTreeMap<[LineNr; 2], (Keyword, String)>);
+pub(super) struct Folds(BTreeMap<[LineNr; 2], (Keyword, String)>);
 
 impl Folds {
-  pub fn new() -> Self {
+  pub(super) fn new() -> Self {
     Self(BTreeMap::new())
   }
 
-  pub fn clear(&mut self) {
+  pub(super) fn clear(&mut self) {
     self.0.clear()
   }
 
-  pub fn iter(
+  pub(super) fn iter(
     &self,
   ) -> impl Iterator<Item = (&[LineNr; 2], &(Keyword, String))> {
     self.0.iter()
   }
 
-  pub fn len(&self) -> usize {
+  pub(super) fn len(&self) -> usize {
     self.0.len()
-  }
-
-  pub fn is_empty(&self) -> bool {
-    self.0.is_empty()
   }
 
   /// Insert a fold `([start, end], (Keyword, String))`.  Returns an error if
@@ -64,7 +61,7 @@ impl Folds {
   /// return an Error.  Otherwise, we call the internal insert function that
   /// returns an error if the fold is already in the list. In that case, it
   /// needs to be [removed](::bufdata::folds::Folds::remove) beforehand.
-  pub fn checked_insert(
+  pub(super) fn checked_insert(
     &mut self,
     start: LineNr,
     end: LineNr,
@@ -77,20 +74,10 @@ impl Folds {
     }
   }
 
-  /// Remove a fold [start, end]. Only checks if the fold is in `Folds`, and
-  /// returns an error otherwise.
-  pub fn remove(&mut self, start: LineNr, end: LineNr) -> Result<(), Error> {
-    self
-      .0
-      .remove(&[start, end])
-      .ok_or_else(|| failure::err_msg("Could not remove fold from foldlist"))?;
-    Ok(())
-  }
-
   /// Copy the elements of a FoldList into a Vec, containing
   /// the tuples (start, end, Keyword). Only needed for tests.
   #[cfg(test)]
-  pub fn to_vec(&self) -> Vec<(usize, usize, Keyword)> {
+  pub(crate) fn to_vec(&self) -> Vec<(usize, usize, Keyword)> {
     self
       .0
       .iter()
@@ -100,7 +87,7 @@ impl Folds {
 
   /// Recreate level 2 folds from level 1 folds. If there's no or one
   /// level 1 fold, `Ok(())` is returned.
-  pub fn recreate_level2(&mut self, folds: &Self) -> Result<(), Error> {
+  pub(super) fn recreate_level2(&mut self, folds: &Self) -> Result<(), Error> {
     self.0.clear();
 
     if folds.len() < 2 {
@@ -142,7 +129,7 @@ impl Folds {
   /// Note: The major pain point here is fusing folds at the boundary. This will
   /// stay somewhat complicated no matter what, but the code might be
   /// complicated by our use of a `HashMap`.
-  pub fn splice(
+  pub(super) fn splice(
     &mut self,
     newfolds: Self,
     firstline: LineNr,
@@ -193,6 +180,8 @@ impl Folds {
       }
 
       if lastline <= k[1] {
+        // FIXME(KillTheMule): This hould not be "lastline", but "first after"
+        // the lastline... maybe something like this before firstline?
         let _ = self.checked_insert(lastline, k[1], v);
         first_after = Some(([lastline, k[1]], v));
       }
@@ -262,6 +251,21 @@ impl Folds {
         let _ = self.insert(i[0], k2[1] + added, v2);
       }
     }
+  }
+
+  pub(super) fn fold_calls(&self) -> Value {
+    let mut luaargs = vec![];
+
+    for (range, (_, text)) in self.iter()
+    {
+      luaargs.push(Value::from(vec![
+        Value::from(range[0] + 1),
+        Value::from(range[1] + 1),
+        Value::from(text.to_string()),
+      ]));
+    }
+
+    Value::from(luaargs)
   }
 }
 

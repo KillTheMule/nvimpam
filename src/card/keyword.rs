@@ -7,16 +7,10 @@
 //! Also provides the [`Keywords`](::card::keyword::Keywords) struct to hold the
 //! keywords of a [`Lines`](::lines::Lines) struct. Supposed to be kept in sync
 //! via [`Keywords::update`](::card::keyword::Keywords::update).
-use crate::{
-  linenr::LineNr,
-  lines::{Line, Lines},
-};
-use std::ops::{Deref, Range};
 
 /// An enum to denote the several types of cards a line might belong to.
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Keyword {
-  Comment,
   // Node
   Node,
   Cnode,
@@ -114,7 +108,7 @@ impl Keyword {
     if len == 0 {
       None
     } else if s[0] == b'#' || s[0] == b'$' {
-      Some(Comment)
+      None
     } else if len < 8 {
       None
     } else {
@@ -335,163 +329,4 @@ impl Keyword {
       }
     }
   }
-}
-
-/// The [`Keywords`](::card::keyword::Keywords) struct to hold the keywords of a
-/// [`Lines`](::lines::Lines) struct. Supposed to be kept in sync via
-/// [`Keywords::update`](::card::keyword::Keywords::update).
-#[derive(Debug, Default)]
-pub struct Keywords(Vec<(LineNr, Option<Keyword>)>);
-
-impl Keywords {
-  pub fn new() -> Self {
-    Self(vec![])
-  }
-
-  pub fn clear(&mut self) {
-    self.0.clear()
-  }
-
-  /// Extend a [`Keywords`](::card::keyword::Keywords) struct by parsing a
-  /// [`Lines`](::lines::Lines) struct.
-  pub fn parse_lines(&mut self, lines: &Lines) {
-    self.0.extend(lines.iter().map(|o| match o {
-      Line::OriginalLine(n, l) => (*n, Keyword::parse(l)),
-      Line::ChangedLine(n, l) => (*n, Keyword::parse(l.as_ref())),
-    }))
-  }
-
-  /// Update a [`Keywords`](::card::keyword::Keywords) struct by parsing a
-  /// `Vec<String>` and splicing in the result on the range `first..last`.
-  ///
-  /// TODO(KillTheMule): Find a better solution than to parse that again
-  pub fn update(
-    &mut self,
-    first: LineNr,
-    last: LineNr,
-    linedata: &[String],
-  ) -> Range<usize> {
-    let firstindex = self.linenr_to_index(first);
-    let lastindex = self.linenr_to_index(last);
-
-    let range = usize::from(first)..;
-    let indexrange = firstindex..lastindex;
-
-    let added: isize = linedata.len() as isize - (last - first);
-    for kw in self.0[lastindex..].iter_mut() {
-      kw.0 += added;
-    };
-
-    let _ = self.0.splice(
-      indexrange.clone(),
-      range
-        .zip(linedata.iter())
-        .filter(|(_, s)| {
-          let first = s.as_bytes().get(0_usize);
-          first != Some(&b'$') && first != Some(&b'#')
-        })
-        .map(|(n, l)| (n.into(), Keyword::parse(l.as_ref()))),
-    );
-
-    indexrange
-  }
-
-  pub fn linenr_to_index(&self, line: LineNr) -> usize {
-    self
-      .0
-      .binary_search_by_key(&line, |(n, _)| *n)
-      .unwrap_or_else(|e| e)
-  }
-
-  // TODO(KillTheMule): Efficient? This is called a lot ...
-  /// Find the index of the first line that starts with a non-comment keyword
-  /// before the line with the given number. If the line with the given number
-  /// itself starts with a non-comment keyword, its index is returned.
-  pub fn first_before(&self, line: LineNr) -> (usize, LineNr) {
-    let zero_lnr: LineNr = 0_usize.into();
-    let line_index = self.linenr_to_index(line);
-    let first_lnr = self.get(0).map(|(n, _)| n).unwrap_or(&zero_lnr);
-    self
-      .get(..=line_index)
-      .unwrap_or(&[])
-      .iter()
-      .enumerate()
-      .rfind(|(_, (_, k))| k.is_some())
-      .map(|(i, (n, _))| (i, *n))
-      .unwrap_or((0, *first_lnr))
-  }
-
-  // TODO(KillTheMule): Efficient? This is called a lot ...
-  /// Find the index of the next line that starts with a non-comment keyword
-  /// after the line with the given number. If the line with the given number
-  /// itself starts with a non-comment keyword, its index is returned.
-  pub fn first_after(&self, line: LineNr) -> (usize, LineNr) {
-    let to_skip = self.linenr_to_index(line);
-    let len = self.len();
-    if len > 0 {
-      let last_lnr = self[len-1].0;
-      self
-        .iter()
-        .enumerate()
-        .skip(to_skip)
-        .find(|(_, (_, k))| k.is_some())
-        .map(|(i, (n, _))| (i, *n))
-        .unwrap_or((len-1, last_lnr))
-    } else {
-      // TODO(KillTheMule): This is wrong, return an Option
-      (0_usize, 0_usize.into())
-    }
-  }
-}
-
-impl Deref for Keywords {
-  type Target = [(LineNr, Option<Keyword>)];
-
-  fn deref(&self) -> &[(LineNr, Option<Keyword>)] {
-    &self.0
-  }
-}
-
-#[cfg(test)]
-mod tests {
-  use crate::{
-    card::keyword::{Keyword::*, Keywords},
-    linenr::LineNr,
-  };
-
-  #[test]
-  fn first() {
-    let kw = Keywords(vec![
-      (0_usize.into(), None),
-      (1_usize.into(), None),
-      (2_usize.into(), Some(Node)),
-      (3_usize.into(), None),
-      (4_usize.into(), None),
-      (6_usize.into(), Some(Node)),
-      (8_usize.into(), None),
-    ]);
-
-    assert_eq!(LineNr::from_usize(2), kw.first_before(2.into()).1);
-    assert_eq!(LineNr::from_usize(2), kw.first_after(2.into()).1);
-
-    assert_eq!(LineNr::from_usize(2), kw.first_before(4.into()).1);
-    assert_eq!(LineNr::from_usize(6), kw.first_after(4.into()).1);
-
-    assert_eq!(LineNr::from_usize(0), kw.first_before(1.into()).1);
-    assert_eq!(LineNr::from_usize(8), kw.first_after(7.into()).1);
-  }
-
-  #[test]
-  fn first_oneline() {
-    let mut kw = Keywords(vec![(0_usize.into(), Some(Node))]);
-    assert_eq!(LineNr::from_usize(0), kw.first_before(0.into()).1);
-    assert_eq!(LineNr::from_usize(0), kw.first_after(0.into()).1);
-
-    kw = Keywords(vec![(0_usize.into(), Some(Comment))]);
-    assert_eq!(LineNr::from_usize(0), kw.first_before(0.into()).1);
-    assert_eq!(LineNr::from_usize(0), kw.first_after(0.into()).1);
-    assert_eq!(LineNr::from_usize(0), kw.first_before(1.into()).1);
-    assert_eq!(LineNr::from_usize(0), kw.first_after(1.into()).1);
-  }
-
 }

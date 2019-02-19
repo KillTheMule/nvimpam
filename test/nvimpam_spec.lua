@@ -413,7 +413,6 @@ describe('nvimpam', function()
     command('set ft=pamcrash')
     command('NvimPamAttach')
     helpers.sleep(10)
-
     command(":7,9s/^SHELL/NODE ")
     feed("1G")
     sleep(10)

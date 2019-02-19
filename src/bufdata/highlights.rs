@@ -1,7 +1,7 @@
 //! The highlight module
 use std::{self, cmp, convert::From, ops::Range};
 
-use neovim_lib::{Value, neovim_api::Buffer};
+use neovim_lib::{neovim_api::Buffer, Value};
 
 use crate::{
   bufdata::highlights::HighlightGroup as Hl,
@@ -11,7 +11,7 @@ use crate::{
 
 /// An enum to denote the nvim highlight groups within nvimpam
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
-pub enum HighlightGroup {
+pub(crate) enum HighlightGroup {
   CellEven,
   CellOdd,
   ErrorCellEven,
@@ -33,40 +33,12 @@ impl From<HighlightGroup> for &'static str {
   }
 }
 
-/// A struct for a line that should get highlighting applied to it. Its main use
-/// is as an `Iterator` over the highlights of that line. Note that highlighting
-/// stops at column 81, since no line in a pamcrash file can be longer than that
-/// and be valid.
-#[derive(Debug)]
-pub struct HlLine<'a> {
-  pub cardline: &'a CardLine,
-  pub text: &'a [u8],
-}
-
-impl<'a> IntoIterator for HlLine<'a> {
-  type Item = ((u8, u8), Hl);
-  type IntoIter = HlIter<'a>;
-
-  fn into_iter(self) -> Self::IntoIter {
-    // We only highlight until column 81
-    #![allow(clippy::cast_possible_truncation)]
-    let linelen = cmp::min(self.text.len(), 81) as u8;
-    let cells = self.cardline.cells().unwrap_or(&[]).iter();
-
-    HlIter {
-      line: self,
-      linelen,
-      until: 0,
-      odd: false,
-      cells,
-    }
-  }
-}
-
 /// The Iterator for a [`HlLine`](::bufdata::highlights::HlLine).
 #[derive(Debug)]
-pub struct HlIter<'a> {
-  line: HlLine<'a>,
+struct HlIter<'a> {
+  num: LineNr,
+  cardline: &'a CardLine,
+  text: &'a [u8],
   linelen: u8,
   until: u8,
   odd: bool,
@@ -74,7 +46,7 @@ pub struct HlIter<'a> {
 }
 
 impl<'a> Iterator for HlIter<'a> {
-  type Item = ((u8, u8), Hl);
+  type Item = ((LineNr, u8, u8), Hl);
 
   fn next(&mut self) -> Option<Self::Item> {
     if self.until >= self.linelen {
@@ -94,26 +66,25 @@ impl<'a> Iterator for HlIter<'a> {
     self.odd = !odd;
 
     if let Cell::Kw(_) = cell {
-      Some(((range.start, range.end), Hl::Keyword))
+      Some(((self.num, range.start, range.end), Hl::Keyword))
     } else {
       match self
-        .line
         .text
         .get(range.start as usize..range.end as usize)
         .map(|s| cell.verify(s))
       {
         Some(true) => {
           if odd {
-            Some(((range.start, range.end), Hl::CellEven))
+            Some(((self.num, range.start, range.end), Hl::CellEven))
           } else {
-            Some(((range.start, range.end), Hl::CellOdd))
+            Some(((self.num, range.start, range.end), Hl::CellOdd))
           }
         }
         Some(false) => {
           if odd {
-            Some(((range.start, range.end), Hl::ErrorCellEven))
+            Some(((self.num, range.start, range.end), Hl::ErrorCellEven))
           } else {
-            Some(((range.start, range.end), Hl::ErrorCellOdd))
+            Some(((self.num, range.start, range.end), Hl::ErrorCellOdd))
           }
         }
         None => None,
@@ -127,14 +98,14 @@ impl<'a> Iterator for HlIter<'a> {
 ///
 /// TODO(KillTheMule): Don't expose the internal `Vec`
 #[derive(Default, Debug)]
-pub struct Highlights(pub Vec<((LineNr, u8, u8), Hl)>);
+pub(crate) struct Highlights(Vec<((LineNr, u8, u8), Hl)>);
 
 impl Highlights {
-  pub fn clear(&mut self) {
+  pub(super) fn clear(&mut self) {
     self.0.clear()
   }
 
-  pub fn new() -> Self {
+  pub(crate) fn new() -> Self {
     Self(Vec::new())
   }
 
@@ -143,7 +114,7 @@ impl Highlights {
   /// range of indices with new highlight entries (note that all the elements
   /// above that range have been modified, as their line numbers had to be
   /// shifted).
-  pub fn splice(
+  pub(super) fn splice(
     &mut self,
     newhls: Self,
     firstline: LineNr,
@@ -164,10 +135,7 @@ impl Highlights {
     let num_new = newhls.0.len();
     let _ = self.0.splice(
       start..end,
-      newhls
-        .0
-        .into_iter()
-        .map(|((l, s, e), h)| ((l, s, e), h)),
+      newhls.0.into_iter().map(|((l, s, e), h)| ((l, s, e), h)),
     );
 
     if added != 0 {
@@ -179,44 +147,34 @@ impl Highlights {
     start..(start + num_new)
   }
 
-  /// Add a highlight by pushing it to the end of the `Vec`. Be sure that the
-  /// order of the `Vec` is not destroyed by this!
-  pub fn add_highlight(&mut self, line: LineNr, start: u8, end: u8, typ: Hl) {
-    self.0.push(((line, start, end), typ));
-  }
-
   /// Add the highlights of a line by pushing them to the end of the `Vec`. Be
   /// sure that the order of the `Vec` is not destroyed by this!
   #[inline]
-  pub fn add_line_highlights<T>(&mut self, num: LineNr, it: T)
-  where
-    T: IntoIterator<Item = ((u8, u8), Hl)>,
-  {
-    self
-      .0
-      .extend(it.into_iter().map(|((s, e), h)| ((num, s, e), h)));
-  }
-
-  pub fn iter(&self) -> impl Iterator<Item = (&(LineNr, u8, u8), &Hl)> {
-    self.0.iter().map(|(ref a, ref b)| (a, b))
-  }
-
-  /// Return an iterator over the highlights of the lines with index (in the
-  /// internal `Vec`) in the range `firstline..lastline`.
-  pub fn indexrange(
-    &self,
-    range: Range<usize>,
-  ) -> impl Iterator<Item = (&(LineNr, u8, u8), &Hl)> {
-    self.0[range].iter().map(|(ref a, ref b)| (a, b))
+  pub(crate) fn add_line_highlights(
+    &mut self,
+    num: LineNr,
+    text: &[u8],
+    cardline: &CardLine,
+  ) {
+    // We only highlight until column 81
+    #![allow(clippy::cast_possible_truncation)]
+    let linelen = cmp::min(text.len(), 81) as u8;
+    let cells = cardline.cells().unwrap_or(&[]).iter();
+    let it = HlIter {
+      num,
+      cardline,
+      text,
+      linelen,
+      until: 0,
+      odd: false,
+      cells,
+    };
+    self.0.extend(it);
   }
 
   /// Return an iterator over the highlights of the lines with linenumber in the
   /// range `firstline..lastline`.
-  pub fn linerange(
-    &self,
-    firstline: LineNr,
-    lastline: LineNr,
-  ) -> Range<usize> {
+  pub(super) fn linerange(&self, firstline: LineNr, lastline: LineNr) -> Range<usize> {
     let start = self
       .0
       .binary_search_by_key(&(firstline, 0), |&((l, s, _), _)| (l, s))
@@ -230,56 +188,59 @@ impl Highlights {
 
     start..end
   }
-}
 
-/// Send the lighlights from the passed Iterator to neovim. All the highlights
-/// in the linerange `firstline..lastline` are cleared beforehand.
-///
-/// TODO(KillTheMule): efficient?
-/// TODO(KillTheMule): This should be a method on `BufData`
-pub fn highlight_region_calls<'a, 'b, 'c, I>(
-  iter: I,
-  buf: &Buffer,
-  firstline: LineNr,
-  lastline: LineNr,
-) -> Vec<Value>
-where
-  I: Iterator<Item = (&'b (LineNr, u8, u8), &'b Hl)>,
-{
-  let mut calls: Vec<Value> = vec![];
+  /// Send the lighlights from the passed Iterator to neovim. All the highlights
+  /// in the linerange `firstline..lastline` are cleared beforehand.
+  ///
+  /// TODO(KillTheMule): efficient?
+  /// TODO(KillTheMule): This should be a method on `BufData`
+  pub(super) fn highlight_region_calls(
+    &self,
+    buf: &Buffer,
+    indexrange: Range<usize>,
+    firstline: LineNr,
+    lastline: LineNr,
+  ) -> Vec<Value> {
+    let mut calls: Vec<Value> = vec![];
 
-  calls.push(
-    vec![
-      Value::from("nvim_buf_clear_highlight".to_string()),
+    calls.push(
       vec![
-        buf.get_value().clone(),
-        Value::from(5),
-        Value::from(firstline),
-        Value::from(lastline),
+        Value::from("nvim_buf_clear_highlight".to_string()),
+        vec![
+          buf.get_value().clone(),
+          Value::from(5),
+          Value::from(firstline),
+          Value::from(lastline),
+        ]
+        .into(),
       ]
       .into(),
-    ]
-    .into(),
-  );
+    );
 
-  calls.extend(iter.map(|((l, s, e), t)| {
-    let st: &'static str = (*t).into();
-    vec![
-      Value::from("nvim_buf_add_highlight".to_string()),
+    calls.extend(self.0[indexrange].iter().map(|((l, s, e), t)| {
+      let st: &'static str = (*t).into();
       vec![
-        buf.get_value().clone(),
-        Value::from(5),
-        Value::from(st.to_string()),
-        Value::from(*l),
-        Value::from(u64::from(*s)),
-        Value::from(u64::from(*e)),
+        Value::from("nvim_buf_add_highlight".to_string()),
+        vec![
+          buf.get_value().clone(),
+          Value::from(5),
+          Value::from(st.to_string()),
+          Value::from(*l),
+          Value::from(u64::from(*s)),
+          Value::from(u64::from(*e)),
+        ]
+        .into(),
       ]
-      .into(),
-    ]
-    .into()
-  }));
+      .into()
+    }));
 
-  calls
+    calls
+  }
+
+  #[cfg(test)]
+  pub(crate) fn add_highlight(&mut self, line: LineNr, start: u8, end: u8, hl: Hl) {
+    self.0.push(((line, start, end), hl))
+  }
 }
 
 #[cfg(test)]
@@ -304,7 +265,7 @@ macro_rules! splicetest {
       h.splice(h1, LineNr::from_usize($first), LineNr::from_usize($last), $added);
       let v = vec![$( (LineNr::from_usize($lll), $($g),+ ),)+];
 
-      let w:Vec<_> = h.iter().map(|((l, s, e), h)| (*l, *s, *e, *h)).collect();
+      let w:Vec<_> = h.0.iter().map(|((l, s, e), h)| (*l, *s, *e, *h)).collect();
       assert_eq!(v, w);
     }
   };
@@ -529,7 +490,7 @@ mod tests {
     ];
 
     // this is not a trivial test, it ascertains the iteration order
-    let w: Vec<_> = h.iter().map(|((l, s, e), h)| (*l, *s, *e, *h)).collect();
+    let w: Vec<_> = h.0.iter().map(|((l, s, e), h)| (*l, *s, *e, *h)).collect();
     assert_eq!(v, w);
   }
 

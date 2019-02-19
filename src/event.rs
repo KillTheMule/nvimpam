@@ -103,15 +103,11 @@ impl Event {
             let firstline = LineNr::from_i64(firstline);
 
             let newrange = bufdata.update(firstline, lastline, linedata)?;
-
-            error!("Region_calls: newrange {:?}, firstline {:?}, lastline {:?}",
-                   newrange, firstline, lastline);
             let calls = bufdata.highlight_region_calls(newrange, firstline, lastline);
-            error!("calls: {:?}", calls);
             nvim.call_atomic(calls).context("call_atomic failed")?;
           }
         }
-        Ok(RefreshFolds) => to_handler.send(bufdata.packup_all_folds())?,
+        Ok(RefreshFolds) => to_handler.send(bufdata.fold_calls())?,
         Ok(HighlightRegion {
           firstline,
           lastline,
@@ -122,8 +118,8 @@ impl Event {
           let lastline = LineNr::from_i64(lastline);
           let firstline = LineNr::from_i64(firstline);
 
-          let fl = bufdata.keywords.first_before(firstline);
-          let mut ll = bufdata.keywords.first_after(lastline);
+          let fl = bufdata.first_before(firstline);
+          let mut ll = bufdata.first_after(lastline);
           error!("Fl {:?}, Ll {:?}", fl, ll);
 
           // highlight_region is end_exclusive, so we need to make sure
@@ -132,7 +128,7 @@ impl Event {
             ll.0 += 1;
             ll.1 += 1;
           }
-          let newrange = bufdata.highlights.linerange(fl.1, ll.1);
+          let newrange = bufdata.hl_linerange(fl.1, ll.1);
 
           let calls = bufdata.highlight_region_calls(newrange,fl.1, ll.1);
           nvim.call_atomic(calls).context("call_atomic failed")?;
