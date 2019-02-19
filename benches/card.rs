@@ -1,5 +1,5 @@
-extern crate nvimpam_lib;
 extern crate neovim_lib;
+extern crate nvimpam_lib;
 
 #[macro_use]
 extern crate criterion;
@@ -8,21 +8,17 @@ use std::fs;
 
 use criterion::Criterion;
 
-use neovim_lib::{Value, neovim_api::Buffer};
+use neovim_lib::{neovim_api::Buffer, Value};
 
 use nvimpam_lib::{
   bufdata::BufData,
-  card::{
-    ges::GesType,
-    keyword::Keyword,
-  },
-  lines::{Lines, ParsedLine},
+  card::{ges::GesType, keyword::Keyword},
+  lines::Lines,
   linesiter::LinesIter,
-  linenr::LineNr,
 };
 
 fn bench_parse2bufdata(c: &mut Criterion) {
-  c.bench_function("card_parse2folddata", |b| {
+  c.bench_function("card_parse2bufdata", |b| {
     let origlines = fs::read("files/example.pc").expect("3.1");
 
     let buf = Buffer::new(Value::from(0_usize));

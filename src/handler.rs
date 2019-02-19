@@ -179,10 +179,7 @@ impl RequestHandler for NeovimHandler {
 
 /// Helper function to get the last argument of a `Vec<Value>` or return an
 /// error message
-fn last_arg(
-  v: &mut Vec<Value>,
-  errmsg: &'static str,
-) -> Result<Value, Error> {
+fn last_arg(v: &mut Vec<Value>, errmsg: &'static str) -> Result<Value, Error> {
   v.pop().ok_or_else(|| failure::err_msg(errmsg))
 }
 

@@ -16,7 +16,7 @@ pub enum FixedStr {
 }
 
 impl FixedStr {
-  pub fn len(&self) -> u8 {
+  pub(crate) fn len(self) -> u8 {
     use self::FixedStr::*;
     match self {
       Name => 4,

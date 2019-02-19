@@ -109,7 +109,7 @@ impl Highlights {
     Self(Vec::new())
   }
 
-  pub fn iter(&self) -> impl Iterator < Item = &((LineNr, u8, u8), Hl) > {
+  pub fn iter(&self) -> impl Iterator<Item = &((LineNr, u8, u8), Hl)> {
     self.0.iter()
   }
 
@@ -178,7 +178,11 @@ impl Highlights {
 
   /// Return an iterator over the highlights of the lines with linenumber in the
   /// range `firstline..lastline`.
-  pub(super) fn linerange(&self, firstline: LineNr, lastline: LineNr) -> Range<usize> {
+  pub(super) fn linerange(
+    &self,
+    firstline: LineNr,
+    lastline: LineNr,
+  ) -> Range<usize> {
     let start = self
       .0
       .binary_search_by_key(&(firstline, 0), |&((l, s, _), _)| (l, s))

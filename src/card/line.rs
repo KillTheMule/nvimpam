@@ -5,9 +5,7 @@ use std::{cmp, ops::Range};
 
 use atoi::atoi;
 
-use crate::{
-  card::{cell::Cell, ges::GesType, keyword::Keyword},
-};
+use crate::card::{cell::Cell, ges::GesType, keyword::Keyword};
 
 /// A line (actually, zero or more lines) inside a card in a Pamcrash input
 /// file.

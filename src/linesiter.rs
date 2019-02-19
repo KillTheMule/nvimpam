@@ -109,9 +109,7 @@ where
 
   /// Advance the iterator until meeting the first line with a keyword. If the
   /// file ends before that, return `None`.
-  pub fn skip_to_next_keyword<'b>(
-    &'b mut self,
-  ) -> Option<KeywordLine<'a>> {
+  pub fn skip_to_next_keyword<'b>(&'b mut self) -> Option<KeywordLine<'a>> {
     let mut line = None;
 
     while line.is_none() {

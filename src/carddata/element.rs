@@ -1,6 +1,11 @@
 //! This modules holds the the global static element [`Card`](::card::Card)
 //! instances.
-use crate::card::{cell::{Cell::*, FixedStr}, keyword::Keyword::*, line::Line::*, Card};
+use crate::card::{
+  cell::{Cell::*, FixedStr},
+  keyword::Keyword::*,
+  line::Line::*,
+  Card,
+};
 
 pub static SOLID: Card = Card {
   lines: &[

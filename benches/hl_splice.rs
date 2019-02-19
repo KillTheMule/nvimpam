@@ -8,19 +8,16 @@ use std::fs;
 
 use criterion::{black_box, Criterion};
 
-use neovim_lib::{Value, neovim_api::Buffer};
+use neovim_lib::{neovim_api::Buffer, Value};
 
-use nvimpam_lib::{
-  bufdata::BufData,
-  linenr::LineNr,
-};
+use nvimpam_lib::{bufdata::BufData, linenr::LineNr};
 
 macro_rules! hl_bench {
   ($fn: ident; lines: ($start: expr, $end: expr);
    spliceto: ($sstart: expr, $ssend: expr, $added: expr)) => {
     fn $fn(c: &mut Criterion) {
+      use neovim_lib::{neovim_api::Buffer, Value};
       use nvimpam_lib::bufdata::highlights::Highlights;
-      use neovim_lib::{Value, neovim_api::Buffer};
 
       c.bench_function(stringify!($fn), move |b| {
         let buf = Buffer::new(Value::from(0_usize));
@@ -44,8 +41,12 @@ macro_rules! hl_bench {
 
         b.iter(move || {
           let newhls: Highlights = Highlights(v.clone());
-          let range =
-            bufdata.highlights.splice(newhls, $sstart.into(), $ssend.into(), $added);
+          let range = bufdata.highlights.splice(
+            newhls,
+            $sstart.into(),
+            $ssend.into(),
+            $added,
+          );
 
           let _calls = black_box(bufdata.highlight_region_calls(
             range.clone(),

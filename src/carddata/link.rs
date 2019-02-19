@@ -1,7 +1,11 @@
 //! This modules holds the the global static link [`Card`](::card::Card)
 //! instances.
 use crate::card::{
-  cell::{Cell::*, FixedStr}, ges::GesType::*, keyword::Keyword::*, line::Line::*, Card,
+  cell::{Cell::*, FixedStr},
+  ges::GesType::*,
+  keyword::Keyword::*,
+  line::Line::*,
+  Card,
 };
 
 pub static ELINK: Card = Card {

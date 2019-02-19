@@ -7,7 +7,7 @@ macro_rules! cardtest {
     #[test]
     fn $name() {
       use crate::bufdata::BufData;
-      use neovim_lib::{Value, neovim_api::Buffer};
+      use neovim_lib::{neovim_api::Buffer, Value};
 
       let buf = Buffer::new(Value::from(0_usize));
       let mut bufdata = BufData::new(&buf);
@@ -20,7 +20,7 @@ macro_rules! cardtest {
     #[test]
     fn $name() {
       use crate::bufdata::BufData;
-      use neovim_lib::{Value, neovim_api::Buffer};
+      use neovim_lib::{neovim_api::Buffer, Value};
 
       let buf = Buffer::new(Value::from(0_usize));
       let mut bufdata = BufData::new(&buf);

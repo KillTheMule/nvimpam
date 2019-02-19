@@ -256,8 +256,7 @@ impl Folds {
   pub(super) fn fold_calls(&self) -> Value {
     let mut luaargs = vec![];
 
-    for (range, (_, text)) in self.iter()
-    {
+    for (range, (_, text)) in self.iter() {
       luaargs.push(Value::from(vec![
         Value::from(range[0] + 1),
         Value::from(range[1] + 1),

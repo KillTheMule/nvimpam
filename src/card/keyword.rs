@@ -105,11 +105,7 @@ impl Keyword {
 
     let len = s.len();
 
-    if len == 0 {
-      None
-    } else if s[0] == b'#' || s[0] == b'$' {
-      None
-    } else if len < 8 {
+    if len == 0 || s[0] == b'#' || s[0] == b'$' || len < 8 {
       None
     } else {
       let mut start = &s[0..8];

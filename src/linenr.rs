@@ -17,7 +17,7 @@ pub struct LineNr(u32);
 impl LineNr {
   pub fn from_i64(num: i64) -> Self {
     debug_assert!(num >= 0);
-    debug_assert!(num <= i32::MAX as i64);
+    debug_assert!(num <= i64::from(i32::MAX));
 
     Self(num as u32)
   }

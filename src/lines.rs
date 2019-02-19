@@ -2,12 +2,7 @@
 //!
 //! Future ideas, if performance isn't enough: Skip list, gap buffer (adapted to
 //! lines instead of strings), rope (adapted to lines instead of strings)
-use std::{
-  convert::AsRef,
-  fmt,
-  ops::Deref,
-  slice,
-};
+use std::{convert::AsRef, fmt, ops::Deref, slice};
 
 use crate::{card::keyword::Keyword, linenr::LineNr, linesiter::LinesIter};
 
@@ -80,6 +75,10 @@ impl<'a> Lines<'a> {
     Lines(vec![])
   }
 
+  pub fn is_empty(&self) -> bool {
+    self.0.is_empty()
+  }
+
   pub fn clear(&mut self) {
     self.0.clear()
   }
@@ -107,7 +106,7 @@ impl<'a> Lines<'a> {
   /// Extend a [`Lines`](::lines::Lines) struct from a slice of `&'str`s
   pub fn parse_strs<'c: 'a>(&mut self, v: &'c [&'a str]) {
     self.0.extend(
-      v.into_iter()
+      v.iter()
         .enumerate()
         .filter(|(_, s)| {
           let first = s.as_bytes().get(0_usize);
@@ -150,12 +149,7 @@ impl<'a> Lines<'a> {
   ///   * `last` is the first line that has _not_ been updated
   /// This are the exact conditions to use the range `first..last` together with
   /// `splice` on a `Vec`.
-  pub fn update(
-    &mut self,
-    first: LineNr,
-    last: LineNr,
-    linedata: Vec<String>,
-  ) {
+  pub fn update(&mut self, first: LineNr, last: LineNr, linedata: Vec<String>) {
     let added: isize = linedata.len() as isize - (last - first);
 
     let startidx = self.linenr_to_index(first);
@@ -172,15 +166,17 @@ impl<'a> Lines<'a> {
 
     let _ = self.0.splice(
       indexrange,
-      newlines.0.into_iter().map(|mut p| { p.number += first; p })
+      newlines.0.into_iter().map(|mut p| {
+        p.number += first;
+        p
+      }),
     );
   }
 
   /// Return an Iterator over the lines of a file.
-  pub fn iter<'b>(
-    &'a self,
-  ) -> LinesIter<'b, slice::Iter<'b, ParsedLine<'b>>>
-  where 'a: 'b 
+  pub fn iter<'b>(&'a self) -> LinesIter<'b, slice::Iter<'b, ParsedLine<'b>>>
+  where
+    'a: 'b,
   {
     LinesIter::new(self.0.iter())
   }
@@ -199,7 +195,10 @@ impl<'a> Lines<'a> {
   /// itself starts with a non-comment keyword, its index is returned.
   pub fn first_before(&self, line: LineNr) -> (usize, LineNr) {
     let line_index = self.linenr_to_index(line);
-    let first_lnr = self.get(0).map(|l| l.number).unwrap_or(0_usize.into());
+    let first_lnr = self
+      .get(0)
+      .map(|l| l.number)
+      .unwrap_or_else(|| 0_usize.into());
     self
       .get(..=line_index)
       .unwrap_or(&[])
@@ -362,8 +361,10 @@ mod tests {
     l.update(2.into(), 2.into(), newlines);
 
     for i in 0..11 {
-      assert_eq!((l[i].number, l[i].text.as_ref(), l[i].keyword),
-                 (ln[i].number, ln[i].text.as_ref(), ln[i].keyword));
+      assert_eq!(
+        (l[i].number, l[i].text.as_ref(), l[i].keyword),
+        (ln[i].number, ln[i].text.as_ref(), ln[i].keyword)
+      );
     }
   }
 
@@ -385,10 +386,11 @@ mod tests {
     l.update(1.into(), 7.into(), newlines);
 
     for i in 0..5 {
-      assert_eq!((l[i].number, l[i].text.as_ref(), l[i].keyword),
-                 (ln[i].number, ln[i].text.as_ref(), ln[i].keyword));
+      assert_eq!(
+        (l[i].number, l[i].text.as_ref(), l[i].keyword),
+        (ln[i].number, ln[i].text.as_ref(), ln[i].keyword)
+      );
     }
-
   }
 
   #[test]
