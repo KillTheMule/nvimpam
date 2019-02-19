@@ -827,4 +827,54 @@ describe('nvimpam', function()
     ]])
   end)
 
+  it('keeps highlights after undo', function()
+    command('edit ' .. alter_slashes('../files/example.pc'))
+    command('NvimPamAttach')
+    feed("29G")
+    command('NvimPamHighlightScreen')
+    feed("yy2P")
+    sleep(10)
+    screen:expect([[
+      NODPLOT    DFLT                                                                  |
+      SOLPLOT     ALL                                                                  |
+       SHLPLOT   DFLT                                                                  |
+      END_OCTRL                                                                        |
+      $                                                                                |
+      $#         IDNOD               X               Y               Z                 |
+      {8:^NODE  / }{9:       1}{10:              0.}{9:            50.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:            50.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:            50.5}{10:              0.}                 |
+      {8:NODE  / }{9:       2}{10:              0.}{9:            50.5}{10:             10.}                 |
+      {8:NODE  / }{9:       3}{10:              0.}{9:            50.5}{10:             20.}                 |
+      {8:NODE  / }{9:       4}{10:              0.}{9:            50.5}{10:             30.}                 |
+      {8:NODE  / }{9:       5}{10:              0.}{9:            50.5}{10:             40.}                 |
+      {8:NODE  / }{9:       6}{10:              0.}{9:            50.5}{10:             50.}                 |
+                                                                                       |
+    ]])
+
+    feed("u")
+    sleep(10)
+
+    screen:expect([[
+      NODPLOT    DFLT                                                                  |
+      SOLPLOT     ALL                                                                  |
+       SHLPLOT   DFLT                                                                  |
+      END_OCTRL                                                                        |
+      $                                                                                |
+      $#         IDNOD               X               Y               Z                 |
+      {8:^NODE  / }{9:       1}{10:              0.}{9:            50.5}{10:              0.}                 |
+      {8:NODE  / }{9:       2}{10:              0.}{9:            50.5}{10:             10.}                 |
+      {8:NODE  / }{9:       3}{10:              0.}{9:            50.5}{10:             20.}                 |
+      {8:NODE  / }{9:       4}{10:              0.}{9:            50.5}{10:             30.}                 |
+      {8:NODE  / }{9:       5}{10:              0.}{9:            50.5}{10:             40.}                 |
+      {8:NODE  / }{9:       6}{10:              0.}{9:            50.5}{10:             50.}                 |
+      NODE  /        7              0.            50.5             60.                 |
+      NODE  /        8              0.            50.5             70.                 |
+      2 fewer lines; before #1  0 seconds ago                                          |
+    ]])
+
+
+
+  end)
+
 end)

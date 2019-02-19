@@ -141,7 +141,7 @@ impl<'a> BufData<'a> {
     // If lastline was the last line of the file, we need to up the index by 1
     // to include the line
     if self.lines.len() == (lastline + added).into() {
-      last = (last.0 +1, lastline+added);
+      last = (last.0 + 1, lastline + added);
     }
 
     let mut newhls = Highlights::new();
@@ -220,7 +220,7 @@ impl<'a> BufData<'a> {
     indexrange: Range<usize>,
     firstline: LineNr,
     lastline: LineNr,
-  ) -> Vec<Value> {
+  ) -> Option<Vec<Value>> {
     self
       .highlights
       .highlight_region_calls(&self.buf, indexrange, firstline, lastline)

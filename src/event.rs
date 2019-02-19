@@ -4,7 +4,7 @@ use std::{ffi::OsString, fmt, fs, sync::mpsc};
 
 use failure::{self, Error, ResultExt};
 
-use neovim_lib::{NeovimApi, neovim::Neovim, neovim_api::Buffer, Value};
+use neovim_lib::{neovim::Neovim, neovim_api::Buffer, NeovimApi, Value};
 
 use crate::{bufdata::BufData, linenr::LineNr};
 
@@ -103,8 +103,11 @@ impl Event {
             let firstline = LineNr::from_i64(firstline);
 
             let newrange = bufdata.update(firstline, lastline, linedata)?;
-            let calls = bufdata.highlight_region_calls(newrange, firstline, lastline);
-            nvim.call_atomic(calls).context("call_atomic failed")?;
+            if let Some(calls) =
+              bufdata.highlight_region_calls(newrange, firstline, lastline)
+            {
+              nvim.call_atomic(calls).context("call_atomic failed")?;
+            }
           }
         }
         Ok(RefreshFolds) => to_handler.send(bufdata.fold_calls())?,
@@ -120,7 +123,6 @@ impl Event {
 
           let fl = bufdata.first_before(firstline);
           let mut ll = bufdata.first_after(lastline);
-          error!("Fl {:?}, Ll {:?}", fl, ll);
 
           // highlight_region is end_exclusive, so we need to make sure
           // we include the last line requested even if it is a keyword line
@@ -130,8 +132,11 @@ impl Event {
           }
           let newrange = bufdata.hl_linerange(fl.1, ll.1);
 
-          let calls = bufdata.highlight_region_calls(newrange,fl.1, ll.1);
-          nvim.call_atomic(calls).context("call_atomic failed")?;
+          if let Some(calls) =
+            bufdata.highlight_region_calls(newrange, fl.1, ll.1)
+          {
+            nvim.call_atomic(calls).context("call_atomic failed")?;
+          }
         }
         Ok(Quit) => {
           break;

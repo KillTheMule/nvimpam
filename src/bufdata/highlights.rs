@@ -200,7 +200,11 @@ impl Highlights {
     indexrange: Range<usize>,
     firstline: LineNr,
     lastline: LineNr,
-  ) -> Vec<Value> {
+  ) -> Option<Vec<Value>> {
+    if indexrange.start == indexrange.end {
+      return None;
+    }
+
     let mut calls: Vec<Value> = vec![];
 
     calls.push(
@@ -234,7 +238,7 @@ impl Highlights {
       .into()
     }));
 
-    calls
+    Some(calls)
   }
 
   #[cfg(test)]
