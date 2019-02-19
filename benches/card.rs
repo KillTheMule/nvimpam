@@ -17,7 +17,7 @@ use nvimpam_lib::{
     keyword::Keyword,
   },
   lines::{Lines, ParsedLine},
-  nocommentiter::CommentLess,
+  linesiter::LinesIter,
   linenr::LineNr,
 };
 
@@ -73,25 +73,8 @@ fn bench_skip_ges(c: &mut Criterion) {
     let mut lines = Lines::new();
     lines.parse_strs(&GES);
 
-    let keywords: Vec<_> = GES
-      .iter()
-      .filter(|l| l.as_bytes()[0] != b'$' && l.as_bytes()[0] != b'#')
-      .map(|l| Keyword::parse(l.as_ref()))
-      .collect();
-
-
     b.iter(|| {
-      let mut li = (0_usize..)
-        .map(LineNr::from_usize)
-        .zip(GES.iter())
-        .filter(|(_, l)| l.as_bytes()[0] != b'$' && l.as_bytes()[0] != b'#')
-        .zip(keywords.iter())
-        .map(|((n, t), k)| ParsedLine {
-          number: n,
-          text: t.as_ref(),
-          keyword: k.as_ref(),
-        })
-        .remove_comments();
+      let mut li: LinesIter<_> = lines.iter();
       let mut tmp = li.next().unwrap();
       let mut _a = li.skip_ges(g, &tmp);
       tmp = li.next().unwrap();

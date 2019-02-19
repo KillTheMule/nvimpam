@@ -4,7 +4,7 @@ use crate::card::{
   cell::{Cell::*, FixedStr}, ges::GesType::*, keyword::Keyword::*, line::Line::*, Card,
 };
 
-pub(crate) static ELINK: Card = Card {
+pub static ELINK: Card = Card {
   lines: &[
     Cells(&[Kw(Elink), Integer(8), Integer(8), Integer(8), Integer(8)]),
     Ges(GesFace),
@@ -12,7 +12,7 @@ pub(crate) static ELINK: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static LLINK: Card = Card {
+pub static LLINK: Card = Card {
   lines: &[
     Cells(&[Kw(Llink), Integer(8), Integer(8), Integer(8), Integer(8)]),
     Ges(GesFace),
@@ -20,7 +20,7 @@ pub(crate) static LLINK: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static SLINK: Card = Card {
+pub static SLINK: Card = Card {
   lines: &[
     Cells(&[
       Kw(Slink),
@@ -36,7 +36,7 @@ pub(crate) static SLINK: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static PLINK: Card = Card {
+pub static PLINK: Card = Card {
   lines: &[
     Cells(&[
       Kw(Plink),
@@ -51,7 +51,7 @@ pub(crate) static PLINK: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static TIED: Card = Card {
+pub static TIED: Card = Card {
   lines: &[
     Cells(&[Kw(Tied), Integer(8), Integer(8), Integer(8)]),
     Cells(&[Fixed(FixedStr::Name), Str(76)]),

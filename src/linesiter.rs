@@ -81,7 +81,7 @@ macro_rules! advance_some {
 }
 /// The struct simply holds a type instance. Skipping comments is done in the
 /// Iterator implementation.
-pub(crate) struct LinesIter<'a, I>
+pub struct LinesIter<'a, I>
 where
   I: Iterator<Item = &'a ParsedLine<'a>>,
 {
@@ -103,13 +103,13 @@ impl<'a, I> LinesIter<'a, I>
 where
   I: Iterator<Item = &'a ParsedLine<'a>>,
 {
-  pub(crate) fn new(it: I) -> Self {
+  pub fn new(it: I) -> Self {
     Self { it }
   }
 
   /// Advance the iterator until meeting the first line with a keyword. If the
   /// file ends before that, return `None`.
-  pub(crate) fn skip_to_next_keyword<'b>(
+  pub fn skip_to_next_keyword<'b>(
     &'b mut self,
   ) -> Option<KeywordLine<'a>> {
     let mut line = None;
@@ -126,7 +126,7 @@ where
   ///
   /// Returns `None` if skipline neither ends the GES, nor is
   /// contained in it. We do not try to advance the iterator in this case.
-  fn skip_ges<'b>(
+  pub fn skip_ges<'b>(
     &'b mut self,
     ges: GesType,
     skipline: &ParsedLine<'a>,
@@ -166,7 +166,7 @@ where
   /// A wrapper around [`skip_card`](NoCommentIter::skip_card) and
   /// [`skip_card_gather`](NoCommentIter::skip_card_gather), dispatching by
   /// value of [`Card.ownfold`](::card::Card::ownfold)
-  pub(crate) fn skip_fold<'b>(
+  pub fn skip_fold<'b>(
     &'b mut self,
     skipline: &KeywordLine<'a>,
     highlights: &mut Highlights,

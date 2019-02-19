@@ -12,7 +12,7 @@ use crate::{linenr::LineNr, lines::ParsedLine};
 ///
 /// `skip_end` is the index of the last line we skipped.
 #[derive(Debug)]
-pub(crate) struct SkipResult<'a> {
+pub struct SkipResult<'a> {
   pub nextline: Option<&'a ParsedLine<'a>>,
   pub skip_end: LineNr,
 }

@@ -9,12 +9,12 @@ extern crate itertools;
 extern crate neovim_lib;
 
 #[macro_use]
-pub(crate) mod carddata;
+pub mod carddata;
 pub mod bufdata;
-pub(crate) mod card;
+pub mod card;
 pub mod event;
 pub mod handler;
-pub(crate) mod linenr;
-pub(crate) mod lines;
-pub(crate) mod linesiter;
-pub(crate) mod skipresult;
+pub mod linenr;
+pub mod lines;
+pub mod linesiter;
+pub mod skipresult;

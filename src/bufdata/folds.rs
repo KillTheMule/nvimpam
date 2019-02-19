@@ -77,7 +77,7 @@ impl Folds {
   /// Copy the elements of a FoldList into a Vec, containing
   /// the tuples (start, end, Keyword). Only needed for tests.
   #[cfg(test)]
-  pub(crate) fn to_vec(&self) -> Vec<(usize, usize, Keyword)> {
+  pub fn to_vec(&self) -> Vec<(usize, usize, Keyword)> {
     self
       .0
       .iter()

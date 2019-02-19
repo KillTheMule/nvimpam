@@ -48,7 +48,7 @@ pub struct BufData<'a> {
   /// The level 2 folds.
   folds_level2: Folds,
   /// The highlights of the buffer
-  highlights: Highlights,
+  pub highlights: Highlights,
 }
 
 impl<'a> BufData<'a> {

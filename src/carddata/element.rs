@@ -2,7 +2,7 @@
 //! instances.
 use crate::card::{cell::{Cell::*, FixedStr}, keyword::Keyword::*, line::Line::*, Card};
 
-pub(crate) static SOLID: Card = Card {
+pub static SOLID: Card = Card {
   lines: &[
     Cells(&[Kw(Solid), Integer(8), Integer(8)]),
     Cells(&[
@@ -20,7 +20,7 @@ pub(crate) static SOLID: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static HEXA20: Card = Card {
+pub static HEXA20: Card = Card {
   lines: &[
     Cells(&[Kw(Hexa20), Integer(8), Integer(8)]),
     Cells(&[
@@ -50,7 +50,7 @@ pub(crate) static HEXA20: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static PENT15: Card = Card {
+pub static PENT15: Card = Card {
   lines: &[
     Cells(&[Kw(Pent15), Integer(8), Integer(8)]),
     Cells(&[
@@ -78,7 +78,7 @@ pub(crate) static PENT15: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static PENTA6: Card = Card {
+pub static PENTA6: Card = Card {
   lines: &[Cells(&[
     Kw(Penta6),
     Integer(8),
@@ -93,7 +93,7 @@ pub(crate) static PENTA6: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static TETR10: Card = Card {
+pub static TETR10: Card = Card {
   lines: &[
     Cells(&[Kw(Tetr10), Integer(8), Integer(8)]),
     Cells(&[
@@ -112,7 +112,7 @@ pub(crate) static TETR10: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static BAR: Card = Card {
+pub static BAR: Card = Card {
   lines: &[Cells(&[
     Kw(Bar),
     Integer(8),
@@ -123,7 +123,7 @@ pub(crate) static BAR: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static BSHEL: Card = Card {
+pub static BSHEL: Card = Card {
   lines: &[
     Cells(&[Kw(Bshel), Integer(8), Integer(8)]),
     Cells(&[
@@ -141,7 +141,7 @@ pub(crate) static BSHEL: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static TSHEL: Card = Card {
+pub static TSHEL: Card = Card {
   lines: &[Cells(&[
     Kw(Tshel),
     Integer(8),
@@ -156,7 +156,7 @@ pub(crate) static TSHEL: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static SHELL: Card = Card {
+pub static SHELL: Card = Card {
   lines: &[Cells(&[
     Kw(Shell),
     Integer(8),
@@ -171,7 +171,7 @@ pub(crate) static SHELL: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static SHEL6: Card = Card {
+pub static SHEL6: Card = Card {
   lines: &[Cells(&[
     Kw(Shel6),
     Integer(8),
@@ -186,7 +186,7 @@ pub(crate) static SHEL6: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static SHEL8: Card = Card {
+pub static SHEL8: Card = Card {
   lines: &[
     Cells(&[
       Kw(Shel8),
@@ -202,7 +202,7 @@ pub(crate) static SHEL8: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static MEMBR: Card = Card {
+pub static MEMBR: Card = Card {
   lines: &[Cells(&[
     Kw(Membr),
     Integer(8),
@@ -218,7 +218,7 @@ pub(crate) static MEMBR: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static BEAM: Card = Card {
+pub static BEAM: Card = Card {
   lines: &[
     Cells(&[
       Kw(Beam),
@@ -239,7 +239,7 @@ pub(crate) static BEAM: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static SPRGBM: Card = Card {
+pub static SPRGBM: Card = Card {
   lines: &[Cells(&[
     Kw(Sprgbm),
     Integer(8),
@@ -252,7 +252,7 @@ pub(crate) static SPRGBM: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static TETR4: Card = Card {
+pub static TETR4: Card = Card {
   lines: &[Cells(&[
     Kw(Tetr4),
     Integer(8),
@@ -265,7 +265,7 @@ pub(crate) static TETR4: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static SPRING: Card = Card {
+pub static SPRING: Card = Card {
   lines: &[Cells(&[
     Kw(Spring),
     Integer(8),
@@ -279,7 +279,7 @@ pub(crate) static SPRING: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static JOINT: Card = Card {
+pub static JOINT: Card = Card {
   lines: &[Cells(&[
     Kw(Joint),
     Integer(8),
@@ -295,7 +295,7 @@ pub(crate) static JOINT: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static KJOIN: Card = Card {
+pub static KJOIN: Card = Card {
   lines: &[
     Cells(&[
       Kw(Kjoin),
@@ -313,7 +313,7 @@ pub(crate) static KJOIN: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static MTOJNT: Card = Card {
+pub static MTOJNT: Card = Card {
   lines: &[
     Cells(&[
       Kw(Mtojnt),
@@ -330,7 +330,7 @@ pub(crate) static MTOJNT: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static SPHEL: Card = Card {
+pub static SPHEL: Card = Card {
   lines: &[Cells(&[
     Kw(Sphel),
     Integer(8),
@@ -341,7 +341,7 @@ pub(crate) static SPHEL: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static SPHELO: Card = Card {
+pub static SPHELO: Card = Card {
   lines: &[Cells(&[
     Kw(Sphelo),
     Integer(8),
@@ -352,7 +352,7 @@ pub(crate) static SPHELO: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static GAP: Card = Card {
+pub static GAP: Card = Card {
   lines: &[Cells(&[
     Kw(Gap),
     Integer(8),
@@ -364,7 +364,7 @@ pub(crate) static GAP: Card = Card {
   ownfold: false,
 };
 
-pub(crate) static IMPMA: Card = Card {
+pub static IMPMA: Card = Card {
   lines: &[
     Cells(&[Kw(Impma), Integer(8), Str(8), Str(8), Str(8), Integer(8)]),
     Cells(&[Fixed(FixedStr::Name), Str(76)]),

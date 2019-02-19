@@ -13,7 +13,7 @@ use neovim_lib::{neovim::Neovim, neovim_api::NeovimApi, session::Session};
 
 fn bench_folds_file(c: &mut Criterion) {
   let (handler_to_main, main_from_handler) = mpsc::channel();
-  let (_main_to_handler, handler_from_main) = mpsc::channel();
+  let (main_to_handler, handler_from_main) = mpsc::channel();
   let nvimpath = Path::new("neovim").join("build").join("bin").join("nvim");
 
   let mut session = Session::new_child_cmd(
@@ -45,7 +45,8 @@ fn bench_folds_file(c: &mut Criterion) {
         match main_from_handler.recv() {
           Ok(ChangedTickEvent { .. }) => {
             bufdata.parse_slice(&origlines).expect("4.1");
-            bufdata.resend_all_folds(&mut nvim).expect("5");
+            //bufdata.resend_all_folds(&mut nvim).expect("5");
+            main_to_handler.send(bufdata.fold_calls()).expect("5");
             curbuf.detach(&mut nvim).expect("6");
             nvim.command("call rpcnotify(1, 'quit')").unwrap();
           }

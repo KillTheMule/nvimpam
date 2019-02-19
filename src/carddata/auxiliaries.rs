@@ -4,7 +4,7 @@ use crate::card::{
   cell::Cell::*, ges::GesType::*, keyword::Keyword::*, line::Line::*, Card,
 };
 
-pub(crate) static GROUP: Card = Card {
+pub static GROUP: Card = Card {
   lines: &[
     Cells(&[Kw(Group), Str(72)]),
     OptionalBlock(b"META", b"END_META"),

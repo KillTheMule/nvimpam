@@ -32,16 +32,16 @@ macro_rules! cardtest {
   };
 }
 
-pub(crate) mod auxiliaries;
-pub(crate) mod constraint;
-pub(crate) mod element;
-pub(crate) mod link;
-pub(crate) mod node;
-pub(crate) mod part;
+pub mod auxiliaries;
+pub mod constraint;
+pub mod element;
+pub mod link;
+pub mod node;
+pub mod part;
 
 /// All static declarations can be imported via
 /// ```rust, compile_fail
 /// use carddata::*;
 /// ```
-pub(crate) use self::element::*;
-pub(crate) use self::{auxiliaries::*, constraint::*, link::*, node::*, part::*};
+pub use self::element::*;
+pub use self::{auxiliaries::*, constraint::*, link::*, node::*, part::*};

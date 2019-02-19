@@ -16,7 +16,7 @@ use crate::{card::keyword::Keyword, linenr::LineNr, linesiter::LinesIter};
 /// owned `String` (which we get from neovim's buffer update API via a
 /// [`LinesEvent`](::event::Event::LinesEvent)).
 #[derive(Debug, PartialEq)]
-pub(crate) enum RawLine<'a> {
+pub enum RawLine<'a> {
   OriginalLine(&'a [u8]),
   ChangedLine(String),
 }
@@ -24,25 +24,25 @@ pub(crate) enum RawLine<'a> {
 /// A struct to hold the data of a [`Line`](::lines::Line) that has been
 /// [`parse`](::card::keyword::Keyword::parse)d before.
 #[derive(PartialEq, Debug)]
-pub(crate) struct ParsedLine<'a> {
-  pub(crate) number: LineNr,
-  pub(crate) text: RawLine<'a>,
-  pub(crate) keyword: Option<Keyword>,
+pub struct ParsedLine<'a> {
+  pub number: LineNr,
+  pub text: RawLine<'a>,
+  pub keyword: Option<Keyword>,
 }
 
 /// A struct to hold a [`Line`](::lines::Line) of a file that has been
 /// [`parse`](::card::keyword::Keyword::parse)d and starts with a
 /// [`Keyword`](::card::keyword::Keyword).
 #[derive(PartialEq, Debug)]
-pub(crate) struct KeywordLine<'a> {
-  pub(crate) number: LineNr,
-  pub(crate) text: &'a [u8],
-  pub(crate) keyword: Keyword,
+pub struct KeywordLine<'a> {
+  pub number: LineNr,
+  pub text: &'a [u8],
+  pub keyword: Keyword,
 }
 
 /// The struct to hold the lines.
 #[derive(Debug, Default, PartialEq)]
-pub(crate) struct Lines<'a>(Vec<ParsedLine<'a>>);
+pub struct Lines<'a>(Vec<ParsedLine<'a>>);
 
 impl<'a> AsRef<[u8]> for RawLine<'a> {
   fn as_ref(&self) -> &[u8] {
@@ -62,7 +62,7 @@ impl<'a> ParsedLine<'a> {
   /// Try to convert the [`ParsedLine`](::lines::ParsedLine) into a
   /// [`KeywordLine`](::lines::KeywordLine). This is of course possible if and
   /// only if the [`keyword`](::lines::ParsedLine::keyword) is `Some(kw)`.
-  pub(crate) fn try_into_keywordline(&'a self) -> Option<KeywordLine<'a>> {
+  pub fn try_into_keywordline(&'a self) -> Option<KeywordLine<'a>> {
     if let Some(kw) = self.keyword {
       return Some(KeywordLine {
         number: self.number,
@@ -76,19 +76,19 @@ impl<'a> ParsedLine<'a> {
 }
 
 impl<'a> Lines<'a> {
-  pub(crate) fn new() -> Self {
+  pub fn new() -> Self {
     Lines(vec![])
   }
 
-  pub(crate) fn clear(&mut self) {
+  pub fn clear(&mut self) {
     self.0.clear()
   }
-  pub(crate) fn len(&self) -> usize {
+  pub fn len(&self) -> usize {
     self.0.len()
   }
 
   /// Extend a [`Lines`](::lines::Lines) struct from a `Vec<String>`
-  pub(crate) fn parse_vec(&mut self, v: Vec<String>) {
+  pub fn parse_vec(&mut self, v: Vec<String>) {
     self.0.extend(
       v.into_iter()
         .enumerate()
@@ -105,7 +105,7 @@ impl<'a> Lines<'a> {
   }
 
   /// Extend a [`Lines`](::lines::Lines) struct from a slice of `&'str`s
-  pub(crate) fn parse_strs<'c: 'a>(&mut self, v: &'c [&'a str]) {
+  pub fn parse_strs<'c: 'a>(&mut self, v: &'c [&'a str]) {
     self.0.extend(
       v.into_iter()
         .enumerate()
@@ -123,7 +123,7 @@ impl<'a> Lines<'a> {
 
   /// Extend a [`Lines`](::lines::Lines) struct from a byte slice by splitting
   /// on newlines.
-  pub(crate) fn parse_slice<'c: 'a>(&mut self, v: &'c [u8]) {
+  pub fn parse_slice<'c: 'a>(&mut self, v: &'c [u8]) {
     self.0.extend(
       v.split(|b| *b == b'\n')
         .enumerate()
@@ -150,7 +150,7 @@ impl<'a> Lines<'a> {
   ///   * `last` is the first line that has _not_ been updated
   /// This are the exact conditions to use the range `first..last` together with
   /// `splice` on a `Vec`.
-  pub(crate) fn update(
+  pub fn update(
     &mut self,
     first: LineNr,
     last: LineNr,
@@ -177,7 +177,7 @@ impl<'a> Lines<'a> {
   }
 
   /// Return an Iterator over the lines of a file.
-  pub(crate) fn iter<'b>(
+  pub fn iter<'b>(
     &'a self,
   ) -> LinesIter<'b, slice::Iter<'b, ParsedLine<'b>>>
   where 'a: 'b 
@@ -197,7 +197,7 @@ impl<'a> Lines<'a> {
   /// Find the index of the first line that starts with a non-comment keyword
   /// before the line with the given number. If the line with the given number
   /// itself starts with a non-comment keyword, its index is returned.
-  pub(crate) fn first_before(&self, line: LineNr) -> (usize, LineNr) {
+  pub fn first_before(&self, line: LineNr) -> (usize, LineNr) {
     let line_index = self.linenr_to_index(line);
     let first_lnr = self.get(0).map(|l| l.number).unwrap_or(0_usize.into());
     self
@@ -215,7 +215,7 @@ impl<'a> Lines<'a> {
   /// Find the index of the next line that starts with a non-comment keyword
   /// after the line with the given number. If the line with the given number
   /// itself starts with a non-comment keyword, its index is returned.
-  pub(crate) fn first_after(&self, line: LineNr) -> (usize, LineNr) {
+  pub fn first_after(&self, line: LineNr) -> (usize, LineNr) {
     let to_skip = self.linenr_to_index(line);
     let len = self.len();
     if len > 0 {

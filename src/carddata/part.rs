@@ -34,25 +34,25 @@ macro_rules! part {
 
 // Part 3D
 
-pub(crate) static PARTSOLID: Card = part!(
+pub static PARTSOLID: Card = part!(
   Cells(&[Integer(5), Float(10), Float(10), Float(10)]),
   Cells(&[Integer(5), Float(10), Float(10), Float(10)])
   ;PartSolid);
 
-pub(crate) static PARTCOS3D: Card = part!(
+pub static PARTCOS3D: Card = part!(
   Cells(&[Blank(10), Float(10), Float(10), Float(10), Float(10), Integer(10)])
   ;PartCos3d);
 
-pub(crate) static PARTBSHEL: Card = part!(
+pub static PARTBSHEL: Card = part!(
   Cells(&[Blank(0)])
   ;PartBshel);
 
-pub(crate) static PARTTETRA: Card = part!(
+pub static PARTTETRA: Card = part!(
   Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10)]),
   Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10)])
   ; PartTetra);
 
-pub(crate) static PARTSPHEL: Card = part!(
+pub static PARTSPHEL: Card = part!(
   Provides(&[Float(10), Float(10), Float(10), Float(10), Integer(5), Integer(5),
              Float(10), Float(10), Integer(5)],
            Number(46..51)),
@@ -61,16 +61,16 @@ pub(crate) static PARTSPHEL: Card = part!(
 
 // PART 2D
 
-pub(crate) static PARTTSHEL: Card = part!(
+pub static PARTTSHEL: Card = part!(
   Cells(&[Float(10), Integer(5)])
   ;PartTshel);
 
-pub(crate) static PARTSHELL: Card = part!(
+pub static PARTSHELL: Card = part!(
   Cells(&[Float(10), Integer(5), Float(10), Integer(5)]),
   Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10), Float(10)])
   ;PartShell);
 
-pub(crate) static PARTMEMBR: Card = part!(
+pub static PARTMEMBR: Card = part!(
   Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10), Float(10),
           Float(10), Float(10), Float(10),]),
   Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10), Float(10),
@@ -79,11 +79,11 @@ pub(crate) static PARTMEMBR: Card = part!(
 
 // PART 1D
 
-pub(crate) static PARTBAR: Card = part!(
+pub static PARTBAR: Card = part!(
   Cells(&[Float(10)])
   ;PartBar);
 
-pub(crate) static PARTBEAM: Card = part!(
+pub static PARTBEAM: Card = part!(
   Cells(&[Float(10), Float(10), Float(10), Float(10), Float(10), Blank(5),
           Integer(5), Float(10)]),
   Cells(&[Float(10), Float(10), Float(10), Blank(4), Binary(6), Blank(4),
@@ -95,62 +95,62 @@ pub(crate) static PARTBEAM: Card = part!(
   Repeat(&[Float(10), Float(10), Float(10)], 1)
   ;PartBeam);
 
-pub(crate) static PARTSPRING: Card = part!(
+pub static PARTSPRING: Card = part!(
   Cells(&[Blank(0)])
   ;PartSpring);
 
-pub(crate) static PARTSPRGBM: Card = part!(
+pub static PARTSPRGBM: Card = part!(
   Cells(&[Blank(0)])
   ;PartSprgbm);
 
-pub(crate) static PARTMBSPR: Card = part!(
+pub static PARTMBSPR: Card = part!(
   Cells(&[Blank(0)])
   ;PartMbspr);
 
-pub(crate) static PARTJOINT: Card = part!(
+pub static PARTJOINT: Card = part!(
   Cells(&[Blank(0)])
   ;PartJoint);
 
-pub(crate) static PARTKJOIN: Card = part!(
+pub static PARTKJOIN: Card = part!(
   Cells(&[Blank(0)])
   ;PartKjoin);
 
-pub(crate) static PARTMTOJNT: Card = part!(
+pub static PARTMTOJNT: Card = part!(
   Cells(&[Blank(0)])
   ;PartMtojnt);
 
-pub(crate) static PARTMBKJN: Card = part!(
+pub static PARTMBKJN: Card = part!(
   Cells(&[Blank(0)])
   ;PartMbkjn);
 
-pub(crate) static PARTTIED: Card = part!(
+pub static PARTTIED: Card = part!(
   Provides(&[Float(10), Blank(60), Integer(10)], Int(71..81,1)),
   Optional(&[Integer(5), Blank(5), Float(10), Float(10), Float(10), Float(10)],
            1)
   ;PartTied);
 
-pub(crate) static PARTSLINK: Card = part!(
+pub static PARTSLINK: Card = part!(
   Provides(&[Float(10), Blank(60), Integer(10)], Int(71..81,1)),
   Optional(&[Integer(5), Blank(5), Float(10), Float(10), Float(10), Float(10)],
            1)
   ;PartSlink);
 
-pub(crate) static PARTELINK: Card = part!(
+pub static PARTELINK: Card = part!(
   Provides(&[Float(10), Float(10), Blank(50), Integer(10)], Int(71..81,1)),
   Optional(&[Integer(5), Blank(5), Float(10), Float(10), Float(10), Float(10)],
            1)
   ;PartElink);
 
-pub(crate) static PARTLLINK: Card = part!(
+pub static PARTLLINK: Card = part!(
   Cells(&[Float(10), Float(10), Float(10), Integer(10)])
   ;PartLlink);
 
-pub(crate) static PARTPLINK: Card = part!(
+pub static PARTPLINK: Card = part!(
   Cells(&[Float(10), Integer(10), Float(10), Integer(10), Float(10), Float(10),
           Integer(10)])
   ;PartPlink);
 
-pub(crate) static PARTGAP: Card = part!(
+pub static PARTGAP: Card = part!(
   Cells(&[Blank(10), Float(10)])
   ;PartGap);
 

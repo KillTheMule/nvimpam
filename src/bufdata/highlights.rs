@@ -11,7 +11,7 @@ use crate::{
 
 /// An enum to denote the nvim highlight groups within nvimpam
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
-pub(crate) enum HighlightGroup {
+pub enum HighlightGroup {
   CellEven,
   CellOdd,
   ErrorCellEven,
@@ -98,15 +98,19 @@ impl<'a> Iterator for HlIter<'a> {
 ///
 /// TODO(KillTheMule): Don't expose the internal `Vec`
 #[derive(Default, Debug)]
-pub(crate) struct Highlights(Vec<((LineNr, u8, u8), Hl)>);
+pub struct Highlights(pub Vec<((LineNr, u8, u8), Hl)>);
 
 impl Highlights {
   pub(super) fn clear(&mut self) {
     self.0.clear()
   }
 
-  pub(crate) fn new() -> Self {
+  pub fn new() -> Self {
     Self(Vec::new())
+  }
+
+  pub fn iter(&self) -> impl Iterator < Item = &((LineNr, u8, u8), Hl) > {
+    self.0.iter()
   }
 
   /// Remove all the highlights with linenumbers in `firstline..lastline`, and
@@ -114,7 +118,7 @@ impl Highlights {
   /// range of indices with new highlight entries (note that all the elements
   /// above that range have been modified, as their line numbers had to be
   /// shifted).
-  pub(super) fn splice(
+  pub fn splice(
     &mut self,
     newhls: Self,
     firstline: LineNr,
@@ -150,7 +154,7 @@ impl Highlights {
   /// Add the highlights of a line by pushing them to the end of the `Vec`. Be
   /// sure that the order of the `Vec` is not destroyed by this!
   #[inline]
-  pub(crate) fn add_line_highlights(
+  pub fn add_line_highlights(
     &mut self,
     num: LineNr,
     text: &[u8],
@@ -242,7 +246,7 @@ impl Highlights {
   }
 
   #[cfg(test)]
-  pub(crate) fn add_highlight(&mut self, line: LineNr, start: u8, end: u8, hl: Hl) {
+  pub fn add_highlight(&mut self, line: LineNr, start: u8, end: u8, hl: Hl) {
     self.0.push(((line, start, end), hl))
   }
 }
