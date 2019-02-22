@@ -17,138 +17,6 @@ local function sleep(time)
   end
 end
 
--- canonical order of ext keys, used  to generate asserts
-local ext_keys = {
-  'popupmenu', 'cmdline', 'cmdline_block', 'wildmenu_items', 'wildmenu_pos'
-}
-local function isempty(v)
-  return type(v) == 'table' and next(v) == nil
-end
--- Override this function to ignore the last line, i.e. the command
--- line, since it seems increasingly non-deterministic, and we don't
--- care a lot about it anyways
-function Screen:expect(expected, attr_ids, attr_ignore)
-  local grid, condition = nil, nil
-  local expected_rows = {}
-  if type(expected) == "table" then
-    assert(not (attr_ids ~= nil or attr_ignore ~= nil))
-    local is_key = {grid=true, attr_ids=true, attr_ignore=true, condition=true,
-                    any=true, mode=true, unchanged=true, intermediate=true,
-                    reset=true, timeout=true}
-    for _, v in ipairs(ext_keys) do
-      is_key[v] = true
-    end
-    for k, _ in pairs(expected) do
-      if not is_key[k] then
-        error("Screen:expect: Unknown keyword argument '"..k.."'")
-      end
-    end
-    grid = expected.grid
-    attr_ids = expected.attr_ids
-    attr_ignore = expected.attr_ignore
-    condition = expected.condition
-    assert(not (expected.any ~= nil and grid ~= nil))
-  elseif type(expected) == "string" then
-    grid = expected
-    expected = {}
-  elseif type(expected) == "function" then
-    assert(not (attr_ids ~= nil or attr_ignore ~= nil))
-    condition = expected
-    expected = {}
-  else
-    assert(false)
-  end
-
-  if grid ~= nil then
-    -- Remove the last line and dedent. Note that gsub returns more then one
-    -- value.
-    grid = dedent(grid:gsub('\n[ ]+$', ''), 0)
-    for row in grid:gmatch('[^\n]+') do
-      table.insert(expected_rows, row)
-    end
-  end
-  local attr_state = {
-      ids = attr_ids or self._default_attr_ids,
-      ignore = attr_ignore or self._default_attr_ignore,
-  }
-  if self._options.ext_hlstate then
-    attr_state.id_to_index = self:hlstate_check_attrs(attr_state.ids or {})
-  end
-  self._new_attrs = false
-  self:_wait(function()
-    if condition ~= nil then
-      local status, res = pcall(condition)
-      if not status then
-        return tostring(res)
-      end
-    end
-
-    if self._options.ext_hlstate and self._new_attrs then
-      attr_state.id_to_index = self:hlstate_check_attrs(attr_state.ids or {})
-    end
-
-    local actual_rows = self:render(not expected.any, attr_state)
-
-    if expected.any ~= nil then
-      -- Search for `any` anywhere in the screen lines.
-      local actual_screen_str = table.concat(actual_rows, '\n')
-      if nil == string.find(actual_screen_str, expected.any) then
-        return (
-          'Failed to match any screen lines.\n'
-          .. 'Expected (anywhere): "' .. expected.any .. '"\n'
-          .. 'Actual:\n  |' .. table.concat(actual_rows, '\n  |') .. '\n\n')
-      end
-    end
-
-    if grid ~= nil then
-      -- `expected` must match the screen lines exactly.
-      if #actual_rows ~= #expected_rows then
-        return "Expected screen state's row count(" .. #expected_rows
-        .. ') differs from configured height(' .. #actual_rows .. ') of Screen.'
-      end
-      for i = 1, #actual_rows - 1 do
-        if expected_rows[i] ~= actual_rows[i] then
-          local msg_expected_rows = {}
-          for j = 1, #expected_rows do
-            msg_expected_rows[j] = expected_rows[j]
-          end
-          msg_expected_rows[i] = '*' .. msg_expected_rows[i]
-          actual_rows[i] = '*' .. actual_rows[i]
-          return (
-            'Row ' .. tostring(i) .. ' did not match.\n'
-            ..'Expected:\n  |'..table.concat(msg_expected_rows, '\n  |')..'\n'
-            ..'Actual:\n  |'..table.concat(actual_rows, '\n  |')..'\n\n'..[[
-To print the expect() call that would assert the current screen state, use
-screen:snapshot_util(). In case of non-deterministic failures, use
-screen:redraw_debug() to show all intermediate screen states.  ]])
-        end
-      end
-    end
-
-    -- Extension features. The default expectations should cover the case of
-    -- the ext_ feature being disabled, or the feature currently not activated
-    -- (for instance no external cmdline visible). Some extensions require
-    -- preprocessing to represent highlights in a reproducible way.
-    local extstate = self:_extstate_repr(attr_state)
-
-    -- convert assertion errors into invalid screen state descriptions
-    local status, res = pcall(function()
-      for _, k in ipairs(ext_keys) do
-        -- Empty states is considered the default and need not be mentioned
-        if not (expected[k] == nil and isempty(extstate[k])) then
-          eq(expected[k], extstate[k], k)
-        end
-      end
-      if expected.mode ~= nil then
-        eq(expected.mode, self.mode, "mode")
-      end
-    end)
-    if not status then
-      return tostring(res)
-    end
-  end, expected)
-end
-
 describe('nvimpam', function()
   local screen
 
@@ -227,7 +95,7 @@ describe('nvimpam', function()
       $ boxbeam                                                                        |
       $#         IDMAT   MATYP             RHO   ISINT    ISHG  ISTRAT   IFROZ         |
       MATER /        3     103         7.85E-6       0       0       0       0         |
-      rust client connected to neovim                                                 |
+      {IGNORE}|
     ]])
 
     feed("809G")
@@ -313,7 +181,7 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       {2:~                                                                                }|
       {2:~                                                                                }|
-      rust client connected to neovim                                                  |
+      {IGNORE}|
     ]])
 
     command("echo") -- clear the command line
@@ -383,7 +251,7 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       {2:~                                                                                }|
       {2:~                                                                                }|
-      rust client connected to neovim                                                  |
+      {IGNORE}|
     ]])
 
     feed("zE")
@@ -433,7 +301,7 @@ describe('nvimpam', function()
                                                                                        |
       {2:~                                                                                }|
       {2:~                                                                                }|
-      rust client connected to neovim                                                  |
+      {IGNORE}|
     ]])
 
     feed("u")
@@ -516,7 +384,7 @@ describe('nvimpam', function()
       "\n"
       ..
       [[
-      rust client connected to neovim                                                  |
+      {IGNORE}|
       ]]
       )
 
