@@ -344,7 +344,7 @@ describe('nvimpam', function()
       {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
       $Comment                                                                         |
       {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
-      2 changes; after #2  0 seconds ago                                               |
+      {IGNORE}|
     ]])
   end)
 
@@ -671,7 +671,7 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       {2:~                                                                                }|
       {2:~                                                                                }|
-                                                                                       |
+      {IGNORE}|
     ]])
 
     feed("u")
@@ -691,7 +691,7 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       {2:~                                                                                }|
       {2:~                                                                                }|
-      1 change; before #2  0 seconds ago                                               |
+      {IGNORE}|
     ]])
   end)
 
@@ -738,7 +738,7 @@ describe('nvimpam', function()
       {8:NODE  / }{9:       6}{10:              0.}{9:            50.5}{10:             50.}                 |
       NODE  /        7              0.            50.5             60.                 |
       NODE  /        8              0.            50.5             70.                 |
-      2 fewer lines; before #1  0 seconds ago                                          |
+      {IGNORE}|
     ]])
 
 

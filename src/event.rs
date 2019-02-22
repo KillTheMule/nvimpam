@@ -4,6 +4,8 @@ use std::{ffi::OsString, fmt, fs, sync::mpsc};
 
 use failure::{self, Error, ResultExt};
 
+use std::error;
+
 use neovim_lib::{neovim::Neovim, neovim_api::Buffer, NeovimApi, Value};
 
 use crate::{bufdata::BufData, linenr::LineNr};
@@ -33,7 +35,10 @@ pub enum Event {
   ///  - reloading the buffer after it is changed from outside neovim.
   DetachEvent { buf: Buffer },
   /// Recreate and resend the folds
-  RefreshFolds,
+  RefreshFolds { 
+    f: Box<dyn Fn(Result<Value, Value>) -> Result<(), Box<error::Error>> + Send
+        + 'static>
+  },
   /// Highlight lines in the buffer containing at least the given line range
   // TODO: maybe accept buffer as an argument?
   HighlightRegion { firstline: i64, lastline: i64 },
@@ -58,7 +63,7 @@ impl Event {
   /// exit the loop and return from the function.
   pub fn event_loop(
     from_handler: &mpsc::Receiver<Self>,
-    to_handler: &mpsc::Sender<Value>,
+    _to_handler: &mpsc::Sender<Value>,
     nvim: &mut Neovim,
     file: Option<OsString>,
   ) -> Result<(), Error> {
@@ -110,7 +115,10 @@ impl Event {
             }
           }
         }
-        Ok(RefreshFolds) => to_handler.send(bufdata.fold_calls())?,
+        Ok(RefreshFolds { f }) => {
+          (*f)(Ok(bufdata.fold_calls())).map_err(|_|failure::err_msg("Could not
+          send folddata to neovim"))?
+        }
         Ok(HighlightRegion {
           firstline,
           lastline,
@@ -186,7 +194,7 @@ impl fmt::Debug for Event {
         firstline, lastline
       ),
       DetachEvent { .. } => write!(f, "DetachEvent"),
-      RefreshFolds => write!(f, "RefreshFolds"),
+      RefreshFolds{ .. } => write!(f, "RefreshFolds"),
       Quit => write!(f, "Quit"),
     }
   }

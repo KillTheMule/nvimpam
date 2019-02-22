@@ -3,6 +3,7 @@
 //! [`Sender<Event>`](std::sync::mpsc::Sender) to send the parsed event data to
 //! the main thread.
 use std::sync::mpsc;
+use std::error;
 
 use failure::{self, Error};
 use neovim_lib::{neovim_api::Buffer, Handler, RequestHandler, Value};
@@ -154,17 +155,21 @@ impl Handler for NeovimHandler {
 impl RequestHandler for NeovimHandler {
   fn handle_request(
     &mut self,
-    name: String,
+    name: &str,
     _args: Vec<Value>,
-  ) -> Result<Value, Value> {
-    match name.as_str() {
+    f: Box<dyn Fn(Result<Value, Value>) -> Result<(), Box<error::Error>> + Send
+        + 'static>
+  ) {
+    match name {
       "RefreshFolds" => {
-        self.to_main.send(Event::RefreshFolds).map_err(|e| {
-          Value::from(format!(
+        let _ = self.to_main.send(Event::RefreshFolds { f }).map_err(|e| {
+          error!(
             "Could not send 'RefreshFolds' to main thread: {:?}!",
             e
-          ))
-        })?;
+          )
+        });
+      }
+        /*
         self.from_main.recv().map_err(|e| {
           Value::from(format!(
             "Error receiving value for request '{}' from main thread: {:?}!",
@@ -172,7 +177,8 @@ impl RequestHandler for NeovimHandler {
           ))
         })
       }
-      _ => Err(Value::from(format!("Unknown Request: '{}'!", name))),
+      */
+      _ => error!("Unknown Request: '{}'!", name),
     }
   }
 }
