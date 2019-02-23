@@ -194,13 +194,18 @@ impl<'a> Lines<'a> {
   /// before the line with the given number. If the line with the given number
   /// itself starts with a non-comment keyword, its index is returned.
   pub fn first_before(&self, line: LineNr) -> (usize, LineNr) {
-    let line_index = self.linenr_to_index(line);
+    let mut line_index = self.linenr_to_index(line);
+    // range is end-exclusive, but we want the line itself included, if it 
+    // wasn't the virtual post-last line of the file
+    if line_index < self.len() {
+      line_index += 1;
+    }
     let first_lnr = self
       .get(0)
       .map(|l| l.number)
       .unwrap_or_else(|| 0_usize.into());
     self
-      .get(..=line_index)
+      .get(0..line_index)
       .unwrap_or(&[])
       .iter()
       .enumerate()
@@ -225,7 +230,7 @@ impl<'a> Lines<'a> {
         .skip(to_skip)
         .find(|(_, l)| l.keyword.is_some())
         .map(|(i, l)| (i, l.number))
-        .unwrap_or((len - 1, last_lnr))
+        .unwrap_or((len, last_lnr + 1))
     } else {
       (0_usize, 0_usize.into())
     }
@@ -428,7 +433,7 @@ mod tests {
     test_before!(lines, 2, 4);
     test_after!(lines, 5, 4);
     test_before!(lines, 0, 1);
-    test_after!(lines, 6, 7);
+    test_after!(lines, 7, 7);
   }
 
   const LINES3: &str = "NODE  / 1";

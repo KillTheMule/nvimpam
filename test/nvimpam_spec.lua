@@ -713,7 +713,7 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       {2:~                                                                                }|
       {2:~                                                                                }|
-      1 change; before #2  0 seconds ago                                               |
+      {IGNORE}|
     ]])
   end)
 

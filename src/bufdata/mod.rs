@@ -134,23 +134,36 @@ impl<'a> BufData<'a> {
     linedata: Vec<String>,
   ) -> Result<Range<usize>, Error> {
     let added: isize = linedata.len() as isize - (lastline - firstline);
+    let mut first_pre = self.lines.first_before(firstline);
+    let last_pre = self.lines.first_after(lastline);
+
+    let adjust_first = self
+      .lines
+      .last()
+      .map(|l| l.number < firstline)
+      .unwrap_or(false);
+
+    if adjust_first {
+      // firstline is after the last line of the file, so we got back the
+      // last line's data, but we want the virtual one after that
+      first_pre.0 += 1;
+      first_pre.1 += 1;
+    }
+
     self.lines.update(firstline, lastline, linedata);
 
-    let first = self.lines.first_before(firstline);
-    let mut last = self.lines.first_after(lastline + added);
-    // If lastline was the last line of the file, we need to up the index by 1
-    // to include the line
-    if self.lines.len() == (lastline + added).into() {
-      last = (last.0 + 1, lastline + added);
-    }
+    let first_post = first_pre.0;
+    // TODO(KillTheMule): Check this!
+    let last_post = ((last_pre.0 as isize) + added) as usize;
+
 
     let mut newhls = Highlights::new();
     let mut newfolds = Folds::new();
 
-    let li = LinesIter::new(self.lines[first.0..last.0].iter());
+    let li = LinesIter::new(self.lines[first_post..last_post].iter());
 
     BufData::parse_from_iter(&mut newhls, &mut newfolds, li)?;
-    self.folds.splice(newfolds, first.1, last.1, added);
+    self.folds.splice(newfolds, first_pre.1, last_pre.1, added);
     self.folds_level2.recreate_level2(&self.folds)?;
     Ok(self.highlights.splice(newhls, firstline, lastline, added))
   }
