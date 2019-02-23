@@ -76,10 +76,10 @@ fn main() {
 
 fn send_err(nvim: &mut Neovim, err: &Error) {
   let luafn = "require('nvimpam').nvimpam_err(...)";
-  let luaargs = Value::from(vec![Value::from(format!(
+  let luaargs = Value::from(format!(
     "Nvimpam ecountered an error: '{:?}'!",
     err
-  ))]);
+  ));
 
   if let Err(e) = nvim.execute_lua(luafn, vec![luaargs]) {
     error!(
