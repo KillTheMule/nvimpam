@@ -33,7 +33,7 @@ local function on_stderr(id, data, event)
 end
 
 local function nvimpam_err(msg, id)
-  command("echoerr '"..msg.."'")
+  command("echoerr \'"..msg.."\'")
 
   id = id or "NONE" 
   on_stderr(id, {msg})

@@ -77,7 +77,7 @@ fn main() {
 fn send_err(nvim: &mut Neovim, err: &Error) {
   let luafn = "require('nvimpam').nvimpam_err(...)";
   let luaargs = Value::from(format!(
-    "Nvimpam ecountered an error: '{:?}'!",
+    "Nvimpam ecountered an error: {:?}!",
     err
   ));
 
