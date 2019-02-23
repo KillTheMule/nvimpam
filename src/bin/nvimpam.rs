@@ -82,7 +82,7 @@ fn send_err(nvim: &mut Neovim, err: &Error) {
   ))]);
 
   if let Err(e) = nvim.execute_lua(luafn, vec![luaargs]) {
-    error!("Could not send error to neovim: '{:?}'", e);
+    error!("Could not send error to neovim: '{:?}'.\n Original error was: '{:?}'", e, err);
   }
 }
 
