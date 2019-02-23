@@ -141,6 +141,14 @@ impl Event {
         Ok(Quit) => {
           break;
         }
+        Ok(DetachEvent { buf }) => {
+          if *bufdata.buf == buf {
+            break
+          } else {
+            warn!("Received Detach Event for buffer {:?}, but was attached to
+            buffer {:?}. Continuing!", buf, bufdata.buf);
+          }
+        }
         Ok(o) => {
           warn!("receiver recieved {:?}", o);
         }

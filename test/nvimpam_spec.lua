@@ -431,6 +431,28 @@ describe('nvimpam', function()
 
   end)
 
+  it('quits on DetachEvent', function()
+    command('edit ' .. alter_slashes('../files/example.pc'))
+    command('NvimPamAttach')
+    -- sleep needed to let the attaching happen
+    -- needs to be this long for the debug binary
+    sleep(1000)
+
+    feed("Ax<Esc>")
+    
+    local chans = meths.list_chans()
+    local client = chans[3].client
+    eq(client.name, 'nvimpam')
+
+    command("enew!")
+    -- sleep needed to let the detaching happen
+    sleep(100)
+    chans = meths.list_chans()
+    eq(nil, chans[3])
+
+  end)
+
+
   -- note: this also checks that we're using the debug binary
   it('includes a proper healthcheck', function()
     os.remove(alter_slashes("../target/release/nvimpam"))
@@ -740,8 +762,6 @@ describe('nvimpam', function()
       NODE  /        8              0.            50.5             70.                 |
       2 fewer lines; before #1  0 seconds ago                                          |
     ]])
-
-
 
   end)
 

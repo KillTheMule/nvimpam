@@ -40,7 +40,7 @@ macro_rules! unwrap_or_ok {
 // highlights_region etc methods on BufData
 pub struct BufData<'a> {
   /// The buffer the plugin is attached to
-  buf: &'a Buffer,
+  pub buf: &'a Buffer,
   /// The lines of the buffer
   lines: Lines<'a>,
   /// The level 1 folds.
