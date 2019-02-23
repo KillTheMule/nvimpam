@@ -1,4 +1,11 @@
 * Handle DetachEvent!!!
+  * Investigate why edit! does not always fire it
+  * Upon detaching/quitting, remove all highlights
+  --> Works from our side, but nvim doesn't fire it properly... investigate
+
+* Folds don't see non-comment lines without a keyword. If there's stuff before
+  the header, it might be included in the fold. Maybe just ignore that, since it's 
+  syntactically invalid anyways
 
 * Send the bufnr as a notification directly after jobstart to avoid races
 
