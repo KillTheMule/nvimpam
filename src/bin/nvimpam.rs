@@ -82,7 +82,10 @@ fn send_err(nvim: &mut Neovim, err: &Error) {
   ))]);
 
   if let Err(e) = nvim.execute_lua(luafn, vec![luaargs]) {
-    error!("Could not send error to neovim: '{:?}'.\n Original error was: '{:?}'", e, err);
+    error!(
+      "Could not send error to neovim: '{:?}'.\n Original error was: '{:?}'",
+      e, err
+    );
   }
 }
 
@@ -205,17 +208,6 @@ fn start_program() -> Result<(), Error> {
   let mut nvim = Neovim::new(session);
 
   send_client_info(&mut nvim)?;
-
-  /* Leave this out for now, it's not really necessary and slows
-   * down the first folds
-  nvim
-    .command("echom \"rust client connected to neovim\"")
-    .context("Could not 'echom' to neovim")?;
-
-  nvim
-    .subscribe("quit")
-    .context("error: cannot subscribe to event: quit")?;
-  */
 
   let file = args_os().nth(1);
 
