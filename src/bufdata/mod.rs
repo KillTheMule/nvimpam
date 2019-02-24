@@ -150,11 +150,11 @@ impl<'a> BufData<'a> {
       first_pre.1 += 1;
     }
 
-    self.lines.update(firstline, lastline, linedata);
+    let added_nocom = self.lines.update(linedata, firstline, lastline, added);
 
     let first_post = first_pre.0;
     // TODO(KillTheMule): Check this!
-    let last_post = ((last_pre.0 as isize) + added) as usize;
+    let last_post = ((last_pre.0 as isize) + added_nocom) as usize;
 
 
     let mut newhls = Highlights::new();

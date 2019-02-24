@@ -765,4 +765,54 @@ describe('nvimpam', function()
 
   end)
 
+  it("doesn't mind deleting the whole buffer", function()
+    insert(input)
+    feed("1G")
+    command('set ft=pamcrash')
+    command('NvimPamAttach')
+    sleep(10)
+    command('NvimPamUpdateFolds')
+    feed("1G")
+
+    screen:expect([[
+      {1:^ 4 lines: Node ··································································}|
+      #Comment here                                                                    |
+      {1: 10 lines: Shell ································································}|
+      $Comment                                                                         |
+      #Comment                                                                         |
+      {1: 3 lines: Node ··································································}|
+      {1: 4 lines: Shell ·································································}|
+                                                                                       |
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {IGNORE}|
+    ]])
+
+    feed("dG")
+    command('NvimPamUpdateFolds')
+    feed("p")
+
+    screen:expect([[
+                                                                                       |
+      {8:^NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      {8:NODE  / }{9:       1}{10:              0.}{9:             0.5}{10:              0.}                 |
+      #Comment here                                                                    |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      #Comment                                                                         |
+      #Comment                                                                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
+      $Comment                                                                         |
+      25 more lines                                                                    |
+    ]])
+  end)
+
 end)

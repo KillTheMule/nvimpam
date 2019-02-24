@@ -149,8 +149,9 @@ impl<'a> Lines<'a> {
   ///   * `last` is the first line that has _not_ been updated
   /// This are the exact conditions to use the range `first..last` together with
   /// `splice` on a `Vec`.
-  pub fn update(&mut self, first: LineNr, last: LineNr, linedata: Vec<String>) {
-    let added: isize = linedata.len() as isize - (last - first);
+  /// Returns the change in length after removing comments
+  pub fn update(&mut self, linedata: Vec<String>, first: LineNr, last: LineNr, added: isize)
+    -> isize {
 
     let startidx = self.linenr_to_index(first);
     let endidx = self.linenr_to_index(last);
@@ -164,6 +165,9 @@ impl<'a> Lines<'a> {
     let mut newlines = Lines::new();
     newlines.parse_vec(linedata);
 
+    // TODO(KillTheMule): What to do about these casts?
+    let new_nocomments = newlines.len() as isize - indexrange.len() as isize;
+
     let _ = self.0.splice(
       indexrange,
       newlines.0.into_iter().map(|mut p| {
@@ -171,6 +175,8 @@ impl<'a> Lines<'a> {
         p
       }),
     );
+
+    new_nocomments
   }
 
   /// Return an Iterator over the lines of a file.
@@ -342,7 +348,7 @@ mod tests {
     let mut ln = Lines::new();
     ln.parse_slice(LINES_DEL.as_ref());
 
-    l.update(1.into(), 7.into(), Vec::new());
+    l.update(Vec::new(), 1.into(), 7.into(), -6);
 
     assert_eq!(l, ln);
   }
@@ -363,7 +369,7 @@ mod tests {
       "blaaargl".to_string(),
     ];
 
-    l.update(2.into(), 2.into(), newlines);
+    l.update(newlines, 2.into(), 2.into(), 3);
 
     for i in 0..11 {
       assert_eq!(
@@ -388,12 +394,12 @@ mod tests {
       "blaaargl".to_string(),
     ];
 
-    l.update(1.into(), 7.into(), newlines);
+    l.update(newlines, 1.into(), 7.into(), -3);
 
     for i in 0..5 {
       assert_eq!(
-        (l[i].number, l[i].text.as_ref(), l[i].keyword),
-        (ln[i].number, ln[i].text.as_ref(), ln[i].keyword)
+        (i, l[i].number, l[i].text.as_ref(), l[i].keyword),
+        (i, ln[i].number, ln[i].text.as_ref(), ln[i].keyword)
       );
     }
   }

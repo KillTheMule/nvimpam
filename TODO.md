@@ -1,5 +1,3 @@
-* Add a test where we delete everything, to check we don't get any overflows
-
 * Add tests where we paste stuff at the beginning/end of the buffer, and undo that. Include folding.
 
 * Handle DetachEvent!!!
