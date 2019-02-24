@@ -129,6 +129,7 @@ impl Folds {
   /// Note: The major pain point here is fusing folds at the boundary. This will
   /// stay somewhat complicated no matter what, but the code might be
   /// complicated by our use of a `HashMap`.
+  /// TODO(KillTheMule): This needs to return a result, propagated from insert
   pub(super) fn splice(
     &mut self,
     newfolds: Self,
@@ -249,6 +250,18 @@ impl Folds {
       if let Some((k2, v2)) = merge_to_last {
         self.0.remove(&i);
         let _ = self.insert(i[0], k2[1] + added, v2);
+      }
+    } else {
+      // last_added is `None`, so newfolds is empty. Check if we need to reunite
+      // last_before and first_after
+      if let Some((k1, v1)) = last_before {
+        if let Some((k2, v2)) = first_after {
+          if v1 == v2 {
+            self.0.remove(&k1);
+            self.0.remove(&k2);
+            let _ = self.insert(k1[0], k2[1] + added, v1);
+          }
+        }
       }
     }
   }
