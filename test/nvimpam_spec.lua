@@ -114,7 +114,7 @@ describe('nvimpam', function()
       $                                                                                |
       $----------------------------------------------------------------                |
       $     RIGID BODIES                                                               |
-                                                                                       |
+      {IGNORE}|
     ]])
 
     feed("zo")
@@ -133,7 +133,7 @@ describe('nvimpam', function()
       $#          IDEL   IDPRT   IDNOD    MORE   NLAYR                                 |
       {1: 15 lines: Plink ································································}|
       $                                                                                |
-                                                                                       |
+      {IGNORE}|
     ]])
 
     feed("zE")
@@ -153,7 +153,7 @@ describe('nvimpam', function()
       $#   TCONT    EPSINI  COULFRIC                                                   |
       {10:          }{9:          }{10:          }                                                   |
       $#       H NINT    OFFSETNINTh                                                   |
-                                                                                       |
+      {IGNORE}|
     ]])
   end)
 
@@ -203,7 +203,7 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       {2:~                                                                                }|
       {2:~                                                                                }|
-                                                                                       |
+      {IGNORE}|
     ]])
 
     feed("zE")
@@ -223,7 +223,7 @@ describe('nvimpam', function()
       {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
       {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
       $Comment                                                                         |
-                                                                                       |
+      {IGNORE}|
     ]])
   end)
 
@@ -271,7 +271,7 @@ describe('nvimpam', function()
       {8:SHELL / }{9:    3129}{10:       1}{9:       1}{10:    2967}{9:    2971}{10:    2970}                         |
       $Comment                                                                         |
       #Comment                                                                         |
-      3 fewer lines                                                                    |
+      {IGNORE}|
     ]])
   end)
 
@@ -322,7 +322,7 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       {2:~                                                                                }|
       {2:~                                                                                }|
-                                                                                       |
+      {IGNORE}|
     ]])
 
     -- trigger the subsitution again to get the error highlighting colors
@@ -760,7 +760,7 @@ describe('nvimpam', function()
       {8:NODE  / }{9:       6}{10:              0.}{9:            50.5}{10:             50.}                 |
       NODE  /        7              0.            50.5             60.                 |
       NODE  /        8              0.            50.5             70.                 |
-      2 fewer lines; before #1  0 seconds ago                                          |
+      {IGNORE}|
     ]])
 
   end)
