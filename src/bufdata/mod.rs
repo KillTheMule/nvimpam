@@ -36,8 +36,6 @@ macro_rules! unwrap_or_ok {
 }
 
 /// The datastructure to hold all the information of a buffer.
-// TODO(KillTheMule): This needs to hold the current buffer, then make
-// highlights_region etc methods on BufData
 pub struct BufData<'a> {
   /// The buffer the plugin is attached to
   pub buf: &'a Buffer,
@@ -155,7 +153,6 @@ impl<'a> BufData<'a> {
     let first_post = first_pre.0;
     // TODO(KillTheMule): Check this!
     let last_post = ((last_pre.0 as isize) + added_nocom) as usize;
-
 
     let mut newhls = Highlights::new();
     let mut newfolds = Folds::new();

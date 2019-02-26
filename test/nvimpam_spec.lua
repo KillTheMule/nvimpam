@@ -464,7 +464,6 @@ describe('nvimpam', function()
 
   end)
 
-
   -- note: this also checks that we're using the debug binary
   it('includes a proper healthcheck', function()
     os.remove(alter_slashes("../target/release/nvimpam"))

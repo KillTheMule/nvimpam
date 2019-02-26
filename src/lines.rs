@@ -150,9 +150,13 @@ impl<'a> Lines<'a> {
   /// This are the exact conditions to use the range `first..last` together with
   /// `splice` on a `Vec`.
   /// Returns the change in length after removing comments
-  pub fn update(&mut self, linedata: Vec<String>, first: LineNr, last: LineNr, added: isize)
-    -> isize {
-
+  pub fn update(
+    &mut self,
+    linedata: Vec<String>,
+    first: LineNr,
+    last: LineNr,
+    added: isize,
+  ) -> isize {
     let startidx = self.linenr_to_index(first);
     let endidx = self.linenr_to_index(last);
 
@@ -201,15 +205,11 @@ impl<'a> Lines<'a> {
   /// itself starts with a non-comment keyword, its index is returned.
   pub fn first_before(&self, line: LineNr) -> (usize, LineNr) {
     let mut line_index = self.linenr_to_index(line);
-    // range is end-exclusive, but we want the line itself included, if it 
+    // range is end-exclusive, but we want the line itself included, if it
     // wasn't the virtual post-last line of the file
     if line_index < self.len() {
       line_index += 1;
     }
-    let first_lnr = self
-      .get(0)
-      .map(|l| l.number)
-      .unwrap_or_else(|| 0_usize.into());
     self
       .get(0..line_index)
       .unwrap_or(&[])
@@ -217,7 +217,9 @@ impl<'a> Lines<'a> {
       .enumerate()
       .rfind(|(_, l)| l.keyword.is_some())
       .map(|(i, l)| (i, l.number))
-      .unwrap_or((0, first_lnr))
+      .unwrap_or_else(|| {
+        self.get(0).map_or((0, 0_usize.into()), |l| (0, l.number))
+      })
   }
 
   // TODO(KillTheMule): Efficient? This is called a lot ...
@@ -227,59 +229,22 @@ impl<'a> Lines<'a> {
   /// itself starts with a non-comment keyword, its index is returned.
   pub fn first_after(&self, line: LineNr) -> (usize, LineNr) {
     let to_skip = self.linenr_to_index(line);
-    let len = self.len();
-    if len > 0 {
-      let last_lnr = self[len - 1].number;
+    if self.is_empty() {
+      (0_usize, 0_usize.into())
+    } else {
       self
         .iter()
         .enumerate()
         .skip(to_skip)
         .find(|(_, l)| l.keyword.is_some())
         .map(|(i, l)| (i, l.number))
-        .unwrap_or((len, last_lnr + 1))
-    } else {
-      (0_usize, 0_usize.into())
+        .unwrap_or_else(|| {
+          let len = self.len();
+          (len, self[len - 1].number + 1)
+        })
     }
   }
 }
-
-/*
-impl<'a> From<(LineNr, (&'a Option<Keyword>, &'a [u8]))> for ParsedLine<'a> {
-  fn from(
-    (u, (k, t)): (LineNr, (&'a Option<Keyword>, &'a [u8])),
-  ) -> ParsedLine<'a> {
-    ParsedLine {
-      number: u,
-      text: t,
-      keyword: k.as_ref(),
-    }
-  }
-}
-
-impl<'a> From<(&'a Option<Keyword>, &'a Line<'a>)> for ParsedLine<'a> {
-  fn from((k, l): (&'a Option<Keyword>, &'a Line<'a>)) -> ParsedLine<'a> {
-    ParsedLine {
-      number: l.nr(),
-      text: l.text(),
-      keyword: k.as_ref(),
-    }
-  }
-}
-
-impl<'a> From<(LineNr, (&'a Option<Keyword>, &'a Line<'a>))>
-  for ParsedLine<'a>
-{
-  fn from(
-    (u, (k, l)): (LineNr, (&'a Option<Keyword>, &'a Line<'a>)),
-  ) -> ParsedLine<'a> {
-    ParsedLine {
-      number: u,
-      text: l.text(),
-      keyword: k.as_ref(),
-    }
-  }
-}
-*/
 
 impl<'a> Deref for Lines<'a> {
   type Target = [ParsedLine<'a>];
