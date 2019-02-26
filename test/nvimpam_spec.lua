@@ -443,12 +443,24 @@ describe('nvimpam', function()
     local chans = meths.list_chans()
     local client = chans[3].client
     eq(client.name, 'nvimpam')
+    eq({ {1, 3} }, meths.execute_lua([[
+         local t = {}
+         for k, v in pairs(require('nvimpam.job').jobids) do
+           table.insert(t, {k, v}) end
+         return t
+       ]], {}))
 
     command("enew!")
     -- sleep needed to let the detaching happen
     sleep(100)
     chans = meths.list_chans()
     eq(nil, chans[3])
+    eq({ }, meths.execute_lua([[
+         local t = {}
+         for k, v in pairs(require('nvimpam.job').jobids) do
+           table.insert(t, {k, v}) end
+         return t
+       ]], {}))
 
   end)
 
