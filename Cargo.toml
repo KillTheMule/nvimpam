@@ -37,6 +37,7 @@ criterion = "0.2.7"
 [lib]
 name = "nvimpam_lib"
 path = "src/lib.rs"
+bench = false
 
 [profile.bench]
 lto = true
