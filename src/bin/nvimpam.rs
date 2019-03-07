@@ -1,3 +1,4 @@
+#![deny(bare_trait_objects)]
 //! The nvimpam binary. Needs to be connected to neovim by stdin/stdout like
 //! this (assuming it is in your PATH):
 //!
