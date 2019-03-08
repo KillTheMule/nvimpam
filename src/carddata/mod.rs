@@ -1,4 +1,5 @@
-//! This module contains all the global static [`Card`](::card::Card) instances
+//! This module contains all the global static [`Card`](crate::card::Card)
+//! instances
 //
 // Export the macros inside this crate
 #[cfg(test)]

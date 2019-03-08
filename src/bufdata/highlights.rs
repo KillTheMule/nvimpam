@@ -197,11 +197,13 @@ impl Highlights {
     start..end
   }
 
-  /// Send the lighlights from the passed Iterator to neovim. All the highlights
-  /// in the linerange `firstline..lastline` are cleared beforehand.
+  /// Construct the necessary calls to neovim to highlight the region given by
+  /// `firstline..lastline`. Here, `indexrange` gives the index of the
+  /// highlights to send. All existing highlights in this linerange are cleare
+  /// beforehand.
   ///
-  /// TODO(KillTheMule): efficient?
-  /// TODO(KillTheMule): This should be a method on `BufData`
+  /// TODO(KillTheMule): efficient? maybe not send strings for the hl groups,
+  /// but small ints, and have a mapping ready?
   pub(super) fn highlight_region_calls(
     &self,
     buf: &Buffer,

@@ -1,11 +1,11 @@
 //! This module holds datastructures for the various `skip_*` methods of the
-//! [`NoCommentIter`](::nocommentiter::NoCommentIter)
+//! [`LinesIter`](crate::linesiter::LinesIter)
 use std::fmt;
 
 use crate::{linenr::LineNr, lines::ParsedLine};
 
 /// A data structure returned by several skip methods on
-/// [`NoCommentIter`](::nocommentiter::NoCommentIter)
+/// [`LinesIter`](crate::linesiter::LinesIter)
 ///
 /// `nextline` will be `None` in those cases where the iterator returned `None`
 /// before such a line could be found, i.e. the file ended.

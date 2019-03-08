@@ -43,7 +43,7 @@ impl From<FixedStr> for &'static str {
 
 #[derive(Debug, PartialEq)]
 pub enum Cell {
-  /// A [`keyword`](::card::keyword::Keyword)
+  /// A [`keyword`](crate::card::keyword::Keyword)
   Kw(Keyword),
   /// A fixed, non-keyword entry
   Fixed(FixedStr),
@@ -98,7 +98,7 @@ impl Cell {
   }
 
   /// Checks if the contents of the cell in the file are valid for the type of
-  /// the cell. Right now, only checks [`Float`](::card::cell::Cell::Float)
+  /// the cell. Right now, only checks [`Float`](crate::card::cell::Cell::Float)
   /// cells.
   ///
   /// TODO(KillTheMule): Extend. Implement Pyvars.

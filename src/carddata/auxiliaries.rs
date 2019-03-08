@@ -1,5 +1,5 @@
-//! This modules holds the the global static auxiliary [`Card`](::card::Card)
-//! instances.
+//! This modules holds the the global static auxiliary
+//! [`Card`](crate::card::Card) instances.
 use crate::card::{
   cell::Cell::*, ges::GesType::*, keyword::Keyword::*, line::Line::*, Card,
 };

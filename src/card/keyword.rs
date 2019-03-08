@@ -1,12 +1,8 @@
 #![cfg_attr(feature = "cargo-clippy", allow(clippy::unreadable_literal))]
-//! This module provides the [`Keyword`](::card::keyword::Keyword) enum to
+//! This module provides the [`Keyword`](crate::card::keyword::Keyword) enum to
 //! classify lines according to what card type they belong to. The terms
 //! "Keyword" and "Card" are lingo from the FEM solver Pamcrash, but generally
 //! used among FEM solvers.
-//!
-//! Also provides the [`Keywords`](::card::keyword::Keywords) struct to hold the
-//! keywords of a [`Lines`](::lines::Lines) struct. Supposed to be kept in sync
-//! via [`Keywords::update`](::card::keyword::Keywords::update).
 
 /// An enum to denote the several types of cards a line might belong to.
 #[derive(Copy, Clone, PartialEq, Debug)]

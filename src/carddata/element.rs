@@ -1,4 +1,4 @@
-//! This modules holds the the global static element [`Card`](::card::Card)
+//! This modules holds the the global static element [`Card`](crate::card::Card)
 //! instances.
 use crate::card::{
   cell::{Cell::*, FixedStr},

@@ -36,8 +36,7 @@ impl Folds {
   }
 
   /// Insert a fold `([start, end], (Keyword, String))`.  Returns an error if
-  /// that fold is already in the list. In that case, it needs to be
-  /// [removed](::bufdata::folds::Folds::remove) beforehand.
+  /// that fold is already in the list.
   fn insert(
     &mut self,
     start: LineNr,
@@ -59,8 +58,7 @@ impl Folds {
 
   /// Insert fold `([start, end], (Keyword, String))`. If `end < start`, we
   /// return an Error.  Otherwise, we call the internal insert function that
-  /// returns an error if the fold is already in the list. In that case, it
-  /// needs to be [removed](::bufdata::folds::Folds::remove) beforehand.
+  /// returns an error if the fold is already in the list.
   pub(super) fn checked_insert(
     &mut self,
     start: LineNr,
@@ -74,8 +72,8 @@ impl Folds {
     }
   }
 
-  /// Copy the elements of a FoldList into a Vec, containing
-  /// the tuples (start, end, Keyword). Only needed for tests.
+  // Copy the elements of a FoldList into a Vec, containing
+  // the tuples (start, end, Keyword). Only needed for tests.
   #[cfg(test)]
   pub fn to_vec(&self) -> Vec<(usize, usize, Keyword)> {
     self
@@ -124,7 +122,13 @@ impl Folds {
   }
 
   /// Splices a new set of folds, existing in the range `firstline..lastline` of
-  /// lines, into self. Needs the number of added lines to work.
+  /// lines, into self. Needs the number of added lines to work. **NOTE**: This
+  /// has some assumptions on `firstline`/`lastline`, which I'm not entirely
+  /// sure of right now. In effect though, if we got `firstline` from a
+  /// [`LinesEvent`](::event::Event::LinesEvent), we need to call
+  /// [`last_before`](::bufdata::BufData::last_before) on it before passing it
+  /// here. Same for `lastline` and
+  /// [`first_after`](::bufdata::Bufdata::first_after).
   ///
   /// Note: The major pain point here is fusing folds at the boundary. This will
   /// stay somewhat complicated no matter what, but the code might be
@@ -181,8 +185,6 @@ impl Folds {
       }
 
       if lastline <= k[1] {
-        // FIXME(KillTheMule): This hould not be "lastline", but "first after"
-        // the lastline... maybe something like this before firstline?
         let _ = self.checked_insert(lastline, k[1], v);
         first_after = Some(([lastline, k[1]], v));
       }

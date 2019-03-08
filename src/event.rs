@@ -1,5 +1,5 @@
 //! The events that nvimpam needs to accept and deal with. They're sent by the
-//! [`NeovimHandler`](::handler::NeovimHandler) to the main loop.
+//! [`NeovimHandler`](crate::handler::NeovimHandler) to the main loop.
 use std::{ffi::OsString, fmt, fs, sync::mpsc};
 
 use failure::{self, Error, ResultExt};
@@ -43,18 +43,18 @@ pub enum Event {
 
 impl Event {
   /// Run the event loop. The receiver receives the events from the
-  /// [handler](::handler::NeovimHandler).
+  /// [handler](crate::handler::NeovimHandler).
   ///
   /// If a file was given as an argument, nvimpam reads it and creates its
-  /// [`BufData`](::bufdata::BufData) from it. Then it enables
+  /// [`BufData`](crate::bufdata::BufData) from it. Then it enables
   /// [buffer events](https://neovim.io/doc/user/api.html#nvim_buf_attach()) and
-  /// updates the [`BufData`](::bufdata::BufData) accordingly.
+  /// updates the [`BufData`](crate::bufdata::BufData) accordingly.
   ///
   /// If no file was given as an argument, nvimpam directly enables
   /// [buffer events](https://neovim.io/doc/user/api.html#nvim_buf_attach())
   /// and requests the buffer's contents from it instead.
   ///
-  /// Sending the [`Quit`](::event::Event::Quit) event will
+  /// Sending the [`Quit`](crate::event::Event::Quit) event will
   /// exit the loop and return from the function.
   pub fn event_loop(
     from_handler: &mpsc::Receiver<Self>,

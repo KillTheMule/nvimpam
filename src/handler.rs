@@ -11,7 +11,7 @@ use neovim_lib::{neovim_api::Buffer, Handler, RequestHandler, Value};
 use crate::event::Event;
 
 /// The handler containing the sending end of a channel. The receiving end is
-/// the main [`event loop`](::event::Event::event_loop).
+/// the main [`event loop`](crate::event::Event::event_loop).
 pub struct NeovimHandler {
   pub to_main: mpsc::Sender<Event>,
   pub from_main: mpsc::Receiver<Value>,

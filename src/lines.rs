@@ -9,15 +9,15 @@ use crate::{card::keyword::Keyword, linenr::LineNr, linesiter::LinesIter};
 /// An enum representing a line of a file, either as a byte slice (which we
 /// obtain from reading a file into a `Vec<u8>` and splitting on newlines) or an
 /// owned `String` (which we get from neovim's buffer update API via a
-/// [`LinesEvent`](::event::Event::LinesEvent)).
+/// [`LinesEvent`](crate::event::Event::LinesEvent)).
 #[derive(Debug, PartialEq)]
 pub enum RawLine<'a> {
   OriginalLine(&'a [u8]),
   ChangedLine(String),
 }
 
-/// A struct to hold the data of a [`Line`](::lines::Line) that has been
-/// [`parse`](::card::keyword::Keyword::parse)d before.
+/// A struct to hold the data of a [`RawLine`](crate::lines::RawLine) that has
+/// been [`parse`](crate::card::keyword::Keyword::parse)d before.
 #[derive(PartialEq, Debug)]
 pub struct ParsedLine<'a> {
   pub number: LineNr,
@@ -25,9 +25,9 @@ pub struct ParsedLine<'a> {
   pub keyword: Option<Keyword>,
 }
 
-/// A struct to hold a [`Line`](::lines::Line) of a file that has been
-/// [`parse`](::card::keyword::Keyword::parse)d and starts with a
-/// [`Keyword`](::card::keyword::Keyword).
+/// A struct to hold (a reference to) a [`RawLine`](crate::lines::RawLine) of a
+/// file that has been [`parse`](crate::card::keyword::Keyword::parse)d and
+/// starts with a [`Keyword`](crate::card::keyword::Keyword).
 #[derive(PartialEq, Debug)]
 pub struct KeywordLine<'a> {
   pub number: LineNr,
@@ -54,9 +54,10 @@ impl<'a> ParsedLine<'a> {
     self.number += added;
   }
 
-  /// Try to convert the [`ParsedLine`](::lines::ParsedLine) into a
-  /// [`KeywordLine`](::lines::KeywordLine). This is of course possible if and
-  /// only if the [`keyword`](::lines::ParsedLine::keyword) is `Some(kw)`.
+  /// Try to convert the [`ParsedLine`](crate::lines::ParsedLine) into a
+  /// [`KeywordLine`](crate::lines::KeywordLine). This is of course possible if
+  /// and only if the [`keyword`](crate::lines::ParsedLine::keyword) is
+  /// `Some(kw)`.
   pub fn try_into_keywordline(&'a self) -> Option<KeywordLine<'a>> {
     if let Some(kw) = self.keyword {
       return Some(KeywordLine {
@@ -86,7 +87,7 @@ impl<'a> Lines<'a> {
     self.0.len()
   }
 
-  /// Extend a [`Lines`](::lines::Lines) struct from a `Vec<String>`
+  /// Extend a [`Lines`](crate::lines::Lines) struct from a `Vec<String>`
   pub fn parse_vec(&mut self, v: Vec<String>) {
     self.0.extend(
       v.into_iter()
@@ -103,7 +104,7 @@ impl<'a> Lines<'a> {
     );
   }
 
-  /// Extend a [`Lines`](::lines::Lines) struct from a slice of `&'str`s
+  /// Extend a [`Lines`](crate::lines::Lines) struct from a slice of `&'str`s
   pub fn parse_strs<'c: 'a>(&mut self, v: &'c [&'a str]) {
     self.0.extend(
       v.iter()
@@ -120,8 +121,8 @@ impl<'a> Lines<'a> {
     );
   }
 
-  /// Extend a [`Lines`](::lines::Lines) struct from a byte slice by splitting
-  /// on newlines.
+  /// Extend a [`Lines`](crate::lines::Lines) struct from a byte slice by
+  /// splitting on newlines.
   pub fn parse_slice<'c: 'a>(&mut self, v: &'c [u8]) {
     self.0.extend(
       v.split(|b| *b == b'\n')
@@ -162,6 +163,7 @@ impl<'a> Lines<'a> {
 
     let indexrange = startidx..endidx;
 
+    // TODO(KillTheMule): Check for added = 0, bench it
     for line in self.0[indexrange.end..].iter_mut() {
       line.shift(added);
     }

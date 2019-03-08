@@ -1,5 +1,5 @@
-//! This modules holds the the global static constraint [`Card`](::card::Card)
-//! instances.
+//! This modules holds the the global static constraint
+//! [`Card`](crate::card::Card) instances.
 use crate::card::{
   cell::{Cell::*, FixedStr},
   ges::GesType::*,

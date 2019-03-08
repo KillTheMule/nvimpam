@@ -1,10 +1,10 @@
-//! This module holds [`NoCommentIter`](::nocommentiter::NoCommentIter), the
+//! This module holds [`LinesIter`](crate::linesiter::LinesIter), the
 //! central datastructure to parse the lines of a buffer.
 //!
 //! It returns enumerated Lines, but skips Comments (lines starting with `$` or
 //! `#`). All skip functions, used by
-//! [`parse_from_iter`](::bufdata::BufData::parse_from_iter), work on a
-//! [`NoCommentIter`](::nocommentiter::NoCommentIter).
+//! [`parse_from_iter`](crate::bufdata::BufData::parse_from_iter), work on a
+//! [`LinesIter`](crate::linesiter::LinesIter).
 use crate::{
   bufdata::highlights::Highlights,
   card::{
@@ -161,9 +161,9 @@ where
     }
   }
 
-  /// A wrapper around [`skip_card`](NoCommentIter::skip_card) and
-  /// [`skip_card_gather`](NoCommentIter::skip_card_gather), dispatching by
-  /// value of [`Card.ownfold`](::card::Card::ownfold)
+  /// A wrapper around [`skip_card`](LinesIter::skip_card) and
+  /// [`skip_card_gather`](LinesIter::skip_card_gather), dispatching by value of
+  /// [`Card.ownfold`](crate::card::Card::ownfold)
   pub fn skip_fold<'b>(
     &'b mut self,
     skipline: &KeywordLine<'a>,

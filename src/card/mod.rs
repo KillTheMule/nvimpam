@@ -1,14 +1,14 @@
 //! A datastructure to represent a `Card` of the FEM-Solver Pamcrash.
 //!
-//! There is a 1-1 correspondence between a [`Card`](::card::Card) and
-//! a [`Keyword`](::card::keyword::Keyword), but they are used differently. A
-//! [`Keyword`](::card::keyword::Keyword) is used as a parsing result for
-//! strings all over the place, while [`Card`](::card::Card) is used to
+//! There is a 1-1 correspondence between a [`Card`](crate::card::Card) and
+//! a [`Keyword`](crate::card::keyword::Keyword), but they are used differently.
+//! A [`Keyword`](crate::card::keyword::Keyword) is used as a parsing result for
+//! strings all over the place, while [`Card`](crate::card::Card) is used to
 //! define global static values the represent the concrete CARD entities of
 //! Pamcrash.
 //!
 //! The definitions of the global static values can be found in the
-//! [`carddata`](::carddata) module.
+//! [`carddata`](crate::carddata) module.
 pub mod cell;
 pub mod ges;
 pub mod keyword;
@@ -17,8 +17,8 @@ pub mod line;
 use self::{keyword::Keyword, line::Line};
 use crate::carddata::*;
 
-/// A card consists of severals [`Line`](::card::line::Line). If `ownfold` is
-/// true, than each card of this type will get an own fold. Otherwise, all
+/// A card consists of severals [`Line`](crate::card::line::Line). If `ownfold`
+/// is true, than each card of this type will get an own fold. Otherwise, all
 /// adjacent cards of that type are gathered into one fold.
 #[derive(Debug)]
 pub struct Card {

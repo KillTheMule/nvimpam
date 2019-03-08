@@ -1,4 +1,4 @@
-//! This module provides the [`BufData`](::bufdata::BufData) struct to
+//! This module provides the [`BufData`](crate::bufdata::BufData) struct to
 //! manage the lines, folds and highlights in a buffer.
 
 pub mod folds;
@@ -50,10 +50,7 @@ pub struct BufData<'a> {
 }
 
 impl<'a> BufData<'a> {
-  /// Create a new BufData instance for the given Neovim instance. Calls
-  /// `nvim_get_current_buf` to get the buffer we're attaching to.
-  ///
-  /// TODO(KillTheMule): Can we take `Neovim` by value here?
+  /// Create a new BufData instance for a given buffer.
   pub fn new(buf: &'a Buffer) -> Self {
     BufData {
       buf,
@@ -107,7 +104,7 @@ impl<'a> BufData<'a> {
   /// After adding lines and the keywords of a `BufData` structure, this
   /// computes the folds and highlights. Everything's cleared beforehand, so it
   /// should only be used after the initalization. Use
-  /// [`update`](::bufdata::BufData::update) otherwise.
+  /// [`update`](crate::bufdata::BufData::update) otherwise.
   pub fn regenerate(&mut self) -> Result<(), Error> {
     self.folds.clear();
     self.folds_level2.clear();
@@ -122,9 +119,8 @@ impl<'a> BufData<'a> {
   /// Update the `BufData` structure from the lines of a `Vec<String>`. Tries to
   /// be as efficient as possible. Returns the range of indices with new
   /// highlights. This is usefull to call
-  /// [`indexrange`](::bufdata::highlights::Highlights::indexrange) afterwards
-  /// to efficiently send the new data to neovim via
-  /// [`highlight_region`](::bufdata::highlights::highlight_region).
+  /// [`highlight_region_calls`](crate::bufdata::BufData::
+  /// highlight_region_calls) afterwards.
   pub fn update(
     &mut self,
     firstline: LineNr,
@@ -176,7 +172,7 @@ impl<'a> BufData<'a> {
     BufData::parse_from_iter(&mut self.highlights, &mut self.folds, li)
   }
 
-  /// Iterate over a [`NoCommentIter`](::nocommentiter::NoCommentIter) and add
+  /// Iterate over a [`LinesIter`](::linesiter::LinesIter) and add
   /// the highlights and folds to the given structures.
   fn parse_from_iter<'b, I>(
     highlights: &mut Highlights,
@@ -204,7 +200,7 @@ impl<'a> BufData<'a> {
       folds.checked_insert(foldstart, foldend, foldkw)?;
 
       if let Some(Some(kl)) =
-        skipped.nextline.map(|pl| pl.try_into_keywordline())
+        skipped.nextline.map(ParsedLine::try_into_keywordline)
       {
         nextline = kl;
       } else {
@@ -225,6 +221,10 @@ impl<'a> BufData<'a> {
     self.lines.first_after(line)
   }
 
+  /// Construct the necessary calls to neovim to highlight the region given by
+  /// `firstline..lastline`. Here, `indexrange` gives the index of the
+  /// highlights to send. All existing highlights in this linerange are cleare
+  /// beforehand.
   pub fn highlight_region_calls(
     &mut self,
     indexrange: Range<usize>,
