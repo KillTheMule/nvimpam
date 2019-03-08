@@ -946,4 +946,33 @@ describe('nvimpam', function()
     ]])
 
   end)
+
+  it('removes highlights and folds after a DetachEvent', function()
+    command('edit ' .. alter_slashes('../files/example.pc'))
+    command('NvimPamAttach')
+    feed("29G")
+    command('NvimPamHighlightScreen')
+    sleep(10)
+    command("NvimPamUpdateFolds")
+    command("edit!")
+
+    screen:expect([[
+      NODPLOT    DFLT                                                                  |
+      SOLPLOT     ALL                                                                  |
+       SHLPLOT   DFLT                                                                  |
+      END_OCTRL                                                                        |
+      $                                                                                |
+      $#         IDNOD               X               Y               Z                 |
+      ^NODE  /        1              0.            50.5              0.                 |
+      NODE  /        2              0.            50.5             10.                 |
+      NODE  /        3              0.            50.5             20.                 |
+      NODE  /        4              0.            50.5             30.                 |
+      NODE  /        5              0.            50.5             40.                 |
+      NODE  /        6              0.            50.5             50.                 |
+      NODE  /        7              0.            50.5             60.                 |
+      NODE  /        8              0.            50.5             70.                 |
+                                                                                       |
+    ]])
+  end)
+
 end)

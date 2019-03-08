@@ -143,6 +143,9 @@ impl Event {
         }
         Ok(DetachEvent { buf }) => {
           if *bufdata.buf == buf {
+            buf
+              .clear_namespace(nvim, 5, 0, -1)
+              .context("could not clear namespace 5")?;
             break;
           } else {
             warn!(
