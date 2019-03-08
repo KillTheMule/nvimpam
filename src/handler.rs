@@ -5,8 +5,8 @@
 use std::sync::mpsc;
 
 use failure::{self, Error};
-use neovim_lib::{neovim_api::Buffer, Handler, RequestHandler, Value};
 use log::{error, info};
+use neovim_lib::{neovim_api::Buffer, Handler, RequestHandler, Value};
 
 use crate::event::Event;
 

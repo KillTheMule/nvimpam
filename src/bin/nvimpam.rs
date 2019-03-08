@@ -31,14 +31,13 @@
 use std::{env::args_os, sync::mpsc};
 
 use failure::{Error, ResultExt};
+use log::error;
 use neovim_lib::{
   neovim::Neovim, neovim_api::NeovimApi, session::Session, Value,
 };
 use simplelog::{Config, Level, LevelFilter, WriteLogger};
-use log::error;
 
 use nvimpam_lib::{event::Event, handler::NeovimHandler};
-
 
 fn main() {
   use std::process;
