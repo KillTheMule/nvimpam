@@ -96,7 +96,7 @@ impl Folds {
 
     let grouped = folds.iter().group_by(|(_, &(kw, _))| kw);
 
-    for (kw, mut group) in &grouped {
+    for (kw, group) in &grouped {
       let mut group = group.enumerate();
       let firstfold = group.next().expect("Empty group from group_by!").1;
       let (nr, lastfold) = match group.last() {

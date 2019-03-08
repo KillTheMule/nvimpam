@@ -28,24 +28,17 @@
 //!   empty)
 //! * `NVIMPAM_LOG_LEVEL` can be one of `error`, `warn`, `info`, `debug` and
 //!   `trace`, in ascending order of verbosity. The default is `warn`.
-#[macro_use]
-extern crate log;
-extern crate failure;
-extern crate neovim_lib;
-extern crate nvimpam_lib;
-extern crate simplelog;
-
 use std::{env::args_os, sync::mpsc};
 
 use failure::{Error, ResultExt};
-
-use nvimpam_lib::{event::Event, handler::NeovimHandler};
-
 use neovim_lib::{
   neovim::Neovim, neovim_api::NeovimApi, session::Session, Value,
 };
-
 use simplelog::{Config, Level, LevelFilter, WriteLogger};
+use log::error;
+
+use nvimpam_lib::{event::Event, handler::NeovimHandler};
+
 
 fn main() {
   use std::process;

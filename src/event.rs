@@ -3,8 +3,8 @@
 use std::{ffi::OsString, fmt, fs, sync::mpsc};
 
 use failure::{self, Error, ResultExt};
-
 use neovim_lib::{neovim::Neovim, neovim_api::Buffer, NeovimApi, Value};
+use log::{warn, info};
 
 use crate::{bufdata::BufData, linenr::LineNr};
 

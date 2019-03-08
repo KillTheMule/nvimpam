@@ -20,6 +20,7 @@ documentation = "https://KillTheMule.github.io/nvimpam/nvimpam"
 repository = "https://github.com/KillTheMule/nvimpam"
 readme = "README.md"
 autobenches = false
+edition = "2018"
 
 [dependencies]
 log = "0.4.6"
