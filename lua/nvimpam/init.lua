@@ -10,13 +10,11 @@ return {
   detach_all = job.detach_all,
   on_stderr = job.on_stderr,
   on_exit = job.on_exit,
-  printstderr = job.printstderr,
   nvimpam_err = job.nvimpam_err,
   -- fold
   update_folds = fold.update_folds,
   refresh_folds = fold.refresh_folds,
   foldtext = fold.foldtext,
-  printfolds = fold.printfolds,
   -- utils
   locate_binary = utils.locate_binary,
   -- highlight

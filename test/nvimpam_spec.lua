@@ -423,7 +423,7 @@ describe('nvimpam', function()
     eq(client1.name, 'nvimpam')
     eq(client2.name, 'nvimpam')
 
-    command("NvimPamDetach")
+    command('call luaeval("require(\'nvimpam\').detach()")')
     sleep(100)
     chans = meths.list_chans()
     eq(chans[3].client.name, 'nvimpam')
@@ -604,7 +604,7 @@ describe('nvimpam', function()
     command('edit ' .. alter_slashes('../files/example.pc'))
 
 
-    command('NvimPamFilter')
+    command('call luaeval("require(\'nvimpam.filter_cards\').filter_cards()")')
     screen:expect([[
       INPUTVERSION 2011                                                                |
       ]]

@@ -184,6 +184,7 @@ local function printstderr()
       input("String #"..tostring(j).." is '"..tostring(s).."'\n")
     end
   end
+  input("<Esc>")
 end
 
 return {
