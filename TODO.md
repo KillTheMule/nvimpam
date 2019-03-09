@@ -1,6 +1,3 @@
-* BUG: Node line, delete first char, syntax stays... deleting more then deletes
-  the syntax at some point
-
 * Folds don't see non-comment lines without a keyword. If there's stuff before
   the header, it might be included in the fold. Maybe just ignore that, since it's 
   syntactically invalid anyways

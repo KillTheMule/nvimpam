@@ -730,6 +730,40 @@ describe('nvimpam', function()
     ]])
   end)
 
+  it('deletes highlighting when a line becomes invalid', function()
+    insert([[
+      NODE  /        1              0.             0.5              0.
+      NODE  /        1              0.             0.5              0.]]
+    )
+    command('set ft=pamcrash')
+    command('NvimPamAttach')
+    sleep(10)
+    command("NvimPamHighlightScreen")
+    sleep(10)
+
+    feed("1G0")
+    feed("<C-v>jx")
+    sleep(10)
+    screen:expect([[
+      ^ODE  /        1              0.             0.5              0.                  |
+      ODE  /        1              0.             0.5              0.                  |
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+                                                                                       |
+    ]])
+
+  end)
+
   it('keeps highlights after undo', function()
     command('edit ' .. alter_slashes('../files/example.pc'))
     command('NvimPamAttach')

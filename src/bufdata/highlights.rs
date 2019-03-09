@@ -211,7 +211,7 @@ impl Highlights {
     firstline: LineNr,
     lastline: LineNr,
   ) -> Option<Vec<Value>> {
-    if indexrange.start == indexrange.end {
+    if indexrange.start == indexrange.end && firstline == lastline {
       return None;
     }
 

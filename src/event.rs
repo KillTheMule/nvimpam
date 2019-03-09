@@ -102,9 +102,10 @@ impl Event {
             let lastline = LineNr::from_i64(lastline);
             let firstline = LineNr::from_i64(firstline);
 
-            let newrange = bufdata.update(firstline, lastline, linedata)?;
+            let (newrange, added) = bufdata.update(firstline, lastline, linedata)?;
             if let Some(calls) =
-              bufdata.highlight_region_calls(newrange, firstline, lastline)
+              bufdata.highlight_region_calls(newrange, firstline, lastline +
+                                             added)
             {
               nvim.call_atomic(calls).context("call_atomic failed")?;
             }
