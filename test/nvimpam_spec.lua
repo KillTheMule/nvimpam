@@ -858,6 +858,26 @@ describe('nvimpam', function()
       {IGNORE}|
     ]])
 
+    command('NvimPamUpdateFolds')
+    screen:expect([[
+      {1: 3 lines: Node ··································································}|
+      {1:^ 8 lines: Shell ·································································}|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      4 more lines                                                                     |
+    ]])
+
+    feed("zE")
     feed("u")
     sleep(10)
     screen:expect([[
@@ -878,6 +898,24 @@ describe('nvimpam', function()
       {IGNORE}|
     ]])
 
+    command('NvimPamUpdateFolds')
+    screen:expect([[
+      {1: 3 lines: Node ··································································}|
+      {1:^ 4 lines: Shell ·································································}|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      4 fewer lines; before #3  0 seconds ago                                          |
+    ]])
   end)
 
   it("works when pasting at the beginning of the buffer", function()
@@ -906,6 +944,26 @@ describe('nvimpam', function()
       {IGNORE}|
     ]])
 
+    command('NvimPamUpdateFolds')
+    screen:expect([[
+      {1:^ 7 lines: Node ··································································}|
+      #Comment here                                                                    |
+      {1: 10 lines: Shell ································································}|
+      $Comment                                                                         |
+      #Comment                                                                         |
+      {1: 3 lines: Node ··································································}|
+      {1: 4 lines: Shell ·································································}|
+                                                                                       |
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      {2:~                                                                                }|
+      3 more lines                                                                     |
+    ]])
+
+    feed("zE")
     feed("u")
     sleep(10)
     screen:expect([[
