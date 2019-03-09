@@ -1,10 +1,10 @@
-*nvimpam.txt*                                                         *nvimpam*
+*nvimpam.txt*                                                          *nvimpam*
 
 
                             NVIMPAM DOCUMENTATION
 
 
-Development of nvimpam.                         		*development*
+Development of nvimpam.                                            *development*
 
 Nvimpam is open source software. Everybody is encouraged to contribute.
 
@@ -15,14 +15,15 @@ You're very welcome to step by to report bugs or request features.
                                       Type |gO| to see the table of contents.
 
 ==============================================================================
-Overview    		       				*nvimpam-overview*
+Overview                                                      *nvimpam-overview*
 
 Nvimpam is a neovim |rpc| plugin for editing input files for the FEM solver
-PAMCRASH. It provides folding, and a menu to insert new cards into the buffer
-(this feature depends on `Vigemus/impromptu.nvim` being installed).
+PAMCRASH. It provides folding, syntax highlighting and a menu to insert new
+cards into the buffer (this feature depends on `Vigemus/impromptu.nvim` being
+installed).
 
 
-Differences with vim-pamcrash-syntax          *vim-pamcrash-syntax-differences*
+Differences with vim-pamcrash-syntax           *vim-pamcrash-syntax-differences*
 
 If you're editing pamcrash input files, check out
 
@@ -30,17 +31,16 @@ If you're editing pamcrash input files, check out
 
 which provides additional functionality. The only thing it is missing is
 _working_ folding support. It has basic support, but performance is forbidding
-even on quite small files. That is the niche that nvimpam now fills, as it
-provides folding support with quite good performance even on large files. The
+even on quite small files. Folding support from nvimpam is much faster. The
 fact that rpc plugins work asynchronously means that even on huge files you
 can start working or scrolling around while the folding data is computed.
 
 ==============================================================================
-Nvimpam commands					*nvimpam-commands*
+Nvimpam commands                                              *nvimpam-commands*
 
 Nvimpam provides the following commands:
 
-NvimPamAttach~
+NvimPamAttach                                                   *:NvimPamAttach*
 
 Attaches an nvimpam process to the current buffer. It will process the
 buffer's contents, and create (and close) the folds. Depending on the size of
@@ -48,22 +48,39 @@ the buffer you might feel a small delay (due to having to transfer the
 buffer's contents), but you will be able to use nvim before the folds have
 been computed.
 
-NvimPamDetach~
+NvimPamDetach                                                   *:NvimPamDetach*
 
 Detaches an nvimpam process from the current buffer. You will only need to do
 this if you manually wish to disable nvimpam after starting it.
 
-NvimPamUpdateFolds~
+NvimPamHighlightScreen                                 *:NvimPamHighlightScreen*
+
+Applies syntax highlighting to a portion of the buffer that includes the
+currently shown lines (the reason it might be slighly more is that we extend
+this to full cards).
+
+NvimPamUpdateFolds                                         *:NvimPamUpdateFolds*
 
 Ask nvimpam to recompute and apply all folds. After initially creating and
 closing the folds for you, it will not do so subsequently. It will however
 keep track of the changes to the buffer, so updating the folds will be very
 fast.
 
-NvimPamMenu~
+NvimPamMenu                                                       *:NvimPamMenu*
 
 Opens a menu to let you choose a pamcrash card to insert in to the buffer.
 Selection is key-based. Depends on `Vigemus/impromptu.nvim` being installed.
+
+==============================================================================
+Nvimpam syntax highlighting                        *nvimpam-syntax-highlighting*
+
+Syntax highlighting can be actived in two ways: Explicitely requesting it via
+|NvimPamHighlightScreen|, or implicitely, by editing the buffer. In the latter
+case, a suitable part of the buffer will be highlighted. 
+
+Note: Syntax highlighting has been restricted this way for performance
+reasons. Highlighting a full include might hinder working fluently, and
+browsing a full file is out of the question anyways.
 
 ==============================================================================
 Nvimpam configuration                                    *nvimpam-configuration*
