@@ -466,53 +466,6 @@ describe('nvimpam', function()
 
   end)
 
-  -- note: this also checks that we're using the debug binary
-  it('includes a proper healthcheck', function()
-    os.remove(alter_slashes("../target/release/nvimpam"))
-    command('checkhealth nvimpam')
-    -- needed to get rid of the indeterminism warning
-    feed("G")
-
-    --workaround for now, will fail if run on non-appveyor windows
-    if os.getenv("APPVEYOR") then
-      screen:expect([[
-        {5: [No Name] }{6: [No Name] }{3:                                                          }{5:X}|
-        ========================================================================         |
-        ## Buffer updates                                                                |
-          - {7:OK:} Function nvim_buf_attach exists!                                         |
-                                                                                         |
-        ## Nvimpam binary                                                                |
-          - {7:OK:} binary found: nvimpam                                                    |
-                                                                                         |
-        ## Menu availability                                                             |
-          - ERROR: `Vigemus/impromptu.nvim` is not installed                             |
-            - ADVICE:                                                                    |
-              - Visit `https://github.com/Vigemus/impromptu.nvim`.                       |
-          - {7:OK:} Directory `pam_cards` found                                              |
-        ^                                                                                 |
-                                                                                         |
-      ]])
-    else
-      screen:expect([[
-        {5: [No Name] }{6: [No Name] }{3:                                                          }{5:X}|
-        ========================================================================         |
-        ## Buffer updates                                                                |
-          - {7:OK:} Function nvim_buf_attach exists!                                         |
-                                                                                         |
-        ## Nvimpam binary                                                                |
-          - {7:OK:} binary found: .././target/debug/nvimpam                                  |
-                                                                                         |
-        ## Menu availability                                                             |
-          - ERROR: `Vigemus/impromptu.nvim` is not installed                             |
-            - ADVICE:                                                                    |
-              - Visit `https://github.com/Vigemus/impromptu.nvim`.                       |
-          - {7:OK:} Directory `pam_cards` found                                              |
-        ^                                                                                 |
-                                                                                         |
-      ]])
-    end
-  end)
-
   it('provides a cardmenu', function()
     -- impromptu uses this HL group, but the runtime isn't loaded on the
     -- neovim test runner
@@ -1113,6 +1066,53 @@ describe('nvimpam', function()
       END_RUNEND                                                                       |
       :NvimPam^                                                                         |
     ]])
+  end)
+
+  -- note: this also checks that we're using the debug binary
+  it('includes a proper healthcheck', function()
+    os.remove(alter_slashes("../target/release/nvimpam"))
+    command('checkhealth nvimpam')
+    -- needed to get rid of the indeterminism warning
+    feed("G")
+
+    --workaround for now, will fail if run on non-appveyor windows
+    if os.getenv("APPVEYOR") then
+      screen:expect([[
+        {5: [No Name] }{6: [No Name] }{3:                                                          }{5:X}|
+        ========================================================================         |
+        ## Buffer updates                                                                |
+          - {7:OK:} Function nvim_buf_attach exists!                                         |
+                                                                                         |
+        ## Nvimpam binary                                                                |
+          - {7:OK:} binary found: nvimpam                                                    |
+                                                                                         |
+        ## Menu availability                                                             |
+          - ERROR: `Vigemus/impromptu.nvim` is not installed                             |
+            - ADVICE:                                                                    |
+              - Visit `https://github.com/Vigemus/impromptu.nvim`.                       |
+          - {7:OK:} Directory `pam_cards` found                                              |
+        ^                                                                                 |
+                                                                                         |
+      ]])
+    else
+      screen:expect([[
+        {5: [No Name] }{6: [No Name] }{3:                                                          }{5:X}|
+        ========================================================================         |
+        ## Buffer updates                                                                |
+          - {7:OK:} Function nvim_buf_attach exists!                                         |
+                                                                                         |
+        ## Nvimpam binary                                                                |
+          - {7:OK:} binary found: .././target/debug/nvimpam                                  |
+                                                                                         |
+        ## Menu availability                                                             |
+          - ERROR: `Vigemus/impromptu.nvim` is not installed                             |
+            - ADVICE:                                                                    |
+              - Visit `https://github.com/Vigemus/impromptu.nvim`.                       |
+          - {7:OK:} Directory `pam_cards` found                                              |
+        ^                                                                                 |
+                                                                                         |
+      ]])
+    end
   end)
 
 end)
