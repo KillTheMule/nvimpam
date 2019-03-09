@@ -6,6 +6,7 @@ local insert = helpers.insert
 local meths = helpers.meths
 local eq = helpers.eq
 local dedent = helpers.dedent
+local eval = helpers.eval
 
 local is_ci = os.getenv("TRAVIS") or os.getenv("APPVEYOR")
 
@@ -38,6 +39,7 @@ describe('nvimpam', function()
       [11] = {foreground = Screen.colors.Grey100, background = Screen.colors.Red},
       [12] = {foreground = Screen.colors.Grey100, background = 11468800},
       [13] = {foreground = Screen.colors.Red},
+      [14] = {foreground = Screen.colors.Grey0, background = Screen.colors.Yellow},
     })
     command('set rtp+=../')
     command('source ../init.vim')
@@ -972,6 +974,52 @@ describe('nvimpam', function()
       NODE  /        7              0.            50.5             60.                 |
       NODE  /        8              0.            50.5             70.                 |
                                                                                        |
+    ]])
+  end)
+
+  it('properly undoes ftplugin settings', function()
+    command('edit ' .. alter_slashes('../files/example.pc'))
+    eq(eval("&foldtext"), "Nvimpam_foldtext()")
+
+    feed(":NvimPam<Tab>")
+    screen:expect([[
+      INPUTVERSION 2011                                                                |
+      ANALYSIS EXPLICIT                                                                |
+      SOLVER    CRASH                                                                  |
+      $                                                                                |
+      $----------------------------------------------------------------                |
+      $     PAM-SOLID SOLVER CONTROLS                                                  |
+      $----------------------------------------------------------------                |
+      UNIT       MM       KG       MS   KELVIN                                         |
+      SIGNAL      YES                                                                  |
+      $                                                                                |
+      TITLE /  BoxBeam fine meshed model                                               |
+      RUNEND/                                                                          |
+       TIME      15.01                                                                 |
+      {14:NvimPamAttach}{4:  NvimPamHighlightScreen  NvimPamMenu  NvimPamUpdateFolds           }|
+      :NvimPamAttach^                                                                   |
+    ]])
+
+    feed("<Esc>")
+    command('set ft=text')
+    eq(eval("&foldtext"), "foldtext()")
+    feed(":NvimPam<Tab>")
+    screen:expect([[
+      INPUTVERSION 2011                                                                |
+      ANALYSIS EXPLICIT                                                                |
+      SOLVER    CRASH                                                                  |
+      $                                                                                |
+      $----------------------------------------------------------------                |
+      $     PAM-SOLID SOLVER CONTROLS                                                  |
+      $----------------------------------------------------------------                |
+      UNIT       MM       KG       MS   KELVIN                                         |
+      SIGNAL      YES                                                                  |
+      $                                                                                |
+      TITLE /  BoxBeam fine meshed model                                               |
+      RUNEND/                                                                          |
+       TIME      15.01                                                                 |
+      END_RUNEND                                                                       |
+      :NvimPam^                                                                         |
     ]])
   end)
 
