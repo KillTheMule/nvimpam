@@ -163,9 +163,10 @@ impl<'a> Lines<'a> {
 
     let indexrange = startidx..endidx;
 
-    // TODO(KillTheMule): Check for added = 0, bench it
-    for line in self.0[indexrange.end..].iter_mut() {
-      line.shift(added);
+    if added != 0 {
+      for line in self.0[indexrange.end..].iter_mut() {
+        line.shift(added);
+      }
     }
 
     let mut newlines = Lines::new();
