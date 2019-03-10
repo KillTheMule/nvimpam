@@ -861,7 +861,7 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       {2:~                                                                                }|
       {2:~                                                                                }|
-      4 more lines                                                                     |
+      {IGNORE}|
     ]])
 
     feed("zE")
@@ -901,7 +901,7 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       {2:~                                                                                }|
       {2:~                                                                                }|
-      4 fewer lines; before #3  0 seconds ago                                          |
+      {IGNORE}|
     ]])
   end)
 
@@ -947,7 +947,7 @@ describe('nvimpam', function()
       {2:~                                                                                }|
       {2:~                                                                                }|
       {2:~                                                                                }|
-      3 more lines                                                                     |
+      {IGNORE}|
     ]])
 
     feed("zE")
