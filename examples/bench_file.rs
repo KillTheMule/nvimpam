@@ -41,13 +41,16 @@ fn main() {
   let curbuf = nvim.get_current_buf().expect("3");
 
   let origlines = fs::read("files/example.pc").expect("3.1");
-  let mut bufdata = BufData::new(&curbuf);
-  bufdata.parse_slice(&origlines).unwrap();
-  curbuf.attach(&mut nvim, false, vec![]).expect("4");
 
-  while let Ok(ChangedTickEvent { .. }) = main_from_handler.recv() {
-    main_to_handler.send(bufdata.fold_calls()).expect("4.1");
-    curbuf.detach(&mut nvim).expect("6");
-    nvim.command("call rpcnotify(1, 'quit')").unwrap();
+  for _ in 0..100 {
+    let mut bufdata = BufData::new(&curbuf);
+    bufdata.parse_slice(&origlines).unwrap();
+    curbuf.attach(&mut nvim, false, vec![]).expect("4");
+
+    while let Ok(ChangedTickEvent { .. }) = main_from_handler.recv() {
+      main_to_handler.send(bufdata.fold_calls()).expect("4.1");
+      curbuf.detach(&mut nvim).expect("6");
+      nvim.command("call rpcnotify(1, 'quit')").unwrap();
+    }
   }
 }
