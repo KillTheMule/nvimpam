@@ -478,16 +478,6 @@ describe('nvimpam', function()
 
     command('NvimPamMenu')
     screen:expect([[
-      INPUTVERSION 2011                                                                |
-      ]]
-      ..
-      alter_slashes(
-      "{3:../files/example.pc                                                              }|"
-      )
-      ..
-      "\n"
-      ..
-      [[
       ^                                                                                 |
        [r] Auxiliaries [i] Material                                                    |
        [n] Constraint  [N] Node                                                        |
@@ -499,21 +489,13 @@ describe('nvimpam', function()
                                                                                        |
                                                                                        |
                                                                                        |
-      {4:[Scratch] [RO]                                                                   }|
+                                                                                       |
+                                                                                       |
+                                                                                       |
                                                                                        |
     ]])
     feed("r")
     screen:expect([[
-      INPUTVERSION 2011                                                                |
-      ]]
-      ..
-      alter_slashes(
-      "{3:../files/example.pc                                                              }|"
-      )
-      ..
-      "\n"
-      ..
-      [[
       ^                                                                                 |
        [h] Move up one level                   [L] PLANEs                              |
        [r] CDATA Card                          [y] PYFUNC Python Function              |
@@ -525,7 +507,9 @@ describe('nvimpam', function()
        [f] GROUP Group Definition              [1] VECTOR Type 1                       |
        [b] LOOKU Lookup Table                  [q] Close this prompt                   |
        [v] NLAVE Non Local Averadge Definition                                         |
-      {4:[Scratch] [RO]                                                                   }|
+                                                                                       |
+                                                                                       |
+                                                                                       |
                                                                                        |
     ]])
     feed("r")
@@ -561,16 +545,6 @@ describe('nvimpam', function()
 
     command('call luaeval("require(\'nvimpam.filter_cards\').filter_cards()")')
     screen:expect([[
-      INPUTVERSION 2011                                                                |
-      ]]
-      ..
-      alter_slashes(
-      "{3:../files/example.pc                                                              }|"
-      )
-      ..
-      "\n"
-      ..
-      [[
       Select a card                                                                    |
       ─────────────────────────────────────────────────────────────────────────────────|
       {13: →} 3D Boundary Condition                                                         |
@@ -580,24 +554,16 @@ describe('nvimpam', function()
          BAGIN Definition                                                              |
          BAR Element                                                                   |
          BDFOR Body Forces                                                             |
+         BEAM Element                                                                  |
+         BFLUX Definition                                                              |
+         BOUNC Displacement BC                                                         |
       ─────────────────────────────────────────────────────────────────────────────────|
       ^                                                                                 |
-      {4:[Scratch]                                                                        }|
-                                                                                       |
+      {6:-- (insert) --}                                                                   |
     ]])
 
     feed("i3d")
     screen:expect([[
-      INPUTVERSION 2011                                                                |
-      ]]
-      ..
-      alter_slashes(
-      "{3:../files/example.pc                                                              }|"
-      )
-      ..
-      "\n"
-      ..
-      [[
       Select a card                                                                    |
       ─────────────────────────────────────────────────────────────────────────────────|
       {13: →} 3D Boundary Condition                                                         |
@@ -607,13 +573,15 @@ describe('nvimpam', function()
                                                                                        |
                                                                                        |
                                                                                        |
+                                                                                       |
+                                                                                       |
+                                                                                       |
       ─────────────────────────────────────────────────────────────────────────────────|
       3d^                                                                               |
-      {4:[Scratch]                                                                        }|
       {6:-- INSERT --}                                                                     |
     ]])
 
-    feed("<C-j><Enter>")
+    feed("<C-n><Enter>")
     screen:expect([[
       ^INPUTVERSION 2011                                                                |
       #FBC3D - Prescribed Motion onto Fluid Media                                      |
@@ -1001,6 +969,23 @@ describe('nvimpam', function()
     command('NvimPamHighlightScreen')
     sleep(10)
     command("NvimPamUpdateFolds")
+    screen:expect([[
+      NODPLOT    DFLT                                                                  |
+      SOLPLOT     ALL                                                                  |
+       SHLPLOT   DFLT                                                                  |
+      END_OCTRL                                                                        |
+      $                                                                                |
+      $#         IDNOD               X               Y               Z                 |
+      {1:^ 725 lines: Node ································································}|
+      $----------------------------------------------------------------                |
+      $     MATERIAL DEFINITIONS                                                       |
+      $----------------------------------------------------------------                |
+      $ boxbeam                                                                        |
+      $#         IDMAT   MATYP             RHO   ISINT    ISHG  ISTRAT   IFROZ         |
+      MATER /        3     103         7.85E-6       0       0       0       0         |
+      $# BLANK                                                     QVM   THDID   IDMPD |
+                                                                                       |
+    ]])
     command("edit!")
 
     screen:expect([[
