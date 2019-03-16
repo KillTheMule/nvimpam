@@ -4,6 +4,8 @@
 /// input file, aside from comments and header data.
 use std::str;
 
+use lexical::FromBytesLossy;
+
 use crate::card::keyword::Keyword;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -99,7 +101,7 @@ impl Cell {
 
   /// Checks if the contents of the cell in the file are valid for the type of
   /// the cell. Right now, only checks [`Float`](crate::card::cell::Cell::Float)
-  /// cells.
+  /// cells. Returns `false` if the slice is empty.
   ///
   /// TODO(KillTheMule): Extend. Implement Pyvars.
   #[inline]
@@ -108,12 +110,81 @@ impl Cell {
 
     match *self {
       Float(_) => {
-        s.iter().all(|x| *x == b' ')
-          || str::from_utf8(s)
-            .map(|l| l.trim_matches(' ').parse::<f64>().is_ok())
-            == Ok(true)
+        if s.is_empty() {
+          return false;
+        }
+
+        let mut i = 0;
+        let mut j = s.len() - 1;
+
+        // Safe, because 0 <= i < s.len() - 1
+        while i < j && unsafe { s.get_unchecked(i) == &b' ' } {
+          i += 1;
+        }
+
+        // Safe, because s.len() - 1 >= j > 0
+        while j > i && unsafe { s.get_unchecked(j) == &b' ' } {
+          j -= 1;
+        }
+
+        // Safe, see comments above
+        let trimmed = unsafe { s.get_unchecked(i..=j) };
+
+        trimmed == &[b' '] || f64::try_from_bytes_lossy(&trimmed).is_ok() ||
+          (trimmed.first() == Some(&b'<') && trimmed.last() == Some(&b'>'))
       }
       _ => true,
     }
   }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::Cell;
+
+  #[test]
+  fn verifying_floats() {
+    let cell = Cell::Float(10);
+
+    assert!(!cell.verify("".as_ref()));
+    assert!(cell.verify("  ".as_ref()));
+    assert!(cell.verify("1e5".as_ref()));
+    assert!(cell.verify(" 1e5".as_ref()));
+    assert!(cell.verify(" 1e5 ".as_ref()));
+    assert!(cell.verify("1e5 ".as_ref()));
+    assert!(cell.verify("1e-5".as_ref()));
+    assert!(cell.verify(" 1e-5".as_ref()));
+    assert!(cell.verify(" 1e-5 ".as_ref()));
+    assert!(cell.verify("1e-5 ".as_ref()));
+    assert!(cell.verify("1e-05".as_ref()));
+    assert!(cell.verify(" 1e-05".as_ref()));
+    assert!(cell.verify(" 1e-05 ".as_ref()));
+    assert!(cell.verify("1e-05 ".as_ref()));
+    assert!(cell.verify("1.5".as_ref()));
+    assert!(cell.verify(" 1.5".as_ref()));
+    assert!(cell.verify(" 1.5 ".as_ref()));
+    assert!(cell.verify("1.5 ".as_ref()));
+    assert!(cell.verify("1.".as_ref()));
+    assert!(cell.verify(" 1.".as_ref()));
+    assert!(cell.verify(" 1. ".as_ref()));
+    assert!(cell.verify("1. ".as_ref()));
+    assert!(cell.verify("1".as_ref()));
+    assert!(cell.verify(" 1".as_ref()));
+    assert!(cell.verify(" 1 ".as_ref()));
+    assert!(cell.verify("1 ".as_ref()));
+    assert!(!cell.verify("x".as_ref()));
+    assert!(!cell.verify(" x".as_ref()));
+    assert!(!cell.verify(" x ".as_ref()));
+    assert!(!cell.verify("x ".as_ref()));
+    assert!(!cell.verify("1.x".as_ref()));
+    assert!(!cell.verify(" 1.x".as_ref()));
+    assert!(!cell.verify(" 1.x ".as_ref()));
+    assert!(!cell.verify("1.x ".as_ref()));
+    assert!(cell.verify("<var>".as_ref()));
+    assert!(cell.verify(" <var>".as_ref()));
+    assert!(cell.verify(" <var> ".as_ref()));
+    assert!(cell.verify("<var> ".as_ref()));
+    assert!(cell.verify("<var >".as_ref()));
+  }
+
 }

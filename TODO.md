@@ -13,8 +13,6 @@
 * Save lines by immutable ID and provide a map ID -> linenr somewhere? That
   would make updating the linenumbers somewhat easier.
 
-* Add pyvars to cell verification
-
 * Write a size hint (exact!) for the HlIter
 
 * Employ OptionSet aucmds to set the colors (can we maybe do it by using the color schemes colors?)
