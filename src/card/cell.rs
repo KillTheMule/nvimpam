@@ -21,9 +21,8 @@ impl FixedStr {
   pub(crate) fn len(self) -> u8 {
     use self::FixedStr::*;
     match self {
-      Name => 4,
+      Name | Rmat => 4,
       Weight => 6,
-      Rmat => 4,
       EndPart => 8, // 'END_PART'
       Comment => 1, // '#'
     }
@@ -130,8 +129,9 @@ impl Cell {
         // Safe, see comments above
         let trimmed = unsafe { s.get_unchecked(i..=j) };
 
-        trimmed == &[b' '] || f64::try_from_bytes_lossy(&trimmed).is_ok() ||
-          (trimmed.first() == Some(&b'<') && trimmed.last() == Some(&b'>'))
+        trimmed == [b' ']
+          || f64::try_from_bytes_lossy(&trimmed).is_ok()
+          || (trimmed.first() == Some(&b'<') && trimmed.last() == Some(&b'>'))
       }
       _ => true,
     }

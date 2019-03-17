@@ -158,7 +158,10 @@ impl<'a> BufData<'a> {
     BufData::parse_from_iter(&mut newhls, &mut newfolds, li)?;
     self.folds.splice(newfolds, first_pre.1, last_pre.1, added);
     self.folds_level2.recreate_level2(&self.folds)?;
-    Ok((self.highlights.splice(newhls, firstline, lastline, added), added))
+    Ok((
+      self.highlights.splice(newhls, firstline, lastline, added),
+      added,
+    ))
   }
 
   /// After initializing the lines and keywords of a `BufData` structure, this
