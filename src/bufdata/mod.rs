@@ -12,6 +12,7 @@ use neovim_lib::{neovim_api::Buffer, Value};
 
 use crate::{
   bufdata::{folds::Folds, highlights::Highlights},
+  card::Card,
   linenr::LineNr,
   lines::{Lines, ParsedLine},
   linesiter::LinesIter,
@@ -246,6 +247,31 @@ impl<'a> BufData<'a> {
       self.folds.fold_calls(),
       self.folds_level2.fold_calls(),
     ])
+  }
+
+  pub fn cellhint(&self, line: LineNr, column: u8) -> Result<Value, Error> {
+    let clineidx = self.first_before(line).0;
+    let mut it = self.lines.iter_from(clineidx);
+
+    let cline =
+      it.next().and_then(|pl| pl.try_into_keywordline()).ok_or_else(|| {
+        failure::err_msg(format!(
+          "Index {} of BufData.lines does not contain \
+           a keywordline, although it was returned by \
+           self.first_before({})!",
+          clineidx, line
+        ))
+      })?;
+    let card: &'static Card = (&cline.keyword).into();
+
+    let cardlineidx: u8 = it.get_cardline_hints_index(&cline, card, line).ok_or_else(|| {
+      failure::err_msg(format!(
+          "Card {:?} on the line with index {} does not contain the line {}, even
+           though it is the last card before it!",
+           card.keyword(), clineidx, line
+           ))
+    })?;
+    Ok(Value::from(0))
   }
 
   #[cfg(test)]

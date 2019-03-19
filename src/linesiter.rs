@@ -79,6 +79,28 @@ macro_rules! advance_some {
     $nextline = next_or_return_some_previdx!($self, $previdx);
   };
 }
+
+// Check if $nextline has number $line or higher, and returns $cardline_opt or
+// None as appropriate. Otherwise, fetches the next element of $self, or returns
+// None
+//
+// Used in get_cardline
+macro_rules! return_idx_or_next {
+  ($self:ident, $nextline:ident, $line:expr, $idx_opt:expr) => {
+    // 2nd cond can be true if we're inside a ges, the loop will step over it
+    // and return the line after it
+    if $nextline.keyword.is_some() || $nextline.number > $line {
+      return None;
+    } else if $nextline.number == $line {
+      return $idx_opt;
+    } else {
+      match $self.next() {
+        None => return None,
+        Some(t) => t,
+      }
+    };
+  };
+}
 /// The struct simply holds a type instance. Skipping comments is done in the
 /// Iterator implementation.
 pub struct LinesIter<'a, I>
@@ -315,14 +337,122 @@ where
 
     r
   }
+
+  /// Return the index of a `CardlineHint` [crate::card::CardlineHint]
+  /// corresponding to the given `LineNr`[crate::linenr::LineNr]. Return `None`
+  /// if the card does not contain a line with this number, or the iterator ends
+  /// before we reached it.
+  ///
+  /// Assumes that `cline` is  the first line of the card, and the iterator
+  /// starts after that.
+  pub fn get_cardline_hints_index(
+    mut self,
+    cline: &KeywordLine<'a>,
+    card: &'static Card,
+    line: LineNr,
+  ) -> Option<u8> {
+    let mut cardlines = card.lines.iter();
+    let cardline = cardlines.next().unwrap_or_else(|| unreachable!());
+
+    if cline.number == line {
+      return Some(0);
+    }
+
+    // need to track manually
+    let mut idx = 0;
+    // the vec to hold the conditionals
+    let mut conds: Vec<CondResult> = vec![];
+
+    if let CardLine::Provides(_s, ref c) = cardline {
+      conds.push(c.evaluate(cline.text));
+    }
+
+    let mut nextline = next_or_return_none!(self);
+
+    for cardline in cardlines {
+      idx += 1;
+
+      match *cardline {
+        CardLine::Provides(_s, ref c) => {
+          conds.push(c.evaluate(nextline.text.as_ref()));
+          nextline = return_idx_or_next!(self, nextline, line, Some(idx));
+        }
+        CardLine::Ges(ref g) => {
+          if let Some(sr) = self.skip_ges(*g, nextline) {
+            match sr.nextline {
+              None => return None,
+              Some(pl) => {
+                // we skipped over the line in question
+                if pl.number > line {
+                  return Some(idx);
+                }
+                nextline = pl;
+              }
+            };
+          }
+        }
+        CardLine::Cells(_s) => {
+          nextline = return_idx_or_next!(self, nextline, line, Some(idx));
+        }
+        CardLine::Optional(_s, i) => {
+          if conds.get(i as usize) == Some(&CondResult::Bool(true)) {
+            nextline = return_idx_or_next!(self, nextline, line, Some(idx));
+          } else {
+            continue;
+          }
+        }
+        CardLine::Repeat(_s, i) => {
+          let num = match conds.get(i as usize) {
+            Some(CondResult::Number(Some(u))) if *u > 0 => u,
+            _ => continue,
+          };
+
+          for _ in 0..*num {
+            nextline = return_idx_or_next!(self, nextline, line, Some(idx));
+          }
+        }
+        CardLine::Block(l, s) => loop {
+          debug_assert!(l.len() < u8::max_value() as usize - idx as usize);
+          while !nextline.text.as_ref().starts_with(s) {
+            for i in 0..l.len() {
+              nextline =
+                return_idx_or_next!(self, nextline, line, Some(idx + i as u8));
+            }
+          }
+          idx += l.len() as u8;
+
+          // this should be the line that contains the block delimiting string
+          if nextline.number == line {
+            return Some(idx);
+          }
+        },
+        CardLine::OptionalBlock(s1, s2) => {
+          if !nextline.text.as_ref().starts_with(s1) {
+            continue;
+          }
+          while !nextline.text.as_ref().starts_with(s2) {
+            nextline = return_idx_or_next!(self, nextline, line, Some(idx));
+            idx += 1;
+          }
+
+          // this should be the line that contains the block delimiting string
+          if nextline.number == line {
+            return Some(idx);
+          }
+        }
+      }
+    }
+    None
+  }
 }
 
 #[cfg(test)]
 mod tests {
   use crate::{
     bufdata::highlights::Highlights,
-    card::{ges::GesType::GesNode, keyword::Keyword::*},
+    card::{ges::GesType::GesNode, keyword::Keyword::*, Card},
     carddata::*,
+    linenr::LineNr,
     lines::{KeywordLine, Lines, ParsedLine, RawLine::*},
   };
 
@@ -635,5 +765,36 @@ mod tests {
     assert_eq!(tmp.nextline, None);
     assert_eq!(tmp.skip_end, 19.into());
   }
+
+  const CARD_OTMCO: [&'static str; 5] = [
+    "$#         IDOTM  IDNODd  XYZUVW   IMETH  RADIUS   IELIM    ITYP   ALPHA",
+    "OTMCO /        1       0  111111       0      0.                        ",
+    "$#                                                                         TITLE",
+    "NAME Otmco->1                                                                   ",
+    "END_OTMCO",
+  ];
+
+  macro_rules! hints_index_test {
+    ($name: ident, $strs: ident, $iter_from: expr, $linenr: expr, $idx: expr) => {
+      #[test]
+      fn $name() {
+        let mut lines = Lines::new();
+        lines.parse_strs(&$strs);
+
+        let mut it = lines.iter_from($iter_from);
+        let cline = it.next().unwrap().try_into_keywordline().unwrap();
+        let card: &'static Card = (&cline.keyword).into();
+
+        let cardlineidx =
+          it.get_cardline_hints_index(&cline, card, LineNr::from_i64($linenr));
+
+        assert_eq!(Some($idx), cardlineidx);
+      }
+    };
+  }
+
+  hints_index_test!(cardline_hints_index_first, CARD_OTMCO, 0, 1, 0);
+  hints_index_test!(cardline_hints_index_second, CARD_OTMCO, 0, 3, 1);
+  hints_index_test!(cardline_hints_index_block_end, CARD_OTMCO, 0, 4, 4);
 
 }

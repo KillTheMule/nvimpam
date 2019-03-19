@@ -194,6 +194,16 @@ impl<'a> Lines<'a> {
     LinesIter::new(self.0.iter())
   }
 
+  pub fn iter_from<'b>(
+    &'a self,
+    index: usize,
+  ) -> LinesIter<'b, slice::Iter<'b, ParsedLine<'b>>>
+  where
+    'a: 'b,
+  {
+    LinesIter::new(self.0[index..].iter())
+  }
+
   fn linenr_to_index(&self, line: LineNr) -> usize {
     self
       .0

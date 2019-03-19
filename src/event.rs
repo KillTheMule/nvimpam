@@ -37,6 +37,8 @@ pub enum Event {
   /// Highlight lines in the buffer containing at least the given line range
   // TODO: maybe accept buffer as an argument?
   HighlightRegion { firstline: i64, lastline: i64 },
+  /// Request the CellHint at the given cursor position
+  CellHint { line: i64, column: u8 },
   /// This plugin should quit. Currently only sent by the user directly.
   Quit,
 }
@@ -141,6 +143,11 @@ impl Event {
             nvim.call_atomic(calls).context("call_atomic failed")?;
           }
         }
+        Ok(CellHint { line, column }) => {
+          debug_assert!(line >= 0);
+          let linenr = LineNr::from_i64(line);
+          to_handler.send(bufdata.cellhint(linenr, column)?)?;
+        }
         Ok(Quit) => {
           break;
         }
@@ -202,6 +209,9 @@ impl fmt::Debug for Event {
         "HighlightRegion{{ firstline: {}, lastline: {} }}",
         firstline, lastline
       ),
+      CellHint { line, column } => {
+        write!(f, "CellHint{{ line: {}, column: {} }}", line, column)
+      }
       DetachEvent { .. } => write!(f, "DetachEvent"),
       RefreshFolds => write!(f, "RefreshFolds"),
       Quit => write!(f, "Quit"),
