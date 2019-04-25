@@ -14,6 +14,10 @@ command -buffer NvimPamHighlightScreen call luaeval(
       \ { 'b': bufnr('%'), 'f': line('w0')-1, 'l': line('w$')-1 }
       \ )
 command -buffer NvimPamMenu call luaeval('require("nvimpam.cardmenu").cardmenu()')
+command -buffer NvimPamCellhint echo luaeval(
+      \ 'require("nvimpam.cellhints").cellhint(_A.pos[2]-1, _A.pos[3]-1)',
+      \ { 'pos': getpos('.') }
+      \ )
 
 augroup nvimpam_leave
   " clear all previous autocommands

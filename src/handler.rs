@@ -2,7 +2,7 @@
 //! excuted in another thread, so we use a
 //! [`Sender<Event>`](std::sync::mpsc::Sender) to send the parsed event data to
 //! the main thread.
-use std::sync::mpsc;
+use std::{sync::mpsc, convert::TryFrom};
 
 use failure::{self, Error};
 use log::{error, info};
@@ -83,6 +83,22 @@ impl NeovimHandler {
     let buf = parse_buf(last_arg(&mut args, nea)?);
     Ok(Event::DetachEvent { buf })
   }
+
+  /// Parse a CellHint request into a
+  /// [`CellHint`](::event::Event::CellHint) event
+  fn parse_cellhint_event(
+    &mut self,
+    mut args: Vec<Value>,
+  ) -> Result<Event, Error> {
+    let nea = "Not enough arguments in CellHint notification!";
+
+    let column = parse_u8(&last_arg(&mut args, nea)?)?;
+    let line = parse_i64(&last_arg(&mut args, nea)?)?;
+    Ok(Event::CellHint {
+      line,
+      column,
+    })
+  }
 }
 
 impl Handler for NeovimHandler {
@@ -156,13 +172,33 @@ impl RequestHandler for NeovimHandler {
   fn handle_request(
     &mut self,
     name: String,
-    _args: Vec<Value>,
+    args: Vec<Value>,
   ) -> Result<Value, Value> {
     match name.as_str() {
       "RefreshFolds" => {
         self.to_main.send(Event::RefreshFolds).map_err(|e| {
           Value::from(format!(
             "Could not send 'RefreshFolds' to main thread: {:?}!",
+            e
+          ))
+        })?;
+        self.from_main.recv().map_err(|e| {
+          Value::from(format!(
+            "Error receiving value for request '{}' from main thread: {:?}!",
+            name, e
+          ))
+        })
+      },
+      "CellHint" => {
+        let event = self.parse_cellhint_event(args).map_err(|e| {
+            let errstr = format!("Could not parse args of {}: '{:?}'", name, e);
+            error!("{}", errstr);
+            Value::from(errstr)
+        })?;
+
+        self.to_main.send(event).map_err(|e| {
+          Value::from(format!(
+            "Could not send 'CellHint' to main thread: {:?}!",
             e
           ))
         })?;
@@ -190,12 +226,20 @@ fn parse_u64(value: &Value) -> Result<u64, Error> {
     failure::err_msg(format!("Cannot parse '{:?}' as u64", value))
   })
 }
-///
+
 /// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a i64
 fn parse_i64(value: &Value) -> Result<i64, Error> {
   value.as_i64().ok_or_else(|| {
     failure::err_msg(format!("Cannot parse '{:?}' as i64", value))
   })
+}
+
+/// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a u8
+fn parse_u8(value: &Value) -> Result<u8, Error> {
+  let v64 = value.as_u64().ok_or_else(|| {
+    failure::err_msg(format!("Cannot parse '{:?}' as u64", value))
+  })?;
+  Ok(u8::try_from(v64)?)
 }
 
 /// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a bool
