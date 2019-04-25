@@ -1,11 +1,11 @@
 //! This modules holds the the global static node [`Card`](crate::card::Card)
 //! instances.
 use crate::card::{
-  cell::{Cell::*, FixedStr},
+  cell::{Cell::*, CellHint::*, FixedStr},
   ges::GesType::*,
   keyword::Keyword::*,
-  line::{Conditional::*, Line::*},
-  Card,
+  line::{Conditional::*, Line::*, LineHint},
+  Card, CardHint,
 };
 
 pub static NODE: Card = Card {
@@ -17,6 +17,14 @@ pub static NODE: Card = Card {
     Float(16),
   ])],
   ownfold: false,
+};
+
+pub static DUMMYHINT: CardHint = CardHint { linehints: &[] };
+
+pub static NODEHINT: CardHint = CardHint {
+  linehints: &[LineHint {
+    cellhints: &[Keyword(8), IDNOD(8), X(16), Y(16), Z(16)],
+  }],
 };
 
 pub static CNODE: Card = Card {
@@ -158,4 +166,26 @@ mod tests {
 
   cardtest!(fold_nodes, CARD_NODES, vec![(0, 7, Node), (8, 8, Shell)]);
 
+  #[test]
+  fn cellhint() {
+    use crate::{bufdata::BufData, linenr::LineNr};
+    use neovim_lib::{neovim_api::Buffer, Value};
+
+    let buf = Buffer::new(Value::from(0_usize));
+    let mut bufdata = BufData::new(&buf);
+    bufdata.parse_strs(&CARD_NODES).unwrap();
+
+    assert_eq!(
+      bufdata.cellhint(LineNr::from_usize(1), 0).unwrap(),
+      Value::from("Keyword")
+    );
+    assert_eq!(
+      bufdata.cellhint(LineNr::from_usize(1), 10).unwrap(),
+      Value::from("IDNOD")
+    );
+    assert_eq!(
+      bufdata.cellhint(LineNr::from_usize(1), 8).unwrap(),
+      Value::from("IDNOD")
+    );
+  }
 }

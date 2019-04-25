@@ -138,6 +138,34 @@ impl Cell {
   }
 }
 
+pub enum CellHint {
+  Keyword(u8),
+  IDNOD(u8),
+  X(u8),
+  Y(u8),
+  Z(u8),
+}
+
+impl CellHint {
+  pub fn len(&self) -> u8 {
+    use self::CellHint::*;
+    match *self {
+      Keyword(u) | IDNOD(u) | X(u) | Y(u) | Z(u) => u,
+    }
+  }
+
+  pub fn id(&self) -> &'static str {
+    use self::CellHint::*;
+    match * self {
+      Keyword(_) => "Keyword",
+      IDNOD(_) => "IDNOD",
+      X(_) => "X",
+      Y(_) => "Y",
+      Z(_) => "Z",
+    }
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::Cell;

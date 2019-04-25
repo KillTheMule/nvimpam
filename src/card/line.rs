@@ -5,7 +5,7 @@ use std::{cmp, ops::Range};
 
 use atoi::atoi;
 
-use crate::card::{cell::Cell, ges::GesType, keyword::Keyword};
+use crate::card::{cell::Cell, cell::CellHint, ges::GesType, keyword::Keyword};
 
 /// A line (actually, zero or more lines) inside a card in a Pamcrash input
 /// file.
@@ -137,6 +137,25 @@ impl Conditional {
         Number(cell.get(firstdigit..).and_then(|s| atoi::<usize>(s)))
       }
     }
+  }
+}
+
+pub struct LineHint {
+  pub cellhints: &'static [CellHint],
+}
+
+impl LineHint {
+  pub fn get_cell(&self, column: u8) -> Option<&'static CellHint> {
+    let mut sum = 0;
+
+    for cellhint in self.cellhints.iter() {
+      sum += cellhint.len();
+      if sum > column {
+        return Some(cellhint);
+      }
+    }
+
+    None
   }
 }
 

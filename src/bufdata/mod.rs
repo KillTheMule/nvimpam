@@ -12,7 +12,7 @@ use neovim_lib::{neovim_api::Buffer, Value};
 
 use crate::{
   bufdata::{folds::Folds, highlights::Highlights},
-  card::Card,
+  card::{cell::CellHint, line::LineHint, Card, CardHint},
   linenr::LineNr,
   lines::{Lines, ParsedLine},
   linesiter::LinesIter,
@@ -253,8 +253,10 @@ impl<'a> BufData<'a> {
     let clineidx = self.first_before(line).0;
     let mut it = self.lines.iter_from(clineidx);
 
-    let cline =
-      it.next().and_then(|pl| pl.try_into_keywordline()).ok_or_else(|| {
+    let cline = it
+      .next()
+      .and_then(|pl| pl.try_into_keywordline())
+      .ok_or_else(|| {
         failure::err_msg(format!(
           "Index {} of BufData.lines does not contain \
            a keywordline, although it was returned by \
@@ -264,14 +266,22 @@ impl<'a> BufData<'a> {
       })?;
     let card: &'static Card = (&cline.keyword).into();
 
-    let cardlineidx: u8 = it.get_cardline_hints_index(&cline, card, line).ok_or_else(|| {
-      failure::err_msg(format!(
-          "Card {:?} on the line with index {} does not contain the line {}, even
-           though it is the last card before it!",
-           card.keyword(), clineidx, line
+    let cardlineidx: u8 =
+      it.get_cardline_hints_index(&cline, card, line)
+        .ok_or_else(|| {
+          failure::err_msg(format!(
+            "Card {:?} on the line with index {} does not contain the line {}, \
+             even though it is the last card before it!",
+             card.keyword(), clineidx, line
            ))
-    })?;
-    Ok(Value::from(0))
+        })?;
+
+    let cardhint: &'static CardHint = card.into();
+    let linehint: &'static LineHint = cardhint.get(cardlineidx);
+    let cellhint: &'static CellHint = linehint.get_cell(column).expect("Needs
+    cellhint");
+
+    Ok(Value::from(cellhint.id()))
   }
 
   #[cfg(test)]
