@@ -352,6 +352,8 @@ describe('nvimpam', function()
 
   it('starts a new instance for a new buffer', function()
     command("set nowrap")
+    -- reset statusline, otherwise it's showing hints
+    command("set statusline&")
     command('edit ' .. alter_slashes('../files/example.pc'))
     command('NvimPamAttach')
     sleep(10)

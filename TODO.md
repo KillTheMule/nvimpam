@@ -1,3 +1,6 @@
+* Returning an Option from first_after/last_before made several parts ugly. Look what we can do
+  about that 
+
 * Folds don't see non-comment lines without a keyword. If there's stuff before
   the header, it might be included in the fold. Maybe just ignore that, since it's 
   syntactically invalid anyways
@@ -25,6 +28,7 @@
   * Add version info (see languageclient_neovim for how to do it properly?) Remember to 
     query the binary, in case there' ambiguity
   * List all available binaries, not only the one used 
+  * Also, really show the one used, not the one discovered when running the healthcheck
 
 * Remove failure from the lib, implement own error handling
 

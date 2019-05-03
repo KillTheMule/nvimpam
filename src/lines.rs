@@ -212,11 +212,10 @@ impl<'a> Lines<'a> {
   }
 
   // TODO(KillTheMule): Efficient? This is called a lot ...
-  // TODO(KillTheMule): This should return an option... none if empty
   /// Find the index of the first line that starts with a non-comment keyword
   /// before the line with the given number. If the line with the given number
   /// itself starts with a non-comment keyword, its index is returned.
-  pub fn first_before(&self, line: LineNr) -> (usize, LineNr) {
+  pub fn first_before(&self, line: LineNr) -> Option<(usize, LineNr)> {
     let mut line_index = self.linenr_to_index(line);
     // range is end-exclusive, but we want the line itself included, if it
     // wasn't the virtual post-last line of the file
@@ -230,32 +229,37 @@ impl<'a> Lines<'a> {
       .enumerate()
       .rfind(|(_, l)| l.keyword.is_some())
       .map(|(i, l)| (i, l.number))
+      /*
       .unwrap_or_else(|| {
         self.get(0).map_or((0, 0_usize.into()), |l| (0, l.number))
       })
+      */
   }
 
   // TODO(KillTheMule): Efficient? This is called a lot ...
-  // TODO(KillTheMule): This should return an option... none if empty
   /// Find the index of the next line that starts with a non-comment keyword
   /// after the line with the given number. If the line with the given number
   /// itself starts with a non-comment keyword, its index is returned.
-  pub fn first_after(&self, line: LineNr) -> (usize, LineNr) {
+  pub fn first_after(&self, line: LineNr) -> Option<(usize, LineNr)> {
     let to_skip = self.linenr_to_index(line);
+    /*
     if self.is_empty() {
       (0_usize, 0_usize.into())
     } else {
+    */
       self
         .iter()
         .enumerate()
         .skip(to_skip)
         .find(|(_, l)| l.keyword.is_some())
         .map(|(i, l)| (i, l.number))
+        /*
         .unwrap_or_else(|| {
           let len = self.len();
           (len, self[len - 1].number + 1)
         })
     }
+        */
   }
 }
 
@@ -396,12 +400,18 @@ mod tests {
 
   macro_rules! test_before {
     ($lines: expr, $a: expr, $b: expr) => {
-      assert_eq!(LineNr::from_usize($a), $lines.first_before($b.into()).1);
+      assert_eq!(
+        LineNr::from_usize($a),
+        $lines.first_before($b.into()).unwrap().1
+      );
     };
   }
   macro_rules! test_after {
     ($lines: expr, $a: expr, $b: expr) => {
-      assert_eq!(LineNr::from_usize($a), $lines.first_after($b.into()).1);
+      assert_eq!(
+        LineNr::from_usize($a),
+        $lines.first_after($b.into()).unwrap().1
+      );
     };
   }
 
@@ -416,8 +426,8 @@ mod tests {
     test_after!(lines, 2, 2);
     test_before!(lines, 2, 4);
     test_after!(lines, 5, 4);
-    test_before!(lines, 0, 1);
-    test_after!(lines, 7, 7);
+    assert!(lines.first_before(1.into()).is_none());
+    assert!(lines.first_after(7.into()).is_none());
   }
 
   const LINES3: &str = "NODE  / 1";
@@ -432,10 +442,10 @@ mod tests {
 
     lines.clear();
     lines.parse_slice(LINES4.as_ref());
-    test_before!(lines, 0, 0);
-    test_after!(lines, 0, 0);
-    test_before!(lines, 0, 1);
-    test_after!(lines, 0, 1);
+    assert!(lines.first_before(0.into()).is_none());
+    assert!(lines.first_after(0.into()).is_none());
+    assert!(lines.first_before(1.into()).is_none());
+    assert!(lines.first_after(1.into()).is_none());
   }
 
 }

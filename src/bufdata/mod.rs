@@ -129,8 +129,21 @@ impl<'a> BufData<'a> {
     linedata: Vec<String>,
   ) -> Result<(Range<usize>, isize), Error> {
     let added: isize = linedata.len() as isize - (lastline - firstline);
-    let mut first_pre = self.lines.first_before(firstline);
-    let last_pre = self.lines.first_after(lastline);
+
+    // the old behavior, just keep that for now
+    let mut first_pre = self.lines.first_before(firstline).unwrap_or_else(|| {
+        self.lines.get(0).map_or((0, 0_usize.into()), |l| (0, l.number))
+      });
+
+    // the old behavior, just keep that for now
+    let last_pre = self.lines.first_after(lastline).unwrap_or_else(|| {
+      if self.lines.is_empty() {
+        (0_usize, 0_usize.into())
+      } else {
+        let len = self.lines.len();
+        (len, self.lines[len - 1].number + 1)
+      });
+
 
     let adjust_first = self
       .lines
@@ -141,6 +154,7 @@ impl<'a> BufData<'a> {
     if adjust_first {
       // firstline is after the last line of the file, so we got back the
       // last line's data, but we want the virtual one after that
+      // TODO(KillTheMule): Should this be last_pre? Why does it work then?
       first_pre.0 += 1;
       first_pre.1 += 1;
     }
@@ -217,11 +231,11 @@ impl<'a> BufData<'a> {
     self.highlights.linerange(first, last)
   }
 
-  pub fn first_before(&self, line: LineNr) -> (usize, LineNr) {
+  pub fn first_before(&self, line: LineNr) -> Option<(usize, LineNr)> {
     self.lines.first_before(line)
   }
 
-  pub fn first_after(&self, line: LineNr) -> (usize, LineNr) {
+  pub fn first_after(&self, line: LineNr) -> Option<(usize, LineNr)> {
     self.lines.first_after(line)
   }
 
@@ -250,7 +264,10 @@ impl<'a> BufData<'a> {
   }
 
   pub fn cellhint(&self, line: LineNr, column: u8) -> Value {
-    let clineidx = self.first_before(line).0;
+    let clineidx = match self.first_before(line) {
+      Some(c) => c,
+      None => return Value::from("")
+    }.0;
     let mut it = self.lines.iter_from(clineidx);
 
     let cline = match it
@@ -295,6 +312,13 @@ impl<'a> BufData<'a> {
     Value::from(cellhint.id())
   }
 
+  pub fn firstline_number(&self) -> LineNr {
+    self.lines.get(0).map(|l| l.number).unwrap_or(LineNr::from(0))
+  }
+
+  pub fn lastline_number(&self) -> LineNr {
+    self.lines.iter().last().map(|l| l.number).unwrap_or(LineNr::from(0))
+  }
   #[cfg(test)]
   pub fn folds_to_vec(&self) -> Vec<(usize, usize, Keyword)> {
     self.folds.to_vec()

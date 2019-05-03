@@ -126,8 +126,14 @@ impl Event {
           let lastline = LineNr::from_i64(lastline);
           let firstline = LineNr::from_i64(firstline);
 
-          let fl = bufdata.first_before(firstline);
-          let mut ll = bufdata.first_after(lastline);
+          let fl = bufdata
+            .first_before(firstline)
+            .unwrap_or_else(|| (0, bufdata.firstline_number()));
+          // TODO(KillTheMule): 0 really is a placeholder here, it's not used
+          // anywhere, remove that
+          let mut ll = bufdata
+            .first_after(lastline)
+            .unwrap_or_else(|| (0, bufdata.lastline_number()));
 
           // highlight_region is end_exclusive, so we need to make sure
           // we include the last line requested even if it is a keyword line
@@ -135,6 +141,8 @@ impl Event {
             ll.0 += 1;
             ll.1 += 1;
           }
+          // TODO(KillTheMule): Why aren't we passing the indices directly? We
+          // got them as fl.0 and ll.0
           let newrange = bufdata.hl_linerange(fl.1, ll.1);
 
           if let Some(calls) =
