@@ -6,10 +6,11 @@ local jobids = require('nvimpam.job').jobids
 
 local function cellhint(line, column, buf)
   buf = buf or curbuf()
-
+  
   if not jobids[buf] then
-    nvimpam_err("Update failed: No jobid entry for buffer "..tostring(buf).."!")
-    return false
+    --nvimpam_err("Update failed: No jobid entry for buffer "..tostring(buf).."!")
+    --return false
+    return ""
   end
 
   return eval("rpcrequest("..

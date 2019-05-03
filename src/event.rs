@@ -146,7 +146,7 @@ impl Event {
         Ok(CellHint { line, column }) => {
           debug_assert!(line >= 0);
           let linenr = LineNr::from_i64(line);
-          to_handler.send(bufdata.cellhint(linenr, column)?)?;
+          to_handler.send(bufdata.cellhint(linenr, column))?;
         }
         Ok(Quit) => {
           break;

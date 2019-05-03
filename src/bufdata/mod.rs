@@ -249,13 +249,18 @@ impl<'a> BufData<'a> {
     ])
   }
 
-  pub fn cellhint(&self, line: LineNr, column: u8) -> Result<Value, Error> {
+  pub fn cellhint(&self, line: LineNr, column: u8) -> Value {
     let clineidx = self.first_before(line).0;
     let mut it = self.lines.iter_from(clineidx);
 
-    let cline = it
+    let cline = match it
       .next()
-      .and_then(|pl| pl.try_into_keywordline())
+      .and_then(|pl| pl.try_into_keywordline()) {
+        Some(kl) => kl,
+        None => return Value::from("")
+      };
+
+      /*
       .ok_or_else(|| {
         failure::err_msg(format!(
           "Index {} of BufData.lines does not contain \
@@ -264,10 +269,15 @@ impl<'a> BufData<'a> {
           clineidx, line
         ))
       })?;
+      */
     let card: &'static Card = (&cline.keyword).into();
 
     let cardlineidx: u8 =
-      it.get_cardline_hints_index(&cline, card, line)
+      match it.get_cardline_hints_index(&cline, card, line) {
+        Some(u) => u,
+        None => return Value::from("")
+      };
+    /*
         .ok_or_else(|| {
           failure::err_msg(format!(
             "Card {:?} on the line with index {} does not contain the line {}, \
@@ -275,13 +285,14 @@ impl<'a> BufData<'a> {
              card.keyword(), clineidx, line
            ))
         })?;
+        */
 
     let cardhint: &'static CardHint = card.into();
     let linehint: &'static LineHint = cardhint.get(cardlineidx);
     let cellhint: &'static CellHint = linehint.get_cell(column).expect("Needs
     cellhint");
 
-    Ok(Value::from(cellhint.id()))
+    Value::from(cellhint.id())
   }
 
   #[cfg(test)]

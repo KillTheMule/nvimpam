@@ -13,3 +13,12 @@ filetype plugin on
     "autocmd FileType pamcrash :NvimPamAttach
     "autocmd FileType pamcrash call luaeval('require("nvimpam").attach()')
   augroup END
+
+function! CellHint()
+  return luaeval(
+      \ 'require("nvimpam.cellhints").cellhint(_A.pos[2]-1, _A.pos[3]-1)',
+      \ { 'pos': getpos('.') }
+      \ )
+endfunction
+set statusline=%{CellHint()}
+
