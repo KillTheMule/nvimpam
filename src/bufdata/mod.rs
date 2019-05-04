@@ -142,7 +142,8 @@ impl<'a> BufData<'a> {
       } else {
         let len = self.lines.len();
         (len, self.lines[len - 1].number + 1)
-      });
+      }
+    });
 
 
     let adjust_first = self
