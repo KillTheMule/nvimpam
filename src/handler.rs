@@ -111,7 +111,7 @@ impl Handler for NeovimHandler {
             return error!("Could not parse args of {}: '{:?}'", name, e);
           }
         };
-        info!("{:?}", event);
+        info!("Handling Notification: {:?}", event);
         self.to_main.send(event).unwrap_or_else(|e| {
           error!("Could not send 'LinesEvent' to main thread: '{:?}'", e)
         });
@@ -123,7 +123,7 @@ impl Handler for NeovimHandler {
             return error!("Could not parse args of {}: '{:?}'", name, e);
           }
         };
-        info!("{:?}", event);
+        info!("Handling Notification: {:?}", event);
         self.to_main.send(event).unwrap_or_else(|e| {
           error!(
             "Could not send 'ChangedTickEvent' to main thread: '{:?}'",
@@ -138,7 +138,7 @@ impl Handler for NeovimHandler {
             return error!("Could not parse args of {}: '{:?}'", name, e);
           }
         };
-        info!("{:?}", event);
+        info!("Handling Notification: {:?}", event);
         self.to_main.send(event).unwrap_or_else(|e| {
           error!("Could not send 'DetachEvent' to main thread: '{:?}'", e)
         });
@@ -150,19 +150,19 @@ impl Handler for NeovimHandler {
             return error!("Could not parse args of {}: '{:?}'", name, e);
           }
         };
-        info!("{:?}", event);
+        info!("Handling Notification: {:?}", event);
         self.to_main.send(event).unwrap_or_else(|e| {
           error!("Could not send 'HighlightRegion' to main thread: '{:?}'", e)
         });
       }
       "quit" => {
-        info!("{:?}", Event::Quit);
+        info!("Handling Notification: {:?}", Event::Quit);
         self.to_main.send(Event::Quit).unwrap_or_else(|e| {
           error!("Could not send 'quit' to main thread: '{:?}'", e)
         });
       }
       unknown => {
-        error!("Received unknown notification: '{}'!", unknown);
+        error!("Unknown notification: '{}'!", unknown);
       }
     }
   }
@@ -176,6 +176,7 @@ impl RequestHandler for NeovimHandler {
   ) -> Result<Value, Value> {
     match name.as_str() {
       "RefreshFolds" => {
+        info!("Handling Request: {:?}", Event::RefreshFolds);
         self.to_main.send(Event::RefreshFolds).map_err(|e| {
           Value::from(format!(
             "Could not send 'RefreshFolds' to main thread: {:?}!",
@@ -196,6 +197,7 @@ impl RequestHandler for NeovimHandler {
             Value::from(errstr)
         })?;
 
+        info!("Handling Request: {:?}", event);
         self.to_main.send(event).map_err(|e| {
           Value::from(format!(
             "Could not send 'CellHint' to main thread: {:?}!",
