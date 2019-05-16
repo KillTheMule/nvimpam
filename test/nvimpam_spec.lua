@@ -692,6 +692,8 @@ describe('nvimpam', function()
     command('NvimPamAttach')
     feed("29G")
     command('NvimPamHighlightScreen')
+    -- This is needed so the highlights arrive before lines are changed
+    sleep(10)
     feed("yy2P")
     sleep(10)
     screen:expect([[
@@ -728,8 +730,8 @@ describe('nvimpam', function()
       {8:NODE  / }{9:       4}{10:              0.}{9:            50.5}{10:             30.}                 |
       {8:NODE  / }{9:       5}{10:              0.}{9:            50.5}{10:             40.}                 |
       {8:NODE  / }{9:       6}{10:              0.}{9:            50.5}{10:             50.}                 |
-      NODE  /        7              0.            50.5             60.                 |
-      NODE  /        8              0.            50.5             70.                 |
+      {8:NODE  / }{9:       7}{10:              0.}{9:            50.5}{10:             60.}                 |
+      {8:NODE  / }{9:       8}{10:              0.}{9:            50.5}{10:             70.}                 |
       {IGNORE}|
     ]])
 
