@@ -1,4 +1,4 @@
-set rtp+=$PWD
+"set rtp+=$PWD
 set rtp+=$PWD/../impromptu.nvim
 
 filetype plugin on
