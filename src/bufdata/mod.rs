@@ -307,10 +307,9 @@ impl<'a> BufData<'a> {
 
     let cardhint: &'static CardHint = card.into();
     let linehint: &'static LineHint = cardhint.get(cardlineidx);
-    let cellhint: &'static CellHint = linehint.get_cell(column).expect("Needs
-    cellhint");
+    let cellhint: Option<&'static CellHint> = linehint.get_cell(column);
 
-    Value::from(cellhint.id())
+    Value::from(cellhint.map(|c| c.id()).unwrap_or(""))
   }
 
   pub fn firstline_number(&self) -> LineNr {
