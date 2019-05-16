@@ -141,8 +141,8 @@ impl Event {
             ll.0 += 1;
             ll.1 += 1;
           }
-          // TODO(KillTheMule): Why aren't we passing the indices directly? We
-          // got them as fl.0 and ll.0
+          // Note to self: This returns the index range of the highlights, not
+          // the lines
           let newrange = bufdata.hl_linerange(fl.1, ll.1);
 
           if let Some(calls) =
