@@ -1,5 +1,7 @@
-"set rtp+=$PWD
-set rtp+=$PWD/../impromptu.nvim
+let s:localpath = expand('<sfile>:h') 
+
+exe 'set rtp+='.s:localpath
+exe 'set rtp+='.s:localpath.'/../impromptu.nvim'
 
 filetype plugin on
 "if has("win32")
