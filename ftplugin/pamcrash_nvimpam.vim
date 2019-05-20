@@ -18,7 +18,7 @@ command -buffer NvimPamMenu call luaeval('require("nvimpam.cardmenu").cardmenu()
 function! s:UpdateCellHint()
 lua << EOF
   local cursor = vim.api.nvim_win_get_cursor(vim.api.nvim_get_current_win())
-  require("nvimpam.cellhints").update_cellhint(unpack(cursor))
+  require("nvimpam.cellhints").update_cellhint(cursor[1]-1, cursor[2])
 EOF
 endfunction
 
