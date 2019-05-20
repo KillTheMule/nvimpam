@@ -1,3 +1,6 @@
+* Define the CursorMoved(I) aucmds only after we've loaded the plugin, and have
+  it update the first cellhint by itself. Otherwise we're blocking while loading the file.
+
 * Returning an Option from first_after/last_before made several parts ugly. Look what we can do
   about that 
 
