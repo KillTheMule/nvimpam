@@ -5,7 +5,7 @@ use std::{cmp, ops::Range};
 
 use atoi::atoi;
 
-use crate::card::{cell::Cell, cell::CellHint, ges::GesType, keyword::Keyword};
+use crate::card::{cell::Cell, ges::GesType, keyword::Keyword, hint::Hint};
 
 /// A line (actually, zero or more lines) inside a card in a Pamcrash input
 /// file.
@@ -32,10 +32,10 @@ pub enum Line {
   /// [`Optional`](crate::card::line::Line::Optional)
   Repeat(&'static [Cell], u8),
   /// A block of lines, ended by a line starting with the given string.
-  Block(&'static [Line], &'static [u8]),
+  Block(&'static [Line], &'static [u8], Hint),
   /// A block that's entirely optional, starting with a line of a given string
   /// and ending in a line with another given string
-  OptionalBlock(&'static [u8], &'static [u8]),
+  OptionalBlock(&'static [u8], &'static [u8], Hint),
 }
 
 impl Line {
@@ -59,7 +59,27 @@ impl Line {
 
     match *self {
       Cells(s) | Provides(s, _) | Optional(s, _) | Repeat(s, _) => Some(s),
-      Ges(_) | Block(_, _) | OptionalBlock(_, _) => None,
+      Ges(_) | Block(_, _, _) | OptionalBlock(_, _, _) => None,
+    }
+  }
+
+  #[inline]
+  pub fn hint(&self, column: u8) -> &'static str {
+    use self::Line::*;
+    match *self {
+      Ges(g) => g.into(),
+      Block(_, _, h) => h.into(),
+      OptionalBlock(_, _, h) => h.into(),
+      Cells(c) | Provides(c, _) | Optional(c, _) | Repeat(c, _) => {
+        let mut sum = 0;
+        for cell in c.iter() {
+          sum += cell.len();
+          if sum > column {
+            return cell.hint();
+          }
+        }
+        return "Column too large for line!";
+      }
     }
   }
 
@@ -140,6 +160,7 @@ impl Conditional {
   }
 }
 
+/*
 pub struct LineHint {
   pub cellhints: &'static [CellHint],
 }
@@ -158,6 +179,7 @@ impl LineHint {
     None
   }
 }
+*/
 
 #[cfg(test)]
 mod tests {

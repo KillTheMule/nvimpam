@@ -13,8 +13,9 @@ pub mod cell;
 pub mod ges;
 pub mod keyword;
 pub mod line;
+pub mod hint;
 
-use self::{keyword::Keyword, line::Line, line::LineHint};
+use self::{keyword::Keyword, line::Line};
 use crate::carddata::*;
 
 /// A card consists of severals [`Line`](crate::card::line::Line). If `ownfold`
@@ -50,6 +51,7 @@ impl<'a> From<&'a Keyword> for &'static Card {
       Keyword::Nsmas => &NSMAS,
       Keyword::Nsmas2 => &NSMAS2,
       // Element
+      /*
       Keyword::Solid => &SOLID,
       Keyword::Hexa20 => &HEXA20,
       Keyword::Pent15 => &PENT15,
@@ -114,10 +116,12 @@ impl<'a> From<&'a Keyword> for &'static Card {
       Keyword::Rbody3 => &RBODY3,
       // Auxiliaries
       Keyword::Group => &GROUP,
+      */
     }
   }
 }
 
+/*
 pub struct CardHint {
   pub linehints: &'static [LineHint]
 }
@@ -136,3 +140,4 @@ impl From<&Card> for &'static CardHint {
     }
   }
 }
+*/

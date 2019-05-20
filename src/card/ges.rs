@@ -1,8 +1,10 @@
 #![cfg_attr(feature = "cargo-clippy", allow(clippy::unreadable_literal))]
 //! The General Entity Selection scheme of Pamcrash.
 
+use strum_macros::IntoStaticStr;
+
 /// An enum to denote the type of a GES. Not yet used.
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(IntoStaticStr, Debug, PartialEq, Clone, Copy)]
 pub enum GesType {
   GesNode,
   GesEle,

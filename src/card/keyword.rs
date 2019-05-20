@@ -4,8 +4,10 @@
 //! "Keyword" and "Card" are lingo from the FEM solver Pamcrash, but generally
 //! used among FEM solvers.
 
+use strum_macros::IntoStaticStr;
+
 /// An enum to denote the several types of cards a line might belong to.
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(IntoStaticStr, Copy, Clone, PartialEq, Debug)]
 pub enum Keyword {
   // Node
   Node,
@@ -14,6 +16,7 @@ pub enum Keyword {
   Nsmas,
   Nsmas2,
   // Element
+  /*
   Solid,
   Hexa20,
   Pent15,
@@ -78,6 +81,7 @@ pub enum Keyword {
   Rbody3,
   // Auxiliaries
   Group,
+  */
 }
 
 impl Keyword {
@@ -122,6 +126,7 @@ impl Keyword {
         5643939700988194592 => Some(Nsmas),
         // b"NSMAS2/ "
         5643939700989374240 => Some(Nsmas2),
+        /*
         // b"SOLID / "
         6003100705867444000 => Some(Solid),
         // b"HEXA20/ "
@@ -317,6 +322,7 @@ impl Keyword {
         // Auxiliaries
         // b"GROUP / "
         5139257352618258208 => Some(Group),
+        */
         _ => None,
       }
     }

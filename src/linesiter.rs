@@ -80,19 +80,19 @@ macro_rules! advance_some {
   };
 }
 
-// Check if $nextline has number $line or higher, and returns $cardline_opt or
+// Check if $nextline has number $line or higher, and returns Some($cardline) or
 // None as appropriate. Otherwise, fetches the next element of $self, or returns
 // None
 //
 // Used in get_cardline
-macro_rules! return_idx_or_next {
-  ($self:ident, $nextline:ident, $line:expr, $idx_opt:expr) => {
+macro_rules! return_cardline_or_next {
+  ($self:ident, $nextline:ident, $line:expr, $cardline:expr) => {
     // 2nd cond can be true if we're inside a ges, the loop will step over it
     // and return the line after it
     if $nextline.keyword.is_some() || $nextline.number > $line {
       return None;
     } else if $nextline.number == $line {
-      return $idx_opt;
+      return Some($cardline);
     } else {
       match $self.next() {
         None => return None,
@@ -280,7 +280,7 @@ where
             }
           }
         }
-        CardLine::Block(_l, s) => loop {
+        CardLine::Block(_l, s, _h) => loop {
           while !nextline.text.as_ref().starts_with(s) {
             advance!(self, previdx, nextline);
 
@@ -290,7 +290,7 @@ where
           }
           advance!(self, previdx, nextline);
         },
-        CardLine::OptionalBlock(s1, s2) => {
+        CardLine::OptionalBlock(s1, s2, _h) => {
           if !nextline.text.as_ref().starts_with(s1) {
             continue;
           }
@@ -345,21 +345,19 @@ where
   ///
   /// Assumes that `cline` is  the first line of the card, and the iterator
   /// starts after that.
-  pub fn get_cardline_hints_index(
+  pub fn get_cardline_by_nr(
     mut self,
     cline: &KeywordLine<'a>,
     card: &'static Card,
     line: LineNr,
-  ) -> Option<u8> {
+  ) -> Option<&'a CardLine> {
     let mut cardlines = card.lines.iter();
     let cardline = cardlines.next().unwrap_or_else(|| unreachable!());
 
     if cline.number == line {
-      return Some(0);
+      return Some(cardline);
     }
 
-    // need to track manually
-    let mut idx = 0;
     // the vec to hold the conditionals
     let mut conds: Vec<CondResult> = vec![];
 
@@ -370,12 +368,11 @@ where
     let mut nextline = next_or_return_none!(self);
 
     for cardline in cardlines {
-      idx += 1;
 
       match *cardline {
         CardLine::Provides(_s, ref c) => {
           conds.push(c.evaluate(nextline.text.as_ref()));
-          nextline = return_idx_or_next!(self, nextline, line, Some(idx));
+          nextline = return_cardline_or_next!(self, nextline, line, cardline);
         }
         CardLine::Ges(ref g) => {
           if let Some(sr) = self.skip_ges(*g, nextline) {
@@ -384,7 +381,7 @@ where
               Some(pl) => {
                 // we skipped over the line in question
                 if pl.number > line {
-                  return Some(idx);
+                  return Some(cardline);
                 }
                 nextline = pl;
               }
@@ -392,11 +389,11 @@ where
           }
         }
         CardLine::Cells(_s) => {
-          nextline = return_idx_or_next!(self, nextline, line, Some(idx));
+          nextline = return_cardline_or_next!(self, nextline, line, cardline);
         }
         CardLine::Optional(_s, i) => {
           if conds.get(i as usize) == Some(&CondResult::Bool(true)) {
-            nextline = return_idx_or_next!(self, nextline, line, Some(idx));
+            nextline = return_cardline_or_next!(self, nextline, line, cardline);
           } else {
             continue;
           }
@@ -408,36 +405,35 @@ where
           };
 
           for _ in 0..*num {
-            nextline = return_idx_or_next!(self, nextline, line, Some(idx));
+            nextline = return_cardline_or_next!(self, nextline, line, cardline);
           }
         }
-        CardLine::Block(l, s) => loop {
-          debug_assert!(l.len() < u8::max_value() as usize - idx as usize);
+        CardLine::Block(l, s, _h) => loop {
+          // TODO(KillTheMule): Why was this here?
+          //debug_assert!(l.len() < u8::max_value() as usize - idx as usize);
           while !nextline.text.as_ref().starts_with(s) {
-            for i in 0..l.len() {
+            for _ in 0..l.len() {
               nextline =
-                return_idx_or_next!(self, nextline, line, Some(idx + i as u8));
+                return_cardline_or_next!(self, nextline, line, cardline);
             }
           }
-          idx += l.len() as u8;
 
           // this should be the line that contains the block delimiting string
           if nextline.number == line {
-            return Some(idx);
+            return Some(cardline);
           }
         },
-        CardLine::OptionalBlock(s1, s2) => {
+        CardLine::OptionalBlock(s1, s2, _h) => {
           if !nextline.text.as_ref().starts_with(s1) {
             continue;
           }
           while !nextline.text.as_ref().starts_with(s2) {
-            nextline = return_idx_or_next!(self, nextline, line, Some(idx));
-            idx += 1;
+            nextline = return_cardline_or_next!(self, nextline, line, cardline);
           }
 
           // this should be the line that contains the block delimiting string
           if nextline.number == line {
-            return Some(idx);
+            return Some(cardline);
           }
         }
       }

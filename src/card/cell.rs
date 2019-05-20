@@ -2,11 +2,11 @@
 
 /// All the basic elements that can occur on a valid line in a Pamcrash
 /// input file, aside from comments and header data.
-use std::str;
+use std::{str, convert::From};
 
 use lexical::FromBytesLossy;
 
-use crate::card::keyword::Keyword;
+use crate::card::{hint::Hint, keyword::Keyword};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum FixedStr {
@@ -49,19 +49,19 @@ pub enum Cell {
   /// A fixed, non-keyword entry
   Fixed(FixedStr),
   /// An integer with a given maximum string-length
-  Integer(u8),
+  Integer(u8, Hint),
   /// A float with a given maximum string-length
-  Float(u8),
+  Float(u8, Hint),
   /// A given number of blanks
   Blank(u8),
   /// A continuation character `&`
   Cont,
   /// A string of a given length
-  Str(u8),
+  Str(u8, Hint),
   /// A sequence of 0 and 1 of a given length
-  Binary(u8),
+  Binary(u8, Hint),
   /// An alternative of 2 cells
-  IntegerorBlank(u8),
+  IntegerorBlank(u8, Hint),
 }
 
 impl Cell {
@@ -83,8 +83,12 @@ impl Cell {
         s.len() as u8
       }
       Cont => 1,
-      Integer(u) | Float(u) | Blank(u) | Str(u) | Binary(u)
-      | IntegerorBlank(u) => u,
+      Integer(u, _)
+      | Float(u, _)
+      | Blank(u)
+      | Str(u, _)
+      | Binary(u, _)
+      | IntegerorBlank(u, _) => u,
     }
   }
 
@@ -92,8 +96,12 @@ impl Cell {
   pub fn is_empty(&self) -> bool {
     use crate::card::cell::Cell::*;
     match *self {
-      Integer(u) | Float(u) | Blank(u) | Str(u) | Binary(u)
-      | IntegerorBlank(u) => u == 0,
+      Integer(u, _)
+      | Float(u, _)
+      | Blank(u)
+      | Str(u, _)
+      | Binary(u, _)
+      | IntegerorBlank(u, _) => u == 0,
       _ => false,
     }
   }
@@ -108,7 +116,7 @@ impl Cell {
     use self::Cell::*;
 
     match *self {
-      Float(_) => {
+      Float(_, _) => {
         if s.is_empty() {
           return false;
         }
@@ -136,32 +144,19 @@ impl Cell {
       _ => true,
     }
   }
-}
 
-pub enum CellHint {
-  Keyword(u8),
-  IDNOD(u8),
-  X(u8),
-  Y(u8),
-  Z(u8),
-}
-
-impl CellHint {
-  pub fn len(&self) -> u8 {
-    use self::CellHint::*;
+  pub fn hint(&self) -> &'static str {
+    use self::Cell::*;
     match *self {
-      Keyword(u) | IDNOD(u) | X(u) | Y(u) | Z(u) => u,
-    }
-  }
-
-  pub fn id(&self) -> &'static str {
-    use self::CellHint::*;
-    match * self {
-      Keyword(_) => "Keyword",
-      IDNOD(_) => "IDNOD",
-      X(_) => "X",
-      Y(_) => "Y",
-      Z(_) => "Z",
+      Kw(k) => k.into(),
+      Fixed(f) => f.into(),
+      Integer(_, h)
+      | Float(_, h)
+      | Str(_, h)
+      | Binary(_, h)
+      | IntegerorBlank(_, h) => h.into(),
+      Blank(_) => "Blanks",
+      Cont => "&",
     }
   }
 }

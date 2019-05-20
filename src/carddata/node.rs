@@ -1,24 +1,26 @@
 //! This modules holds the the global static node [`Card`](crate::card::Card)
 //! instances.
 use crate::card::{
-  cell::{Cell::*, CellHint::*, FixedStr},
+  cell::{Cell::*, FixedStr},
   ges::GesType::*,
+  hint::Hint::{*, self},
   keyword::Keyword::*,
-  line::{Conditional::*, Line::*, LineHint},
-  Card, CardHint,
+  line::{Conditional::*, Line::*},
+  Card,
 };
 
 pub static NODE: Card = Card {
   lines: &[Cells(&[
     Kw(Node),
-    Integer(8),
-    Float(16),
-    Float(16),
-    Float(16),
+    Integer(8, IDNOD),
+    Float(16, X),
+    Float(16, Y),
+    Float(16, Z),
   ])],
   ownfold: false,
 };
 
+/*
 pub static DUMMYHINT: CardHint = CardHint { linehints: &[] };
 
 pub static NODEHINT: CardHint = CardHint {
@@ -26,14 +28,15 @@ pub static NODEHINT: CardHint = CardHint {
     cellhints: &[Keyword(8), IDNOD(8), X(16), Y(16), Z(16)],
   }],
 };
+*/
 
 pub static CNODE: Card = Card {
   lines: &[Cells(&[
     Kw(Cnode),
-    Integer(8),
-    Float(16),
-    Float(16),
-    Float(16),
+    Integer(8, IDNOD),
+    Float(16, X),
+    Float(16, Y),
+    Float(16, Z),
   ])],
   ownfold: false,
 };
@@ -42,19 +45,19 @@ pub static MASS: Card = Card {
   lines: &[
     Cells(&[
       Kw(Mass),
-      Integer(8),
-      Integer(8),
-      Float(16),
-      Float(16),
-      Float(16),
+      Integer(8, IDNOD),
+      Integer(8, IFRA),
+      Float(16, DISr),
+      Float(16, DISs),
+      Float(16, DISt),
     ]),
-    Cells(&[Fixed(FixedStr::Name), Str(76)]),
-    Cells(&[Float(16), Float(16), Float(16)]),
+    Cells(&[Fixed(FixedStr::Name), Str(76, NAME)]),
+    Cells(&[Blank(8), Float(16, Mx), Float(16, My), Float(16, Mz)]),
     Provides(
-      &[Blank(8), Float(16), Float(16), Float(16), Blank(24), Cont],
+      &[Blank(8), Float(16, Ix), Float(16, Iy), Float(16, Iz), Blank(24), Cont],
       RelChar(80, b'&'),
     ),
-    Optional(&[Blank(8), Float(16), Float(16), Float(16)], 0),
+    Optional(&[Blank(8), Float(16, Ixy), Float(16, Iyz), Float(16, Izx)], 0),
     Ges(GesNode),
   ],
   ownfold: true,
@@ -64,13 +67,13 @@ pub static NSMAS: Card = Card {
   lines: &[
     Cells(&[
       Kw(Nsmas),
-      Integer(8),
-      Float(16),
-      Float(16),
-      Float(16),
-      Float(16),
+      Integer(8, IDNSM),
+      Float(16, Hint::MASS),
+      Float(16, MLEN),
+      Float(16, MARE),
+      Float(16, MVOL),
     ]),
-    Cells(&[Fixed(FixedStr::Name), Str(76)]),
+    Cells(&[Fixed(FixedStr::Name), Str(76, NAME)]),
     Ges(GesEle),
   ],
   ownfold: true,
@@ -80,13 +83,13 @@ pub static NSMAS2: Card = Card {
   lines: &[
     Cells(&[
       Kw(Nsmas2),
-      Integer(8),
-      Float(16),
-      Float(16),
-      Float(16),
-      Float(16),
+      Integer(8, IDNSM),
+      Float(16, Hint::MASS),
+      Float(16, MLEN),
+      Float(16, MARE),
+      Float(16, MVOL),
     ]),
-    Cells(&[Fixed(FixedStr::Name), Str(76)]),
+    Cells(&[Fixed(FixedStr::Name), Str(76, NAME)]),
     Ges(GesEle),
   ],
   ownfold: true,

@@ -10,9 +10,11 @@ use failure::Error;
 
 use neovim_lib::{neovim_api::Buffer, Value};
 
+use log::info;
+
 use crate::{
   bufdata::{folds::Folds, highlights::Highlights},
-  card::{cell::CellHint, line::LineHint, Card, CardHint},
+  card::{Card, line::Line as CardLine},
   linenr::LineNr,
   lines::{Lines, ParsedLine},
   linesiter::LinesIter,
@@ -290,12 +292,16 @@ impl<'a> BufData<'a> {
       */
     let card: &'static Card = (&cline.keyword).into();
 
+    let cardline: &CardLine = match it.get_cardline_by_nr(&cline, card, line) {
+      Some(c) => c,
+      None => return Value::from("")
+    };
+    /*
     let cardlineidx: u8 =
       match it.get_cardline_hints_index(&cline, card, line) {
         Some(u) => u,
         None => return Value::from("")
       };
-    /*
         .ok_or_else(|| {
           failure::err_msg(format!(
             "Card {:?} on the line with index {} does not contain the line {}, \
@@ -303,13 +309,16 @@ impl<'a> BufData<'a> {
              card.keyword(), clineidx, line
            ))
         })?;
-        */
 
     let cardhint: &'static CardHint = card.into();
     let linehint: &'static LineHint = cardhint.get(cardlineidx);
     let cellhint: Option<&'static CellHint> = linehint.get_cell(column);
+        */
 
-    Value::from(cellhint.map(|c| c.id()).unwrap_or(""))
+    let hint:&str = cardline.hint(column).into();
+
+    //Value::from(cellhint.map(|c| c.id()).unwrap_or(""))
+    Value::from(hint)
   }
 
   pub fn firstline_number(&self) -> LineNr {
