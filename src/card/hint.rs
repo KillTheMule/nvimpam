@@ -2,7 +2,7 @@ use strum_macros::IntoStaticStr;
 
 #[derive(IntoStaticStr, Debug, PartialEq, Clone, Copy)]
 pub enum Hint {
-  NAME,
+  TITLE,
   IDNOD,
   X,
   Y,
