@@ -267,9 +267,12 @@ impl<'a> BufData<'a> {
   }
 
   pub fn cellhint(&self, line: LineNr, column: u8) -> Value {
+    // TODO(KillTheMule): This must be more efficient
+    let empty_array = Value::from(vec![Value::from(""), Value::from("")]);
+
     let clineidx = match self.first_before(line) {
       Some(c) => c,
-      None => return Value::from("")
+      None => return empty_array
     }.0;
     let mut it = self.lines.iter_from(clineidx);
 
@@ -277,7 +280,7 @@ impl<'a> BufData<'a> {
       .next()
       .and_then(|pl| pl.try_into_keywordline()) {
         Some(kl) => kl,
-        None => return Value::from("")
+        None => return empty_array
       };
 
       /*
@@ -294,7 +297,7 @@ impl<'a> BufData<'a> {
 
     let cardline: &CardLine = match it.get_cardline_by_nr(&cline, card, line) {
       Some(c) => c,
-      None => return Value::from("")
+      None => return empty_array
     };
     /*
     let cardlineidx: u8 =
@@ -316,9 +319,10 @@ impl<'a> BufData<'a> {
         */
 
     let hint:&str = cardline.hint(column).into();
+    let kw: &str = (&cline.keyword).into();
 
     //Value::from(cellhint.map(|c| c.id()).unwrap_or(""))
-    Value::from(hint)
+    Value::from(vec![Value::from(kw), Value::from(hint)])
   }
 
   pub fn firstline_number(&self) -> LineNr {
