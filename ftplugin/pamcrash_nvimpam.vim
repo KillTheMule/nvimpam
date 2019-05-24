@@ -14,6 +14,7 @@ command -buffer NvimPamHighlightScreen call luaeval(
       \ { 'b': bufnr('%'), 'f': line('w0')-1, 'l': line('w$')-1 }
       \ )
 command -buffer NvimPamMenu call luaeval('require("nvimpam.cardmenu").cardmenu()')
+command -buffer NvimPamDoc call luaeval('require("nvimpam.cellhints").celldoc()')
 
 function! s:UpdateCellHint()
 lua << EOF

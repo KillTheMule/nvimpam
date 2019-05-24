@@ -17,7 +17,7 @@ filetype plugin on
   augroup END
 
 function! CellHint()
-  return luaeval('require("nvimpam.cellhints").cellhint[1]')
+  return luaeval('require("nvimpam.cellhints").cellhint[2]')
 endfunction
 
 set statusline=%{CellHint()}
