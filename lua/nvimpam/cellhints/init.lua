@@ -18,13 +18,7 @@ local cardhints = { {} }
 local function celldoc()
   local buf = create_buf(false, true)
   local doc = { }
-  if cellhint[1] == cellhint[1]:upper() then
-    for _, v in ipairs(cardhints[1]) do
-      if v[1] and v[1] == cellhint[1] then
-        doc = v
-      end
-    end
-  else
+  if cellhint[1] == "Keyword" then
     for _, v in ipairs(cardhints[1]) do
       table.insert(doc, v[1]..":")
       for i=2,#v do
@@ -33,6 +27,12 @@ local function celldoc()
       table.insert(doc, "-----------------------------")
     end
     table.remove(doc)
+  else
+    for _, v in ipairs(cardhints[1]) do
+      if v[1] and v[1] == cellhint[1] then
+        doc = v
+      end
+    end
   end
 
   buf_set_lines(buf, 0, -1, true, doc)

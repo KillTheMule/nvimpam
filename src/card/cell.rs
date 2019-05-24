@@ -148,8 +148,8 @@ impl Cell {
   pub fn hint(&self) -> &'static str {
     use self::Cell::*;
     match *self {
-      Kw(k) => k.into(),
-      Fixed(f) => f.into(),
+      Kw(_) => "Keyword",
+      Fixed(_) => "Fixed string",
       Integer(_, h)
       | Float(_, h)
       | Str(_, h)
