@@ -47,6 +47,7 @@ pub static MASS: Card = Card {
       Kw(Mass),
       Integer(8, IDNOD),
       Integer(8, IFRA),
+      Blank(8),
       Float(16, DISr),
       Float(16, DISs),
       Float(16, DISt),
