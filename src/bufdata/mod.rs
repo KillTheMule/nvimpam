@@ -10,8 +10,6 @@ use failure::Error;
 
 use neovim_lib::{neovim_api::Buffer, Value};
 
-use log::info;
-
 use crate::{
   bufdata::{folds::Folds, highlights::Highlights},
   card::{Card, line::Line as CardLine},
