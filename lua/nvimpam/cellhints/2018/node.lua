@@ -1,7 +1,7 @@
 return {
 MASS = {
-  IDNOD = { "Node identification number.", "If set equal to 0, node entities are selected via keywords.", "integer (I8)", "0" },
-  IFRA = { "Local frame identification number (type 1).", "", "integer (I8)", "0" },
+  IDNOD = { "Node identification number.", "If set equal to 0, node entities are selected via keywords.", "integer (I8)", "1" },
+  IFRA = { "Local frame identification number (type 1).", "", "integer (I8)", "1" },
   DISr = { "Distance component r from node IDNOD to COG.", "", "floating (E16)", "[length]" },
   DISs = { "Distance component s from node IDNOD to COG.", "", "floating (E16)", "[length]" },
   DISt = { "Distance component t from node IDNOD to COG.", "", "floating (E16)", "[length]" },
@@ -17,19 +17,19 @@ MASS = {
   Ixz = { "Added moment of inertia about XZ-axis.", "", "floating (E16)", "[mass].length^2" },
 },
 CNODE = { 
-  IDNOD = { "Common node identification number.", "", "integer (I8)", "0" },
+  IDNOD = { "Common node identification number.", "", "integer (I8)", "1" },
   X = { "X coordinate of the nodal point.", "", "floating (E16)", "[length]" },
   Y = { "Y coordinate of the nodal point.", "", "floating (E16)", "[length]" },
   Z = { "Z coordinate of the nodal point.", "", "floating (E16)", "[length]" },
 },
 NODE = {
-  IDNOD = { "Node identification number.", "", "integer (I8)", "0" },
+  IDNOD = { "Node identification number.", "", "integer (I8)", "1" },
   X = { "X coordinate of the nodal point.", "", "floating (E16)", "[length]" },
   Y = { "Y coordinate of the nodal point.", "", "floating (E16)", "[length]" },
   Z = { "Z coordinate of the nodal point.", "", "floating (E16)", "[length]" },
 },
 NSMAS2 = {
-  IDNSM = { "Non-structural mass identification number.", "", "integer (I8)", "0" },
+  IDNSM = { "Non-structural mass identification number.", "", "integer (I8)", "1" },
   MASS = { "Mass to be distributed on all selected part.", "", "floating (E16)", "[mass]" },
   MLEN = { "Mass per unit length to be distributed on 1D elements.", "", "floating (E16)", "[mass·length^-1]" },
   MARE = { "Mass per unit area to be distributed on 2D elements.", "", "floating (E16)", "[mass·length^-2]" },
@@ -37,7 +37,7 @@ NSMAS2 = {
   TITLE = { "Non-structural mass identification title.", "", "string (A76)", "" },
 },
 NSMAS = {
-  IDNSM = { "Non-structural mass identification number.", "", "integer (I8)", "0" },
+  IDNSM = { "Non-structural mass identification number.", "", "integer (I8)", "1" },
   MASS = { "Mass to be distributed on all selected part.", "", "floating (E16)", "[mass]" },
   MLEN = { "Mass per unit length to be distributed on 1D elements.", "", "floating (E16)", "[mass·length^-1]" },
   MARE = { "Mass per unit area to be distributed on 2D elements.", "", "floating (E16)", "[mass·length^-2]" },
