@@ -3,11 +3,14 @@
 use crate::card::{
   cell::{Cell::*, FixedStr},
   ges::GesType::*,
+  hint::Hint::*,
   keyword::Keyword::*,
-  line::{Conditional::*, Line::*},
+  //line::{Conditional::*, Line::*},
+  line::Line::*,
   Card,
 };
 
+/*
 pub static MTOCO: Card = Card {
   lines: &[
     Provides(
@@ -43,33 +46,36 @@ pub static MTOCO: Card = Card {
   ],
   ownfold: true,
 };
+*/
 
 pub static OTMCO: Card = Card {
   lines: &[
     Cells(&[
       Kw(Otmco),
-      Integer(8),
-      Integer(8),
-      Binary(6),
-      Integer(8),
-      Float(8),
-      Integer(8),
-      Integer(8),
-      Float(8),
+      Integer(8, IDOTM),
+      Integer(8, IDNODd),
+      Blank(2),
+      Binary(6, DOFCOD),
+      Integer(8, IMETH),
+      Float(8, RADIUS),
+      Integer(8, IELIM),
+      Integer(8, ITYP),
+      Float(8, ALPHA),
     ]),
-    Cells(&[Fixed(FixedStr::Name), Str(76)]),
+    Cells(&[Fixed(FixedStr::Name), Str(76, TITLE)]),
     Block(
       &[
-        Cells(&[Blank(8), Fixed(FixedStr::Weight), Float(58)]),
+        Cells(&[Blank(8), Fixed(FixedStr::Weight), Float(58, WTFAC)]),
         Ges(GesNode),
       ],
-      b"END_OTMCO",
+      b"END_OTMCO", ADDNODWEIGHT
     ),
   ],
 
   ownfold: true,
 };
 
+/*
 pub static RBODY0: Card = Card {
   lines: &[
     Cells(&[
@@ -293,3 +299,4 @@ mod tests {
   cardtest!(fold_rbody3, CARD_RBODY3, vec![(2, 7, Rbody3)]);
 
 }
+*/

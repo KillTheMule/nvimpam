@@ -6,10 +6,24 @@ local buf_set_lines = vim.api.nvim_buf_set_lines
 local open_win = vim.api.nvim_open_win
 
 local nodehints = require('nvimpam.cellhints.2018.node')
+local constrainthints = require('nvimpam.cellhints.2018.constraints')
 local nvimpam_err = require('nvimpam.job').nvimpam_err
 local jobids = require('nvimpam.job').jobids
 
-local hints = nodehints -- need to merge other tables eventually
+local hints = {}
+
+for k, v in pairs(nodehints) do
+  if hints[k] then
+    error("Card already in hints table: "..k)
+  end
+  hints[k] = v
+end
+for k, v in pairs(constrainthints) do
+  if hints[k] then
+    error("Card already in hints table: "..k)
+  end
+  hints[k] = v
+end
 
 -- first is the Parameter name, second a slightly longer description
 local cellhint = { "", "" }
@@ -22,7 +36,9 @@ local function celldoc()
     for _, v in ipairs(cardhints[1]) do
       table.insert(doc, v[1]..":")
       for i=2,#v do
-        table.insert(doc, v[i])
+        for line in vim.gsplit(v[i], "\n") do
+          table.insert(doc, line)
+        end
       end
       table.insert(doc, "-----------------------------")
     end
@@ -30,7 +46,11 @@ local function celldoc()
   else
     for _, v in ipairs(cardhints[1]) do
       if v[1] and v[1] == cellhint[1] then
-        doc = v
+        for _, s in ipairs(v) do
+          for line in vim.gsplit(s, "\n") do
+            table.insert(doc, line)
+          end
+        end
       end
     end
   end

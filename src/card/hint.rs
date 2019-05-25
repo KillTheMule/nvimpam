@@ -25,6 +25,17 @@ pub enum Hint {
   MLEN,
   MARE,
   MVOL,
+  IDOTM,
+  IDNODd,
+  DOFCOD,
+  IMETH,
+  RADIUS,
+  IELIM,
+  ITYP,
+  ALPHA,
+  WTFAC,
+  // Dummy!
+  ADDNODWEIGHT,
 }
 
 /*

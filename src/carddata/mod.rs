@@ -34,7 +34,7 @@ macro_rules! cardtest {
 }
 
 //pub mod auxiliaries;
-//pub mod constraint;
+pub mod constraint;
 //pub mod element;
 //pub mod link;
 pub mod node;
@@ -47,3 +47,4 @@ pub mod node;
 //pub use self::element::*;
 //pub use self::{auxiliaries::*, constraint::*, link::*, node::*, part::*};
 pub use self::node::*;
+pub use self::constraint::*;
