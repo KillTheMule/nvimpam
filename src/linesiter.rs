@@ -280,7 +280,7 @@ where
             }
           }
         }
-        CardLine::Block(_l, s, _h) => loop {
+        CardLine::Block(_l, s) => loop {
           while !nextline.text.as_ref().starts_with(s) {
             advance!(self, previdx, nextline);
 
@@ -408,7 +408,7 @@ where
             nextline = return_cardline_or_next!(self, nextline, line, cardline);
           }
         }
-        CardLine::Block(l, s, _h) => loop {
+        CardLine::Block(l, s) => loop {
           // TODO(KillTheMule): Why was this here?
           //debug_assert!(l.len() < u8::max_value() as usize - idx as usize);
           while !nextline.text.as_ref().starts_with(s) {

@@ -68,7 +68,7 @@ pub static OTMCO: Card = Card {
         Cells(&[Blank(8), Fixed(FixedStr::Weight), Float(58, WTFAC)]),
         Ges(GesNode),
       ],
-      b"END_OTMCO", ADDNODWEIGHT
+      b"END_OTMCO"
     ),
   ],
 
