@@ -412,9 +412,19 @@ where
           // TODO(KillTheMule): Why was this here?
           //debug_assert!(l.len() < u8::max_value() as usize - idx as usize);
           while !nextline.text.as_ref().starts_with(s) {
-            for _ in 0..l.len() {
+            for blockline in l.iter() {
+              if let CardLine::Ges(ref g) = blockline {
+                if let Some(sr) = self.skip_ges(*g, nextline) {
+                  match sr.nextline {
+                    None => return Some(blockline),
+                    Some(pl) if pl.number > line => return Some(blockline),
+                    Some(pl)  => { nextline = pl; }
+                  }
+                }
+              } else {
               nextline =
-                return_cardline_or_next!(self, nextline, line, cardline);
+                return_cardline_or_next!(self, nextline, line, blockline);
+              }
             }
           }
 
