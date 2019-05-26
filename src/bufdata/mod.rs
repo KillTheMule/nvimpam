@@ -278,7 +278,7 @@ impl<'a> BufData<'a> {
     .0;
     let mut it = self.lines.iter_from(clineidx);
 
-    let cline = match it.next().and_then(|pl| pl.try_into_keywordline()) {
+    let cline = match it.next().and_then(ParsedLine::try_into_keywordline) {
       Some(kl) => kl,
       None => return empty_array,
     };
@@ -318,7 +318,7 @@ impl<'a> BufData<'a> {
     let cellhint: Option<&'static CellHint> = linehint.get_cell(column);
         */
 
-    let hint: &str = cardline.hint(column).into();
+    let hint: &str = cardline.hint(column);
     let kw: &str = (&cline.keyword).into();
 
     //Value::from(cellhint.map(|c| c.id()).unwrap_or(""))
@@ -330,7 +330,7 @@ impl<'a> BufData<'a> {
       .lines
       .get(0)
       .map(|l| l.number)
-      .unwrap_or(LineNr::from(0))
+      .unwrap_or_else(|| LineNr::from(0))
   }
 
   pub fn lastline_number(&self) -> LineNr {
@@ -339,7 +339,7 @@ impl<'a> BufData<'a> {
       .iter()
       .last()
       .map(|l| l.number)
-      .unwrap_or(LineNr::from(0))
+      .unwrap_or_else(|| LineNr::from(0))
   }
   #[cfg(test)]
   pub fn folds_to_vec(&self) -> Vec<(usize, usize, Keyword)> {

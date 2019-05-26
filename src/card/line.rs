@@ -79,7 +79,7 @@ impl Line {
             return cell.hint();
           }
         }
-        return "Column too large for line!";
+        "Column too large for line!"
       }
     }
   }

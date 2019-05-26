@@ -1,4 +1,3 @@
-#![cfg_attr(feature = "cargo-clippy", feature(tool_lints))]
 #![deny(bare_trait_objects)]
 //! The companion library to the nvimpam binary.
 
