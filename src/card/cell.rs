@@ -2,7 +2,7 @@
 
 /// All the basic elements that can occur on a valid line in a Pamcrash
 /// input file, aside from comments and header data.
-use std::{str, convert::From};
+use std::{convert::From, str};
 
 use lexical::FromBytesLossy;
 

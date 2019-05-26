@@ -3,7 +3,7 @@
 use crate::card::{
   cell::{Cell::*, FixedStr},
   ges::GesType::*,
-  hint::Hint::{*, self},
+  hint::Hint::{self, *},
   keyword::Keyword::*,
   line::{Conditional::*, Line::*},
   Card,
@@ -19,16 +19,6 @@ pub static NODE: Card = Card {
   ])],
   ownfold: false,
 };
-
-/*
-pub static DUMMYHINT: CardHint = CardHint { linehints: &[] };
-
-pub static NODEHINT: CardHint = CardHint {
-  linehints: &[LineHint {
-    cellhints: &[Keyword(8), IDNOD(8), X(16), Y(16), Z(16)],
-  }],
-};
-*/
 
 pub static CNODE: Card = Card {
   lines: &[Cells(&[
@@ -55,10 +45,20 @@ pub static MASS: Card = Card {
     Cells(&[Fixed(FixedStr::Name), Str(76, TITLE)]),
     Cells(&[Blank(8), Float(16, Mx), Float(16, My), Float(16, Mz)]),
     Provides(
-      &[Blank(8), Float(16, Ix), Float(16, Iy), Float(16, Iz), Blank(24), Cont],
+      &[
+        Blank(8),
+        Float(16, Ix),
+        Float(16, Iy),
+        Float(16, Iz),
+        Blank(24),
+        Cont,
+      ],
       RelChar(80, b'&'),
     ),
-    Optional(&[Blank(8), Float(16, Ixy), Float(16, Iyz), Float(16, Izx)], 0),
+    Optional(
+      &[Blank(8), Float(16, Ixy), Float(16, Iyz), Float(16, Izx)],
+      0,
+    ),
     Ges(GesNode),
   ],
   ownfold: true,

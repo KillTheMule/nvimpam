@@ -5,7 +5,7 @@ use std::{cmp, ops::Range};
 
 use atoi::atoi;
 
-use crate::card::{cell::Cell, ges::GesType, keyword::Keyword, hint::Hint};
+use crate::card::{cell::Cell, ges::GesType, hint::Hint, keyword::Keyword};
 
 /// A line (actually, zero or more lines) inside a card in a Pamcrash input
 /// file.
@@ -83,18 +83,6 @@ impl Line {
       }
     }
   }
-
-  /*
-  /// Return an iterator over the highlight of a line. The `text` is
-  /// parsed in the process to potentially highlight errors.
-  pub fn highlights<'a>(&'a self, text: &'a [u8]) -> HlIter<'a> {
-    HlLine {
-      cardline: &self,
-      text,
-    }
-    .into_iter()
-  }
-  */
 }
 
 /// An enum to represent different conditionals on lines
@@ -160,27 +148,6 @@ impl Conditional {
     }
   }
 }
-
-/*
-pub struct LineHint {
-  pub cellhints: &'static [CellHint],
-}
-
-impl LineHint {
-  pub fn get_cell(&self, column: u8) -> Option<&'static CellHint> {
-    let mut sum = 0;
-
-    for cellhint in self.cellhints.iter() {
-      sum += cellhint.len();
-      if sum > column {
-        return Some(cellhint);
-      }
-    }
-
-    None
-  }
-}
-*/
 
 #[cfg(test)]
 mod tests {

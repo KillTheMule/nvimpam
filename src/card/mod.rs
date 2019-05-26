@@ -11,9 +11,9 @@
 //! [`carddata`](crate::carddata) module.
 pub mod cell;
 pub mod ges;
+pub mod hint;
 pub mod keyword;
 pub mod line;
-pub mod hint;
 
 use self::{keyword::Keyword, line::Line};
 use crate::carddata::*;
@@ -122,24 +122,3 @@ impl<'a> From<&'a Keyword> for &'static Card {
     }
   }
 }
-
-/*
-pub struct CardHint {
-  pub linehints: &'static [LineHint]
-}
-
-impl CardHint {
-  pub fn get(&self, index: u8) -> &'static LineHint {
-    self.linehints.get(index as usize).unwrap_or(&LineHint{cellhints:&[]})
-  }
-}
-
-impl From<&Card> for &'static CardHint {
-  fn from(c: &Card) -> &'static CardHint {
-    match c.keyword() {
-      Keyword::Node => &NODEHINT,
-      _ => &DUMMYHINT,
-    }
-  }
-}
-*/

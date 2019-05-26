@@ -12,7 +12,7 @@ use neovim_lib::{neovim_api::Buffer, Value};
 
 use crate::{
   bufdata::{folds::Folds, highlights::Highlights},
-  card::{Card, line::Line as CardLine},
+  card::{line::Line as CardLine, Card},
   linenr::LineNr,
   lines::{Lines, ParsedLine},
   linesiter::LinesIter,
@@ -131,8 +131,12 @@ impl<'a> BufData<'a> {
     let added: isize = linedata.len() as isize - (lastline - firstline);
 
     // the old behavior, just keep that for now
-    let mut first_pre = self.lines.first_before(firstline).unwrap_or_else(|| {
-        self.lines.get(0).map_or((0, 0_usize.into()), |l| (0, l.number))
+    let mut first_pre =
+      self.lines.first_before(firstline).unwrap_or_else(|| {
+        self
+          .lines
+          .get(0)
+          .map_or((0, 0_usize.into()), |l| (0, l.number))
       });
 
     // the old behavior, just keep that for now
@@ -144,7 +148,6 @@ impl<'a> BufData<'a> {
         (len, self.lines[len - 1].number + 1)
       }
     });
-
 
     let adjust_first = self
       .lines
@@ -270,32 +273,31 @@ impl<'a> BufData<'a> {
 
     let clineidx = match self.first_before(line) {
       Some(c) => c,
-      None => return empty_array
-    }.0;
+      None => return empty_array,
+    }
+    .0;
     let mut it = self.lines.iter_from(clineidx);
 
-    let cline = match it
-      .next()
-      .and_then(|pl| pl.try_into_keywordline()) {
-        Some(kl) => kl,
-        None => return empty_array
-      };
+    let cline = match it.next().and_then(|pl| pl.try_into_keywordline()) {
+      Some(kl) => kl,
+      None => return empty_array,
+    };
 
-      /*
-      .ok_or_else(|| {
-        failure::err_msg(format!(
-          "Index {} of BufData.lines does not contain \
-           a keywordline, although it was returned by \
-           self.first_before({})!",
-          clineidx, line
-        ))
-      })?;
-      */
+    /*
+    .ok_or_else(|| {
+      failure::err_msg(format!(
+        "Index {} of BufData.lines does not contain \
+         a keywordline, although it was returned by \
+         self.first_before({})!",
+        clineidx, line
+      ))
+    })?;
+    */
     let card: &'static Card = (&cline.keyword).into();
 
     let cardline: &CardLine = match it.get_cardline_by_nr(&cline, card, line) {
       Some(c) => c,
-      None => return empty_array
+      None => return empty_array,
     };
     /*
     let cardlineidx: u8 =
@@ -316,7 +318,7 @@ impl<'a> BufData<'a> {
     let cellhint: Option<&'static CellHint> = linehint.get_cell(column);
         */
 
-    let hint:&str = cardline.hint(column).into();
+    let hint: &str = cardline.hint(column).into();
     let kw: &str = (&cline.keyword).into();
 
     //Value::from(cellhint.map(|c| c.id()).unwrap_or(""))
@@ -324,11 +326,20 @@ impl<'a> BufData<'a> {
   }
 
   pub fn firstline_number(&self) -> LineNr {
-    self.lines.get(0).map(|l| l.number).unwrap_or(LineNr::from(0))
+    self
+      .lines
+      .get(0)
+      .map(|l| l.number)
+      .unwrap_or(LineNr::from(0))
   }
 
   pub fn lastline_number(&self) -> LineNr {
-    self.lines.iter().last().map(|l| l.number).unwrap_or(LineNr::from(0))
+    self
+      .lines
+      .iter()
+      .last()
+      .map(|l| l.number)
+      .unwrap_or(LineNr::from(0))
   }
   #[cfg(test)]
   pub fn folds_to_vec(&self) -> Vec<(usize, usize, Keyword)> {

@@ -229,11 +229,11 @@ impl<'a> Lines<'a> {
       .enumerate()
       .rfind(|(_, l)| l.keyword.is_some())
       .map(|(i, l)| (i, l.number))
-      /*
-      .unwrap_or_else(|| {
-        self.get(0).map_or((0, 0_usize.into()), |l| (0, l.number))
-      })
-      */
+    /*
+    .unwrap_or_else(|| {
+      self.get(0).map_or((0, 0_usize.into()), |l| (0, l.number))
+    })
+    */
   }
 
   // TODO(KillTheMule): Efficient? This is called a lot ...
@@ -247,13 +247,13 @@ impl<'a> Lines<'a> {
       (0_usize, 0_usize.into())
     } else {
     */
-      self
-        .iter()
-        .enumerate()
-        .skip(to_skip)
-        .find(|(_, l)| l.keyword.is_some())
-        .map(|(i, l)| (i, l.number))
-        /*
+    self
+      .iter()
+      .enumerate()
+      .skip(to_skip)
+      .find(|(_, l)| l.keyword.is_some())
+      .map(|(i, l)| (i, l.number))
+    /*
         .unwrap_or_else(|| {
           let len = self.len();
           (len, self[len - 1].number + 1)

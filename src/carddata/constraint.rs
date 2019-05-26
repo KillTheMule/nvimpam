@@ -5,7 +5,6 @@ use crate::card::{
   ges::GesType::*,
   hint::Hint::*,
   keyword::Keyword::*,
-  //line::{Conditional::*, Line::*},
   line::Line::*,
   Card,
 };
@@ -68,7 +67,7 @@ pub static OTMCO: Card = Card {
         Cells(&[Blank(8), Fixed(FixedStr::Weight), Float(58, WTFAC)]),
         Ges(GesNode),
       ],
-      b"END_OTMCO"
+      b"END_OTMCO",
     ),
   ],
 

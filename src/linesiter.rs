@@ -368,7 +368,6 @@ where
     let mut nextline = next_or_return_none!(self);
 
     for cardline in cardlines {
-
       match *cardline {
         CardLine::Provides(_s, ref c) => {
           conds.push(c.evaluate(nextline.text.as_ref()));
@@ -418,12 +417,14 @@ where
                   match sr.nextline {
                     None => return Some(blockline),
                     Some(pl) if pl.number > line => return Some(blockline),
-                    Some(pl)  => { nextline = pl; }
+                    Some(pl) => {
+                      nextline = pl;
+                    }
                   }
                 }
               } else {
-              nextline =
-                return_cardline_or_next!(self, nextline, line, blockline);
+                nextline =
+                  return_cardline_or_next!(self, nextline, line, blockline);
               }
             }
           }

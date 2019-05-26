@@ -2,7 +2,7 @@
 //! excuted in another thread, so we use a
 //! [`Sender<Event>`](std::sync::mpsc::Sender) to send the parsed event data to
 //! the main thread.
-use std::{sync::mpsc, convert::TryFrom};
+use std::{convert::TryFrom, sync::mpsc};
 
 use failure::{self, Error};
 use log::{error, info};
@@ -94,10 +94,7 @@ impl NeovimHandler {
 
     let column = parse_u8(&last_arg(&mut args, nea)?)?;
     let line = parse_i64(&last_arg(&mut args, nea)?)?;
-    Ok(Event::CellHint {
-      line,
-      column,
-    })
+    Ok(Event::CellHint { line, column })
   }
 }
 
@@ -189,12 +186,12 @@ impl RequestHandler for NeovimHandler {
             name, e
           ))
         })
-      },
+      }
       "CellHint" => {
         let event = self.parse_cellhint_event(args).map_err(|e| {
-            let errstr = format!("Could not parse args of {}: '{:?}'", name, e);
-            error!("{}", errstr);
-            Value::from(errstr)
+          let errstr = format!("Could not parse args of {}: '{:?}'", name, e);
+          error!("{}", errstr);
+          Value::from(errstr)
         })?;
 
         info!("Handling Request: {:?}", event);

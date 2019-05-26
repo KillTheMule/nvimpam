@@ -34,17 +34,4 @@ pub enum Hint {
   ITYP,
   ALPHA,
   WTFAC,
-  // Dummy!
-  ADDNODWEIGHT,
 }
-
-/*
-impl From<CellHint> for &'static str {
-  fn from(c: CellHint) -> Self {
-      IDNOD => "IDNOD",
-      X => "X",
-      Y => "Y",
-      Z => "Z",
-  }
-}
-*/
