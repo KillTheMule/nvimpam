@@ -326,7 +326,7 @@ impl<'a> BufData<'a> {
     let mut first_hint = true;
 
     match cardline {
-      CardLine::Cells(cells) => {
+      CardLine::Cells(cells) | CardLine::Provides(cells, _) => {
         use Cell::*;
         for c in cells.iter() {
           if first_hint {
