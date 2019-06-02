@@ -228,9 +228,7 @@ impl fmt::Debug for Event {
       CellHint { line, column } => {
         write!(f, "CellHint{{ line: {}, column: {} }}", line, column)
       }
-      CommentLine { line } => {
-        write!(f, "CommentLine{{ line: {} }}", line)
-      }
+      CommentLine { line } => write!(f, "CommentLine{{ line: {} }}", line),
       DetachEvent { .. } => write!(f, "DetachEvent"),
       RefreshFolds => write!(f, "RefreshFolds"),
       Quit => write!(f, "Quit"),
