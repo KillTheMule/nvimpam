@@ -283,45 +283,16 @@ impl<'a> BufData<'a> {
       None => return empty_array,
     };
 
-    /*
-    .ok_or_else(|| {
-      failure::err_msg(format!(
-        "Index {} of BufData.lines does not contain \
-         a keywordline, although it was returned by \
-         self.first_before({})!",
-        clineidx, line
-      ))
-    })?;
-    */
     let card: &'static Card = (&cline.keyword).into();
 
     let cardline: &CardLine = match it.get_cardline_by_nr(&cline, card, line) {
       Some(c) => c,
       None => return empty_array,
     };
-    /*
-    let cardlineidx: u8 =
-      match it.get_cardline_hints_index(&cline, card, line) {
-        Some(u) => u,
-        None => return Value::from("")
-      };
-        .ok_or_else(|| {
-          failure::err_msg(format!(
-            "Card {:?} on the line with index {} does not contain the line {}, \
-             even though it is the last card before it!",
-             card.keyword(), clineidx, line
-           ))
-        })?;
-
-    let cardhint: &'static CardHint = card.into();
-    let linehint: &'static LineHint = cardhint.get(cardlineidx);
-    let cellhint: Option<&'static CellHint> = linehint.get_cell(column);
-        */
 
     let hint: &str = cardline.hint(column);
     let kw: &str = (&cline.keyword).into();
 
-    //Value::from(cellhint.map(|c| c.id()).unwrap_or(""))
     Value::from(vec![Value::from(kw), Value::from(hint)])
   }
 
