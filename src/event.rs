@@ -41,8 +41,8 @@ pub enum Event {
   CellHint { line: i64, column: u8 },
   /// Add a comment with hints above a line
   CommentLine { line: i64 },
-  /// Return an end-inclusive range start..=end of lines in which the card of the
-  /// current line is included
+  /// Return an end-inclusive range start..=end of lines in which the card of
+  /// the current line is included
   CardRange { line: i64 },
   /// This plugin should quit. Currently only sent by the user directly.
   Quit,
