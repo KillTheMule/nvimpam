@@ -1,3 +1,6 @@
+* Let the events from the handler return LineNr or a future ColNr and handle all assertions and
+  conversions there, to clean up event.rs
+
 * Define the CursorMoved(I) aucmds only after we've loaded the plugin, and have
   it update the first cellhint by itself. Otherwise we're blocking while loading the file.
 

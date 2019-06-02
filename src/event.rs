@@ -39,6 +39,8 @@ pub enum Event {
   HighlightRegion { firstline: i64, lastline: i64 },
   /// Request the CellHint at the given cursor position
   CellHint { line: i64, column: u8 },
+  /// Add a comment with hints above a line
+  CommentLine { line: i64 },
   /// This plugin should quit. Currently only sent by the user directly.
   Quit,
 }
@@ -156,6 +158,12 @@ impl Event {
           let linenr = LineNr::from_i64(line);
           to_handler.send(bufdata.cellhint(linenr, column))?;
         }
+
+        Ok(CommentLine { line }) => {
+          debug_assert!(line >= 0);
+          let linenr = LineNr::from_i64(line);
+          to_handler.send(bufdata.linecomment(linenr))?;
+        }
         Ok(Quit) => {
           break;
         }
@@ -219,6 +227,9 @@ impl fmt::Debug for Event {
       ),
       CellHint { line, column } => {
         write!(f, "CellHint{{ line: {}, column: {} }}", line, column)
+      }
+      CommentLine { line } => {
+        write!(f, "CommentLine{{ line: {} }}", line)
       }
       DetachEvent { .. } => write!(f, "DetachEvent"),
       RefreshFolds => write!(f, "RefreshFolds"),

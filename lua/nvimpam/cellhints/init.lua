@@ -4,6 +4,8 @@ local call = vim.api.nvim_call_function
 local create_buf = vim.api.nvim_create_buf
 local buf_set_lines = vim.api.nvim_buf_set_lines
 local open_win = vim.api.nvim_open_win
+local command = vim.api.nvim_command
+local buf_get_lines = vim.api.nvim_buf_get_lines
 
 local nodehints = require('nvimpam.cellhints.2018.node')
 local constrainthints = require('nvimpam.cellhints.2018.constraints')
@@ -89,10 +91,34 @@ local function update_cellhint(line, column, buf)
   end
 end
 
+local function add_linecomment(line) 
+  buf = buf or curbuf()
+  
+  if not jobids[buf] then
+    error("No job entry for buffer "..tostring(buf))
+    return
+  end
+
+  local linecomment = call("rpcrequest", { jobids[buf], "CommentLine", line })
+
+  if linecomment == "" or linecomment == "#" then
+    command("echom 'No comment for line "..tostring(line).."'")
+  else
+    local curline = buf_get_lines(buf, line, line + 1, true)[1]
+
+    if not curline then
+      error("Could not get current line")
+    end
+
+    buf_set_lines(buf, line, line + 1, true, {linecomment, curline})
+  end
+end
+
 return {
   cellhint = cellhint,
   update_cellhint = update_cellhint,
   cardhints = cardhints,
   celldoc = celldoc,
   parameter = parameter,
+  add_linecomment = add_linecomment,
 }

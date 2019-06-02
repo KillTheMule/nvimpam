@@ -4,7 +4,7 @@
 pub mod folds;
 pub mod highlights;
 
-use std::ops::Range;
+use std::{iter, ops::Range};
 
 use failure::Error;
 
@@ -12,7 +12,7 @@ use neovim_lib::{neovim_api::Buffer, Value};
 
 use crate::{
   bufdata::{folds::Folds, highlights::Highlights},
-  card::{line::Line as CardLine, Card},
+  card::{cell::Cell, line::Line as CardLine, Card},
   linenr::LineNr,
   lines::{Lines, ParsedLine},
   linesiter::LinesIter,
@@ -271,6 +271,7 @@ impl<'a> BufData<'a> {
     // TODO(KillTheMule): This must be more efficient
     let empty_array = Value::from(vec![Value::from(""), Value::from("")]);
 
+    // TODO(KillTheMule): Factor this out, linecomment uses it, too
     let clineidx = match self.first_before(line) {
       Some(c) => c,
       None => return empty_array,
@@ -294,6 +295,78 @@ impl<'a> BufData<'a> {
     let kw: &str = (&cline.keyword).into();
 
     Value::from(vec![Value::from(kw), Value::from(hint)])
+  }
+
+  pub fn linecomment(&self, line: LineNr) -> Value {
+    // TODO(KillTheMule): This must be more efficient
+    let empty_value = Value::from("");
+
+    // TODO(KillTheMule): Factor this out, cellhint uses it, too
+    let clineidx = match self.first_before(line) {
+      Some(c) => c,
+      None => return empty_value,
+    }
+    .0;
+    let mut it = self.lines.iter_from(clineidx);
+
+    let cline = match it.next().and_then(ParsedLine::try_into_keywordline) {
+      Some(kl) => kl,
+      None => return empty_value,
+    };
+
+    let card: &'static Card = (&cline.keyword).into();
+
+    let cardline: &CardLine = match it.get_cardline_by_nr(&cline, card, line) {
+      Some(c) => c,
+      None => return empty_value,
+    };
+    // TODO(KillTheMule): Should we make 81 a global const?
+    let mut s = String::with_capacity(81);
+    s.push('#');
+    let mut first_hint = true;
+
+    match cardline {
+      CardLine::Cells(cells) => {
+        use Cell::*;
+        for c in cells.iter() {
+          if first_hint {
+            first_hint = false;
+          } else {
+            s.push('|');
+          }
+
+          let mut hint = "";
+
+          match c {
+            Fixed(_) => {}
+            Blank(_) => {
+              hint = c.hint();
+              if hint.len() >= usize::from(c.len()) {
+                hint = ""
+              }
+            }
+            Kw(_)
+            | Integer(_, _)
+            | Float(_, _)
+            | Str(_, _)
+            | Binary(_, _)
+            | IntegerorBlank(_, _)
+            | Cont => hint = c.hint(),
+          }
+          // Need 1 more chars then the hin minimally, which would leave us with
+          // '|HINT'.
+          debug_assert!(usize::from(c.len()) > hint.len());
+          for c in iter::repeat('-').take(usize::from(c.len()) - 1 - hint.len())
+          {
+            s.push(c)
+          }
+
+          s.push_str(hint);
+        }
+      }
+      _ => {}
+    }
+    Value::from(s)
   }
 
   pub fn firstline_number(&self) -> LineNr {

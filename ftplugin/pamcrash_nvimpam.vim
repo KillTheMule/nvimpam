@@ -15,11 +15,19 @@ command -buffer NvimPamHighlightScreen call luaeval(
       \ )
 command -buffer NvimPamMenu call luaeval('require("nvimpam.cardmenu").cardmenu()')
 command -buffer NvimPamDoc call luaeval('require("nvimpam.cellhints").celldoc()')
+command -buffer NvimPamAddLineComment call s:AddLineComment()
 
 function! s:UpdateCellHint()
 lua << EOF
   local cursor = vim.api.nvim_win_get_cursor(vim.api.nvim_get_current_win())
   require("nvimpam.cellhints").update_cellhint(cursor[1]-1, cursor[2])
+EOF
+endfunction
+
+function! s:AddLineComment()
+lua << EOF
+  local cursor = vim.api.nvim_win_get_cursor(vim.api.nvim_get_current_win())
+  require("nvimpam.cellhints").add_linecomment(cursor[1]-1)
 EOF
 endfunction
 
