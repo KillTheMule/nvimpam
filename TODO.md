@@ -1,3 +1,10 @@
+* Make a command to comment all lines of a card
+  * Needs though about GES and stuff
+
+* Make a "card" text object
+
+* Make a command to right-align all cells
+
 * Let the events from the handler return LineNr or a future ColNr and handle all assertions and
   conversions there, to clean up event.rs
 
@@ -12,6 +19,7 @@
   syntactically invalid anyways
 
 * Send the bufnr as a notification directly after jobstart to avoid races
+  * Or maybe just from the commandline?
 
 * Improve logging: Lua code should write to NVIMPAM_LOG_FILE (maybe even respect log llevel?), only the binaries stderr should really go to NVIMPAM_STDERR
 
