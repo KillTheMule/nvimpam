@@ -207,7 +207,7 @@ where
   ///
   /// If you want to skip all cards of a given type, use
   /// [`skip_card_gather`](NoCommentIter::skip_card_gather)
-  fn skip_card<'b>(
+  pub fn skip_card<'b>(
     &'b mut self,
     skipline: &KeywordLine<'a>,
     card: &Card,

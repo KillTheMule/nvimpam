@@ -369,6 +369,37 @@ impl<'a> BufData<'a> {
     Value::from(s)
   }
 
+  pub fn cardrange(&self, line: LineNr) -> Value {
+    let mut array_vec = vec![];
+
+    // TODO(KillTheMule): Factor this out, linecomment uses it, too
+    let (clineidx, clinenr) = match self.first_before(line) {
+      Some(c) => c,
+      None => return Value::from(array_vec),
+    };
+    let mut it = self.lines.iter_from(clineidx);
+
+    let cline = match it.next().and_then(ParsedLine::try_into_keywordline) {
+      Some(kl) => kl,
+      None => return Value::from(array_vec),
+    };
+
+    let card: &'static Card = (&cline.keyword).into();
+    let mut dummyhl = Highlights::new();
+
+    if let Some(pl) = it.skip_card(&cline, &card, &mut dummyhl).nextline {
+      let skippedidx = self.lines.linenr_to_index(pl.number);
+      debug_assert!(skippedidx > clineidx);
+      array_vec.push(Value::from(usize::from(clinenr)));
+      array_vec
+        .push(Value::from(usize::from(self.lines[skippedidx - 1].number)));
+    } else {
+      array_vec.push(Value::from(usize::from(clinenr)));
+      array_vec.push(Value::from(usize::from(self.lastline_number())));
+    }
+    Value::from(array_vec)
+  }
+
   pub fn firstline_number(&self) -> LineNr {
     self
       .lines

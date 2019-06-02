@@ -96,17 +96,29 @@ impl NeovimHandler {
     let line = parse_i64(&last_arg(&mut args, nea)?)?;
     Ok(Event::CellHint { line, column })
   }
-  ///
+
   /// Parse a CommentLine request into a
   /// [`CommentLine`](::event::Event::CommentLine) event
   fn parse_commentline_event(
     &mut self,
     mut args: Vec<Value>,
   ) -> Result<Event, Error> {
-    let nea = "Not enough arguments in CellHint notification!";
+    let nea = "Not enough arguments in CellHint request!";
 
     let line = parse_i64(&last_arg(&mut args, nea)?)?;
     Ok(Event::CommentLine { line })
+  }
+
+  /// Parse a CardRange request into a
+  /// [`CardRange`](::event::Event::CardRange) event
+  fn parse_cardrange_event(
+    &mut self,
+    mut args: Vec<Value>,
+  ) -> Result<Event, Error> {
+    let nea = "Not enough arguments in CardRange request!";
+
+    let line = parse_i64(&last_arg(&mut args, nea)?)?;
+    Ok(Event::CardRange { line })
   }
 }
 
@@ -231,6 +243,27 @@ impl RequestHandler for NeovimHandler {
         self.to_main.send(event).map_err(|e| {
           Value::from(format!(
             "Could not send 'CommentLine' to main thread: {:?}!",
+            e
+          ))
+        })?;
+        self.from_main.recv().map_err(|e| {
+          Value::from(format!(
+            "Error receiving value for request '{}' from main thread: {:?}!",
+            name, e
+          ))
+        })
+      }
+      "CardRange" => {
+        let event = self.parse_cardrange_event(args).map_err(|e| {
+          let errstr = format!("Could not parse args of {}: '{:?}'", name, e);
+          error!("{}", errstr);
+          Value::from(errstr)
+        })?;
+
+        info!("Handling Request: {:?}", event);
+        self.to_main.send(event).map_err(|e| {
+          Value::from(format!(
+            "Could not send 'CardRange' to main thread: {:?}!",
             e
           ))
         })?;

@@ -6,6 +6,7 @@ local buf_set_lines = vim.api.nvim_buf_set_lines
 local open_win = vim.api.nvim_open_win
 local command = vim.api.nvim_command
 local buf_get_lines = vim.api.nvim_buf_get_lines
+local input = vim.api.nvim_input
 
 local nodehints = require('nvimpam.cellhints.2018.node')
 local constrainthints = require('nvimpam.cellhints.2018.constraints')
@@ -114,6 +115,25 @@ local function add_linecomment(line)
   end
 end
 
+local function select_card(line)
+  buf = buf or curbuf()
+  
+  if not jobids[buf] then
+    error("No job entry for buffer "..tostring(buf))
+    return
+  end
+
+  local cardrange = call("rpcrequest", { jobids[buf], "CardRange", line })
+
+  if cardrange[1] and cardrange[2] then
+    input("\\<Esc>V"..tostring(cardrange[2] + 1).."Go"..tostring(cardrange[1] + 1).."G")
+  else
+    command("echom 'range: "..tostring(cardrange[1])..":"..tostring(cardrange[2]).."'")
+  end
+
+
+end
+
 return {
   cellhint = cellhint,
   update_cellhint = update_cellhint,
@@ -121,4 +141,5 @@ return {
   celldoc = celldoc,
   parameter = parameter,
   add_linecomment = add_linecomment,
+  select_card = select_card,
 }

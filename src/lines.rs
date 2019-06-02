@@ -204,7 +204,7 @@ impl<'a> Lines<'a> {
     LinesIter::new(self.0[index..].iter())
   }
 
-  fn linenr_to_index(&self, line: LineNr) -> usize {
+  pub fn linenr_to_index(&self, line: LineNr) -> usize {
     self
       .0
       .binary_search_by_key(&line, |l| l.number)
