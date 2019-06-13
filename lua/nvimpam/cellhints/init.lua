@@ -103,7 +103,7 @@ local function add_linecomment(line)
   local linecomment = call("rpcrequest", { jobids[buf], "CommentLine", line })
 
   if linecomment == "" or linecomment == "#" then
-    command("echom 'No comment for line "..tostring(line).."'")
+    command("echom 'No comment for line "..tostring(line + 1).."'")
   else
     local curline = buf_get_lines(buf, line, line + 1, true)[1]
 
