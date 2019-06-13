@@ -1,5 +1,4 @@
-* Make a command to comment all lines of a card
-  * Needs though about GES and stuff
+* Improve NvimPamCommentCard, needs though about GES and stuff
 
 * Make a "card" text object
 
