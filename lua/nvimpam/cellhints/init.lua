@@ -6,6 +6,7 @@ local buf_set_lines = vim.api.nvim_buf_set_lines
 local open_win = vim.api.nvim_open_win
 local command = vim.api.nvim_command
 local buf_get_lines = vim.api.nvim_buf_get_lines
+local buf_set_lines = vim.api.nvim_buf_set_lines
 local input = vim.api.nvim_input
 
 local nodehints = require('nvimpam.cellhints.2018.node')
@@ -115,6 +116,42 @@ local function add_linecomment(line)
   end
 end
 
+local function add_cardcomments(line)
+  buf = buf or curbuf()
+
+  if not jobids[buf] then
+    error("No job entry for buffer "..tostring(buf))
+    return
+  end
+
+  local cardrange = call("rpcrequest", { jobids[buf], "CardRange", line })
+
+  -- checking cardrange[1] suffices, we always get a range or nothing
+  if not cardrange[1] then
+    command("echom 'No card for line "..tostring(line + 1).."'")
+    return
+  end
+
+  local newlines = {}
+  local oldlines = buf_get_lines(buf, cardrange[1], cardrange[2] + 1, true)
+
+  for i, l in ipairs(oldlines) do
+    local firstchar = l:sub(1,1)
+
+    if firstchar ~= "#" and firstchar ~= "$" then
+      local linecomment = call("rpcrequest", { jobids[buf], "CommentLine", cardrange[1] + i - 1 })
+
+      if linecomment ~= "" and linecomment ~= "#" then
+        table.insert(newlines, linecomment)
+      end
+    end
+
+    table.insert(newlines, l)
+  end
+
+  buf_set_lines(buf, cardrange[1], cardrange[2] + 1, true, newlines)
+end
+
 local function select_card(line)
   buf = buf or curbuf()
   
@@ -141,5 +178,6 @@ return {
   celldoc = celldoc,
   parameter = parameter,
   add_linecomment = add_linecomment,
+  add_cardcomments = add_cardcomments,
   select_card = select_card,
 }
