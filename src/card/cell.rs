@@ -121,28 +121,34 @@ impl Cell {
           return false;
         }
 
-        let mut i = 0;
-        let mut j = s.len() - 1;
+        let trimmed = self.trim(s);
 
-        // Safe, because 0 <= i < s.len() - 1
-        while i < j && unsafe { s.get_unchecked(i) == &b' ' } {
-          i += 1;
-        }
-
-        // Safe, because s.len() - 1 >= j > 0
-        while j > i && unsafe { s.get_unchecked(j) == &b' ' } {
-          j -= 1;
-        }
-
-        // Safe, see comments above
-        let trimmed = unsafe { s.get_unchecked(i..=j) };
-
-        trimmed == [b' ']
+        trimmed.is_empty()
           || f64::try_from_bytes_lossy(&trimmed).is_ok()
           || (trimmed.first() == Some(&b'<') && trimmed.last() == Some(&b'>'))
       }
       _ => true,
     }
+  }
+
+  /// Returns the byte array with leading/trailing b' ' removed
+  #[inline]
+  pub fn trim<'a, 'b>(&'a self, s: &'b [u8]) -> &'b [u8] {
+    let mut i = 0;
+    let mut j = s.len() - 1;
+
+    // Safe, because 0 <= i < s.len() - 1
+    while i < j && unsafe { s.get_unchecked(i) == &b' ' } {
+      i += 1;
+    }
+
+    // Safe, because s.len() - 1 >= j > 0
+    while j >= i && unsafe { s.get_unchecked(j) == &b' ' } {
+      j -= 1;
+    }
+
+    // Safe, see comments above
+    unsafe { s.get_unchecked(i..=j) }
   }
 
   pub fn hint(&self) -> &'static str {
@@ -164,10 +170,11 @@ impl Cell {
 #[cfg(test)]
 mod tests {
   use super::Cell;
+  use crate::card::hint::Hint;
 
   #[test]
   fn verifying_floats() {
-    let cell = Cell::Float(10);
+    let cell = Cell::Float(10, Hint::X);
 
     assert!(!cell.verify("".as_ref()));
     assert!(cell.verify("  ".as_ref()));
