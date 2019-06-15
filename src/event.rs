@@ -44,6 +44,9 @@ pub enum Event {
   /// Return an end-inclusive range start..=end of lines in which the card of
   /// the current line is included
   CardRange { line: i64 },
+  /// Return a String with the line having all cells aligned, or nil if the line
+  /// was aligned, is a comment, or otherwise non-aligneable
+  AlignLine { line: i64 },
   /// This plugin should quit. Currently only sent by the user directly.
   Quit,
 }
@@ -172,6 +175,11 @@ impl Event {
           let linenr = LineNr::from_i64(line);
           to_handler.send(bufdata.cardrange(linenr))?;
         }
+        Ok(AlignLine { line }) => {
+          debug_assert!(line >= 0);
+          let linenr = LineNr::from_i64(line);
+          to_handler.send(bufdata.align_line(linenr))?;
+        }
         Ok(Quit) => {
           break;
         }
@@ -238,6 +246,7 @@ impl fmt::Debug for Event {
       }
       CommentLine { line } => write!(f, "CommentLine{{ line: {} }}", line),
       CardRange { line } => write!(f, "CardRange{{ line: {} }}", line),
+      AlignLine { line } => write!(f, "AlignLine{{ line: {} }}", line),
       DetachEvent { .. } => write!(f, "DetachEvent"),
       RefreshFolds => write!(f, "RefreshFolds"),
       Quit => write!(f, "Quit"),

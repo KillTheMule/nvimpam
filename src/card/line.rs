@@ -1,7 +1,7 @@
 //! An enum to classify the several types of lines that can occur inside a card
 //! of a Pamcrash input file. Might not really be a line (see
 //! [GES](crate::card::line::Line::Ges), rather than zero or more lines.
-use std::{cmp, ops::Range};
+use std::{cmp, convert::TryFrom, ops::Range};
 
 use atoi::atoi;
 
@@ -81,6 +81,70 @@ impl Line {
         }
         "Column too large for line!"
       }
+    }
+  }
+
+  // TODO(KillTheMule): Make this work for OptionalBlock
+  //
+  /// Right-aligns all the cells in the given byte string according to self. If
+  /// this is a card line without cells, `None` is returned.
+  #[inline]
+  pub fn align(&self, s: &[u8]) -> Option<String> {
+    use self::Line::*;
+    let cells = match *self {
+      Ges(_) => return None,
+      Block(_, _) => return None,
+      OptionalBlock(_, _, _) => return None,
+      Cells(c) | Provides(c, _) | Optional(c, _) | Repeat(c, _) => c,
+    };
+
+    let mut curpos = 0;
+    let mut dirty = false;
+    let mut oldpos;
+    let mut end;
+    let mut blanks;
+    let len = cmp::min(s.len(), 81) as u8;
+    let mut ret = String::with_capacity(usize::from(len));
+
+    for cell in cells {
+      oldpos = curpos;
+      curpos += cell.len();
+      end = cmp::min(len, curpos);
+      let cellcont = match s.get(usize::from(oldpos)..usize::from(end)) {
+        None => break,
+        Some(slice) => match cell {
+          Cell::Kw(_) | Cell::Fixed(_) | Cell::Cont => slice,
+          _ => {
+            if slice.last() == Some(&b' ') || end < curpos {
+              let s = cell.trim(slice);
+
+              if !s.is_empty() {
+                dirty = true
+              }
+              s
+            } else {
+              slice
+            }
+          }
+        },
+      };
+
+      blanks = cell.len()
+        - u8::try_from(cellcont.len()).expect("cellcont part of cell");
+
+      for _ in 0..blanks {
+        ret.push(' ');
+      }
+
+      for chr in cellcont {
+        ret.push(*chr as char);
+      }
+    }
+
+    if dirty {
+      Some(ret)
+    } else {
+      None
     }
   }
 }

@@ -120,6 +120,19 @@ impl NeovimHandler {
     let line = parse_i64(&last_arg(&mut args, nea)?)?;
     Ok(Event::CardRange { line })
   }
+
+  /// Parse a AlignLine request into a
+  /// [`AlignLine`](::event::Event::AlignLine) event
+  fn parse_alignline_event(
+    &mut self,
+    mut args: Vec<Value>,
+  ) -> Result<Event, Error> {
+    let nea = "Not enough arguments in AlignLine request!";
+
+    let line = parse_i64(&last_arg(&mut args, nea)?)?;
+    Ok(Event::AlignLine { line })
+  }
+
 }
 
 impl Handler for NeovimHandler {
@@ -264,6 +277,27 @@ impl RequestHandler for NeovimHandler {
         self.to_main.send(event).map_err(|e| {
           Value::from(format!(
             "Could not send 'CardRange' to main thread: {:?}!",
+            e
+          ))
+        })?;
+        self.from_main.recv().map_err(|e| {
+          Value::from(format!(
+            "Error receiving value for request '{}' from main thread: {:?}!",
+            name, e
+          ))
+        })
+      }
+      "AlignLine" => {
+        let event = self.parse_alignline_event(args).map_err(|e| {
+          let errstr = format!("Could not parse args of {}: '{:?}'", name, e);
+          error!("{}", errstr);
+          Value::from(errstr)
+        })?;
+
+        info!("Handling Request: {:?}", event);
+        self.to_main.send(event).map_err(|e| {
+          Value::from(format!(
+            "Could not send 'AlignLine' to main thread: {:?}!",
             e
           ))
         })?;

@@ -400,6 +400,40 @@ impl<'a> BufData<'a> {
     Value::from(array_vec)
   }
 
+  pub fn align_line(&self, line: LineNr) -> Value {
+    // TODO(KillTheMule): Factor this out, cellhint uses it, too
+    let clineidx = match self.first_before(line) {
+      Some(c) => c,
+      None => return Value::Nil,
+    }
+    .0;
+    let mut it = self.lines.iter_from(clineidx);
+
+    let cline = match it.next().and_then(ParsedLine::try_into_keywordline) {
+      Some(kl) => kl,
+      None => return Value::Nil,
+    };
+
+    let card: &'static Card = (&cline.keyword).into();
+
+    let cardline: &CardLine = match it.get_cardline_by_nr(&cline, card, line) {
+      Some(c) => c,
+      None => return Value::Nil,
+    };
+
+    let lineidx = self.lines.linenr_to_index(line);
+    let linetxt = match self.lines.iter_from(lineidx).next() {
+      Some(pl) => pl.text.as_ref(),
+      None => return Value::Nil
+    };
+
+    match cardline.align(linetxt) {
+      None => Value::Nil,
+      Some(s) => Value::from(s)
+    }
+
+  }
+
   pub fn firstline_number(&self) -> LineNr {
     self
       .lines
