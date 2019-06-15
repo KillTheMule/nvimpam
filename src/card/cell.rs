@@ -134,6 +134,10 @@ impl Cell {
   /// Returns the byte array with leading/trailing b' ' removed
   #[inline]
   pub fn trim<'a, 'b>(&'a self, s: &'b [u8]) -> &'b [u8] {
+    if s.is_empty() {
+      return s;
+    }
+
     let mut i = 0;
     let mut j = s.len() - 1;
 
@@ -143,12 +147,22 @@ impl Cell {
     }
 
     // Safe, because s.len() - 1 >= j > 0
-    while j >= i && unsafe { s.get_unchecked(j) == &b' ' } {
+    while j > i && unsafe { s.get_unchecked(j) == &b' ' } {
       j -= 1;
     }
 
-    // Safe, see comments above
-    unsafe { s.get_unchecked(i..=j) }
+    if  j > i {
+      // Safe, see comments above
+      unsafe { s.get_unchecked(i..=j) }
+    } else {
+      // j = i
+      let last = unsafe { s.get_unchecked(i..=j) };
+      if last == b" " {
+        &[]
+      } else {
+        last
+      }
+    }
   }
 
   pub fn hint(&self) -> &'static str {
