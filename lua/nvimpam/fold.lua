@@ -6,7 +6,7 @@ local get_vvar = vim.api.nvim_get_vvar
 local eval = vim.api.nvim_eval
 
 local nvimpam_err = require('nvimpam.job').nvimpam_err
-local jobids = require('nvimpam.job').jobids
+local jobid = require('nvimpam.job').jobid
 
 -- Holds the foldtexts, values of the form {start, end, text}
 local foldtexts = {}
@@ -50,14 +50,9 @@ local function update_folds(texts)
 end
 
 local function refresh_folds(buf)
-  buf = buf or curbuf()
+  local id = jobid(buf or curbuf())
 
-  if not jobids[buf] then
-    nvimpam_err("Update failed: No jobid entry for buffer "..tostring(buf).."!")
-    return false
-  end
-
-  local newfolds = eval("rpcrequest("..jobids[buf]..", 'RefreshFolds')")
+  local newfolds = eval("rpcrequest("..id..", 'RefreshFolds')")
   update_folds(newfolds)
   return true
 end

@@ -12,20 +12,15 @@ local input = vim.api.nvim_input
 local nodehints = require('nvimpam.cellhints.2018.node')
 local constrainthints = require('nvimpam.cellhints.2018.constraints')
 local nvimpam_err = require('nvimpam.job').nvimpam_err
-local jobids = require('nvimpam.job').jobids
+local jobid = require('nvimpam.job').jobid
 
 
 
 
 local function align_line(line) 
-  buf = buf or curbuf()
+  id = jobid(buf or curbuf())
   
-  if not jobids[buf] then
-    error("No job entry for buffer "..tostring(buf))
-    return
-  end
-
-  local aligned = call("rpcrequest", { jobids[buf], "AlignLine", line })
+  local aligned = call("rpcrequest", { id, "AlignLine", line })
 
   if aligned then
     buf_set_lines(buf, line, line + 1, true, { aligned })

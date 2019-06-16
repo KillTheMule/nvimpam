@@ -20,6 +20,16 @@ local stderr_file
 -- Tracks if we've defined the callback functions already
 local callbacks_defined = { }
 
+local function jobid(buf)
+  local id = jobids[buf]
+
+  if not id then
+    error("No job entry for buffer "..tostring(buf), 2)
+  end
+
+  return id
+end
+
 local function on_stderr(id, data, event)
   if not stderr[id] then stderr[id] = {} end
 
@@ -131,16 +141,10 @@ local function attach(filename)
 end
 
 local function detach(buf)
-  buf = buf or curbuf()
-  local jobid = jobids[buf]
+  local id = jobid(buf or curbuf())
 
-  if not jobid then
-    nvimpam_err("Detach failed: No jobid entry for buffer "..tostring(buf).."!")
-    return false
-  else
-    call("rpcnotify", { jobids[buf], "quit" })
-    return true
-  end
+  call("rpcnotify", { id, "quit" })
+  return true
 end
 
 local function detach_all()
@@ -194,6 +198,6 @@ return {
   on_stderr = on_stderr,
   on_exit = on_exit,
   printstderr = printstderr,
-  jobids = jobids,
+  jobid = jobid,
   nvimpam_err = nvimpam_err,
 }

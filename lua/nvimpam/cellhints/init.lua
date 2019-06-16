@@ -12,7 +12,7 @@ local input = vim.api.nvim_input
 local nodehints = require('nvimpam.cellhints.2018.node')
 local constrainthints = require('nvimpam.cellhints.2018.constraints')
 local nvimpam_err = require('nvimpam.job').nvimpam_err
-local jobids = require('nvimpam.job').jobids
+local jobid = require('nvimpam.job').jobid
 
 local hints = {}
 
@@ -67,14 +67,15 @@ local function celldoc()
 end
 
 local function update_cellhint(line, column, buf)
-  buf = buf or curbuf()
+  -- this might be called without the plugin loaded, so protect us from errors
+  local ok, id = pcall(jobid, buf or curbuf())
   
-  if not jobids[buf] then
+  if not ok then
     cellhint[1] = ""
     cellhint[2] = ""
     cardhints[1] = { }
   else
-    local card, hint = unpack(call("rpcrequest", { jobids[buf], "CellHint", line, column }))
+    local card, hint = unpack(call("rpcrequest", { id, "CellHint", line, column }))
     if hint == "" then
       cellhint[1] = ""
       cellhint[2] = ""
@@ -94,14 +95,9 @@ local function update_cellhint(line, column, buf)
 end
 
 local function add_linecomment(line) 
-  buf = buf or curbuf()
+  local id = jobid(buf or curbuf())
   
-  if not jobids[buf] then
-    error("No job entry for buffer "..tostring(buf))
-    return
-  end
-
-  local linecomment = call("rpcrequest", { jobids[buf], "CommentLine", line })
+  local linecomment = call("rpcrequest", { id, "CommentLine", line })
 
   if linecomment == "" or linecomment == "#" then
     command("echom 'No comment for line "..tostring(line + 1).."'")
@@ -117,14 +113,9 @@ local function add_linecomment(line)
 end
 
 local function add_cardcomments(line)
-  buf = buf or curbuf()
+  local id = jobid(buf or curbuf())
 
-  if not jobids[buf] then
-    error("No job entry for buffer "..tostring(buf))
-    return
-  end
-
-  local cardrange = call("rpcrequest", { jobids[buf], "CardRange", line })
+  local cardrange = call("rpcrequest", { id, "CardRange", line })
 
   -- checking cardrange[1] suffices, we always get a range or nothing
   if not cardrange[1] then
@@ -139,7 +130,7 @@ local function add_cardcomments(line)
     local firstchar = l:sub(1,1)
 
     if firstchar ~= "#" and firstchar ~= "$" then
-      local linecomment = call("rpcrequest", { jobids[buf], "CommentLine", cardrange[1] + i - 1 })
+      local linecomment = call("rpcrequest", { id, "CommentLine", cardrange[1] + i - 1 })
 
       if linecomment ~= "" and linecomment ~= "#" then
         table.insert(newlines, linecomment)
@@ -153,14 +144,9 @@ local function add_cardcomments(line)
 end
 
 local function select_card(line)
-  buf = buf or curbuf()
-  
-  if not jobids[buf] then
-    error("No job entry for buffer "..tostring(buf))
-    return
-  end
+  local id = jobid(buf or curbuf())
 
-  local cardrange = call("rpcrequest", { jobids[buf], "CardRange", line })
+  local cardrange = call("rpcrequest", { id, "CardRange", line })
 
   if cardrange[1] and cardrange[2] then
     input("\\<Esc>V"..tostring(cardrange[2] + 1).."Go"..tostring(cardrange[1] + 1).."G")
