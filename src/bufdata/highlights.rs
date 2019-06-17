@@ -58,7 +58,14 @@ impl<'a> Iterator for HlIter<'a> {
       None => return None,
     };
 
-    let celllen = cell.len();
+    let mut celllen = cell.len();
+
+    // Overwrite celllen for cells of length 0, since they're the last ones in a
+    // line and we just highlight everything until the end
+    if celllen == 0 {
+      celllen = self.linelen - self.until;
+    }
+
     let range = self.until..cmp::min(self.linelen, self.until + celllen);
     let odd = self.odd;
 

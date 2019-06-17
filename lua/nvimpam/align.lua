@@ -21,6 +21,8 @@ local function align_line(line)
 
   if aligned then
     buf_set_lines(buf, line, line + 1, true, { aligned })
+  else
+    command("echom 'Line already aligned'")
   end
 end
 
