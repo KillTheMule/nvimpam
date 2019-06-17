@@ -60,10 +60,10 @@ pub static OTMCO: Card = Card {
       Integer(8, ITYP),
       Float(8, ALPHA),
     ]),
-    Cells(&[Fixed(FixedStr::Name), Str(76, TITLE)]),
+    Cells(&[Fixed(FixedStr::Name), Str(0, TITLE)]),
     Block(
       &[
-        Cells(&[Blank(8), Fixed(FixedStr::Weight), Float(58, WTFAC)]),
+        Cells(&[Blank(8), Fixed(FixedStr::Weight), Float(0, WTFAC)]),
         Ges(GesNode),
       ],
       b"END_OTMCO",
