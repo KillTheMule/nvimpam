@@ -298,31 +298,27 @@ impl<'a> BufData<'a> {
   }
 
   pub fn linecomment(&self, line: LineNr) -> Value {
-    // TODO(KillTheMule): This must be more efficient
-    let empty_value = Value::from("");
-
     // TODO(KillTheMule): Factor this out, cellhint uses it, too
     let clineidx = match self.first_before(line) {
       Some(c) => c,
-      None => return empty_value,
+      None => return Value::Nil,
     }
     .0;
     let mut it = self.lines.iter_from(clineidx);
 
     let cline = match it.next().and_then(ParsedLine::try_into_keywordline) {
       Some(kl) => kl,
-      None => return empty_value,
+      None => return Value::Nil,
     };
 
     let card: &'static Card = (&cline.keyword).into();
 
     let cardline: &CardLine = match it.get_cardline_by_nr(&cline, card, line) {
       Some(c) => c,
-      None => return empty_value,
+      None => return Value::Nil,
     };
     // TODO(KillTheMule): Should we make 81 a global const?
     let mut s = String::with_capacity(81);
-    s.push('#');
     let mut first_hint = true;
 
     match cardline {
@@ -330,6 +326,7 @@ impl<'a> BufData<'a> {
         use Cell::*;
         for c in cells.iter() {
           if first_hint {
+            s.push('#');
             first_hint = false;
           } else {
             s.push('|');
@@ -371,7 +368,11 @@ impl<'a> BufData<'a> {
       }
       _ => {}
     }
-    Value::from(s)
+    if s.is_empty() {
+      Value::Nil
+    } else {
+      Value::from(s)
+    }
   }
 
   pub fn cardrange(&self, line: LineNr) -> Value {

@@ -99,9 +99,7 @@ local function add_linecomment(line)
   
   local linecomment = call("rpcrequest", { id, "CommentLine", line })
 
-  if linecomment == "" or linecomment == "#" then
-    command("echom 'No comment for line "..tostring(line + 1).."'")
-  else
+  if linecomment then
     local curline = buf_get_lines(buf, line, line + 1, true)[1]
 
     if not curline then
@@ -109,6 +107,8 @@ local function add_linecomment(line)
     end
 
     buf_set_lines(buf, line, line + 1, true, {linecomment, curline})
+  else
+    command("echom 'No comment for line "..tostring(line + 1).."'")
   end
 end
 
@@ -131,7 +131,7 @@ local function add_cardcomments(line)
     if firstchar ~= "#" and firstchar ~= "$" then
       local linecomment = call("rpcrequest", { id, "CommentLine", cardrange[1] + i - 1 })
 
-      if linecomment ~= "" and linecomment ~= "#" then
+      if linecomment then 
         table.insert(newlines, linecomment)
       end
     end
