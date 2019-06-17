@@ -32,7 +32,7 @@ local function align_card(line)
 
   local cardrange = call("rpcrequest", { id, "CardRange", line })
 
-  if cardrange[1] and cardrange[2] then
+  if cardrange then
     for i = cardrange[1], cardrange[2] do
       local aligned = call("rpcrequest", { id, "AlignLine", i })
 
@@ -41,7 +41,7 @@ local function align_card(line)
       end
     end
   else
-    command("echom 'range: "..tostring(cardrange[1])..":"..tostring(cardrange[2]).."'")
+    command("echom 'Could not find card containing the current line'")
   end
 end
 

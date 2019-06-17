@@ -117,8 +117,7 @@ local function add_cardcomments(line)
 
   local cardrange = call("rpcrequest", { id, "CardRange", line })
 
-  -- checking cardrange[1] suffices, we always get a range or nothing
-  if not cardrange[1] then
+  if not cardrange then
     command("echom 'No card for line "..tostring(line + 1).."'")
     return
   end
@@ -148,10 +147,10 @@ local function select_card(line)
 
   local cardrange = call("rpcrequest", { id, "CardRange", line })
 
-  if cardrange[1] and cardrange[2] then
+  if cardrange then
     input("\\<Esc>V"..tostring(cardrange[2] + 1).."Go"..tostring(cardrange[1] + 1).."G")
   else
-    command("echom 'range: "..tostring(cardrange[1])..":"..tostring(cardrange[2]).."'")
+    command("echom 'Could not find card containing the current line'")
   end
 
 
