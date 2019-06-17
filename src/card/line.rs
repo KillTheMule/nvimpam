@@ -75,7 +75,7 @@ impl Line {
         let mut sum = 0;
         for cell in c.iter() {
           sum += cell.len();
-          if sum > column {
+          if sum > column || (sum <= column && cell.len() == 0) {
             return cell.hint();
           }
         }
