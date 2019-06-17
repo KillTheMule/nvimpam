@@ -19,6 +19,7 @@ command -buffer NvimPamAddLineComment call s:AddLineComment()
 command -buffer NvimPamAddCardComments call s:AddCardComments()
 command -buffer NvimPamSelectCard call s:SelectCard()
 command -buffer NvimPamAlignLine call s:AlignLine()
+command -buffer NvimPamAlignCard call s:AlignCard()
 
 function! s:UpdateCellHint()
 lua << EOF
@@ -52,6 +53,13 @@ function! s:AlignLine()
 lua << EOF
   local cursor = vim.api.nvim_win_get_cursor(vim.api.nvim_get_current_win())
   require("nvimpam.align").align_line(cursor[1]-1)
+EOF
+endfunction
+
+function! s:AlignCard()
+lua << EOF
+  local cursor = vim.api.nvim_win_get_cursor(vim.api.nvim_get_current_win())
+  require("nvimpam.align").align_card(cursor[1]-1)
 EOF
 endfunction
 

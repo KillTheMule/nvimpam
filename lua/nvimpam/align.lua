@@ -14,9 +14,6 @@ local constrainthints = require('nvimpam.cellhints.2018.constraints')
 local nvimpam_err = require('nvimpam.job').nvimpam_err
 local jobid = require('nvimpam.job').jobid
 
-
-
-
 local function align_line(line) 
   id = jobid(buf or curbuf())
   
@@ -27,8 +24,26 @@ local function align_line(line)
   end
 end
 
+local function align_card(line)
+  local buf = buf or curbuf()
+  id = jobid(buf)
 
+  local cardrange = call("rpcrequest", { id, "CardRange", line })
+
+  if cardrange[1] and cardrange[2] then
+    for i = cardrange[1], cardrange[2] do
+      local aligned = call("rpcrequest", { id, "AlignLine", i })
+
+      if aligned then
+        buf_set_lines(buf, i, i + 1, true, { aligned })
+      end
+    end
+  else
+    command("echom 'range: "..tostring(cardrange[1])..":"..tostring(cardrange[2]).."'")
+  end
+end
 
 return {
   align_line = align_line,
+  align_card = align_card,
 }
