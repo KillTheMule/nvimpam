@@ -353,15 +353,20 @@ impl<'a> BufData<'a> {
             | IntegerorBlank(_, _)
             | Cont => hint = c.hint(),
           }
-          // Need 1 more chars then the hin minimally, which would leave us with
-          // '|HINT'.
-          debug_assert!(usize::from(c.len()) > hint.len());
-          for c in iter::repeat('-').take(usize::from(c.len()) - 1 - hint.len())
-          {
-            s.push(c)
+          // Need 1 more chars then the hint minimally, which would leave us with
+          // '|HINT'. Hints for cells of len=0 (free format) are left aligned
+          if c.len() > 0 {
+            debug_assert!(usize::from(c.len()) > hint.len());
+            for c in iter::repeat('-').take(usize::from(c.len()) - 1 - hint.len())
+            {
+              s.push(c)
+            }
+            s.push_str(hint);
+          } else {
+            s.push_str(hint);
+            s.extend(iter::repeat('-').take(81 - s.len()));
           }
 
-          s.push_str(hint);
         }
       }
       _ => {}
