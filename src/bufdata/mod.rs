@@ -268,27 +268,24 @@ impl<'a> BufData<'a> {
   }
 
   pub fn cellhint(&self, line: LineNr, column: u8) -> Value {
-    // TODO(KillTheMule): This must be more efficient
-    let empty_array = Value::from(vec![Value::from(""), Value::from("")]);
-
     // TODO(KillTheMule): Factor this out, linecomment uses it, too
     let clineidx = match self.first_before(line) {
       Some(c) => c,
-      None => return empty_array,
+      None => return Value::Nil,
     }
     .0;
     let mut it = self.lines.iter_from(clineidx);
 
     let cline = match it.next().and_then(ParsedLine::try_into_keywordline) {
       Some(kl) => kl,
-      None => return empty_array,
+      None => return Value::Nil,
     };
 
     let card: &'static Card = (&cline.keyword).into();
 
     let cardline: &CardLine = match it.get_cardline_by_nr(&cline, card, line) {
       Some(c) => c,
-      None => return empty_array,
+      None => return Value::Nil,
     };
 
     let hint: &str = cardline.hint(column);

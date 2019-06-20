@@ -75,12 +75,13 @@ local function update_cellhint(line, column, buf)
     cellhint[2] = ""
     cardhints[1] = { }
   else
-    local card, hint = unpack(call("rpcrequest", { id, "CellHint", line, column }))
-    if hint == "" then
+    local new_hint = call("rpcrequest", { id, "CellHint", line, column })
+    if not new_hint then
       cellhint[1] = ""
       cellhint[2] = ""
       cardhints[1] = { }
     else
+      local card, hint = unpack(new_hint)
       card = card:upper()
       cardhints[1] = hints[card]
       cellhint[1] = hint
