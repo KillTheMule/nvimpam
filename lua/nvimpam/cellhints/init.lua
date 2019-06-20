@@ -34,7 +34,6 @@ local cellhint = { "", "" }
 local cardhints = { {} }
 
 local function celldoc()
-  local buf = create_buf(false, true)
   local doc = { }
   if cellhint[1] == "Keyword" then
     for _, v in ipairs(cardhints[1]) do
@@ -59,11 +58,16 @@ local function celldoc()
     end
   end
 
-  buf_set_lines(buf, 0, -1, true, doc)
-  local opts = { relative = "win", width = 35, height = #doc, col = 80,
-                 row = 0, anchor = "NE" }
+  if #doc > 0 then
+    local buf = create_buf(false, true)
+    buf_set_lines(buf, 0, -1, true, doc)
+    local opts = { relative = "win", width = 35, height = #doc, col = 80,
+                   row = 0, anchor = "NE" }
 
-  local win = open_win(buf, true, opts)
+    local win = open_win(buf, true, opts)
+  else
+    print("No doc found for current item")
+  end
 end
 
 local function update_cellhint(line, column, buf)
