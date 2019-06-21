@@ -1,8 +1,11 @@
+* Use proper namespace for highlights, right now we're just using '5'
+
+* Push most of the handling for HighlightRegion in event.rs into
+  bufdata/mod.rs, so the event handling itself stays simple
+
 * Improve NvimPamCommentCard, needs though about GES and stuff
 
 * Make a "card" text object
-
-* Make a command to right-align all cells
 
 * Let the events from the handler return LineNr or a future ColNr and handle all assertions and
   conversions there, to clean up event.rs
