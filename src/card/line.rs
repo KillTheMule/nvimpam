@@ -5,10 +5,7 @@ use std::{cmp, convert::TryFrom, iter, ops::Range};
 
 use atoi::atoi;
 
-use crate::card::{
-  cell::Cell, ges::GesType, hint::Hint, keyword::Keyword,
-  line::Line as CardLine,
-};
+use crate::card::{cell::Cell, ges::GesType, hint::Hint, keyword::Keyword};
 
 /// A line (actually, zero or more lines) inside a card in a Pamcrash input
 /// file.
@@ -87,20 +84,12 @@ impl Line {
     }
   }
 
-  // TODO(KillTheMule): Make this work for OptionalBlock
+  // TODO(KillTheMule): Does this work for OptionalBlock?
   //
   /// Aligns all the cells in the given byte string according to self. If
   /// this is a card line without cells, `None` is returned.
   #[inline]
   pub fn align(&self, s: &[u8]) -> Option<String> {
-    use self::Line::*;
-    let cells = match *self {
-      Ges(_) => return None,
-      Block(_, _) => return None,
-      OptionalBlock(_, _, _) => return None,
-      Cells(c) | Provides(c, _) | Optional(c, _) | Repeat(c, _) => c,
-    };
-
     let mut curpos = 0;
     let mut dirty = false;
     let mut oldpos;
@@ -111,7 +100,7 @@ impl Line {
     let len = cmp::min(s.len(), 81) as u8;
     let mut ret = String::with_capacity(usize::from(len));
 
-    for cell in cells {
+    for cell in self.cells().unwrap_or(&[]) {
       cellen = cell.len();
       oldpos = curpos;
       curpos += cellen;
@@ -181,50 +170,44 @@ impl Line {
   }
 
   pub fn hint(&self) -> String {
+    use Cell::*;
+
     // TODO(KillTheMule): Should we make 81 a global const?
     let mut s = String::with_capacity(81);
 
-    match *self {
-      CardLine::Cells(cells) | CardLine::Provides(cells, _) => {
-        use Cell::*;
-        for c in cells.iter() {
-          if s.is_empty() {
-            s.push('#');
-          } else {
-            s.push('|');
-          }
-
-          let mut hint = "";
-
-          match c {
-            Fixed(_) => {}
-            Blank(_)
-            | Kw(_)
-            | Integer(_, _)
-            | Float(_, _)
-            | Str(_, _)
-            | Binary(_, _)
-            | IntegerorBlank(_, _)
-            | Cont => hint = c.hint(),
-          }
-          // Need 1 more chars then the hint minimally, which would leave us
-          // with '|HINT'. Hints for cells of len=0 (free format) are
-          // left aligned
-          if c.len() > 0 {
-            debug_assert!(usize::from(c.len()) > hint.len());
-            for c in
-              iter::repeat('-').take(usize::from(c.len()) - 1 - hint.len())
-            {
-              s.push(c)
-            }
-            s.push_str(hint);
-          } else {
-            s.push_str(hint);
-            s.extend(iter::repeat('-').take(81 - s.len()));
-          }
-        }
+    for cell in self.cells().unwrap_or(&[]).iter() {
+      if s.is_empty() {
+        s.push('#');
+      } else {
+        s.push('|');
       }
-      _ => {}
+
+      let mut hint = "";
+
+      match cell {
+        Fixed(_) => {}
+        Blank(_)
+        | Kw(_)
+        | Integer(_, _)
+        | Float(_, _)
+        | Str(_, _)
+        | Binary(_, _)
+        | IntegerorBlank(_, _)
+        | Cont => hint = cell.hint(),
+      }
+      // Need 1 more chars then the hint minimally, which would leave us
+      // with '|HINT'. Hints for cells of len=0 (free format) are
+      // left aligned
+      if cell.len() > 0 {
+        debug_assert!(usize::from(cell.len()) > hint.len());
+        for c in iter::repeat('-').take(usize::from(cell.len()) - 1 - hint.len()) {
+          s.push(c)
+        }
+        s.push_str(hint);
+      } else {
+        s.push_str(hint);
+        s.extend(iter::repeat('-').take(81 - s.len()));
+      }
     }
     s
   }
