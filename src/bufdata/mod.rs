@@ -4,7 +4,7 @@
 pub mod folds;
 pub mod highlights;
 
-use std::{iter, ops::Range};
+use std::ops::Range;
 
 use failure::Error;
 
@@ -12,7 +12,7 @@ use neovim_lib::{neovim_api::Buffer, Value};
 
 use crate::{
   bufdata::{folds::Folds, highlights::Highlights},
-  card::{cell::Cell, line::Line as CardLine, Card},
+  card::Card,
   linenr::LineNr,
   lines::{LineInfo, Lines, ParsedLine},
   linesiter::LinesIter,
@@ -289,67 +289,13 @@ impl<'a> BufData<'a> {
       ..
     }) = self.lines.info(line)
     {
-      // TODO(KillTheMule): Should we make 81 a global const?
-      let mut s = String::with_capacity(81);
-      let mut first_hint = true;
+      let s = cardline.hint();
 
-      match cardline {
-        CardLine::Cells(cells) | CardLine::Provides(cells, _) => {
-          use Cell::*;
-          for c in cells.iter() {
-            if first_hint {
-              s.push('#');
-              first_hint = false;
-            } else {
-              s.push('|');
-            }
-
-            let mut hint = "";
-
-            match c {
-              Fixed(_) => {}
-              Blank(_) => {
-                hint = c.hint();
-                if hint.len() >= usize::from(c.len()) {
-                  hint = ""
-                }
-              }
-              Kw(_)
-              | Integer(_, _)
-              | Float(_, _)
-              | Str(_, _)
-              | Binary(_, _)
-              | IntegerorBlank(_, _)
-              | Cont => hint = c.hint(),
-            }
-            // Need 1 more chars then the hint minimally, which would leave us
-            // with '|HINT'. Hints for cells of len=0 (free format) are
-            // left aligned
-            if c.len() > 0 {
-              debug_assert!(usize::from(c.len()) > hint.len());
-              for c in
-                iter::repeat('-').take(usize::from(c.len()) - 1 - hint.len())
-              {
-                s.push(c)
-              }
-              s.push_str(hint);
-            } else {
-              s.push_str(hint);
-              s.extend(iter::repeat('-').take(81 - s.len()));
-            }
-          }
-        }
-        _ => {}
+      if !s.is_empty() {
+        return Value::from(s);
       }
-
-      if s.is_empty() {
-        Value::Nil
-      } else {
-        Value::from(s)
-      }
-    } else {
-      Value::Nil
     }
+    Value::Nil
   }
 
   pub fn cardrange(&self, line: LineNr) -> Value {
