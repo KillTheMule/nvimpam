@@ -170,7 +170,7 @@ impl Cell {
     match *self {
       Kw(_) => "Keyword",
       Fixed(_) => "Fixed string",
-      | Integer(_, h)
+      Integer(_, h)
       | Float(_, h)
       | Str(_, h)
       | Binary(_, h)

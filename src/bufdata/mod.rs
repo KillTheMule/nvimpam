@@ -284,11 +284,7 @@ impl<'a> BufData<'a> {
   }
 
   pub fn linecomment(&self, line: LineNr) -> Value {
-    if let Some(LineInfo {
-      cardline,
-      ..
-    }) = self.lines.info(line)
-    {
+    if let Some(LineInfo { cardline, .. }) = self.lines.info(line) {
       let s = cardline.hint();
 
       if !s.is_empty() {
@@ -331,12 +327,9 @@ impl<'a> BufData<'a> {
 
   pub fn align_line(&self, line: LineNr) -> Value {
     if let Some(LineInfo {
-      index,
-      cardline,
-      ..
+      index, cardline, ..
     }) = self.lines.info(line)
     {
-
       let linetxt = match self.lines.iter_from(index).next() {
         Some(pl) => pl.text.as_ref(),
         None => return Value::Nil,

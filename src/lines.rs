@@ -317,7 +317,6 @@ impl<'a> Lines<'a> {
       keywordline: cline,
     })
   }
-
 }
 
 impl<'a> Deref for Lines<'a> {

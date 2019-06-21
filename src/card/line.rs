@@ -1,12 +1,14 @@
 //! An enum to classify the several types of lines that can occur inside a card
 //! of a Pamcrash input file. Might not really be a line (see
 //! [GES](crate::card::line::Line::Ges), rather than zero or more lines.
-use std::{cmp, convert::TryFrom, ops::Range, iter};
+use std::{cmp, convert::TryFrom, iter, ops::Range};
 
 use atoi::atoi;
 
-use crate::card::{cell::Cell, ges::GesType, hint::Hint, keyword::Keyword,
-line::Line as CardLine};
+use crate::card::{
+  cell::Cell, ges::GesType, hint::Hint, keyword::Keyword,
+  line::Line as CardLine,
+};
 
 /// A line (actually, zero or more lines) inside a card in a Pamcrash input
 /// file.
@@ -196,7 +198,7 @@ impl Line {
 
           match c {
             Fixed(_) => {}
-            | Blank(_)
+            Blank(_)
             | Kw(_)
             | Integer(_, _)
             | Float(_, _)
@@ -226,7 +228,6 @@ impl Line {
     }
     s
   }
-
 }
 
 /// An enum to represent different conditionals on lines
