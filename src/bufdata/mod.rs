@@ -14,7 +14,7 @@ use crate::{
   bufdata::{folds::Folds, highlights::Highlights},
   card::{cell::Cell, line::Line as CardLine, Card},
   linenr::LineNr,
-  lines::{Lines, ParsedLine},
+  lines::{LineInfo, Lines, ParsedLine},
   linesiter::LinesIter,
 };
 
@@ -268,112 +268,91 @@ impl<'a> BufData<'a> {
   }
 
   pub fn cellhint(&self, line: LineNr, column: u8) -> Value {
-    // TODO(KillTheMule): Factor this out, linecomment uses it, too
-    let clineidx = match self.first_before(line) {
-      Some(c) => c,
-      None => return Value::Nil,
+    if let Some(LineInfo {
+      cardline,
+      keywordline,
+      ..
+    }) = self.lines.info(line)
+    {
+      let hint: &str = cardline.hint(column);
+      let kw: &str = (&keywordline.keyword).into();
+
+      Value::from(vec![Value::from(kw), Value::from(hint)])
+    } else {
+      Value::Nil
     }
-    .0;
-    let mut it = self.lines.iter_from(clineidx);
-
-    let cline = match it.next().and_then(ParsedLine::try_into_keywordline) {
-      Some(kl) => kl,
-      None => return Value::Nil,
-    };
-
-    let card: &'static Card = (&cline.keyword).into();
-
-    let cardline: &CardLine = match it.get_cardline_by_nr(&cline, card, line) {
-      Some(c) => c,
-      None => return Value::Nil,
-    };
-
-    let hint: &str = cardline.hint(column);
-    let kw: &str = (&cline.keyword).into();
-
-    Value::from(vec![Value::from(kw), Value::from(hint)])
   }
 
   pub fn linecomment(&self, line: LineNr) -> Value {
-    // TODO(KillTheMule): Factor this out, cellhint uses it, too
-    let clineidx = match self.first_before(line) {
-      Some(c) => c,
-      None => return Value::Nil,
-    }
-    .0;
-    let mut it = self.lines.iter_from(clineidx);
+    if let Some(LineInfo {
+      cardline,
+      ..
+    }) = self.lines.info(line)
+    {
+      // TODO(KillTheMule): Should we make 81 a global const?
+      let mut s = String::with_capacity(81);
+      let mut first_hint = true;
 
-    let cline = match it.next().and_then(ParsedLine::try_into_keywordline) {
-      Some(kl) => kl,
-      None => return Value::Nil,
-    };
+      match cardline {
+        CardLine::Cells(cells) | CardLine::Provides(cells, _) => {
+          use Cell::*;
+          for c in cells.iter() {
+            if first_hint {
+              s.push('#');
+              first_hint = false;
+            } else {
+              s.push('|');
+            }
 
-    let card: &'static Card = (&cline.keyword).into();
+            let mut hint = "";
 
-    let cardline: &CardLine = match it.get_cardline_by_nr(&cline, card, line) {
-      Some(c) => c,
-      None => return Value::Nil,
-    };
-    // TODO(KillTheMule): Should we make 81 a global const?
-    let mut s = String::with_capacity(81);
-    let mut first_hint = true;
-
-    match cardline {
-      CardLine::Cells(cells) | CardLine::Provides(cells, _) => {
-        use Cell::*;
-        for c in cells.iter() {
-          if first_hint {
-            s.push('#');
-            first_hint = false;
-          } else {
-            s.push('|');
-          }
-
-          let mut hint = "";
-
-          match c {
-            Fixed(_) => {}
-            Blank(_) => {
-              hint = c.hint();
-              if hint.len() >= usize::from(c.len()) {
-                hint = ""
+            match c {
+              Fixed(_) => {}
+              Blank(_) => {
+                hint = c.hint();
+                if hint.len() >= usize::from(c.len()) {
+                  hint = ""
+                }
               }
+              Kw(_)
+              | Integer(_, _)
+              | Float(_, _)
+              | Str(_, _)
+              | Binary(_, _)
+              | IntegerorBlank(_, _)
+              | Cont => hint = c.hint(),
             }
-            Kw(_)
-            | Integer(_, _)
-            | Float(_, _)
-            | Str(_, _)
-            | Binary(_, _)
-            | IntegerorBlank(_, _)
-            | Cont => hint = c.hint(),
-          }
-          // Need 1 more chars then the hint minimally, which would leave us with
-          // '|HINT'. Hints for cells of len=0 (free format) are left aligned
-          if c.len() > 0 {
-            debug_assert!(usize::from(c.len()) > hint.len());
-            for c in iter::repeat('-').take(usize::from(c.len()) - 1 - hint.len())
-            {
-              s.push(c)
+            // Need 1 more chars then the hint minimally, which would leave us
+            // with '|HINT'. Hints for cells of len=0 (free format) are
+            // left aligned
+            if c.len() > 0 {
+              debug_assert!(usize::from(c.len()) > hint.len());
+              for c in
+                iter::repeat('-').take(usize::from(c.len()) - 1 - hint.len())
+              {
+                s.push(c)
+              }
+              s.push_str(hint);
+            } else {
+              s.push_str(hint);
+              s.extend(iter::repeat('-').take(81 - s.len()));
             }
-            s.push_str(hint);
-          } else {
-            s.push_str(hint);
-            s.extend(iter::repeat('-').take(81 - s.len()));
           }
-
         }
+        _ => {}
       }
-      _ => {}
-    }
-    if s.is_empty() {
-      Value::Nil
+
+      if s.is_empty() {
+        Value::Nil
+      } else {
+        Value::from(s)
+      }
     } else {
-      Value::from(s)
+      Value::Nil
     }
   }
 
   pub fn cardrange(&self, line: LineNr) -> Value {
-
     // TODO(KillTheMule): Factor this out, linecomment uses it, too
     let (clineidx, clinenr) = match self.first_before(line) {
       Some(c) => c,
@@ -405,37 +384,25 @@ impl<'a> BufData<'a> {
   }
 
   pub fn align_line(&self, line: LineNr) -> Value {
-    // TODO(KillTheMule): Factor this out, cellhint uses it, too
-    let clineidx = match self.first_before(line) {
-      Some(c) => c,
-      None => return Value::Nil,
+    if let Some(LineInfo {
+      index,
+      cardline,
+      ..
+    }) = self.lines.info(line)
+    {
+
+      let linetxt = match self.lines.iter_from(index).next() {
+        Some(pl) => pl.text.as_ref(),
+        None => return Value::Nil,
+      };
+
+      match cardline.align(linetxt) {
+        None => Value::Nil,
+        Some(s) => Value::from(s),
+      }
+    } else {
+      Value::Nil
     }
-    .0;
-    let mut it = self.lines.iter_from(clineidx);
-
-    let cline = match it.next().and_then(ParsedLine::try_into_keywordline) {
-      Some(kl) => kl,
-      None => return Value::Nil,
-    };
-
-    let card: &'static Card = (&cline.keyword).into();
-
-    let cardline: &CardLine = match it.get_cardline_by_nr(&cline, card, line) {
-      Some(c) => c,
-      None => return Value::Nil,
-    };
-
-    let lineidx = self.lines.linenr_to_index(line);
-    let linetxt = match self.lines.iter_from(lineidx).next() {
-      Some(pl) => pl.text.as_ref(),
-      None => return Value::Nil
-    };
-
-    match cardline.align(linetxt) {
-      None => Value::Nil,
-      Some(s) => Value::from(s)
-    }
-
   }
 
   pub fn firstline_number(&self) -> LineNr {

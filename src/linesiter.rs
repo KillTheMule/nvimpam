@@ -350,7 +350,7 @@ where
     cline: &KeywordLine<'a>,
     card: &'static Card,
     line: LineNr,
-  ) -> Option<&'a CardLine> {
+  ) -> Option<&'static CardLine> {
     let mut cardlines = card.lines.iter();
     let cardline = cardlines.next().unwrap_or_else(|| unreachable!());
 

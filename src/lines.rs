@@ -4,7 +4,11 @@
 //! lines instead of strings), rope (adapted to lines instead of strings)
 use std::{convert::AsRef, fmt, ops::Deref, slice};
 
-use crate::{card::keyword::Keyword, linenr::LineNr, linesiter::LinesIter};
+use crate::{
+  card::{keyword::Keyword, line::Line as CardLine, Card},
+  linenr::LineNr,
+  linesiter::LinesIter,
+};
 
 /// An enum representing a line of a file, either as a byte slice (which we
 /// obtain from reading a file into a `Vec<u8>` and splitting on newlines) or an
@@ -38,6 +42,16 @@ pub struct KeywordLine<'a> {
 /// The struct to hold the lines.
 #[derive(Debug, Default, PartialEq)]
 pub struct Lines<'a>(Vec<ParsedLine<'a>>);
+
+/// A struct to hold information about a line
+#[derive(Debug)]
+pub struct LineInfo<'a> {
+  pub index: usize,
+  pub number: LineNr,
+  pub card: &'static Card,
+  pub cardline: &'static CardLine,
+  pub keywordline: KeywordLine<'a>,
+}
 
 impl<'a> AsRef<[u8]> for RawLine<'a> {
   fn as_ref(&self) -> &[u8] {
@@ -212,6 +226,7 @@ impl<'a> Lines<'a> {
   }
 
   // TODO(KillTheMule): Efficient? This is called a lot ...
+  // TODO(KillTheMule): This should take the index directly
   /// Find the index of the first line that starts with a non-comment keyword
   /// before the line with the given number. If the line with the given number
   /// itself starts with a non-comment keyword, its index is returned.
@@ -237,6 +252,7 @@ impl<'a> Lines<'a> {
   }
 
   // TODO(KillTheMule): Efficient? This is called a lot ...
+  // TODO(KillTheMule): This should take the index directly
   /// Find the index of the next line that starts with a non-comment keyword
   /// after the line with the given number. If the line with the given number
   /// itself starts with a non-comment keyword, its index is returned.
@@ -261,6 +277,47 @@ impl<'a> Lines<'a> {
     }
         */
   }
+
+  /// Looks up the `LineInfo`[self::LineInfo] for the given
+  /// `LineNr`[crate::linenr::LineNr].
+  ///
+  /// Returns `None` if
+  ///   * We couldn't find the card it's contained it
+  ///   * We could not parse the card's first line into a
+  ///     `KeywordLine`[self::KeywordLine]
+  ///   * We could not find the card's `Line`[crate::card::line::Line]
+  ///   corresponding to this line
+  pub fn info(&self, line: LineNr) -> Option<LineInfo> {
+    let clineidx = match self.first_before(line) {
+      Some(c) => c,
+      None => return None,
+    }
+    .0;
+    let mut it = self.iter_from(clineidx);
+
+    let cline = match it.next().and_then(ParsedLine::try_into_keywordline) {
+      Some(kl) => kl,
+      None => return None,
+    };
+
+    let card: &'static Card = (&cline.keyword).into();
+
+    let cardline: &CardLine = match it.get_cardline_by_nr(&cline, card, line) {
+      Some(c) => c,
+      None => return None,
+    };
+
+    // TODO(KillTheMule): Index should be passed to linenr_to_index in which
+    // case we have the info available right here
+    Some(LineInfo {
+      index: self.linenr_to_index(line),
+      number: line,
+      card,
+      cardline,
+      keywordline: cline,
+    })
+  }
+
 }
 
 impl<'a> Deref for Lines<'a> {

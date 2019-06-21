@@ -44,8 +44,8 @@ pub enum Event {
   /// Return an end-inclusive range start..=end of lines in which the card of
   /// the current line is included
   CardRange { line: i64 },
-  /// Return a String with the line having all cells aligned, or nil if the line
-  /// was aligned, is a comment, or otherwise non-aligneable
+  /// Return a String with the line having all cells aligned, or nil if the
+  /// line was aligned, is a comment, or otherwise non-aligneable
   AlignLine { line: i64 },
   /// This plugin should quit. Currently only sent by the user directly.
   Quit,

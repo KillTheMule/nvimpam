@@ -151,7 +151,7 @@ impl Cell {
       j -= 1;
     }
 
-    if  j > i {
+    if j > i {
       // Safe, see comments above
       unsafe { s.get_unchecked(i..=j) }
     } else {

@@ -132,7 +132,6 @@ impl NeovimHandler {
     let line = parse_i64(&last_arg(&mut args, nea)?)?;
     Ok(Event::AlignLine { line })
   }
-
 }
 
 impl Handler for NeovimHandler {

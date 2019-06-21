@@ -134,8 +134,8 @@ impl Line {
           },
         };
 
-        blanks = cellen
-          - u8::try_from(cellcont.len()).expect("cellcont part of cell");
+        blanks =
+          cellen - u8::try_from(cellcont.len()).expect("cellcont part of cell");
 
         for _ in 0..blanks {
           ret.push(' ');
