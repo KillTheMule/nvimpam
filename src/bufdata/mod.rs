@@ -274,7 +274,7 @@ impl<'a> BufData<'a> {
       ..
     }) = self.lines.info(line)
     {
-      let hint: &str = cardline.hint(column);
+      let hint: &str = cardline.cellhint(column);
       let kw: &str = (&keywordline.keyword).into();
 
       Value::from(vec![Value::from(kw), Value::from(hint)])

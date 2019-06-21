@@ -64,7 +64,7 @@ impl Line {
   }
 
   #[inline]
-  pub fn hint(&self, column: u8) -> &'static str {
+  pub fn cellhint(&self, column: u8) -> &'static str {
     use self::Line::*;
     use std::str;
     match *self {
