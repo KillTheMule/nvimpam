@@ -106,9 +106,7 @@ impl Event {
           if lastline == -1 {
             bufdata.parse_vec(linedata)?;
           } else {
-            debug_assert!(
-              lastline >= 0 && firstline >= 0 && lastline >= firstline
-            );
+            debug_assert!(lastline >= firstline);
             let lastline = LineNr::from_i64(lastline);
             let firstline = LineNr::from_i64(firstline);
 
@@ -128,9 +126,7 @@ impl Event {
           firstline,
           lastline,
         }) => {
-          debug_assert!(
-            lastline >= 0 && firstline >= 0 && lastline >= firstline
-          );
+          debug_assert!(lastline >= firstline);
           let lastline = LineNr::from_i64(lastline);
           let firstline = LineNr::from_i64(firstline);
 
@@ -160,23 +156,19 @@ impl Event {
           }
         }
         Ok(CellHint { line, column }) => {
-          debug_assert!(line >= 0);
           let linenr = LineNr::from_i64(line);
           to_handler.send(bufdata.cellhint(linenr, column))?;
         }
 
         Ok(CommentLine { line }) => {
-          debug_assert!(line >= 0);
           let linenr = LineNr::from_i64(line);
           to_handler.send(bufdata.linecomment(linenr))?;
         }
         Ok(CardRange { line }) => {
-          debug_assert!(line >= 0);
           let linenr = LineNr::from_i64(line);
           to_handler.send(bufdata.cardrange(linenr))?;
         }
         Ok(AlignLine { line }) => {
-          debug_assert!(line >= 0);
           let linenr = LineNr::from_i64(line);
           to_handler.send(bufdata.align_line(linenr))?;
         }
