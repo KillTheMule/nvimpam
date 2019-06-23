@@ -96,6 +96,7 @@ pub static NSMAS2: Card = Card {
   ownfold: true,
 };
 
+/*
 #[cfg(test)]
 mod tests {
   use crate::card::keyword::Keyword::*;
@@ -193,3 +194,4 @@ mod tests {
     );
   }
 }
+*/

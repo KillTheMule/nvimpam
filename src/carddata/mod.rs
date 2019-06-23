@@ -2,6 +2,7 @@
 //! instances
 //
 // Export the macros inside this crate
+/*
 #[cfg(test)]
 macro_rules! cardtest {
   ($name: ident, $c: expr, $v: expr) => {
@@ -32,6 +33,7 @@ macro_rules! cardtest {
     }
   };
 }
+*/
 
 //pub mod auxiliaries;
 pub mod constraint;

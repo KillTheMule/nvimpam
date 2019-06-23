@@ -21,7 +21,7 @@ use crate::carddata::*;
 /// A card consists of severals [`Line`](crate::card::line::Line). If `ownfold`
 /// is true, than each card of this type will get an own fold. Otherwise, all
 /// adjacent cards of that type are gathered into one fold.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Card {
   pub lines: &'static [Line],
   pub ownfold: bool,

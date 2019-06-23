@@ -453,13 +453,13 @@ where
   }
 }
 
+/*
 #[cfg(test)]
 mod tests {
   use crate::{
     bufdata::highlights::Highlights,
-    card::{ges::GesType::GesNode, keyword::Keyword::*, Card},
+    card::{ges::GesType::GesNode, keyword::Keyword::*},
     carddata::*,
-    linenr::LineNr,
     lines::{KeywordLine, Lines, ParsedLine, RawLine::*},
   };
 
@@ -773,35 +773,5 @@ mod tests {
     assert_eq!(tmp.skip_end, 19.into());
   }
 
-  const CARD_OTMCO: [&'static str; 5] = [
-    "$#         IDOTM  IDNODd  XYZUVW   IMETH  RADIUS   IELIM    ITYP   ALPHA",
-    "OTMCO /        1       0  111111       0      0.                        ",
-    "$#                                                                         TITLE",
-    "NAME Otmco->1                                                                   ",
-    "END_OTMCO",
-  ];
-
-  macro_rules! hints_index_test {
-    ($name: ident, $strs: ident, $iter_from: expr, $linenr: expr, $idx: expr) => {
-      #[test]
-      fn $name() {
-        let mut lines = Lines::new();
-        lines.parse_strs(&$strs);
-
-        let mut it = lines.iter_from($iter_from);
-        let cline = it.next().unwrap().try_into_keywordline().unwrap();
-        let card: &'static Card = (&cline.keyword).into();
-
-        let cardlineidx =
-          it.get_cardline_hints_index(&cline, card, LineNr::from_i64($linenr));
-
-        assert_eq!(Some($idx), cardlineidx);
-      }
-    };
-  }
-
-  hints_index_test!(cardline_hints_index_first, CARD_OTMCO, 0, 1, 0);
-  hints_index_test!(cardline_hints_index_second, CARD_OTMCO, 0, 3, 1);
-  hints_index_test!(cardline_hints_index_block_end, CARD_OTMCO, 0, 4, 4);
-
 }
+*/

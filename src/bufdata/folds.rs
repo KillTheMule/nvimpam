@@ -283,6 +283,7 @@ impl Folds {
   }
 }
 
+/*
 #[cfg(test)]
 macro_rules! splicetest {
   (
@@ -549,3 +550,4 @@ mod tests {
   );
 
 }
+*/

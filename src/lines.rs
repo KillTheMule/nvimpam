@@ -367,7 +367,7 @@ mod tests {
     let mut ln = Lines::new();
     ln.parse_slice(LINES_DEL.as_ref());
 
-    l.update(Vec::new(), 1.into(), 7.into(), -6);
+    l.update(Vec::new(), 1.into(), 7.into());
 
     assert_eq!(l, ln);
   }
@@ -388,7 +388,7 @@ mod tests {
       "blaaargl".to_string(),
     ];
 
-    l.update(newlines, 2.into(), 2.into(), 3);
+    l.update(newlines, 2.into(), 2.into());
 
     for i in 0..11 {
       assert_eq!(
@@ -413,7 +413,7 @@ mod tests {
       "blaaargl".to_string(),
     ];
 
-    l.update(newlines, 1.into(), 7.into(), -3);
+    l.update(newlines, 1.into(), 7.into());
 
     for i in 0..5 {
       assert_eq!(
@@ -484,5 +484,52 @@ mod tests {
     assert!(lines.first_before(1.into()).is_none());
     assert!(lines.first_after(1.into()).is_none());
   }
+
+  const CARD_OTMCO: [&'static str; 5] = [
+    "$#         IDOTM  IDNODd  XYZUVW   IMETH  RADIUS   IELIM    ITYP   ALPHA",
+    "OTMCO /        1       0  111111       0      0.                        ",
+    "$#                                                                         TITLE",
+    "NAME Otmco->1                                                                   ",
+    "END_OTMCO",
+  ];
+
+  macro_rules! lineinfo_test {
+    ($name: ident, $strs: ident, $linenr: expr,
+     { index: $index: expr, number: $number: expr, card: $card: expr,
+       cardline: $cardline: expr, keywordline: { number: $kl_number: expr,
+         keyword: $kw: expr }
+     }) => {
+      #[test]
+      fn $name() {
+        let mut lines = Lines::new();
+        lines.parse_strs(&$strs);
+
+        let info = lines.info(LineNr::from_i64($linenr)).unwrap();
+
+        assert_eq!(info.index, $index);
+        assert_eq!(info.number, LineNr::from_i64($number));
+        assert_eq!(info.card, $card);
+        assert_eq!(info.cardline, $cardline);
+        assert_eq!(info.keywordline.number, LineNr::from_i64($kl_number));
+        assert_eq!(info.keywordline.keyword, $kw);
+      }
+    };
+  }
+
+  use crate::carddata::constraint::OTMCO;
+  use crate::card::keyword::Keyword::*;
+
+  lineinfo_test!(lineinfo_otmco_1, CARD_OTMCO, 1,
+    { index: 0, number: 1, card: &OTMCO, cardline: &OTMCO.lines[0], 
+      keywordline: { number: 1, keyword: Otmco }
+    });
+  lineinfo_test!(lineinfo_otmco_2, CARD_OTMCO, 3,
+    { index: 1, number: 3, card: &OTMCO, cardline: &OTMCO.lines[1], 
+      keywordline: { number: 1, keyword: Otmco }
+    });
+  lineinfo_test!(lineinfo_otmco_3, CARD_OTMCO, 4,
+    { index: 2, number: 4, card: &OTMCO, cardline: &OTMCO.lines[2], 
+      keywordline: { number: 1, keyword: Otmco }
+    });
 
 }
