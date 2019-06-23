@@ -127,7 +127,7 @@ impl<'a> BufData<'a> {
     firstline: LineNr,
     lastline: LineNr,
     linedata: Vec<String>,
-  ) -> Result<(Range<usize>, isize), Error> {
+  ) -> Result<Range<usize>, Error> {
     let added: isize = linedata.len() as isize - (lastline - firstline);
 
     // the old behavior, just keep that for now
@@ -163,7 +163,7 @@ impl<'a> BufData<'a> {
       first_pre.1 += 1;
     }
 
-    let added_nocom = self.lines.update(linedata, firstline, lastline, added);
+    let added_nocom = self.lines.update(linedata, firstline, lastline);
 
     let first_post = first_pre.0;
     // TODO(KillTheMule): Check this!
@@ -177,10 +177,8 @@ impl<'a> BufData<'a> {
     BufData::parse_from_iter(&mut newhls, &mut newfolds, li)?;
     self.folds.splice(newfolds, first_pre.1, last_pre.1, added);
     self.folds_level2.recreate_level2(&self.folds)?;
-    Ok((
-      self.highlights.splice(newhls, firstline, lastline, added),
-      added,
-    ))
+
+    Ok(self.highlights.splice(newhls, firstline, lastline, added))
   }
 
   /// After initializing the lines and keywords of a `BufData` structure, this

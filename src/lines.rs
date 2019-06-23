@@ -168,12 +168,12 @@ impl<'a> Lines<'a> {
   pub fn update(
     &mut self,
     linedata: Vec<String>,
-    first: LineNr,
-    last: LineNr,
-    added: isize,
+    firstline: LineNr,
+    lastline: LineNr,
   ) -> isize {
-    let startidx = self.linenr_to_index(first);
-    let endidx = self.linenr_to_index(last);
+    let added: isize = linedata.len() as isize - (lastline - firstline);
+    let startidx = self.linenr_to_index(firstline);
+    let endidx = self.linenr_to_index(lastline);
 
     let indexrange = startidx..endidx;
 
@@ -192,7 +192,7 @@ impl<'a> Lines<'a> {
     let _ = self.0.splice(
       indexrange,
       newlines.0.into_iter().map(|mut p| {
-        p.number += first;
+        p.number += firstline;
         p
       }),
     );

@@ -1,5 +1,7 @@
 * Test that the initial update when requesting it really works
 
+* Introduce HlRange or something to denote indexranges in the highlight vec
+
 * Use proper namespace for highlights, right now we're just using '5'
 
 * Push most of the handling for HighlightRegion in event.rs into

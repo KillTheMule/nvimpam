@@ -222,7 +222,7 @@ fn start_program() -> Result<(), Error> {
 ///
 /// Sending the [`Quit`](crate::event::Event::Quit) event will
 /// exit the loop and return from the function.
-fn event_loop(
+pub fn event_loop(
   from_handler: &mpsc::Receiver<Event>,
   to_handler: &mpsc::Sender<Value>,
   nvim: &mut Neovim,
@@ -259,8 +259,8 @@ fn event_loop(
         if changedtick == 0 {
           continue;
         }
-        let (newrange, added) =
-          bufdata.update(firstline, lastline, linedata)?;
+        let added: isize = linedata.len() as isize - (lastline - firstline);
+        let newrange = bufdata.update(firstline, lastline, linedata)?;
         if let Some(calls) = bufdata.highlight_region_calls(
           newrange,
           firstline,
