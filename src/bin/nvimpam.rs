@@ -261,6 +261,7 @@ pub fn event_loop(
           continue;
         }
         let hlrange = bufdata.update(firstline, lastline, linedata)?;
+
         if let Some(calls) = bufdata.highlight_region_calls(hlrange) {
           nvim.call_atomic(calls).context("call_atomic failed")?;
         }

@@ -226,7 +226,6 @@ impl<'a> Lines<'a> {
   }
 
   // TODO(KillTheMule): Efficient? This is called a lot ...
-  // TODO(KillTheMule): This should take the index directly
   /// Find the index of the first line that starts with a non-comment keyword
   /// before the line with the given number. If the line with the given number
   /// itself starts with a non-comment keyword, its index is returned.
@@ -244,38 +243,20 @@ impl<'a> Lines<'a> {
       .enumerate()
       .rfind(|(_, l)| l.keyword.is_some())
       .map(|(i, l)| (i, l.number))
-    /*
-    .unwrap_or_else(|| {
-      self.get(0).map_or((0, 0_usize.into()), |l| (0, l.number))
-    })
-    */
   }
 
   // TODO(KillTheMule): Efficient? This is called a lot ...
-  // TODO(KillTheMule): This should take the index directly
   /// Find the index of the next line that starts with a non-comment keyword
   /// after the line with the given number. If the line with the given number
   /// itself starts with a non-comment keyword, its index is returned.
   pub fn first_after(&self, line: LineNr) -> Option<(usize, LineNr)> {
     let to_skip = self.linenr_to_index(line);
-    /*
-    if self.is_empty() {
-      (0_usize, 0_usize.into())
-    } else {
-    */
     self
       .iter()
       .enumerate()
       .skip(to_skip)
       .find(|(_, l)| l.keyword.is_some())
       .map(|(i, l)| (i, l.number))
-    /*
-        .unwrap_or_else(|| {
-          let len = self.len();
-          (len, self[len - 1].number + 1)
-        })
-    }
-        */
   }
 
   /// Looks up the `LineInfo`[self::LineInfo] for the given
