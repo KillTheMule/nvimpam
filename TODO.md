@@ -1,3 +1,5 @@
+* Test that the initial update when requesting it really works
+
 * Use proper namespace for highlights, right now we're just using '5'
 
 * Push most of the handling for HighlightRegion in event.rs into

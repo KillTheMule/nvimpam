@@ -19,8 +19,8 @@ pub enum Event {
   LinesEvent {
     buf: Buffer,
     changedtick: u64,
-    firstline: i64,
-    lastline: i64,
+    firstline: LineNr,
+    lastline: LineNr,
     linedata: Vec<String>,
     more: bool,
   },
@@ -36,17 +36,17 @@ pub enum Event {
   RefreshFolds,
   /// Highlight lines in the buffer containing at least the given line range
   // TODO: maybe accept buffer as an argument?
-  HighlightRegion { firstline: i64, lastline: i64 },
+  HighlightRegion { firstline: LineNr, lastline: LineNr },
   /// Request the CellHint at the given cursor position
-  CellHint { line: i64, column: u8 },
+  CellHint { line: LineNr, column: u8 },
   /// Add a comment with hints above a line
-  CommentLine { line: i64 },
+  CommentLine { line: LineNr },
   /// Return an end-inclusive range start..=end of lines in which the card of
   /// the current line is included
-  CardRange { line: i64 },
+  CardRange { line: LineNr },
   /// Return a String with the line having all cells aligned, or nil if the
   /// line was aligned, is a comment, or otherwise non-aligneable
-  AlignLine { line: i64 },
+  AlignLine { line: LineNr },
   /// This plugin should quit. Currently only sent by the user directly.
   Quit,
 }
@@ -103,22 +103,14 @@ impl Event {
           if changedtick == 0 {
             continue;
           }
-          if lastline == -1 {
-            bufdata.parse_vec(linedata)?;
-          } else {
-            debug_assert!(lastline >= firstline);
-            let lastline = LineNr::from_i64(lastline);
-            let firstline = LineNr::from_i64(firstline);
-
-            let (newrange, added) =
-              bufdata.update(firstline, lastline, linedata)?;
-            if let Some(calls) = bufdata.highlight_region_calls(
-              newrange,
-              firstline,
-              lastline + added,
-            ) {
-              nvim.call_atomic(calls).context("call_atomic failed")?;
-            }
+          let (newrange, added) =
+            bufdata.update(firstline, lastline, linedata)?;
+          if let Some(calls) = bufdata.highlight_region_calls(
+            newrange,
+            firstline,
+            lastline + added,
+          ) {
+            nvim.call_atomic(calls).context("call_atomic failed")?;
           }
         }
         Ok(RefreshFolds) => to_handler.send(bufdata.fold_calls())?,
@@ -126,10 +118,6 @@ impl Event {
           firstline,
           lastline,
         }) => {
-          debug_assert!(lastline >= firstline);
-          let lastline = LineNr::from_i64(lastline);
-          let firstline = LineNr::from_i64(firstline);
-
           let fl = bufdata
             .first_before(firstline)
             .unwrap_or_else(|| (0, bufdata.firstline_number()));
@@ -156,21 +144,17 @@ impl Event {
           }
         }
         Ok(CellHint { line, column }) => {
-          let linenr = LineNr::from_i64(line);
-          to_handler.send(bufdata.cellhint(linenr, column))?;
+          to_handler.send(bufdata.cellhint(line, column))?;
         }
 
         Ok(CommentLine { line }) => {
-          let linenr = LineNr::from_i64(line);
-          to_handler.send(bufdata.linecomment(linenr))?;
+          to_handler.send(bufdata.linecomment(line))?;
         }
         Ok(CardRange { line }) => {
-          let linenr = LineNr::from_i64(line);
-          to_handler.send(bufdata.cardrange(linenr))?;
+          to_handler.send(bufdata.cardrange(line))?;
         }
         Ok(AlignLine { line }) => {
-          let linenr = LineNr::from_i64(line);
-          to_handler.send(bufdata.align_line(linenr))?;
+          to_handler.send(bufdata.align_line(line))?;
         }
         Ok(Quit) => {
           break;

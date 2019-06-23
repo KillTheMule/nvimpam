@@ -8,7 +8,7 @@ use failure::{self, Error};
 use log::{error, info};
 use neovim_lib::{neovim_api::Buffer, Handler, RequestHandler, Value};
 
-use crate::event::Event;
+use crate::{event::Event, linenr::LineNr};
 
 /// The handler containing the sending end of a channel. The receiving end is
 /// the main [`event loop`](crate::event::Event::event_loop).
@@ -28,10 +28,22 @@ impl NeovimHandler {
 
     let more = parse_bool(&last_arg(&mut args, nea)?)?;
     let linedata = parse_vecstr(last_arg(&mut args, nea)?)?;
-    let lastline = parse_i64(&last_arg(&mut args, nea)?)?;
-    let firstline = parse_i64(&last_arg(&mut args, nea)?)?;
+    let lastline_i = parse_i64(&last_arg(&mut args, nea)?)?;
+    let lastline;
+    let mut firstline = parse_linenr(&last_arg(&mut args, nea)?)?;
     let changedtick = parse_u64(&last_arg(&mut args, nea)?)?;
     let buf = parse_buf(last_arg(&mut args, nea)?);
+
+    if lastline_i == -1 {
+      // initial update, our lines are empty right now, so the numbers don't
+      // matter
+      lastline = LineNr::from_i64(0);
+      firstline = LineNr::from_i64(0);
+    } else {
+      lastline = LineNr::from_i64(lastline_i);
+    }
+
+    debug_assert!(lastline >= firstline);
 
     Ok(Event::LinesEvent {
       buf,
@@ -65,8 +77,8 @@ impl NeovimHandler {
   ) -> Result<Event, Error> {
     let nea = "Not enough arguments in HighlightRegion notification!";
 
-    let lastline = parse_i64(&last_arg(&mut args, nea)?)?;
-    let firstline = parse_i64(&last_arg(&mut args, nea)?)?;
+    let lastline = parse_linenr(&last_arg(&mut args, nea)?)?;
+    let firstline = parse_linenr(&last_arg(&mut args, nea)?)?;
     Ok(Event::HighlightRegion {
       firstline,
       lastline,
@@ -93,7 +105,7 @@ impl NeovimHandler {
     let nea = "Not enough arguments in CellHint notification!";
 
     let column = parse_u8(&last_arg(&mut args, nea)?)?;
-    let line = parse_i64(&last_arg(&mut args, nea)?)?;
+    let line = parse_linenr(&last_arg(&mut args, nea)?)?;
     Ok(Event::CellHint { line, column })
   }
 
@@ -105,7 +117,7 @@ impl NeovimHandler {
   ) -> Result<Event, Error> {
     let nea = "Not enough arguments in CellHint request!";
 
-    let line = parse_i64(&last_arg(&mut args, nea)?)?;
+    let line = parse_linenr(&last_arg(&mut args, nea)?)?;
     Ok(Event::CommentLine { line })
   }
 
@@ -117,7 +129,7 @@ impl NeovimHandler {
   ) -> Result<Event, Error> {
     let nea = "Not enough arguments in CardRange request!";
 
-    let line = parse_i64(&last_arg(&mut args, nea)?)?;
+    let line = parse_linenr(&last_arg(&mut args, nea)?)?;
     Ok(Event::CardRange { line })
   }
 
@@ -129,7 +141,7 @@ impl NeovimHandler {
   ) -> Result<Event, Error> {
     let nea = "Not enough arguments in AlignLine request!";
 
-    let line = parse_i64(&last_arg(&mut args, nea)?)?;
+    let line = parse_linenr(&last_arg(&mut args, nea)?)?;
     Ok(Event::AlignLine { line })
   }
 }
@@ -332,6 +344,16 @@ fn parse_i64(value: &Value) -> Result<i64, Error> {
   })
 }
 
+/// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a
+/// [`LineNr`](crate::linenr::LineNr)
+fn parse_linenr(value: &Value) -> Result<LineNr, Error> {
+  value
+    .as_i64()
+    .ok_or_else(|| {
+      failure::err_msg(format!("Cannot parse '{:?}' as i64", value))
+    })
+    .map(LineNr::from_i64)
+}
 /// Parse a [`neovim_lib::Value`](neovim_lib::Value) into a u8
 fn parse_u8(value: &Value) -> Result<u8, Error> {
   let v64 = value.as_u64().ok_or_else(|| {
