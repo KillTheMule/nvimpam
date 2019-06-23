@@ -1,12 +1,10 @@
 //! The events that nvimpam needs to accept and deal with. They're sent by the
 //! [`NeovimHandler`](crate::handler::NeovimHandler) to the main loop.
-use std::{ffi::OsString, fmt, fs, sync::mpsc};
+use std::fmt;
 
-use failure::{self, Error, ResultExt};
-use log::{info, warn};
-use neovim_lib::{neovim::Neovim, neovim_api::Buffer, NeovimApi, Value};
+use neovim_lib::neovim_api::Buffer;
 
-use crate::{bufdata::BufData, linenr::LineNr};
+use crate::linenr::LineNr;
 
 /// The event list the main loop reacts to
 pub enum Event {
@@ -35,7 +33,6 @@ pub enum Event {
   /// Recreate and resend the folds
   RefreshFolds,
   /// Highlight lines in the buffer containing at least the given line range
-  // TODO: maybe accept buffer as an argument?
   HighlightRegion { firstline: LineNr, lastline: LineNr },
   /// Request the CellHint at the given cursor position
   CellHint { line: LineNr, column: u8 },
@@ -49,141 +46,6 @@ pub enum Event {
   AlignLine { line: LineNr },
   /// This plugin should quit. Currently only sent by the user directly.
   Quit,
-}
-
-impl Event {
-  /// Run the event loop. The receiver receives the events from the
-  /// [handler](crate::handler::NeovimHandler).
-  ///
-  /// If a file was given as an argument, nvimpam reads it and creates its
-  /// [`BufData`](crate::bufdata::BufData) from it. Then it enables
-  /// [buffer events](https://neovim.io/doc/user/api.html#nvim_buf_attach()) and
-  /// updates the [`BufData`](crate::bufdata::BufData) accordingly.
-  ///
-  /// If no file was given as an argument, nvimpam directly enables
-  /// [buffer events](https://neovim.io/doc/user/api.html#nvim_buf_attach())
-  /// and requests the buffer's contents from it instead.
-  ///
-  /// Sending the [`Quit`](crate::event::Event::Quit) event will
-  /// exit the loop and return from the function.
-  pub fn event_loop(
-    from_handler: &mpsc::Receiver<Self>,
-    to_handler: &mpsc::Sender<Value>,
-    nvim: &mut Neovim,
-    file: Option<OsString>,
-  ) -> Result<(), Error> {
-    use self::Event::*;
-
-    let curbuf = nvim.get_current_buf()?;
-    let origlines;
-    let mut bufdata = BufData::new(&curbuf);
-
-    let connected = match file {
-      None => curbuf.attach(nvim, true, vec![])?,
-      Some(f) => {
-        origlines = fs::read(f)?;
-        bufdata.parse_slice(&origlines)?;
-        curbuf.attach(nvim, false, vec![])?
-      }
-    };
-
-    if !connected {
-      return Err(failure::err_msg("Could not enable buffer updates!"));
-    }
-
-    loop {
-      match from_handler.recv() {
-        Ok(LinesEvent {
-          firstline,
-          lastline,
-          linedata,
-          changedtick,
-          ..
-        }) => {
-          if changedtick == 0 {
-            continue;
-          }
-          let (newrange, added) =
-            bufdata.update(firstline, lastline, linedata)?;
-          if let Some(calls) = bufdata.highlight_region_calls(
-            newrange,
-            firstline,
-            lastline + added,
-          ) {
-            nvim.call_atomic(calls).context("call_atomic failed")?;
-          }
-        }
-        Ok(RefreshFolds) => to_handler.send(bufdata.fold_calls())?,
-        Ok(HighlightRegion {
-          firstline,
-          lastline,
-        }) => {
-          let fl = bufdata
-            .first_before(firstline)
-            .unwrap_or_else(|| (0, bufdata.firstline_number()));
-          // TODO(KillTheMule): 0 really is a placeholder here, it's not used
-          // anywhere, remove that
-          let mut ll = bufdata
-            .first_after(lastline)
-            .unwrap_or_else(|| (0, bufdata.lastline_number()));
-
-          // highlight_region is end_exclusive, so we need to make sure
-          // we include the last line requested even if it is a keyword line
-          if ll.1 == lastline {
-            ll.0 += 1;
-            ll.1 += 1;
-          }
-          // Note to self: This returns the index range of the highlights, not
-          // the lines
-          let newrange = bufdata.hl_linerange(fl.1, ll.1);
-
-          if let Some(calls) =
-            bufdata.highlight_region_calls(newrange, fl.1, ll.1)
-          {
-            nvim.call_atomic(calls).context("call_atomic failed")?;
-          }
-        }
-        Ok(CellHint { line, column }) => {
-          to_handler.send(bufdata.cellhint(line, column))?;
-        }
-
-        Ok(CommentLine { line }) => {
-          to_handler.send(bufdata.linecomment(line))?;
-        }
-        Ok(CardRange { line }) => {
-          to_handler.send(bufdata.cardrange(line))?;
-        }
-        Ok(AlignLine { line }) => {
-          to_handler.send(bufdata.align_line(line))?;
-        }
-        Ok(Quit) => {
-          break;
-        }
-        Ok(DetachEvent { buf }) => {
-          if *bufdata.buf == buf {
-            buf
-              .clear_namespace(nvim, 5, 0, -1)
-              .context("could not clear namespace 5")?;
-            break;
-          } else {
-            warn!(
-              "Received Detach Event for buffer {:?}, but was attached to
-               buffer {:?}. Continuing!",
-              buf, bufdata.buf
-            );
-          }
-        }
-        Ok(o) => {
-          warn!("receiver recieved {:?}", o);
-        }
-        Err(e) => {
-          warn!("receiver received error: {:?}", e);
-        }
-      }
-    }
-    info!("quitting");
-    Ok(())
-  }
 }
 
 impl fmt::Debug for Event {
