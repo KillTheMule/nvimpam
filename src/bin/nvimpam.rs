@@ -261,9 +261,9 @@ pub fn event_loop(
           continue;
         }
         let added: isize = linedata.len() as isize - (lastline - firstline);
-        let newrange = bufdata.update(firstline, lastline, linedata)?;
+        let hlrange = bufdata.update(firstline, lastline, linedata)?;
         if let Some(calls) =
-          bufdata.highlight_region_calls(newrange, firstline, lastline + added)
+          bufdata.highlight_region_calls(hlrange, firstline, lastline + added)
         {
           nvim.call_atomic(calls).context("call_atomic failed")?;
         }
