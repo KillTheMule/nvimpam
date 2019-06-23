@@ -28,16 +28,16 @@
 //!   empty)
 //! * `NVIMPAM_LOG_LEVEL` can be one of `error`, `warn`, `info`, `debug` and
 //!   `trace`, in ascending order of verbosity. The default is `warn`.
-use std::{env::args_os, sync::mpsc, fs, ffi::OsString};
+use std::{env::args_os, ffi::OsString, fs, sync::mpsc};
 
 use failure::{Error, ResultExt};
-use log::{info, error, warn};
+use log::{error, info, warn};
 use neovim_lib::{
   neovim::Neovim, neovim_api::NeovimApi, session::Session, Value,
 };
 use simplelog::{Config, Level, LevelFilter, WriteLogger};
 
-use nvimpam_lib::{event::Event, handler::NeovimHandler, bufdata::BufData};
+use nvimpam_lib::{bufdata::BufData, event::Event, handler::NeovimHandler};
 
 fn main() {
   use std::process;
@@ -201,11 +201,12 @@ fn start_program() -> Result<(), Error> {
 
   let file = args_os().nth(1);
 
-  event_loop(&main_from_handler, &main_to_handler, &mut nvim, file)
-    .map_err(|e| {
+  event_loop(&main_from_handler, &main_to_handler, &mut nvim, file).map_err(
+    |e| {
       send_err(&mut nvim, &e);
       e
-    })
+    },
+  )
 }
 
 /// Run the event loop. The receiver receives the events from the
@@ -261,11 +262,9 @@ pub fn event_loop(
         }
         let added: isize = linedata.len() as isize - (lastline - firstline);
         let newrange = bufdata.update(firstline, lastline, linedata)?;
-        if let Some(calls) = bufdata.highlight_region_calls(
-          newrange,
-          firstline,
-          lastline + added,
-        ) {
+        if let Some(calls) =
+          bufdata.highlight_region_calls(newrange, firstline, lastline + added)
+        {
           nvim.call_atomic(calls).context("call_atomic failed")?;
         }
       }
