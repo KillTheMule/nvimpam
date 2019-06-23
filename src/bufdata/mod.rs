@@ -358,7 +358,7 @@ impl<'a> BufData<'a> {
   pub fn firstline_number(&self) -> LineNr {
     self
       .lines
-      .get(0)
+      .first()
       .map(|l| l.number)
       .unwrap_or_else(|| LineNr::from(0))
   }
@@ -366,7 +366,6 @@ impl<'a> BufData<'a> {
   pub fn lastline_number(&self) -> LineNr {
     self
       .lines
-      .iter()
       .last()
       .map(|l| l.number)
       .unwrap_or_else(|| LineNr::from(0))
