@@ -229,23 +229,23 @@ impl<'a> BufData<'a> {
     }
   }
 
-  pub fn hl_linerange(&self, first: LineNr, last: LineNr) -> Range<usize> {
-    // TODO(KillTheMule): 0 really is a placeholder here, it's not used
-    // anywhere, remove that
-    let fl = self
-      .first_before(first)
-      .unwrap_or_else(|| (0, self.firstline_number()));
-    let mut ll = self
-      .first_after(last)
-      .unwrap_or_else(|| (0, self.lastline_number()));
+  pub fn hl_linerange(&self, first: LineNr, last: LineNr) -> Option<Range<usize>> {
+    let firstline = match self.first_before(first) {
+      Some(f) => f,
+      None => return None,
+    }.1;
+
+    let mut lastline = match self.first_after(last) {
+      Some(l) => l,
+      None => return None,
+    }.1;
 
     // highlight_region is end_exclusive, so we need to make sure
     // we include the last line requested even if it is a keyword line
-    if ll.1 == last {
-      ll.0 += 1;
-      ll.1 += 1;
+    if lastline == last {
+      lastline += 1;
     }
-    self.highlights.linerange(fl.1, ll.1)
+    Some(self.highlights.linerange(firstline, lastline))
   }
 
   pub fn first_before(&self, line: LineNr) -> Option<(usize, LineNr)> {
@@ -331,7 +331,9 @@ impl<'a> BufData<'a> {
         .push(Value::from(usize::from(self.lines[skippedidx - 1].number)));
     } else {
       array_vec.push(Value::from(usize::from(clinenr)));
-      array_vec.push(Value::from(usize::from(self.lastline_number())));
+      array_vec.push(Value::from(
+        self.lines.last().map(|l| usize::from(l.number)).unwrap_or(0),
+      ));
     }
     Value::from(array_vec)
   }
@@ -355,21 +357,6 @@ impl<'a> BufData<'a> {
     }
   }
 
-  pub fn firstline_number(&self) -> LineNr {
-    self
-      .lines
-      .first()
-      .map(|l| l.number)
-      .unwrap_or_else(|| LineNr::from(0))
-  }
-
-  pub fn lastline_number(&self) -> LineNr {
-    self
-      .lines
-      .last()
-      .map(|l| l.number)
-      .unwrap_or_else(|| LineNr::from(0))
-  }
   #[cfg(test)]
   pub fn folds_to_vec(&self) -> Vec<(usize, usize, Keyword)> {
     self.folds.to_vec()

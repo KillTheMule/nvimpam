@@ -204,10 +204,9 @@ impl Highlights {
     start..end
   }
 
-  /// Construct the necessary calls to neovim to highlight the region given by
-  /// `firstline..lastline`. Here, `indexrange` gives the index of the
-  /// highlights to send. All existing highlights in this linerange are cleare
-  /// beforehand.
+  /// Construct the necessary calls to neovim to highlight a region. Here,
+  /// `indexrange` gives the index of the highlights to send. All existing
+  /// highlights in this linerange are cleare beforehand.
   ///
   /// TODO(KillTheMule): efficient? maybe not send strings for the hl groups,
   /// but small ints, and have a mapping ready?
