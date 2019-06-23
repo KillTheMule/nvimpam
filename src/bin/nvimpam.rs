@@ -260,11 +260,8 @@ pub fn event_loop(
         if changedtick == 0 {
           continue;
         }
-        let added: isize = linedata.len() as isize - (lastline - firstline);
         let hlrange = bufdata.update(firstline, lastline, linedata)?;
-        if let Some(calls) =
-          bufdata.highlight_region_calls(hlrange, firstline, lastline + added)
-        {
+        if let Some(calls) = bufdata.highlight_region_calls(hlrange) {
           nvim.call_atomic(calls).context("call_atomic failed")?;
         }
       }
@@ -273,28 +270,11 @@ pub fn event_loop(
         firstline,
         lastline,
       }) => {
-        let fl = bufdata
-          .first_before(firstline)
-          .unwrap_or_else(|| (0, bufdata.firstline_number()));
-        // TODO(KillTheMule): 0 really is a placeholder here, it's not used
-        // anywhere, remove that
-        let mut ll = bufdata
-          .first_after(lastline)
-          .unwrap_or_else(|| (0, bufdata.lastline_number()));
-
-        // highlight_region is end_exclusive, so we need to make sure
-        // we include the last line requested even if it is a keyword line
-        if ll.1 == lastline {
-          ll.0 += 1;
-          ll.1 += 1;
-        }
         // Note to self: This returns the index range of the highlights, not
         // the lines
-        let newrange = bufdata.hl_linerange(fl.1, ll.1);
+        let hlrange = bufdata.hl_linerange(firstline, lastline);
 
-        if let Some(calls) =
-          bufdata.highlight_region_calls(newrange, fl.1, ll.1)
-        {
+        if let Some(calls) = bufdata.highlight_region_calls(hlrange) {
           nvim.call_atomic(calls).context("call_atomic failed")?;
         }
       }

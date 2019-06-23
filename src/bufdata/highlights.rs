@@ -215,9 +215,23 @@ impl Highlights {
     &self,
     buf: &Buffer,
     indexrange: Range<usize>,
-    firstline: LineNr,
-    lastline: LineNr,
   ) -> Option<Vec<Value>> {
+    let hls = &self.0[indexrange.clone()];
+    let firstline;
+    let lastline;
+
+    if let Some(f) = hls.first().map(|((l, _, _), _)| l) {
+      firstline = f;
+    } else {
+      return None;
+    }
+
+    if let Some(l) = hls.last().map(|((l, _, _), _)| l) {
+      lastline = l;
+    } else {
+      return None;
+    }
+
     if indexrange.start == indexrange.end && firstline == lastline {
       return None;
     }
@@ -230,15 +244,15 @@ impl Highlights {
         vec![
           buf.get_value().clone(),
           Value::from(5),
-          Value::from(firstline),
-          Value::from(lastline),
+          Value::from(*firstline),
+          Value::from(*lastline),
         ]
         .into(),
       ]
       .into(),
     );
 
-    calls.extend(self.0[indexrange].iter().map(|((l, s, e), t)| {
+    calls.extend(hls.iter().map(|((l, s, e), t)| {
       let st: &'static str = (*t).into();
       vec![
         Value::from("nvim_buf_add_highlight".to_string()),

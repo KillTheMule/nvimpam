@@ -230,7 +230,22 @@ impl<'a> BufData<'a> {
   }
 
   pub fn hl_linerange(&self, first: LineNr, last: LineNr) -> Range<usize> {
-    self.highlights.linerange(first, last)
+    // TODO(KillTheMule): 0 really is a placeholder here, it's not used
+    // anywhere, remove that
+    let fl = self
+      .first_before(first)
+      .unwrap_or_else(|| (0, self.firstline_number()));
+    let mut ll = self
+      .first_after(last)
+      .unwrap_or_else(|| (0, self.lastline_number()));
+
+    // highlight_region is end_exclusive, so we need to make sure
+    // we include the last line requested even if it is a keyword line
+    if ll.1 == last {
+      ll.0 += 1;
+      ll.1 += 1;
+    }
+    self.highlights.linerange(fl.1, ll.1)
   }
 
   pub fn first_before(&self, line: LineNr) -> Option<(usize, LineNr)> {
@@ -248,12 +263,10 @@ impl<'a> BufData<'a> {
   pub fn highlight_region_calls(
     &mut self,
     indexrange: Range<usize>,
-    firstline: LineNr,
-    lastline: LineNr,
   ) -> Option<Vec<Value>> {
     self
       .highlights
-      .highlight_region_calls(&self.buf, indexrange, firstline, lastline)
+      .highlight_region_calls(&self.buf, indexrange)
   }
 
   /// Pack up all existing level 1 and level 2 folds (in that order) into a
