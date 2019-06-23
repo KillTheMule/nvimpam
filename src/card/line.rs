@@ -299,4 +299,15 @@ mod tests {
     assert_eq!(Bool(false), cond1.evaluate(line.as_ref()));
   }
 
+  #[test]
+  fn cellhints_otmco() {
+    use crate::carddata::constraint::OTMCO;
+    
+    let line0 = &OTMCO.lines[0];
+    
+    assert_eq!(line0.cellhint(0), "Keyword");
+    assert_eq!(line0.cellhint(9), "IDOTM");
+    assert_eq!(line0.cellhint(71), "ALPHA");
+    assert_eq!(line0.cellhint(73), "Column too large for line!");
+  }
 }

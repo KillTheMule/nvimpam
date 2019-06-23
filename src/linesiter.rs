@@ -345,6 +345,7 @@ where
   ///
   /// Assumes that `cline` is  the first line of the card, and the iterator
   /// starts after that.
+  // TODO(KillTheMule): Make this work properly for Block etc.
   pub fn get_cardline_by_nr(
     mut self,
     cline: &KeywordLine<'a>,
