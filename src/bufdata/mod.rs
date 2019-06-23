@@ -230,12 +230,12 @@ impl<'a> BufData<'a> {
   }
 
   pub fn hl_linerange(&self, first: LineNr, last: LineNr) -> Option<Range<usize>> {
-    let firstline = match self.first_before(first) {
+    let firstline = match self.lines.first_before(first) {
       Some(f) => f,
       None => return None,
     }.1;
 
-    let mut lastline = match self.first_after(last) {
+    let mut lastline = match self.lines.first_after(last) {
       Some(l) => l,
       None => return None,
     }.1;
@@ -246,14 +246,6 @@ impl<'a> BufData<'a> {
       lastline += 1;
     }
     Some(self.highlights.linerange(firstline, lastline))
-  }
-
-  pub fn first_before(&self, line: LineNr) -> Option<(usize, LineNr)> {
-    self.lines.first_before(line)
-  }
-
-  pub fn first_after(&self, line: LineNr) -> Option<(usize, LineNr)> {
-    self.lines.first_after(line)
   }
 
   /// Construct the necessary calls to neovim to highlight the region given by
@@ -307,7 +299,7 @@ impl<'a> BufData<'a> {
 
   pub fn cardrange(&self, line: LineNr) -> Value {
     // TODO(KillTheMule): Factor this out, linecomment uses it, too
-    let (clineidx, clinenr) = match self.first_before(line) {
+    let (clineidx, clinenr) = match self.lines.first_before(line) {
       Some(c) => c,
       None => return Value::Nil,
     };
