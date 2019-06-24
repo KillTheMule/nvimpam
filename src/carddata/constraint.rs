@@ -9,35 +9,37 @@ use crate::card::{
   Card,
 };
 
-/*
+// TODO(KillTheMule): This is only valid for IT1FL=1, hints will be wrong
+// otherwise... new line type or something for this?
 pub static MTOCO: Card = Card {
   lines: &[
     Provides(
       &[
         Kw(Mtoco),
-        Integer(8),
-        Integer(8),
-        Binary(6),
-        Integer(8),
-        Integer(8),
-        Integer(8),
-        Float(8),
+        Integer(8, IDMTO),
+        Integer(8, IDNODi),
+        Binary(8, DOFCOD),
+        Integer(8, IFRA1),
+        Integer(8, ITMTO),
+        Integer(8, ISENS),
+        Float(8, ALPHA),
+        Str(8, DOFTYP),
       ],
       Int(41..49, 1),
     ),
-    Cells(&[Fixed(FixedStr::Name), Str(76)]),
+    Cells(&[Fixed(FixedStr::Name), Str(0, TITLE)]),
     Optional(
       &[
-        Integer(8),
-        Float(8),
-        Float(8),
-        Float(8),
-        Float(8),
-        Float(8),
-        Float(8),
-        Float(8),
-        Integer(8),
-        Integer(8),
+        Integer(8, IT1FL),
+        Float(8, MMTO),
+        Float(8, Ixx),
+        Float(8, Iyy),
+        Float(8, Izz),
+        Float(8, Ixy),
+        Float(8, Ixz),
+        Float(8, Iyz),
+        Integer(8, IFRA2),
+        Integer(8, IDNODcog),
       ],
       0,
     ),
@@ -45,7 +47,6 @@ pub static MTOCO: Card = Card {
   ],
   ownfold: true,
 };
-*/
 
 pub static OTMCO: Card = Card {
   lines: &[
@@ -73,7 +74,6 @@ pub static OTMCO: Card = Card {
   ownfold: true,
 };
 
-/*
 pub static RBODY0: Card = Card {
   lines: &[
     Cells(&[
@@ -297,4 +297,3 @@ mod tests {
   cardtest!(fold_rbody3, CARD_RBODY3, vec![(2, 7, Rbody3)]);
 
 }
-*/
