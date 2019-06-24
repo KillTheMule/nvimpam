@@ -195,11 +195,15 @@ impl Line {
         | IntegerorBlank(_, _)
         | Cont => hint = cell.hint(),
       }
-      // Need 1 more chars then the hint minimally, which would leave us
-      // with '|HINT'. Hints for cells of len=0 (free format) are
-      // left aligned
-      if cell.len() > 0 {
-        debug_assert!(usize::from(cell.len()) > hint.len());
+      let celllen = cell.len();
+      let hintlen = hint.len();
+      if celllen > 0 {
+        // Need 1 more chars then the hint minimally, which would leave us
+        // with '|HINT'. Hints for cells of len=0 (free format) are
+        // left aligned
+        if hintlen >= celllen as usize {
+          hint = &hint[..celllen as usize - 1];
+        }
         for c in iter::repeat('-').take(usize::from(cell.len()) - 1 - hint.len()) {
           s.push(c)
         }
