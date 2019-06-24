@@ -51,7 +51,6 @@ impl<'a> From<&'a Keyword> for &'static Card {
       Keyword::Nsmas => &NSMAS,
       Keyword::Nsmas2 => &NSMAS2,
       // Element
-      /*
       Keyword::Solid => &SOLID,
       Keyword::Hexa20 => &HEXA20,
       Keyword::Pent15 => &PENT15,
@@ -75,6 +74,7 @@ impl<'a> From<&'a Keyword> for &'static Card {
       Keyword::Sphelo => &SPHELO,
       Keyword::Gap => &GAP,
       Keyword::Impma => &IMPMA,
+      /*
       // Link
       Keyword::Elink => &ELINK,
       Keyword::Llink => &LLINK,

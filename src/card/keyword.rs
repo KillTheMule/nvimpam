@@ -16,7 +16,6 @@ pub enum Keyword {
   Nsmas,
   Nsmas2,
   // Element
-  /*
   Solid,
   Hexa20,
   Pent15,
@@ -40,6 +39,7 @@ pub enum Keyword {
   Sphelo,
   Gap,
   Impma,
+  /*
   // Link
   Elink,
   Llink,
