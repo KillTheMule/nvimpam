@@ -72,15 +72,15 @@ pub enum Keyword {
   PartLlink,
   PartPlink,
   PartGap,
+  */
   // Constraint
   Mtoco,
-  */
   Otmco,
-  /*
   Rbody0,
   Rbody1,
   Rbody2,
   Rbody3,
+  /*
   // Auxiliaries
   Group,
   */

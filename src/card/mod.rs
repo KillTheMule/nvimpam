@@ -107,15 +107,15 @@ impl<'a> From<&'a Keyword> for &'static Card {
       Keyword::PartLlink => &PARTLLINK,
       Keyword::PartPlink => &PARTPLINK,
       Keyword::PartGap => &PARTGAP,
+      */
       // Constraint
       Keyword::Mtoco => &MTOCO,
-      */
       Keyword::Otmco => &OTMCO,
-      /*
       Keyword::Rbody0 => &RBODY0,
       Keyword::Rbody1 => &RBODY1,
       Keyword::Rbody2 => &RBODY2,
       Keyword::Rbody3 => &RBODY3,
+      /*
       // Auxiliaries
       Keyword::Group => &GROUP,
       */
