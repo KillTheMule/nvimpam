@@ -4,6 +4,7 @@ use crate::card::{
   cell::{Cell::*, FixedStr},
   keyword::Keyword::*,
   line::{Conditional::*, Line::*},
+  hint::Hint::*,
   Card,
 };
 
@@ -13,17 +14,45 @@ macro_rules! part {
       lines: &[
         Provides(&[
           Kw($k),
-          Integer(8),
-          Str(8),
-          Integer(8),
-          Integer(8),
-          Integer(8),
-          Integer(8)
+          Integer(8, IDPRT),
+          Str(8, ATYPE),
+          Integer(8, IDMAT),
+          Integer(8, IDVAMAT),
+          Integer(8, IDTHMAT),
+          Integer(8, IDPMAT),
+          Integer(8, IDNUMPAR),
           ], Int(25..33, 0)),
-        Optional(&[Fixed(FixedStr::Rmat), Str(76)], 0),
-        Cells(&[Fixed(FixedStr::Name), Str(76)]),
-        Cells(&[Float(10), Float(10)]),
-        Cells(&[Float(10), Float(10), Float(10)]),
+        Optional(&[Fixed(FixedStr::Rmat), Str(0, REFNAM)], 0),
+        Cells(&[Fixed(FixedStr::Name), Str(0, TITLE)]),
+        OptionalBlock(b"META", b"END_META", META),
+        Cells(&[Float(10, DTELIM), Float(10, TSCALF), Float(10, DTRATIO)]),
+        Cells(&[Float(10, TCONT), Float(10, EPSINI), Float(10, COULFRIC)]),
+        $( $e ),+ ,
+        Cells(&[Fixed(FixedStr::EndPart)]),
+      ],
+      ownfold: true,
+    };
+  };
+}
+
+macro_rules! part1d {
+  ($($e: expr),+; $k: expr) => {
+    Card {
+      lines: &[
+        Provides(&[
+          Kw($k),
+          Integer(8, IDPRT),
+          Str(8, ATYPE),
+          Integer(8, IDMAT),
+          Integer(8, IDVAMAT),
+          Integer(8, IDTHMAT),
+          Integer(8, IDPMAT)
+          ], Int(25..33, 0)),
+        Optional(&[Fixed(FixedStr::Rmat), Str(0, REFNAM)], 0),
+        Cells(&[Fixed(FixedStr::Name), Str(0, TITLE)]),
+        OptionalBlock(b"META", b"END_META", META),
+        Cells(&[Float(10, DTELIM), Float(10, TSCALF), Float(10, DTRATIO)]),
+        Cells(&[Float(10, TCONT), Float(10, EPSINI), Float(10, COULFRIC)]),
         $( $e ),+ ,
         Cells(&[Fixed(FixedStr::EndPart)]),
       ],
@@ -35,12 +64,12 @@ macro_rules! part {
 // Part 3D
 
 pub static PARTSOLID: Card = part!(
-  Cells(&[Integer(5), Float(10), Float(10), Float(10)]),
-  Cells(&[Integer(5), Float(10), Float(10), Float(10)])
+  Cells(&[Integer(5, IORT1), Blank(5), Float(10, XDIR1), Float(10, YDIR1), Float(10, ZDIR1)]),
+  Cells(&[Integer(5, IORT2), Blank(5), Float(10, XDIR2), Float(10, YDIR2), Float(10, ZDIR2)])
   ;PartSolid);
 
 pub static PARTCOS3D: Card = part!(
-  Cells(&[Blank(10), Float(10), Float(10), Float(10), Float(10), Integer(10)])
+  Cells(&[Blank(10), Float(10, THK), Float(10, XDIR1), Float(10, YDIR1), Float(10, ZDIR1), Integer(10, IMETH)])
   ;PartCos3d);
 
 pub static PARTBSHEL: Card = part!(
@@ -48,110 +77,111 @@ pub static PARTBSHEL: Card = part!(
   ;PartBshel);
 
 pub static PARTTETRA: Card = part!(
-  Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10)]),
-  Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10)])
+  Cells(&[Integer(5, IORT1), Blank(5), Float(10, XDIR1), Float(10, YDIR1), Float(10, ZDIR1)]),
+  Cells(&[Integer(5, IORT2), Blank(5), Float(10, XDIR2), Float(10, YDIR2), Float(10, ZDIR2)])
   ; PartTetra);
 
 pub static PARTSPHEL: Card = part!(
-  Provides(&[Float(10), Float(10), Float(10), Float(10), Integer(5), Integer(5),
-             Float(10), Float(10), Integer(5)],
+  Provides(&[Float(10, RATIO), Float(10, Hmin), Float(10, Hmax), Float(10, ETA), Integer(5, INORM), Integer(5, NPAIR),
+             Float(10, ALPHAmg), Float(10, BETAmg), Integer(5, NMON)],
            Number(46..51)),
-  Repeat(&[Integer(10), Float(10)], 1)
+  Repeat(&[Integer(10, IDPRT), Float(10, Hfac)], 1)
   ; PartSphel);
 
 // PART 2D
 
 pub static PARTTSHEL: Card = part!(
-  Cells(&[Float(10), Integer(5)])
+  Cells(&[Float(10, H), Integer(5, NINT)])
   ;PartTshel);
 
 pub static PARTSHELL: Card = part!(
-  Cells(&[Float(10), Integer(5), Float(10), Integer(5)]),
-  Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10), Float(10)])
+  Cells(&[Float(10, H), Integer(5, NINT), Float(10, OFFSET), Integer(5, NTHDOF)]),
+  Cells(&[Integer(5, IORT), Blank(5), Float(10, XDIR), Float(10, YDIR), Float(10, ZDIR), Float(10, Aoff)])
   ;PartShell);
 
 pub static PARTMEMBR: Card = part!(
-  Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10), Float(10),
-          Float(10), Float(10), Float(10),]),
-  Cells(&[Integer(5), Blank(5), Float(10), Float(10), Float(10), Float(10),
-          Float(10), Float(10), Float(10),])
+  Cells(&[Float(10, H), Blank(15), Integer(5, NTHDOF)]),
+  Cells(&[Integer(5, IORT1), Blank(5), Float(10, VX1), Float(10, VY1), Float(10,  VZ1), Float(10, ALPHof1), Float(10, TX1),
+          Float(10, TY1), Float(10, TZ1)]),
+  Cells(&[Integer(5, IORT2), Blank(5), Float(10, VX2), Float(10, VY2), Float(10,  VZ2), Float(10, ALPHof2), Float(10, TX2),
+          Float(10, TY2), Float(10, TZ2)])
   ;PartMembr);
 
 // PART 1D
 
-pub static PARTBAR: Card = part!(
-  Cells(&[Float(10)])
+pub static PARTBAR: Card = part1d!(
+  Cells(&[Float(10, A)])
   ;PartBar);
 
-pub static PARTBEAM: Card = part!(
-  Cells(&[Float(10), Float(10), Float(10), Float(10), Float(10), Blank(5),
-          Integer(5), Float(10)]),
-  Cells(&[Float(10), Float(10), Float(10), Blank(4), Binary(6), Blank(4),
-          Binary(6)]),
-  Cells(&[Float(10), Float(10), Float(10), Float(10), Float(10)]),
-  Cells(&[Float(10), Float(10), Float(10), Float(10), Float(10)]),
-  Provides(&[Integer(5), Integer(5), Float(10), Float(10), Float(10)],
+// TODO(KillTheMule): Need to check IDMAT for the first line's hints
+pub static PARTBEAM: Card = part1d!(
+  Cells(&[Float(10, A), Float(10, Ashs), Float(10, Is), Float(10, It), Float(10, Ir), Blank(5),
+          Integer(5, ITPR), Float(10, Asht)]),
+  Cells(&[Float(10, Ist), Float(10, COGs), Float(10, COGt), Blank(4), Binary(6, DOFCD1), Blank(4),
+          Binary(6, DOFCD2)]),
+  Cells(&[Float(10, ALPHA1), Float(10, BETA1), Float(10, GAMMA1), Float(10, KSI1), Float(10, ETA1)]),
+  Cells(&[Float(10, ALPHA2), Float(10, BETA2), Float(10, GAMMA2), Float(10, KSI2), Float(10, ETA2)]),
+  Provides(&[Integer(5, IDSEC), Integer(5, NIPS), Float(10, a), Float(10, b), Float(10, c)],
              Number(6..11)),
-  Repeat(&[Float(10), Float(10), Float(10)], 1)
+  Repeat(&[Float(10, LCOORDsi), Float(10, LCOORDti), Float(10, WTFACi)], 1)
   ;PartBeam);
 
-pub static PARTSPRING: Card = part!(
+pub static PARTSPRING: Card = part1d!(
   Cells(&[Blank(0)])
   ;PartSpring);
 
-pub static PARTSPRGBM: Card = part!(
-  Cells(&[Blank(0)])
+pub static PARTSPRGBM: Card = part1d!(
+  Cells(&[Integer(10, ARM), Float(10, Sr), Float(10, Ss), Float(10, St)])
   ;PartSprgbm);
 
-pub static PARTMBSPR: Card = part!(
+pub static PARTMBSPR: Card = part1d!(
   Cells(&[Blank(0)])
   ;PartMbspr);
 
-pub static PARTJOINT: Card = part!(
+pub static PARTJOINT: Card = part1d!(
   Cells(&[Blank(0)])
   ;PartJoint);
 
-pub static PARTKJOIN: Card = part!(
+pub static PARTKJOIN: Card = part1d!(
   Cells(&[Blank(0)])
   ;PartKjoin);
 
-pub static PARTMTOJNT: Card = part!(
+pub static PARTMTOJNT: Card = part1d!(
   Cells(&[Blank(0)])
   ;PartMtojnt);
 
-pub static PARTMBKJN: Card = part!(
+pub static PARTMBKJN: Card = part1d!(
   Cells(&[Blank(0)])
   ;PartMbkjn);
 
-pub static PARTTIED: Card = part!(
-  Provides(&[Float(10), Blank(60), Integer(10)], Int(71..81,1)),
-  Optional(&[Integer(5), Blank(5), Float(10), Float(10), Float(10), Float(10)],
+// TODO(KillTheMule): Line 2 hints depend on IDMAT
+pub static PARTTIED: Card = part1d!(
+  Provides(&[Float(10, RDIST), Blank(50), Integer(10, ITSSR), Integer(10, INEXT)], Int(71..81, 1)),
+  Optional(&[Integer(5, IORT), Blank(5), Float(10, XDIR), Float(10, YDIR), Float(10, ZDIR), Float(10, ALPHof)],
            1)
   ;PartTied);
 
-pub static PARTSLINK: Card = part!(
-  Provides(&[Float(10), Blank(60), Integer(10)], Int(71..81,1)),
-  Optional(&[Integer(5), Blank(5), Float(10), Float(10), Float(10), Float(10)],
+// TODO(KillTheMule): Line 2 hints depend on IDMAT
+pub static PARTSLINK: Card = part1d!(
+  Provides(&[Float(10, RDIST), Blank(60), Integer(10, INEXT)], Int(71..81, 1)),
+  Optional(&[Integer(5, IORT), Blank(5), Float(10, XDIR), Float(10, YDIR), Float(10, ZDIR), Float(10, ALPHof)],
            1)
   ;PartSlink);
 
-pub static PARTELINK: Card = part!(
-  Provides(&[Float(10), Float(10), Blank(50), Integer(10)], Int(71..81,1)),
-  Optional(&[Integer(5), Blank(5), Float(10), Float(10), Float(10), Float(10)],
+// TODO(KillTheMule): Line 2 hints depend on IDMAT
+pub static PARTELINK: Card = part1d!(
+  Provides(&[Float(10, RDIST), Float(10, Aedge), Blank(50), Integer(10, INEXT)], Int(71..81, 1)),
+  Optional(&[Integer(5, IORT), Blank(5), Float(10, XDIR), Float(10, YDIR), Float(10, ZDIR), Float(10, ALPHof)],
            1)
   ;PartElink);
 
-pub static PARTLLINK: Card = part!(
-  Cells(&[Float(10), Float(10), Float(10), Integer(10)])
-  ;PartLlink);
-
-pub static PARTPLINK: Card = part!(
-  Cells(&[Float(10), Integer(10), Float(10), Integer(10), Float(10), Float(10),
-          Integer(10)])
+pub static PARTPLINK: Card = part1d!(
+  Cells(&[Float(10, RSEAR), Integer(10, NLAYR), Float(10, SPWLG), Integer(10, NGESP), Float(10, SPOTRA), Float(10, THETA),
+          Integer(10, IRADBEN), Float(10, PHYRAD)])
   ;PartPlink);
 
-pub static PARTGAP: Card = part!(
-  Cells(&[Blank(10), Float(10)])
+pub static PARTGAP: Card = part1d!(
+  Cells(&[Blank(10), Float(10, GAP)])
   ;PartGap);
 
 #[cfg(test)]
@@ -626,23 +656,6 @@ mod tests {
   ];
 
   cardtest!(fold_partelink, CARD_PARTELINK, vec![(2, 10, PartElink)]);
-
-  const CARD_PARTLLINK: [&'static str; 12] = [
-    "$#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT",
-    "PART  /        1   LLINK       1       0       0       0",
-    "$#                                                                         TITLE",
-    "NAME PART_1                                                                     ",
-    "$#  DTELIM    TSCALF   DTRATIO",
-    "                              ",
-    "$#   TCONT    EPSINI  COULFRIC",
-    "                              ",
-    "$#   RSEAR     DISPW     WIDTH    NGWDTH",
-    "                                        ",
-    "$#      ",
-    "END_PART",
-  ];
-
-  cardtest!(fold_partllink, CARD_PARTLLINK, vec![(1, 11, PartLlink)]);
 
   const CARD_PARTPLINK: [&'static str; 9] = [
     "$PART Type PLINK",

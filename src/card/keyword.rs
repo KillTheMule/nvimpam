@@ -44,7 +44,6 @@ pub enum Keyword {
   Slink,
   Plink,
   Tied,
-  /*
   // Part 3D
   PartSolid,
   PartBshel,
@@ -68,10 +67,8 @@ pub enum Keyword {
   PartTied,
   PartSlink,
   PartElink,
-  PartLlink,
   PartPlink,
   PartGap,
-  */
   // Constraint
   Mtoco,
   Otmco,
@@ -174,17 +171,14 @@ impl Keyword {
         // b"ELINK / "
         4993446687463714592 => Some(Elink),
         // LLINK isn't in 2018 anymore
-        /*
         // b"LLINK / "
-        5497849845729210144 => Some(Llink),
-        */
+        // 5497849845729210144 => Some(Llink),
         // b"SLINK / "
         6002253003994705696 => Some(Slink),
         // b"PLINK / "
         5786080221880921888 => Some(Plink),
         // b"TIED  / "
         6073461731384897312 => Some(Tied),
-        /*
         // b"PART  / "
         5782993917790138144 => {
           if len < 24 {
@@ -262,8 +256,9 @@ impl Keyword {
               4993446687463710752 | 2325348660336599072
               | 2314926402418133792 | 2314885690473139787 => Some(PartElink),
               // "LLINK   ", " LLINK  ", "  LLINK ", "   LLINK"
-              5497849845729206304 | 2327318985173573664
-              | 2314934098999528224 | 2314885720537910859 => Some(PartLlink),
+              // LLINK not in 2018 anymore
+              //5497849845729206304 | 2327318985173573664
+              //| 2314934098999528224 | 2314885720537910859 => Some(PartLlink),
               // "PLINK   ", " PLINK  ", "  PLINK ", "   PLINK"
               5786080221880918048 | 2328444885080416288
               | 2314938497046039328 | 2314885737717780043 => Some(PartPlink),
@@ -276,7 +271,6 @@ impl Keyword {
             }
           }
         }
-        */
         // Constraint
         // b"MTOCO / "
         5572165789473058592 => Some(Mtoco),
