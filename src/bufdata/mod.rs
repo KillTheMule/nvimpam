@@ -229,29 +229,22 @@ impl<'a> BufData<'a> {
     }
   }
 
-  pub fn hl_linerange(
-    &self,
-    first: LineNr,
-    last: LineNr,
-  ) -> Option<Range<usize>> {
-    let firstline = match self.lines.first_before(first) {
-      Some(f) => f,
-      None => return None,
-    }
-    .1;
+  pub fn hl_linerange(&self, first: LineNr, last: LineNr) -> Range<usize> {
+    let firstline = self
+      .lines
+      .first_before(first)
+      .map(|(_, l)| l)
+      .unwrap_or(first);
 
-    let mut lastline = match self.lines.first_after(last) {
-      Some(l) => l,
-      None => return None,
-    }
-    .1;
+    let mut lastline =
+      self.lines.first_after(last).map(|(_, l)| l).unwrap_or(last);
 
     // highlight_region is end_exclusive, so we need to make sure
     // we include the last line requested even if it is a keyword line
     if lastline == last {
       lastline += 1;
     }
-    Some(self.highlights.linerange(firstline, lastline))
+    self.highlights.linerange(firstline, lastline)
   }
 
   /// Construct the necessary calls to neovim to highlight the region given by

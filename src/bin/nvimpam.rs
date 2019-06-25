@@ -271,7 +271,6 @@ pub fn event_loop(
         } else {
           got_initial_lines = true;
         }
-
       }
       Ok(RefreshFolds) => to_handler.send(bufdata.fold_calls())?,
       Ok(HighlightRegion {
@@ -280,10 +279,9 @@ pub fn event_loop(
       }) => {
         // Note to self: This returns the index range of the highlights, not
         // the lines
-        if let Some(hlrange) = bufdata.hl_linerange(firstline, lastline) {
-          if let Some(calls) = bufdata.highlight_region_calls(hlrange) {
-            nvim.call_atomic(calls).context("call_atomic failed")?;
-          }
+        let hlrange = bufdata.hl_linerange(firstline, lastline);
+        if let Some(calls) = bufdata.highlight_region_calls(hlrange) {
+          nvim.call_atomic(calls).context("call_atomic failed")?;
         }
       }
       Ok(CellHint { line, column }) => {
