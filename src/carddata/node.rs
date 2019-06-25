@@ -181,15 +181,15 @@ mod tests {
 
     assert_eq!(
       bufdata.cellhint(LineNr::from_usize(1), 0),
-      Value::from("Keyword")
+      Value::from(vec![Value::from("Node"), Value::from("Keyword")])
     );
     assert_eq!(
       bufdata.cellhint(LineNr::from_usize(1), 10),
-      Value::from("IDNOD")
+      Value::from(vec![Value::from("Node"), Value::from("IDNOD")])
     );
     assert_eq!(
       bufdata.cellhint(LineNr::from_usize(1), 8),
-      Value::from("IDNOD")
+      Value::from(vec![Value::from("Node"), Value::from("IDNOD")])
     );
   }
 }

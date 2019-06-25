@@ -128,7 +128,6 @@ impl Keyword {
         5643939700988194592 => Some(Nsmas),
         // b"NSMAS2/ "
         5643939700989374240 => Some(Nsmas2),
-        /*
         // b"SOLID / "
         6003100705867444000 => Some(Solid),
         // b"HEXA20/ "
@@ -175,6 +174,7 @@ impl Keyword {
         5134473149087231776 => Some(Gap),
         // b"IMPMA / "
         5281966230710791968 => Some(Impma),
+        /*
         // b"ELINK / "
         4993446687463714592 => Some(Elink),
         // b"LLINK / "
