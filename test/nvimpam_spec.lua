@@ -447,11 +447,9 @@ describe('nvimpam', function()
     local chans = meths.list_chans()
     local client = chans[3].client
     eq(client.name, 'nvimpam')
-    eq({ {1, 3} }, meths.execute_lua([[
-         local t = {}
-         for k, v in pairs(require('nvimpam.job').jobids) do
-           table.insert(t, {k, v}) end
-         return t
+    eq(3, meths.execute_lua([[
+         local jobid = require('nvimpam.job').jobid(1)
+         return jobid 
        ]], {}))
 
     command("enew!")
@@ -459,11 +457,9 @@ describe('nvimpam', function()
     sleep(100)
     chans = meths.list_chans()
     eq(nil, chans[3])
-    eq({ }, meths.execute_lua([[
-         local t = {}
-         for k, v in pairs(require('nvimpam.job').jobids) do
-           table.insert(t, {k, v}) end
-         return t
+    eq({ false, 'No job entry for buffer 1' }, meths.execute_lua([[
+         local ok, err = pcall(require('nvimpam.job').jobid, 1)
+         return { ok, err }
        ]], {}))
 
   end)
