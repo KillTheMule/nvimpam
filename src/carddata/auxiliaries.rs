@@ -2,12 +2,13 @@
 //! [`Card`](crate::card::Card) instances.
 use crate::card::{
   cell::Cell::*, ges::GesType::*, keyword::Keyword::*, line::Line::*, Card,
+  hint::Hint::*
 };
 
 pub static GROUP: Card = Card {
   lines: &[
-    Cells(&[Kw(Group), Str(72)]),
-    OptionalBlock(b"META", b"END_META"),
+    Cells(&[Kw(Group), Str(0, TITLE)]),
+    OptionalBlock(b"META", b"END_META", META),
     Ges(GesNode),
   ],
   ownfold: true,

@@ -39,13 +39,12 @@ pub enum Keyword {
   Sphelo,
   Gap,
   Impma,
-  /*
   // Link
   Elink,
-  Llink,
   Slink,
   Plink,
   Tied,
+  /*
   // Part 3D
   PartSolid,
   PartBshel,
@@ -80,10 +79,8 @@ pub enum Keyword {
   Rbody1,
   Rbody2,
   Rbody3,
-  /*
   // Auxiliaries
   Group,
-  */
 }
 
 impl Keyword {
@@ -174,17 +171,20 @@ impl Keyword {
         5134473149087231776 => Some(Gap),
         // b"IMPMA / "
         5281966230710791968 => Some(Impma),
-        /*
         // b"ELINK / "
         4993446687463714592 => Some(Elink),
+        // LLINK isn't in 2018 anymore
+        /*
         // b"LLINK / "
         5497849845729210144 => Some(Llink),
+        */
         // b"SLINK / "
         6002253003994705696 => Some(Slink),
         // b"PLINK / "
         5786080221880921888 => Some(Plink),
         // b"TIED  / "
         6073461731384897312 => Some(Tied),
+        /*
         // b"PART  / "
         5782993917790138144 => {
           if len < 24 {
@@ -322,11 +322,9 @@ impl Keyword {
             }
           }
         }
-        /*
         // Auxiliaries
         // b"GROUP / "
         5139257352618258208 => Some(Group),
-        */
         _ => None,
       }
     }

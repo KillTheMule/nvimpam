@@ -74,13 +74,12 @@ impl<'a> From<&'a Keyword> for &'static Card {
       Keyword::Sphelo => &SPHELO,
       Keyword::Gap => &GAP,
       Keyword::Impma => &IMPMA,
-      /*
       // Link
       Keyword::Elink => &ELINK,
-      Keyword::Llink => &LLINK,
       Keyword::Slink => &SLINK,
       Keyword::Plink => &PLINK,
       Keyword::Tied => &TIED,
+      /*
       // Part 3D
       Keyword::PartSolid => &PARTSOLID,
       Keyword::PartBshel => &PARTBSHEL,
@@ -115,10 +114,8 @@ impl<'a> From<&'a Keyword> for &'static Card {
       Keyword::Rbody1 => &RBODY1,
       Keyword::Rbody2 => &RBODY2,
       Keyword::Rbody3 => &RBODY3,
-      /*
       // Auxiliaries
       Keyword::Group => &GROUP,
-      */
     }
   }
 }

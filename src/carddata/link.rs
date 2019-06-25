@@ -5,17 +5,20 @@ use crate::card::{
   ges::GesType::*,
   keyword::Keyword::*,
   line::Line::*,
+  hint::Hint::*,
   Card,
 };
 
 pub static ELINK: Card = Card {
   lines: &[
-    Cells(&[Kw(Elink), Integer(8), Integer(8), Integer(8), Integer(8)]),
+    Cells(&[Kw(Elink), Integer(8, IDELE), Integer(8, IDPRT), Integer(8, IDNOD1), Integer(8, IDNOD2)]),
     Ges(GesFace),
   ],
   ownfold: false,
 };
 
+// LLINK isn't in 2018 anymore
+/*
 pub static LLINK: Card = Card {
   lines: &[
     Cells(&[Kw(Llink), Integer(8), Integer(8), Integer(8), Integer(8)]),
@@ -23,17 +26,18 @@ pub static LLINK: Card = Card {
   ],
   ownfold: false,
 };
+*/
 
 pub static SLINK: Card = Card {
   lines: &[
     Cells(&[
       Kw(Slink),
-      Integer(8),
-      Integer(8),
-      Integer(8),
-      Integer(8),
-      Integer(8),
-      Integer(8),
+      Integer(8, IDELE),
+      Integer(8, IDPRT),
+      Integer(8, IDNOD1),
+      Integer(8, IDNOD2),
+      Integer(8, IDNOD3),
+      Integer(8, IDNOD4),
     ]),
     Ges(GesFace),
   ],
@@ -44,11 +48,11 @@ pub static PLINK: Card = Card {
   lines: &[
     Cells(&[
       Kw(Plink),
-      Integer(8),
-      Integer(8),
-      Integer(8),
-      Integer(8),
-      Integer(8),
+      Integer(8, IDELE),
+      Integer(8, IDPRT),
+      Integer(8, IDNOD1),
+      Integer(8, MORE),
+      Integer(8, NLAYR),
     ]),
     Ges(GesFace),
   ],
@@ -57,8 +61,8 @@ pub static PLINK: Card = Card {
 
 pub static TIED: Card = Card {
   lines: &[
-    Cells(&[Kw(Tied), Integer(8), Integer(8), Integer(8)]),
-    Cells(&[Fixed(FixedStr::Name), Str(76)]),
+    Cells(&[Kw(Tied), Integer(8, IDEL), Integer(8, IDPRT), Integer(8, IPCHK)]),
+    Cells(&[Fixed(FixedStr::Name), Str(0, TITLE)]),
     Ges(GesNode),
     Ges(GesFace),
   ],
@@ -87,6 +91,7 @@ mod tests {
 
   cardtest!(fold_elink, CARD_ELINK, vec![(1, 12, Elink)]);
 
+  /*
   const CARD_LLINK: [&'static str; 23] = [
     "$LLINK Element",
     "LLINK /                                 ",
@@ -114,6 +119,7 @@ mod tests {
   ];
 
   cardtest!(fold_llink, CARD_LLINK, vec![(1, 22, Llink)]);
+  */
 
   const CARD_SLINK: [&'static str; 6] = [
     "$SLINK Element",

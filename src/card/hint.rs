@@ -111,5 +111,10 @@ pub enum Hint {
   QUALIFIER3,
   IMATYP,
   ISEL,
-  FNAMEma
+  FNAMEma,
+  META,
+  IDELE,
+  MORE,
+  IPCHK,
+  NLAYR,
 }
