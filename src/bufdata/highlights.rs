@@ -236,6 +236,8 @@ impl Highlights {
     }
 
     let mut calls: Vec<Value> = vec![];
+    use log::info;
+    info!("Clearing highlight from {} to {}", firstline, lastline);
 
     calls.push(
       vec![
@@ -244,7 +246,7 @@ impl Highlights {
           buf.get_value().clone(),
           Value::from(5),
           Value::from(*firstline),
-          Value::from(*lastline),
+          Value::from(*lastline + 1), // ranges are end-exclusive
         ]
         .into(),
       ]
