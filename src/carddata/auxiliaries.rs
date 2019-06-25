@@ -1,8 +1,8 @@
 //! This modules holds the the global static auxiliary
 //! [`Card`](crate::card::Card) instances.
 use crate::card::{
-  cell::Cell::*, ges::GesType::*, keyword::Keyword::*, line::Line::*, Card,
-  hint::Hint::*
+  cell::Cell::*, ges::GesType::*, hint::Hint::*, keyword::Keyword::*,
+  line::Line::*, Card,
 };
 
 pub static GROUP: Card = Card {

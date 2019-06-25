@@ -2,9 +2,9 @@
 //! instances.
 use crate::card::{
   cell::{Cell::*, FixedStr},
+  hint::Hint::*,
   keyword::Keyword::*,
   line::{Conditional::*, Line::*},
-  hint::Hint::*,
   Card,
 };
 

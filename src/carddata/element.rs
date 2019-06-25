@@ -2,9 +2,9 @@
 //! instances.
 use crate::card::{
   cell::{Cell::*, FixedStr},
+  hint::Hint::*,
   keyword::Keyword::*,
   line::Line::*,
-  hint::Hint::*,
   Card,
 };
 
@@ -51,7 +51,13 @@ pub static HEXA20: Card = Card {
       Integer(8, IDNOD15),
       Integer(8, IDNOD16),
     ]),
-    Cells(&[Blank(16), Integer(8, IDNOD17), Integer(8, IDNOD18), Integer(8, IDNOD19), Integer(8, IDNOD20)]),
+    Cells(&[
+      Blank(16),
+      Integer(8, IDNOD17),
+      Integer(8, IDNOD18),
+      Integer(8, IDNOD19),
+      Integer(8, IDNOD20),
+    ]),
   ],
   ownfold: false,
 };
@@ -203,7 +209,13 @@ pub static SHEL8: Card = Card {
       Integer(8, IDNOD3),
       Integer(8, IDNOD4),
     ]),
-    Cells(&[Blank(24), Integer(8, IDNOD5), Integer(8, IDNOD6), Integer(8, IDNOD7), Integer(9, IDNOD8)]),
+    Cells(&[
+      Blank(24),
+      Integer(8, IDNOD5),
+      Integer(8, IDNOD6),
+      Integer(8, IDNOD7),
+      Integer(9, IDNOD8),
+    ]),
   ],
   ownfold: false,
 };
@@ -239,8 +251,22 @@ pub static BEAM: Card = Card {
       Binary(6, DOFCD2),
       Integer(8, ITPR),
     ]),
-    Cells(&[Blank(8), Float(8, ALPHA1), Float(8, BETA1), Float(8, GAMMA1), Float(8, KSI1), Float(8, ETA1)]),
-    Cells(&[Blank(8), Float(8, ALPHA2), Float(8, BETA2), Float(8, GAMMA2), Float(8, KSI2), Float(8, ETA2)]),
+    Cells(&[
+      Blank(8),
+      Float(8, ALPHA1),
+      Float(8, BETA1),
+      Float(8, GAMMA1),
+      Float(8, KSI1),
+      Float(8, ETA1),
+    ]),
+    Cells(&[
+      Blank(8),
+      Float(8, ALPHA2),
+      Float(8, BETA2),
+      Float(8, GAMMA2),
+      Float(8, KSI2),
+      Float(8, ETA2),
+    ]),
   ],
   ownfold: false,
 };
@@ -373,7 +399,15 @@ pub static GAP: Card = Card {
 
 pub static IMPMA: Card = Card {
   lines: &[
-    Cells(&[Kw(Impma), Integer(8, IDIMPMA), Str(8, QUALIFIER1), Str(8, QUALIFIER2), Str(8, QUALIFIER3), Integer(8, IMATYP), Integer(8, ISEL)]),
+    Cells(&[
+      Kw(Impma),
+      Integer(8, IDIMPMA),
+      Str(8, QUALIFIER1),
+      Str(8, QUALIFIER2),
+      Str(8, QUALIFIER3),
+      Integer(8, IMATYP),
+      Integer(8, ISEL),
+    ]),
     Cells(&[Fixed(FixedStr::Name), Str(0, TITLE)]),
     Cells(&[Blank(8), Str(8, FNAMEma)]),
   ],

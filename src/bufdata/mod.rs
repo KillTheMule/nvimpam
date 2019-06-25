@@ -229,16 +229,22 @@ impl<'a> BufData<'a> {
     }
   }
 
-  pub fn hl_linerange(&self, first: LineNr, last: LineNr) -> Option<Range<usize>> {
+  pub fn hl_linerange(
+    &self,
+    first: LineNr,
+    last: LineNr,
+  ) -> Option<Range<usize>> {
     let firstline = match self.lines.first_before(first) {
       Some(f) => f,
       None => return None,
-    }.1;
+    }
+    .1;
 
     let mut lastline = match self.lines.first_after(last) {
       Some(l) => l,
       None => return None,
-    }.1;
+    }
+    .1;
 
     // highlight_region is end_exclusive, so we need to make sure
     // we include the last line requested even if it is a keyword line
@@ -324,7 +330,11 @@ impl<'a> BufData<'a> {
     } else {
       array_vec.push(Value::from(usize::from(clinenr)));
       array_vec.push(Value::from(
-        self.lines.last().map(|l| usize::from(l.number)).unwrap_or(0),
+        self
+          .lines
+          .last()
+          .map(|l| usize::from(l.number))
+          .unwrap_or(0),
       ));
     }
     Value::from(array_vec)

@@ -5,7 +5,7 @@ use crate::card::{
   ges::GesType::*,
   hint::Hint::*,
   keyword::Keyword::*,
-  line::{Line::*, Conditional::*},
+  line::{Conditional::*, Line::*},
   Card,
 };
 

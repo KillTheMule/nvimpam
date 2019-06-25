@@ -3,15 +3,21 @@
 use crate::card::{
   cell::{Cell::*, FixedStr},
   ges::GesType::*,
+  hint::Hint::*,
   keyword::Keyword::*,
   line::Line::*,
-  hint::Hint::*,
   Card,
 };
 
 pub static ELINK: Card = Card {
   lines: &[
-    Cells(&[Kw(Elink), Integer(8, IDELE), Integer(8, IDPRT), Integer(8, IDNOD1), Integer(8, IDNOD2)]),
+    Cells(&[
+      Kw(Elink),
+      Integer(8, IDELE),
+      Integer(8, IDPRT),
+      Integer(8, IDNOD1),
+      Integer(8, IDNOD2),
+    ]),
     Ges(GesFace),
   ],
   ownfold: false,
@@ -61,7 +67,12 @@ pub static PLINK: Card = Card {
 
 pub static TIED: Card = Card {
   lines: &[
-    Cells(&[Kw(Tied), Integer(8, IDEL), Integer(8, IDPRT), Integer(8, IPCHK)]),
+    Cells(&[
+      Kw(Tied),
+      Integer(8, IDEL),
+      Integer(8, IDPRT),
+      Integer(8, IPCHK),
+    ]),
     Cells(&[Fixed(FixedStr::Name), Str(0, TITLE)]),
     Ges(GesNode),
     Ges(GesFace),

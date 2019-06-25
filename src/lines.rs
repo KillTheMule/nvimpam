@@ -516,19 +516,18 @@ mod tests {
     };
   }
 
-  use crate::carddata::constraint::OTMCO;
-  use crate::card::keyword::Keyword::*;
+  use crate::{card::keyword::Keyword::*, carddata::constraint::OTMCO};
 
   lineinfo_test!(lineinfo_otmco_1, CARD_OTMCO, 1,
-    { index: 0, number: 1, card: &OTMCO, cardline: &OTMCO.lines[0], 
+    { index: 0, number: 1, card: &OTMCO, cardline: &OTMCO.lines[0],
       keywordline: { number: 1, keyword: Otmco }
     });
   lineinfo_test!(lineinfo_otmco_2, CARD_OTMCO, 3,
-    { index: 1, number: 3, card: &OTMCO, cardline: &OTMCO.lines[1], 
+    { index: 1, number: 3, card: &OTMCO, cardline: &OTMCO.lines[1],
       keywordline: { number: 1, keyword: Otmco }
     });
   lineinfo_test!(lineinfo_otmco_3, CARD_OTMCO, 4,
-    { index: 2, number: 4, card: &OTMCO, cardline: &OTMCO.lines[2], 
+    { index: 2, number: 4, card: &OTMCO, cardline: &OTMCO.lines[2],
       keywordline: { number: 1, keyword: Otmco }
     });
 

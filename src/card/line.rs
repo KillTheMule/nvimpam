@@ -204,7 +204,9 @@ impl Line {
         if hintlen >= celllen as usize {
           hint = &hint[..celllen as usize - 1];
         }
-        for c in iter::repeat('-').take(usize::from(cell.len()) - 1 - hint.len()) {
+        for c in
+          iter::repeat('-').take(usize::from(cell.len()) - 1 - hint.len())
+        {
           s.push(c)
         }
         s.push_str(hint);
@@ -306,9 +308,9 @@ mod tests {
   #[test]
   fn cellhints_otmco() {
     use crate::carddata::constraint::OTMCO;
-    
+
     let line0 = &OTMCO.lines[0];
-    
+
     assert_eq!(line0.cellhint(0), "Keyword");
     assert_eq!(line0.cellhint(9), "IDOTM");
     assert_eq!(line0.cellhint(71), "ALPHA");

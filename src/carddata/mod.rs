@@ -40,11 +40,9 @@ pub mod link;
 pub mod node;
 pub mod part;
 
-pub use self::constraint::*;
 /// All static declarations can be imported via
 /// ```rust, compile_fail
 /// use carddata::*;
 /// ```
 pub use self::element::*;
-pub use self::{auxiliaries::*, constraint::*, node::*, link::*, part::*};
-pub use self::node::*;
+pub use self::{auxiliaries::*, constraint::*, link::*, node::*, part::*};
