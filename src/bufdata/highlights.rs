@@ -236,8 +236,6 @@ impl Highlights {
     }
 
     let mut calls: Vec<Value> = vec![];
-    use log::info;
-    info!("Clearing highlight from {} to {}", firstline, lastline);
 
     calls.push(
       vec![
