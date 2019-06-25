@@ -87,7 +87,7 @@ local function update_cellhint(line, column, buf)
     else
       local card, hint = unpack(new_hint)
       card = card:upper()
-      cardhints[1] = hints[card]
+      cardhints[1] = hints[card] or { {} }
       cellhint[1] = hint
       cellhint[2] = hint
       for _, v in ipairs(cardhints[1]) do
