@@ -234,11 +234,13 @@ pub fn event_loop(
   let curbuf = nvim.get_current_buf()?;
   let origlines;
   let mut bufdata = BufData::new(&curbuf);
+  let mut got_initial_lines = false;
 
   let connected = match file {
     None => curbuf.attach(nvim, true, vec![])?,
     Some(f) => {
       origlines = fs::read(f)?;
+      got_initial_lines = true;
       bufdata.parse_slice(&origlines)?;
       curbuf.attach(nvim, false, vec![])?
     }
@@ -262,9 +264,14 @@ pub fn event_loop(
         }
         let hlrange = bufdata.update(firstline, lastline, linedata)?;
 
-        if let Some(calls) = bufdata.highlight_region_calls(hlrange) {
-          nvim.call_atomic(calls).context("call_atomic failed")?;
+        if got_initial_lines {
+          if let Some(calls) = bufdata.highlight_region_calls(hlrange) {
+            nvim.call_atomic(calls).context("call_atomic failed")?;
+          }
+        } else {
+          got_initial_lines = true;
         }
+
       }
       Ok(RefreshFolds) => to_handler.send(bufdata.fold_calls())?,
       Ok(HighlightRegion {
