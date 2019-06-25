@@ -276,14 +276,13 @@ impl Keyword {
             }
           }
         }
+        */
         // Constraint
         // b"MTOCO / "
         5572165789473058592 => Some(Mtoco),
         // b"OTMCO / "
-        */
         5716278778525658912 => Some(Otmco),
         // b"RBODY / "
-        /*
         5927387214544645920 => {
           if len < 32 {
             None
@@ -323,6 +322,7 @@ impl Keyword {
             }
           }
         }
+        /*
         // Auxiliaries
         // b"GROUP / "
         5139257352618258208 => Some(Group),
