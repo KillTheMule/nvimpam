@@ -42,7 +42,7 @@ describe('nvimpam', function()
       [14] = {foreground = Screen.colors.Grey0, background = Screen.colors.Yellow},
     })
     command('set rtp+=../')
-    command('source ../init.vim')
+    command('source ../test/init_test.vim')
   end)
 
   after_each(function()
@@ -1015,7 +1015,7 @@ describe('nvimpam', function()
     command('edit ' .. alter_slashes('../files/example.pc'))
     eq(eval("&foldtext"), "Nvimpam_foldtext()")
 
-    feed(":NvimPam<Tab>")
+    feed(":NvimPamA<Tab>")
     screen:expect([[
       INPUTVERSION 2011                                                                |
       ANALYSIS EXPLICIT                                                                |
@@ -1030,14 +1030,14 @@ describe('nvimpam', function()
       TITLE /  BoxBeam fine meshed model                                               |
       RUNEND/                                                                          |
        TIME      15.01                                                                 |
-      {14:NvimPamAttach}{4:  NvimPamHighlightScreen  NvimPamMenu  NvimPamUpdateFolds           }|
-      :NvimPamAttach^                                                                   |
+      {14:NvimPamAddCardComments}{4:  NvimPamAddLineComment  NvimPamAlignCard  >               }|
+      :NvimPamAddCardComments^                                                          |
     ]])
 
     feed("<Esc>")
     command('set ft=text')
     eq(eval("&foldtext"), "foldtext()")
-    feed(":NvimPam<Tab>")
+    feed(":NvimPamA<Tab>")
     screen:expect([[
       INPUTVERSION 2011                                                                |
       ANALYSIS EXPLICIT                                                                |
@@ -1053,7 +1053,7 @@ describe('nvimpam', function()
       RUNEND/                                                                          |
        TIME      15.01                                                                 |
       END_RUNEND                                                                       |
-      :NvimPam^                                                                         |
+      :NvimPamA^                                                                        |
     ]])
   end)
 
