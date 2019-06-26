@@ -253,11 +253,13 @@ impl<'a> BufData<'a> {
   /// beforehand.
   pub fn highlight_region_calls(
     &mut self,
+    firstline: LineNr,
+    lastline: LineNr,
     indexrange: Range<usize>,
   ) -> Option<Vec<Value>> {
     self
       .highlights
-      .highlight_region_calls(&self.buf, indexrange)
+      .highlight_region_calls(&self.buf, firstline, lastline, indexrange)
   }
 
   /// Pack up all existing level 1 and level 2 folds (in that order) into a

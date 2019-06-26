@@ -262,10 +262,12 @@ pub fn event_loop(
         if changedtick == 0 {
           continue;
         }
+        let added: isize = linedata.len() as isize - (lastline - firstline);
         let hlrange = bufdata.update(firstline, lastline, linedata)?;
 
         if got_initial_lines {
-          if let Some(calls) = bufdata.highlight_region_calls(hlrange) {
+          if let Some(calls) = bufdata.highlight_region_calls(firstline,
+                                                              lastline + added, hlrange) {
             nvim.call_atomic(calls).context("call_atomic failed")?;
           }
         } else {
@@ -280,7 +282,7 @@ pub fn event_loop(
         // Note to self: This returns the index range of the highlights, not
         // the lines
         let hlrange = bufdata.hl_linerange(firstline, lastline);
-        if let Some(calls) = bufdata.highlight_region_calls(hlrange) {
+        if let Some(calls) = bufdata.highlight_region_calls(firstline, lastline, hlrange) {
           nvim.call_atomic(calls).context("call_atomic failed")?;
         }
       }
