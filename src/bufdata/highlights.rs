@@ -222,7 +222,10 @@ impl Highlights {
     }
     use log::info;
 
-    info!("Range {:?}, lines {:?}-{:?}", indexrange, firstline, lastline);
+    info!(
+      "Range {:?}, lines {:?}-{:?}",
+      indexrange, firstline, lastline
+    );
 
     let mut calls: Vec<Value> = vec![];
 
