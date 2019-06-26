@@ -49,9 +49,9 @@ macro_rules! hl_bench {
           );
 
           let _calls = black_box(bufdata.highlight_region_calls(
-            range.clone(),
             range.start.into(),
             range.end.into(),
+            range.clone(),
           ));
         })
       });
@@ -81,9 +81,9 @@ fn bench_bufdata_readonly(c: &mut Criterion) {
 
     b.iter(|| {
       let _calls = black_box(bufdata.highlight_region_calls(
-        1000..10000,
         1000.into(),
         10000.into(),
+        1000..10000,
       ));
     })
   });
