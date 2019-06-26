@@ -465,6 +465,7 @@ describe('nvimpam', function()
   end)
 
   it('provides a cardmenu', function()
+    if true then pending("Waiting for upstream impromptu") end
     -- impromptu uses this HL group, but the runtime isn't loaded on the
     -- neovim test runner
     command("hi def Comment cterm=NONE")
@@ -532,6 +533,7 @@ describe('nvimpam', function()
   end)
 
   it('provides a filter-based cardmenu', function()
+    if true then pending("Waiting for upstream impromptu") end
     -- impromptu uses this HL group, but the runtime isn't loaded on the
     -- neovim test runner
     command("hi def Keyword cterm=NONE")
