@@ -37,6 +37,7 @@ macro_rules! unwrap_or_ok {
 }
 
 /// The datastructure to hold all the information of a buffer.
+#[derive(Debug)]
 pub struct BufData<'a> {
   /// The buffer the plugin is attached to
   pub buf: &'a Buffer,
@@ -363,4 +364,12 @@ impl<'a> BufData<'a> {
   pub fn folds_level2_to_vec(&self) -> Vec<(usize, usize, Keyword)> {
     self.folds_level2.to_vec()
   }
+}
+
+#[cfg(test)]
+mod tests {
+
+
+
+
 }

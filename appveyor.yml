@@ -13,14 +13,14 @@ environment:
   matrix:
     # MinGW
     # CONFIGURATION used by nvim build script
-    - TARGET: i686-pc-windows-gnu
-      CONFIGURATION: MINGW_32
+    - TARGET: x86_64-pc-windows-gnu
+      CONFIGURATION: MINGW_64
       RUST_VERSION: stable
       FUNCTIONALTESTS: true
-    - TARGET: i686-pc-windows-gnu
+    - TARGET: x86_64-pc-windows-gnu
       RUST_VERSION: beta
       FUNCTIONALTESTS: false
-    - TARGET: i686-pc-windows-gnu
+    - TARGET: x86_64-pc-windows-gnu
       RUST_VERSION: nightly
       FUNCTIONALTESTS: false
 
@@ -36,12 +36,9 @@ matrix:
 
 
 install:
-  - ps: >-
-      If ($Env:TARGET -eq 'x86_64-pc-windows-gnu') {
-        $Env:PATH += ';C:\msys64\mingw64\bin'
-      } ElseIf ($Env:TARGET -eq 'i686-pc-windows-gnu') {
-        $Env:PATH += ';C:\msys64\mingw32\bin'
-      }
+  - ps: |
+      $env:PATH += ";C:\msys64\mingw64\bin"
+      $env:CONFIGURATION = "MINGW_64"
   - curl -sSf -o rustup-init.exe https://win.rustup.rs/
   - rustup-init.exe -y --default-host %TARGET% --default-toolchain %RUST_VERSION%
   - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
@@ -67,6 +64,7 @@ test_script:
         cargo build --release
         cd neovim
         cp ..\target\release\nvimpam.exe .
+        #Get-Content ci\build.ps1 | Select-String -pattern "(python|gem.cmd|ruby|npm|neovim-node-host|testdir|cpack|ErrorActionPreference)" -notmatch | Out-File ci\build2.ps1
         Get-Content ci\build.ps1 | Select-String -pattern "(python|gem.cmd|ruby|npm|neovim-node-host|testdir|cpack|ErrorActionPreference)" -notmatch | Out-File ci\build2.ps1
         & 'ci\build2.ps1'
       }
