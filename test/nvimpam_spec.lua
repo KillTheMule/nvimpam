@@ -38,8 +38,9 @@ describe('nvimpam', function()
       [10] = {background = 15000804},
       [11] = {foreground = Screen.colors.Grey100, background = Screen.colors.Red},
       [12] = {foreground = Screen.colors.Grey100, background = 11468800},
-      [13] = {foreground = Screen.colors.Red},
+      [13] = {foreground = Screen.colors.Red, background = Screen.colors.LightMagenta},
       [14] = {foreground = Screen.colors.Grey0, background = Screen.colors.Yellow},
+      [15] = {background = Screen.colors.LightMagenta},
     })
     command('set rtp+=../')
     command('source ../test/init_test.vim')
@@ -465,7 +466,6 @@ describe('nvimpam', function()
   end)
 
   it('provides a cardmenu', function()
-    if true then pending("Waiting for upstream impromptu") end
     -- impromptu uses this HL group, but the runtime isn't loaded on the
     -- neovim test runner
     command("hi def Comment cterm=NONE")
@@ -477,38 +477,38 @@ describe('nvimpam', function()
 
     command('NvimPamMenu')
     screen:expect([[
-      ^                                                                                 |
-       [r] Auxiliaries [i] Material                                                    |
-       [n] Constraint  [N] Node                                                        |
-       [t] Contact     [h] Others                                                      |
-       [l] Control     [O] Output                                                      |
-       [e] Element     [a] Part                                                        |
-       [d] Load        [f] Safety                                                      |
-       [M] MMC         [q] Close this prompt                                           |
-                                                                                       |
-                                                                                       |
-                                                                                       |
-                                                                                       |
-                                                                                       |
-                                                                                       |
+      {15:^                                                                                 }|
+      {15: [r] Auxiliaries [i] Material                                                    }|
+      {15: [n] Constraint  [N] Node                                                        }|
+      {15: [t] Contact     [h] Others                                                      }|
+      {15: [l] Control     [O] Output                                                      }|
+      {15: [e] Element     [a] Part                                                        }|
+      {15: [d] Load        [f] Safety                                                      }|
+      {15: [M] MMC         [q] Close this prompt                                           }|
+      {15:                                                                                 }|
+      {15:                                                                                 }|
+      {15:                                                                                 }|
+      {15:                                                                                 }|
+      {15:                                                                                 }|
+      {15:                                                                                 }|
                                                                                        |
     ]])
     feed("r")
     screen:expect([[
-      ^                                                                                 |
-       [h] Move up one level                   [L] PLANEs                              |
-       [r] CDATA Card                          [y] PYFUNC Python Function              |
-       [d] DELEM - Deleted Element Card        [R] RUPMOs                              |
-       [s] FRAMEs                              [S] SENSORs                             |
-       [i] FRICTion Models                     [e] SURFA Surface Definition            |
-       [n] FUNCSW Function Switch              [a] UDATA User Data                     |
-       [c] FUNCT Function Card                 [0] VECTOR Type 0                       |
-       [f] GROUP Group Definition              [1] VECTOR Type 1                       |
-       [b] LOOKU Lookup Table                  [q] Close this prompt                   |
-       [v] NLAVE Non Local Averadge Definition                                         |
-                                                                                       |
-                                                                                       |
-                                                                                       |
+      {15:^                                                                                 }|
+      {15: [h] Move up one level                   [L] PLANEs                              }|
+      {15: [r] CDATA Card                          [y] PYFUNC Python Function              }|
+      {15: [d] DELEM - Deleted Element Card        [R] RUPMOs                              }|
+      {15: [s] FRAMEs                              [S] SENSORs                             }|
+      {15: [i] FRICTion Models                     [e] SURFA Surface Definition            }|
+      {15: [n] FUNCSW Function Switch              [a] UDATA User Data                     }|
+      {15: [c] FUNCT Function Card                 [0] VECTOR Type 0                       }|
+      {15: [f] GROUP Group Definition              [1] VECTOR Type 1                       }|
+      {15: [b] LOOKU Lookup Table                  [q] Close this prompt                   }|
+      {15: [v] NLAVE Non Local Averadge Definition                                         }|
+      {15:                                                                                 }|
+      {15:                                                                                 }|
+      {15:                                                                                 }|
                                                                                        |
     ]])
     feed("r")
@@ -533,51 +533,51 @@ describe('nvimpam', function()
   end)
 
   it('provides a filter-based cardmenu', function()
-    if true then pending("Waiting for upstream impromptu") end
     -- impromptu uses this HL group, but the runtime isn't loaded on the
     -- neovim test runner
     command("hi def Keyword cterm=NONE")
 
     command("set rtp+=../../impromptu.nvim")
     command("set nowrap")
+    command("set bg=light")
     command('edit ' .. alter_slashes('../files/example.pc'))
 
 
     command('call luaeval("require(\'nvimpam.filter_cards\').filter_cards()")')
     screen:expect([[
-      Select a card                                                                    |
-      ─────────────────────────────────────────────────────────────────────────────────|
-      {13: →} 3D Boundary Condition                                                         |
-         ACFLD Acceleration Field                                                      |
-         ACTUA - Joint Actuator Definition                                             |
-         Acoustic Plane Wave                                                           |
-         BAGIN Definition                                                              |
-         BAR Element                                                                   |
-         BDFOR Body Forces                                                             |
-         BEAM Element                                                                  |
-         BFLUX Definition                                                              |
-         BOUNC Displacement BC                                                         |
-      ─────────────────────────────────────────────────────────────────────────────────|
-      ^                                                                                 |
-      {6:-- (insert) --}                                                                   |
+      {15:Select a card                                                                    }|
+      {15:─────────────────────────────────────────────────────────────────────────────────}|
+      {13: →}{15: 3D Boundary Condition                                                         }|
+      {15:   ACFLD Acceleration Field                                                      }|
+      {15:   ACTUA - Joint Actuator Definition                                             }|
+      {15:   Acoustic Plane Wave                                                           }|
+      {15:   BAGIN Definition                                                              }|
+      {15:   BAR Element                                                                   }|
+      {15:   BDFOR Body Forces                                                             }|
+      {15:   BEAM Element                                                                  }|
+      {15:   BFLUX Definition                                                              }|
+      {15:   BOUNC Displacement BC                                                         }|
+      {15:─────────────────────────────────────────────────────────────────────────────────}|
+      {15:^                                                                                 }|
+      {6:-- INSERT --}                                                                     |
     ]])
 
-    feed("i3d")
+    feed("3d")
     screen:expect([[
-      Select a card                                                                    |
-      ─────────────────────────────────────────────────────────────────────────────────|
-      {13: →} 3D Boundary Condition                                                         |
-         FBC3D Prescribed Motion onto Fluid Media                                      |
-         PART Type COS3D                                                               |
-                                                                                       |
-                                                                                       |
-                                                                                       |
-                                                                                       |
-                                                                                       |
-                                                                                       |
-                                                                                       |
-      ─────────────────────────────────────────────────────────────────────────────────|
-      3d^                                                                               |
+      {15:Select a card                                                                    }|
+      {15:─────────────────────────────────────────────────────────────────────────────────}|
+      {13: →}{15: 3D Boundary Condition                                                         }|
+      {15:   FBC3D Prescribed Motion onto Fluid Media                                      }|
+      {15:   PART Type COS3D                                                               }|
+      {15:                                                                                 }|
+      {15:                                                                                 }|
+      {15:                                                                                 }|
+      {15:                                                                                 }|
+      {15:                                                                                 }|
+      {15:                                                                                 }|
+      {15:                                                                                 }|
+      {15:─────────────────────────────────────────────────────────────────────────────────}|
+      {15:3d^                                                                               }|
       {6:-- INSERT --}                                                                     |
     ]])
 
