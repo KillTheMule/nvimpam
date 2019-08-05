@@ -23,6 +23,7 @@ autobenches = false
 edition = "2018"
 
 [dependencies]
+memchr = "2.2.0"
 log = "0.4.6"
 simplelog = "0.5.3"
 #neovim-lib = "0.6.0"
