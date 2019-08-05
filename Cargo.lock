@@ -337,6 +337,7 @@ dependencies = [
  "itertools 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lexical 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "memchr 2.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "neovim-lib 0.6.0",
  "simplelog 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

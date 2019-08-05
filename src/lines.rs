@@ -6,6 +6,8 @@ use std::{convert::AsRef, fmt, ops::Deref, slice};
 
 use crate::{card::keyword::Keyword, linenr::LineNr, linesiter::LinesIter};
 
+use memchr;
+
 /// An enum representing a line of a file, either as a byte slice (which we
 /// obtain from reading a file into a `Vec<u8>` and splitting on newlines) or an
 /// owned `String` (which we get from neovim's buffer update API via a
@@ -123,25 +125,31 @@ impl<'a> Lines<'a> {
 
   /// Extend a [`Lines`](crate::lines::Lines) struct from a byte slice by
   /// splitting on newlines.
-  pub fn parse_slice<'c: 'a>(&mut self, v: &'c [u8]) {
-    self.0.extend(
-      v.split(|b| *b == b'\n')
-        .enumerate()
-        .filter(|(_, s)| {
-          let first = s.get(0_usize);
-          first != Some(&b'$') && first != Some(&b'#')
-        })
-        .map(|(i, l)| ParsedLine {
-          number: i.into(),
+  pub fn parse_slice<'c: 'a>(&mut self, mut v: &'c [u8]) {
+    let mut lineidx = 0usize;
+
+    while let Some(nl) = memchr::memchr(b'\n', v) {
+      let first = v.get(0_usize).expect("Memchr found slice nonempty");
+      if first != &b'$' && first != &b'#' {
+        let l = &v[..nl];
+        self.0.push(ParsedLine {
+          number: lineidx.into(),
           text: RawLine::OriginalLine(l),
           keyword: Keyword::parse(l),
-        }),
-    );
+        });
+      }
+      lineidx += 1;
+      v = &v[nl + 1..];
+    }
 
-    // If the file contains a final newline, we need to remove the empty slice
-    // at the end
-    if self.0.last().map(|p| p.text.as_ref()) == Some(b"") {
-      self.0.pop();
+    let first = v.get(0_usize);
+
+    if first.is_some() && first != Some(&b'$') && first != Some(&b'#') {
+      self.0.push(ParsedLine {
+        number: lineidx.into(),
+        text: RawLine::OriginalLine(v),
+        keyword: Keyword::parse(v),
+      });
     }
   }
 
@@ -427,5 +435,4 @@ mod tests {
     test_before!(lines, 0, 1);
     test_after!(lines, 0, 1);
   }
-
 }
