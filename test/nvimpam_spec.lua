@@ -160,6 +160,52 @@ describe('nvimpam', function()
     ]])
   end)
 
+  it('works without reading a file from disk', function()
+    command('e tmp.pc')
+    command('NvimPamAttach')
+    command('0read ' .. alter_slashes('../files/example.pc'))
+    command('NvimPamUpdateFolds')
+    feed("28G")
+
+    screen:expect([[
+       ERFOUTPUT        3        0                                                     |
+      NODPLOT    DFLT                                                                  |
+      SOLPLOT     ALL                                                                  |
+       SHLPLOT   DFLT                                                                  |
+      END_OCTRL                                                                        |
+      $                                                                                |
+      ^$#         IDNOD               X               Y               Z                 |
+      {1: 725 lines: Node ································································}|
+      $----------------------------------------------------------------                |
+      $     MATERIAL DEFINITIONS                                                       |
+      $----------------------------------------------------------------                |
+      $ boxbeam                                                                        |
+      $#         IDMAT   MATYP             RHO   ISINT    ISHG  ISTRAT   IFROZ         |
+      MATER /        3     103         7.85E-6       0       0       0       0         |
+      {IGNORE}|
+    ]])
+
+    feed("809G")
+    screen:expect([[
+                                                                                       |
+                                                                                       |
+      $----------------------------------------------------------------                |
+      $     PART AND ELEMENT DEFINITIONS                                               |
+      $----------------------------------------------------------------                |
+      $#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT                         |
+      {1:^ 2 PartShells ···································································}|
+      $#         IDPRT   ATYPE   IDMAT IDVAMAT IDTHMAT  IDPMAT                         |
+      {1: 11 lines: PartPlink ····························································}|
+      $#          IDEL   IDPRT   IDNOD    MORE   NLAYR                                 |
+      {1: 15 lines: Plink ································································}|
+      $                                                                                |
+      $----------------------------------------------------------------                |
+      $     RIGID BODIES                                                               |
+      {IGNORE}|
+    ]])
+
+  end)
+
   it('can deal with insertions', function()
     insert(input)
     feed("1G")

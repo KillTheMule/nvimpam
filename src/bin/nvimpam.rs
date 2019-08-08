@@ -236,17 +236,17 @@ pub fn event_loop(
   let mut bufdata = BufData::new(&curbuf);
   let mut got_initial_lines = false;
 
-  let connected = match file {
-    None => curbuf.attach(nvim, true, vec![])?,
-    Some(f) => {
-      origlines = fs::read(f)?;
-      got_initial_lines = true;
-      bufdata.parse_slice(&origlines)?;
-      curbuf.attach(nvim, false, vec![])?
-    }
-  };
+  if let Some(f) = file {
+    got_initial_lines = true;
+    origlines = fs::read(&f).unwrap_or_else(|e| {
+      warn!("Could not read file '{}': '{}'", f.to_string_lossy(), e);
+      got_initial_lines = false;
+      Vec::new()
+    });
+    bufdata.parse_slice(&origlines)?;
+  }
 
-  if !connected {
+  if !curbuf.attach(nvim, !got_initial_lines, vec![])? {
     return Err(failure::err_msg("Could not enable buffer updates!"));
   }
 
