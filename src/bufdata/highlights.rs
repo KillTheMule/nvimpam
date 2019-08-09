@@ -243,22 +243,27 @@ impl Highlights {
       .into(),
     );
 
-    calls.extend(self.0[indexrange].iter().map(|((l, s, e), t)| {
-      let st: &'static str = (*t).into();
-      vec![
-        Value::from("nvim_buf_add_highlight".to_string()),
-        vec![
-          buf.get_value().clone(),
-          Value::from(5),
-          Value::from(st.to_string()),
-          Value::from(*l),
-          Value::from(u64::from(*s)),
-          Value::from(u64::from(*e)),
-        ]
-        .into(),
-      ]
-      .into()
-    }));
+    calls.extend(
+      self.0[indexrange]
+        .iter()
+        .filter(|((l, _, _), _)| firstline <= *l && *l <= lastline)
+        .map(|((l, s, e), t)| {
+          let st: &'static str = (*t).into();
+          vec![
+            Value::from("nvim_buf_add_highlight".to_string()),
+            vec![
+              buf.get_value().clone(),
+              Value::from(5),
+              Value::from(st.to_string()),
+              Value::from(*l),
+              Value::from(u64::from(*s)),
+              Value::from(u64::from(*e)),
+            ]
+            .into(),
+          ]
+          .into()
+        }),
+    );
 
     Some(calls)
   }
