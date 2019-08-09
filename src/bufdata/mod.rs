@@ -130,53 +130,33 @@ impl<'a> BufData<'a> {
     linedata: Vec<String>,
   ) -> Result<Range<usize>, Error> {
     let added: isize = linedata.len() as isize - (lastline - firstline);
+    let last_pre = self
+      .lines
+      .first_after(lastline)
+      .map(|l| l.1)
+      .unwrap_or(lastline);
+
+    self.lines.update(linedata, firstline, lastline);
 
     // the old behavior, just keep that for now
-    let mut first_pre =
-      self.lines.first_before(firstline).unwrap_or_else(|| {
+    let first_post = self.lines.first_before(firstline).unwrap_or_else(|| {
+      self.lines.get(0).map_or((0, 0.into()), |l| (0, l.number))
+    });
+    // the old behavior, just keep that for now
+    let last_post =
+      self.lines.first_after(lastline + added).unwrap_or_else(|| {
         self
           .lines
-          .get(0)
-          .map_or((0, 0_usize.into()), |l| (0, l.number))
+          .last()
+          .map_or((0, 0.into()), |l| (self.lines.len(), l.number + 1))
       });
-
-    // the old behavior, just keep that for now
-    let last_pre = self.lines.first_after(lastline).unwrap_or_else(|| {
-      if self.lines.is_empty() {
-        (0_usize, 0_usize.into())
-      } else {
-        let len = self.lines.len();
-        (len, self.lines[len - 1].number + 1)
-      }
-    });
-
-    let adjust_first = self
-      .lines
-      .last()
-      .map(|l| l.number < firstline)
-      .unwrap_or(false);
-
-    if adjust_first {
-      // firstline is after the last line of the file, so we got back the
-      // last line's data, but we want the virtual one after that
-      // TODO(KillTheMule): Should this be last_pre? Why does it work then?
-      first_pre.0 += 1;
-      first_pre.1 += 1;
-    }
-
-    let added_nocom = self.lines.update(linedata, firstline, lastline);
-
-    let first_post = first_pre.0;
-    // TODO(KillTheMule): Check this!
-    let last_post = ((last_pre.0 as isize) + added_nocom) as usize;
 
     let mut newhls = Highlights::new();
     let mut newfolds = Folds::new();
-
-    let li = LinesIter::new(self.lines[first_post..last_post].iter());
-
+    let li = LinesIter::new(self.lines[first_post.0..last_post.0].iter());
     BufData::parse_from_iter(&mut newhls, &mut newfolds, li)?;
-    self.folds.splice(newfolds, first_pre.1, last_pre.1, added);
+
+    self.folds.splice(newfolds, first_post.1, last_pre, added);
     self.folds_level2.recreate_level2(&self.folds)?;
 
     Ok(self.highlights.splice(newhls, firstline, lastline, added))
@@ -367,9 +347,4 @@ impl<'a> BufData<'a> {
 }
 
 #[cfg(test)]
-mod tests {
-
-
-
-
-}
+mod tests {}
